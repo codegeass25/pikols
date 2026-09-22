@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<meta name="robots" content="noindex" />
+<title>Live Match Scoring — PIKOL</title>
+<script src="config.js"></script>
+<link rel="stylesheet" href="styles.css" />
+<style>
+  body.scoring-page{min-height:100vh;background:
+    radial-gradient(circle at 12% 8%,color-mix(in srgb,var(--brand-primary) 26%,transparent),transparent 34%),
+    radial-gradient(circle at 88% 12%,color-mix(in srgb,var(--brand-accent) 18%,transparent),transparent 28%),
+    #101614;color:#f3f7f5}
+  .score-shell{width:min(1500px,100%);margin:auto;padding:max(16px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(20px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));min-height:100vh;display:grid;grid-template-rows:auto 1fr;gap:16px}
+  .score-top{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:13px 16px;border:1px solid rgba(255,255,255,.1);border-radius:18px;background:rgba(21,30,27,.84);backdrop-filter:blur(18px);box-shadow:0 18px 54px rgba(0,0,0,.25)}
+  .score-kicker{text-transform:uppercase;letter-spacing:.13em;font-size:.7rem;font-weight:800;color:#95aaa2}
+  .score-title{font-size:clamp(1.05rem,2vw,1.45rem);font-weight:800;letter-spacing:-.02em}
+  .live-pill{display:inline-flex;align-items:center;gap:7px;border-radius:999px;padding:7px 11px;font-weight:800;font-size:.77rem;background:rgba(255,255,255,.08);white-space:nowrap}
+  .live-dot{width:8px;height:8px;border-radius:50%;background:#59d49e;box-shadow:0 0 0 5px rgba(89,212,158,.11)}
+  .score-layout{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:16px;min-height:0}
+  .arena{display:grid;grid-template-rows:auto 1fr auto;gap:14px;min-height:0}
+  .match-meta{display:flex;flex-wrap:wrap;gap:8px}
+  .meta-chip{border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.055);border-radius:999px;padding:7px 10px;font-size:.77rem;color:#c7d5d0}
+  .scoreboard{display:grid;grid-template-columns:1fr minmax(68px,.12fr) 1fr;gap:14px;align-items:stretch;min-height:430px}
+  .competitor{position:relative;overflow:hidden;border-radius:28px;border:1px solid rgba(255,255,255,.11);background:linear-gradient(155deg,rgba(255,255,255,.075),rgba(255,255,255,.03));padding:clamp(20px,4vw,42px);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;box-shadow:0 24px 70px rgba(0,0,0,.24)}
+  .competitor::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 50% 10%,color-mix(in srgb,var(--brand-primary) 24%,transparent),transparent 42%);pointer-events:none}
+  .team-name{position:relative;font-size:clamp(1.15rem,2.3vw,2rem);font-weight:800;max-width:18ch;line-height:1.12}
+  .seed{position:relative;margin-top:7px;font-size:.78rem;color:#95aaa2}
+  .score-num{position:relative;font-family:var(--font-num);font-size:clamp(6rem,15vw,13rem);font-weight:900;line-height:.88;letter-spacing:-.08em;margin:clamp(18px,4vh,38px) 0;text-shadow:0 15px 44px rgba(0,0,0,.3)}
+  .point-btn{position:relative;width:min(100%,310px);min-height:74px;border:0;border-radius:20px;background:linear-gradient(135deg,var(--brand-primary),color-mix(in srgb,var(--brand-primary) 76%,#fff));color:#fff;font-weight:900;font-size:1.05rem;letter-spacing:.035em;cursor:pointer;box-shadow:0 16px 38px color-mix(in srgb,var(--brand-primary) 30%,transparent);transition:transform .12s ease,filter .12s ease}
+  .point-btn:active{transform:scale(.975)} .point-btn:disabled{opacity:.38;cursor:not-allowed;filter:grayscale(.5)}
+  .versus{display:flex;align-items:center;justify-content:center;font-weight:900;color:#7f918a;font-size:clamp(.8rem,1.2vw,1.05rem)}
+  .score-actions{display:flex;flex-wrap:wrap;gap:9px;justify-content:center;padding-bottom:4px}
+  .score-actions .btn{min-height:44px}
+  .score-side{border:1px solid rgba(255,255,255,.1);border-radius:22px;background:rgba(21,30,27,.82);backdrop-filter:blur(16px);padding:17px;display:flex;flex-direction:column;min-height:0}
+  .side-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:12px}.side-title{font-weight:800}
+  .history{overflow:auto;display:flex;flex-direction:column;gap:8px;min-height:0;padding-right:2px}
+  .hist{padding:10px 11px;border-radius:12px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.07)}
+  .hist strong{font-size:.77rem;text-transform:uppercase;letter-spacing:.06em}.hist small{display:block;color:#8fa29b;margin-top:3px}
+  .display-mode .score-side,.display-mode .score-actions,.display-mode .point-btn{display:none!important}.display-mode .score-layout{grid-template-columns:1fr}.display-mode .scoreboard{min-height:calc(100vh - 180px)}
+  .score-toast{position:fixed;left:50%;bottom:max(18px,env(safe-area-inset-bottom));transform:translateX(-50%) translateY(20px);background:#fff;color:#122019;padding:10px 14px;border-radius:999px;font-weight:700;opacity:0;pointer-events:none;transition:.18s;z-index:1000;box-shadow:0 14px 38px rgba(0,0,0,.3)}.score-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .auth-error{width:min(560px,calc(100% - 32px));margin:10vh auto;background:#1b2521;border:1px solid rgba(255,255,255,.1);border-radius:24px;padding:28px;text-align:center}
+  .scorer-panel{width:min(760px,calc(100% - 28px));margin:7vh auto;background:#1b2521;border:1px solid rgba(255,255,255,.1);border-radius:24px;padding:24px;box-shadow:0 24px 70px rgba(0,0,0,.3)}
+  .assigned-list{display:grid;gap:10px;margin-top:16px}.assigned-match{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:14px;border:1px solid rgba(255,255,255,.09);border-radius:16px;background:rgba(255,255,255,.045)}
+  .assigned-match strong{display:block}.assigned-match small{display:block;color:#94a79f;margin-top:4px}.scorer-login-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;text-align:left}@media(max-width:620px){.scorer-login-grid{grid-template-columns:1fr}.assigned-match{align-items:flex-start;flex-direction:column}.assigned-match .btn{width:100%}}
+  @media(max-width:980px){.score-layout{grid-template-columns:1fr}.score-side{max-height:300px}.scoreboard{min-height:380px}}
+  @media(max-width:680px){.score-shell{padding:10px}.score-top{border-radius:15px;padding:10px 12px}.score-layout{gap:10px}.scoreboard{grid-template-columns:1fr;gap:10px;min-height:0}.versus{height:24px}.competitor{border-radius:20px;padding:18px 14px}.score-num{font-size:clamp(5.2rem,31vw,8.5rem);margin:14px 0}.point-btn{min-height:64px}.score-actions{position:sticky;bottom:0;background:linear-gradient(180deg,transparent,#101614 20%);padding:18px 0 5px;z-index:4}.score-side{max-height:260px}.meta-chip{font-size:.7rem}.display-mode .scoreboard{min-height:auto}.display-mode .competitor{min-height:40vh}}
+</style>
+</head>
+<body class="scoring-page">
+<div id="app" class="score-shell hidden">
+  <header class="score-top">
+    <div><div class="score-kicker" id="tournament">Tournament</div><div class="score-title" id="match-title">Live Match Scoring</div></div>
+    <div class="row wrap" style="justify-content:flex-end">
+      <span class="live-pill"><span class="live-dot" id="conn-dot"></span><span id="conn-text">LIVE</span></span>
+      <button class="btn btn-outline btn-sm" id="display">Display mode</button>
+      <button class="btn btn-ghost btn-sm" id="back">Admin</button>
+    </div>
+  </header>
+  <div class="score-layout">
+    <main class="arena">
+      <div class="match-meta" id="meta"></div>
+      <section class="scoreboard">
+        <article class="competitor"><div class="team-name" id="team-a">TBA</div><div class="seed" id="seed-a"></div><div class="score-num" id="score-a">0</div><button class="point-btn" id="point-a">＋ POINT</button></article>
+        <div class="versus">VS</div>
+        <article class="competitor"><div class="team-name" id="team-b">TBA</div><div class="seed" id="seed-b"></div><div class="score-num" id="score-b">0</div><button class="point-btn" id="point-b">＋ POINT</button></article>
+      </section>
+      <div class="score-actions">
+        <button class="btn btn-primary" id="start">Start match</button>
+        <button class="btn btn-outline" id="undo">↶ Undo</button>
+        <button class="btn btn-outline" id="pause">Pause</button>
+        <button class="btn btn-outline hidden" id="resume">Resume</button>
+        <button class="btn btn-success" id="finish">Confirm final result</button>
+      </div>
+    </main>
+    <aside class="score-side">
+      <div class="side-head"><div><div class="score-kicker">Audit trail</div><div class="side-title">Scoring history</div></div><span class="badge badge-pending" id="status">Scheduled</span></div>
+      <div class="history" id="history"></div>
+    </aside>
+  </div>
+</div>
+<div id="login-panel" class="scorer-panel hidden">
+  <div class="score-kicker">Restricted court-side access</div><h2 style="margin:6px 0 4px">Scorer sign in</h2>
+  <p style="color:#94a79f;margin:0 0 18px">Use the scorer account created by the tournament administrator.</p>
+  <form id="scorer-login"><div class="scorer-login-grid"><div><label class="label">Email</label><input class="input" id="login-email" type="email" autocomplete="username" required></div><div><label class="label">Password</label><input class="input" id="login-password" type="password" autocomplete="current-password" required></div></div><button class="btn btn-primary" style="width:100%;margin-top:14px" type="submit">Sign in</button></form>
+</div>
+<div id="assigned-panel" class="scorer-panel hidden"><div class="row wrap" style="justify-content:space-between;align-items:center"><div><div class="score-kicker">Court-side console</div><h2 style="margin:6px 0 2px">Assigned matches</h2><div id="assigned-user" style="color:#94a79f"></div></div><button class="btn btn-outline btn-sm" id="scorer-signout">Sign out</button></div><div id="assigned-list" class="assigned-list"></div></div>
+<div id="error" class="auth-error hidden"><h2>Scoring console unavailable</h2><p class="muted" id="error-text"></p><button class="btn btn-primary" id="error-back">Back to assigned matches</button></div>
+<div class="score-toast" id="toast"></div>
+<script>
+(function(){'use strict';
+  var API=(window.PIKOL_API_BASE||'').replace(/\/+$/,'');
+  var TOKEN=localStorage.getItem('pb_admin_token')||localStorage.getItem('pb_scoring_token')||'';
+  var params=new URLSearchParams(location.search), MATCH_ID=params.get('match');
+  var data=null,busy=false,pollTimer=null,heartbeatTimer=null,LOCK_TOKEN='',ME=null;
+  function $(q){return document.querySelector(q)}
+  function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]})}
+  function toast(t){var e=$('#toast');e.textContent=t;e.classList.add('show');setTimeout(function(){e.classList.remove('show')},1800)}
+  function hidePanels(){['#app','#login-panel','#assigned-panel','#error'].forEach(function(q){$(q).classList.add('hidden')})}
+  async function api(path,opt){opt=opt||{};var headers=Object.assign({'Content-Type':'application/json'},opt.headers||{});if(TOKEN)headers.Authorization='Bearer '+TOKEN;if(LOCK_TOKEN)headers['X-Scoring-Session']=LOCK_TOKEN;var r=await fetch(API+path,{method:opt.method||'GET',headers:headers,body:opt.body?JSON.stringify(opt.body):undefined,keepalive:!!opt.keepalive});var d=await r.json().catch(function(){return{}});if(!r.ok)throw new Error(d.error||d.message||('HTTP '+r.status));return d}
+  function fail(msg){hidePanels();$('#error-text').textContent=msg;$('#error').classList.remove('hidden')}
+  function label(v){return String(v||'').replace(/_/g,' ').replace(/\b\w/g,function(c){return c.toUpperCase()})}
+  function fmtDate(v){if(!v)return'TBA';var d=new Date(v+'T00:00:00');return d.toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'})}
+  function fmtTime(v){if(!v)return'TBA';var p=String(v).split(':'),h=Number(p[0]),ap=h>=12?'PM':'AM';return((h%12)||12)+':'+p[1]+' '+ap}
+  function render(){if(!data)return;var m=data.match,d=data.division;
+    $('#tournament').textContent=m.tournament_name||'Tournament';
+    $('#match-title').textContent=(m.division_name||d.name||'Division')+' · '+label(m.round)+' · Match '+(m.match_number||m.id);
+    $('#team-a').textContent=m.team_a_name||'TBA';$('#team-b').textContent=m.team_b_name||'TBA';
+    $('#seed-a').textContent=m.team_a_seed?'Seed #'+m.team_a_seed:'';$('#seed-b').textContent=m.team_b_seed?'Seed #'+m.team_b_seed:'';
+    $('#score-a').textContent=Number(m.score_a||0);$('#score-b').textContent=Number(m.score_b||0);
+    $('#status').textContent=label(m.status);$('#status').className='badge '+(m.status==='completed'?'badge-completed':m.status==='live'?'badge-approved':'badge-pending');
+    $('#meta').innerHTML=['Format: '+label(d.competition_format),'Stage: '+label(m.stage||m.bracket_side),'Court: '+(m.court_name||'TBA'),'Date: '+fmtDate(m.scheduled_date),'Time: '+fmtTime(m.scheduled_time),m.scorer_name?'Scorer: '+m.scorer_name:''].filter(Boolean).map(function(x){return'<span class="meta-chip">'+esc(x)+'</span>'}).join('');
+    var active=m.status!=='completed'&&m.status!=='cancelled',canScore=active&&m.team_a_id&&m.team_b_id&&!!LOCK_TOKEN;
+    $('#point-a').disabled=!canScore;$('#point-b').disabled=!canScore;$('#undo').disabled=!canScore;$('#finish').disabled=!canScore;$('#pause').disabled=!canScore;$('#resume').disabled=!canScore;$('#start').disabled=!canScore;
+    $('#start').classList.toggle('hidden',m.status==='live'||m.status==='completed');$('#pause').classList.toggle('hidden',m.status!=='live');$('#resume').classList.toggle('hidden',m.status!=='ready');
+    $('#history').innerHTML=(data.history||[]).map(function(h){return'<div class="hist"><strong>'+esc(label(h.action))+' · '+Number(h.score_a||0)+' : '+Number(h.score_b||0)+'</strong><small>'+esc(h.details||'')+'</small><small>'+new Date(h.created_at).toLocaleString()+' · '+esc(label(h.actor_role||''))+'</small></div>'}).join('')||'<div class="muted tiny">No scoring actions yet.</div>';
+  }
+  async function load(silent){try{data=await api('/api/scoring/matches/'+MATCH_ID);render();hidePanels();$('#app').classList.remove('hidden');$('#conn-text').textContent=LOCK_TOKEN?'LIVE':'VIEW ONLY';$('#conn-dot').style.background=LOCK_TOKEN?'#59d49e':'#e6bb63'}catch(e){$('#conn-text').textContent='RECONNECTING';$('#conn-dot').style.background='#e6bb63';if(!silent)fail(e.message)}}
+  async function acquire(){var r=await api('/api/scoring/matches/'+MATCH_ID+'/acquire',{method:'POST',body:{}});LOCK_TOKEN=r.session_token||'';}
+  async function action(a,body){if(busy||!LOCK_TOKEN)return;busy=true;try{var m=data.match,payload=Object.assign({action:a,score_a:Number(m.score_a||0),score_b:Number(m.score_b||0)},body||{});await api('/api/scoring/matches/'+MATCH_ID+'/action',{method:'POST',body:payload});await load(true);toast(label(a)+' saved')}catch(e){toast(e.message)}finally{busy=false}}
+  async function showAssigned(){try{var rows=await api('/api/scoring/assigned');hidePanels();$('#assigned-user').textContent=(ME&&ME.full_name?ME.full_name+' · ':'')+label(ME&&ME.role);$('#assigned-list').innerHTML=rows.length?rows.map(function(m){return'<div class="assigned-match"><div><strong>'+esc(m.tournament_name)+' · '+esc(m.division_name)+'</strong><small>'+esc(label(m.round))+' · Match '+(m.match_number||m.id)+' · '+esc(m.team_a_name||'TBA')+' vs '+esc(m.team_b_name||'TBA')+'</small><small>'+esc(fmtDate(m.scheduled_date))+' · '+esc(fmtTime(m.scheduled_time))+' · '+esc(m.court_name||'Court TBA')+' · '+esc(label(m.status))+'</small></div><button class="btn btn-primary btn-sm" data-open-match="'+m.id+'">Open scoring</button></div>'}).join(''):'<div class="auth-error" style="margin:0;width:100%"><strong>No assigned matches</strong><p class="muted">Assigned matches will appear here after the administrator selects your scorer account.</p></div>';$('#assigned-panel').classList.remove('hidden')}catch(e){fail(e.message)}}
+  async function boot(){if(!TOKEN){hidePanels();$('#login-panel').classList.remove('hidden');return}try{var me=await api('/api/auth/me');ME=me.user;if(!['admin','scorer'].includes(ME.role))throw new Error('This account does not have scoring access.');if(!MATCH_ID)return showAssigned();await load(false);if(data&&data.match&&!['completed','cancelled'].includes(data.match.status)){try{await acquire();await load(true)}catch(e){toast(e.message);LOCK_TOKEN='';await load(true)}}heartbeatTimer=setInterval(function(){if(LOCK_TOKEN)api('/api/scoring/matches/'+MATCH_ID+'/heartbeat',{method:'POST',body:{}}).catch(function(){LOCK_TOKEN='';render();$('#conn-text').textContent='RECONNECTING'})},15000);pollTimer=setInterval(function(){if(!busy)load(true)},3500)}catch(e){localStorage.removeItem('pb_scoring_token');if(!localStorage.getItem('pb_admin_token'))TOKEN='';fail(e.message)}}
+  $('#scorer-login').onsubmit=function(e){e.preventDefault();api('/api/auth/login',{method:'POST',body:{email:$('#login-email').value.trim(),password:$('#login-password').value}}).then(function(r){if(!['admin','scorer'].includes(r.user.role))throw new Error('This account does not have scoring access.');TOKEN=r.token;ME=r.user;localStorage.setItem('pb_scoring_token',TOKEN);showAssigned()}).catch(function(err){toast(err.message)})};
+  $('#assigned-list').onclick=function(e){var b=e.target.closest('[data-open-match]');if(b)location.href='scoring.html?match='+encodeURIComponent(b.dataset.openMatch)};
+  $('#scorer-signout').onclick=function(){if(TOKEN)api('/api/auth/logout',{method:'POST',body:{}}).catch(function(){});localStorage.removeItem('pb_scoring_token');if(ME&&ME.role==='admin')localStorage.removeItem('pb_admin_token');TOKEN='';ME=null;location.href='scoring.html'};
+  $('#error-back').onclick=function(){location.href='scoring.html'};
+  $('#point-a').onclick=function(){action('score',{score_a:Number(data.match.score_a||0)+1})};$('#point-b').onclick=function(){action('score',{score_b:Number(data.match.score_b||0)+1})};
+  $('#undo').onclick=function(){action('undo')};$('#start').onclick=function(){action('start')};$('#pause').onclick=function(){action('pause')};$('#resume').onclick=function(){action('resume')};
+  $('#finish').onclick=function(){if(!data)return;var m=data.match;if(Number(m.score_a||0)===Number(m.score_b||0))return toast('Final score cannot be tied.');if(confirm('Confirm final result '+m.score_a+'–'+m.score_b+'? This will advance the tournament bracket/standings.'))action('complete')};
+  $('#display').onclick=function(){document.body.classList.toggle('display-mode');this.textContent=document.body.classList.contains('display-mode')?'Exit display':'Display mode'};
+  $('#back').onclick=function(){location.href=ME&&ME.role==='admin'?'admin.html':'scoring.html'};
+  window.addEventListener('beforeunload',function(){clearInterval(pollTimer);clearInterval(heartbeatTimer);if(LOCK_TOKEN&&MATCH_ID){api('/api/scoring/matches/'+MATCH_ID+'/release',{method:'POST',body:{},keepalive:true}).catch(function(){})}});
+  boot();
+})();
+</script>
+</body>
+</html>

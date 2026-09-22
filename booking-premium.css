@@ -1,0 +1,900 @@
+/* Reference-inspired player experience. Intentionally scoped to the booking site. */
+.player-app {
+  --brand-primary: #004537;
+  --brand-primary-hover: #00634b;
+  --brand-primary-soft: #eef9e6;
+  --brand-secondary: #003c32;
+  --brand-accent: #c4ff38;
+  --brand-background: #ffffff;
+  --surface: #ffffff;
+  --surface-2: #f7f9fb;
+  --surface-3: #edf1f5;
+  --text-primary: #0b172d;
+  --text-secondary: #65758f;
+  --text-muted: #7b88a0;
+  --border: #e2e7ee;
+  --border-strong: #c9d2dc;
+  --on-brand: #ffffff;
+  --premium-lime: #c4ff38;
+  --premium-forest: #003c32;
+  --overlay: rgba(0, 20, 24, .64);
+  --shadow-sm: 0 2px 7px rgba(11, 23, 45, .035);
+  --shadow-md: 0 6px 22px rgba(11, 23, 45, .065);
+  --shadow-lg: 0 28px 90px rgba(0, 22, 28, .26);
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --header-h: 62px;
+  background: var(--brand-background);
+  color: var(--text-primary);
+  font-size: 14px;
+  line-height: 1.5;
+  padding-bottom: 0;
+}
+.player-app :focus-visible { outline: 3px solid #7dae0b; outline-offset: 3px; }
+.player-app h1, .player-app h2, .player-app h3, .player-app h4 { font-family: var(--font); font-weight: 750; letter-spacing: -.035em; }
+.player-app .container { width: min(1352px, calc(100% - 80px)); }
+.player-app .grid > *, .player-app .stack > *, .player-app .spread > * { min-width: 0; }
+.player-app .eyebrow { display: block; font-size: .67rem; font-weight: 700; letter-spacing: .13em; line-height: 1.5; text-transform: uppercase; color: var(--premium-forest); }
+.player-app .page-title { font-size: clamp(1.6rem, 2.55vw, 2.1rem); line-height: 1.12; letter-spacing: -.045em; }
+.player-app .page-subtitle { margin-top: 6px; font-size: .86rem; line-height: 1.5; }
+.player-app .section-title { font-size: 1.38rem; line-height: 1.15; letter-spacing: -.04em; }
+.player-app .btn { min-height: 40px; border-radius: 7px; padding: 9px 16px; font-size: .82rem; font-weight: 700; line-height: 1.3; letter-spacing: -.015em; box-shadow: none; }
+.player-app .btn:hover { transform: translateY(-1px); }
+.player-app .btn-primary { --btn-bg: var(--premium-forest); --btn-fg: #fff; --btn-bd: var(--premium-forest); background: var(--premium-forest); border-color: var(--premium-forest); color: #fff; }
+.player-app .btn-primary:hover { background: #075743; border-color: #075743; }
+.player-app .btn-lime { --btn-bg: var(--premium-lime); --btn-fg: #0b190a; --btn-bd: var(--premium-lime); background: var(--premium-lime); border-color: var(--premium-lime); color: #0b190a; }
+.player-app .btn-lime:hover { background: #b5f129; border-color: #b5f129; }
+.player-app .btn-outline { background: var(--surface); border-color: #becacf; color: var(--text-primary); }
+.player-app .btn-glass { background: rgba(255, 255, 255, .1); border-color: rgba(255, 255, 255, .65); color: #fff; }
+.player-app .btn-icon { width: 36px; min-height: 36px; padding: 0; border-radius: 50%; }
+.player-app .btn-sm { min-height: 34px; padding: 7px 12px; font-size: .74rem; }
+.player-app .ui-icon { width: 19px; height: 19px; display: block; flex: none; stroke-width: 1.8; }
+.player-app .input, .player-app .select, .player-app .textarea { border-radius: 7px; min-height: 42px; padding: 10px 12px; background: var(--surface); border-color: var(--border-strong); font-size: .83rem; }
+.player-app .textarea { min-height: 82px; }
+.player-app .input:focus, .player-app .select:focus, .player-app .textarea:focus { border-color: #5e9b49; box-shadow: 0 0 0 3px #eff8e5; }
+.player-app .label { color: var(--text-primary); letter-spacing: -.012em; text-transform: none; font-size: .74rem; margin-bottom: 7px; font-weight: 650; }
+.player-app .card, .player-app .card.tight { border-radius: 10px; padding: 18px; }
+.player-app .badge { padding: 4px 9px; font-size: .65rem; line-height: 1.4; font-weight: 750; }
+.player-app .badge-approved, .player-app .badge-confirmed { background: #d0f3d2; color: #065629; }
+.player-app .badge-pending { background: #ffedbb; color: #805104; }
+.player-app .tabs { border: 1px solid var(--border); background: var(--surface-2); border-radius: 8px; padding: 3px; }
+.player-app .tab { border-radius: 6px; font-size: .8rem; min-height: 40px; padding: 10px 15px; }
+.player-app .tab[aria-selected="true"] { color: #fff; background: var(--premium-forest); box-shadow: none; }
+.player-app .empty { padding: 28px 18px; border-radius: 9px; }
+
+/* Public site header */
+body.player-app #view-app > .appbar, .player-app .appbar { z-index: 48; height: var(--header-h); background: #002f28; border-bottom: 1px solid rgba(196, 255, 56, .2); color: #fff; backdrop-filter: blur(12px); }
+.player-app .appbar-inner { display: flex; gap: 25px; min-height: var(--header-h); justify-content: space-between; }
+.player-app .appbar .brand { flex: 0 1 auto; gap: 9px; }
+.player-app .appbar .brand-logo { width: 37px; height: 37px; border-radius: 50%; background: var(--premium-lime); color: #003c32; }
+.player-app .appbar .brand-logo img { width: 100%; height: 100%; object-fit: contain; }
+.player-app .appbar .brand-name { font-size: 1.04rem; color: #fff; font-weight: 800; letter-spacing: -.025em; max-width: 215px; }
+.player-app .appbar .brand-tagline { color: #f3f9f7; font-size: .58rem; letter-spacing: .035em; line-height: 1.5; text-transform: uppercase; max-width: 215px; }
+.player-app .brand-pill { padding: 2px 9px; margin-left: 4px; border: 1px solid #b7c94b; border-radius: 20px; color: #e0eea2; font-size: .63rem; letter-spacing: .15em; white-space: nowrap; }
+.player-app #main-tabs.site-nav, .player-app .site-nav { display: flex; align-items: stretch; justify-content: center; align-self: stretch; gap: 24px; margin: 0; padding: 0; background: transparent; border: 0; border-radius: 0; flex: 1; overflow: visible; }
+.player-app .site-nav button, .player-app .site-nav .tab { position: relative; min-height: 0; flex: none; border: 0; border-radius: 0; background: transparent; color: #edf5f2; padding: 0 2px; font-size: .76rem; font-weight: 500; cursor: pointer; white-space: nowrap; box-shadow: none; }
+.player-app .site-nav button:hover, .player-app .site-nav button.is-active, .player-app .site-nav button[aria-selected="true"] { color: var(--premium-lime); background: transparent; }
+.player-app .site-nav button.is-active::after, .player-app .site-nav button[aria-selected="true"]::after { content: ""; position: absolute; height: 3px; bottom: 10px; left: 0; right: 0; border-radius: 3px; background: var(--premium-lime); }
+.player-app .site-actions { display: flex; align-items: center; gap: 12px; flex: none; }
+.player-app .site-actions .btn-ghost { color: #fff; }
+.player-app .site-actions .btn-lime { padding-inline: 19px; min-height: 38px; }
+.player-app .site-actions .rt-status { display: none; }
+.player-app .site-actions .bell { color: #fff; }
+.player-app .site-actions .bell .pill { background: var(--premium-lime); color: #003c32; }
+.player-app .app-body { padding-top: 0 !important; padding-bottom: 0 !important; }
+.player-app #tab-dashboard { gap: 0 !important; }
+
+/* Homepage */
+.player-app .booking-hero { position: relative; isolation: isolate; width: 100vw; margin-left: calc(50% - 50vw); overflow: hidden; min-height: 340px; padding: 35px max(5.1vw, calc((100vw - 1304px) / 2)); border-radius: 0; color: #fff; background: #003c32; display: flex; align-items: center; }
+.player-app .booking-hero-image { position: absolute; inset: 0; z-index: -2; width: 100%; height: 100%; object-fit: cover; object-position: 50% 52%; }
+.player-app .booking-hero::after { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(90deg, rgba(0, 27, 23, .83), rgba(0, 27, 23, .33) 45%, rgba(0, 27, 23, .03) 78%), linear-gradient(0deg, rgba(0, 34, 27, .48), transparent 43%); }
+.player-app .booking-hero-content { max-width: 640px; }
+.player-app .booking-hero .eyebrow { color: #fff; font-size: .76rem; letter-spacing: .09em; margin-bottom: 8px; }
+.player-app .booking-hero .eyebrow span { color: var(--premium-lime); }
+.player-app .booking-hero h2, .player-app .booking-hero h1 { font-weight: 900; font-size: clamp(2.8rem, 4.25vw, 4.2rem); line-height: .98; letter-spacing: -.045em; text-transform: uppercase; margin: 0; text-wrap: balance; }
+.player-app .booking-hero h2 em, .player-app .booking-hero h1 em, .player-app .booking-hero h2 span, .player-app .booking-hero h1 .accent { color: var(--premium-lime); font-style: normal; font-weight: inherit; }
+.player-app .booking-hero p { color: #f2f8f5; font-size: 1rem; max-width: 49ch; line-height: 1.35; margin: 9px 0 16px; }
+.player-app .hero-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.player-app .hero-actions .btn { min-height: 43px; padding: 10px 24px; border-radius: 22px; font-size: .91rem; }
+.player-app .hero-points { display: flex; flex-wrap: wrap; gap: 12px 26px; margin: 21px 0 0; padding: 0; list-style: none; }
+.player-app .hero-points li { display: flex; align-items: center; gap: 8px; font-size: .72rem; color: #fff; }
+.player-app .hero-points .ui-icon { color: var(--premium-lime); width: 20px; height: 20px; }
+.player-app .hero-points span[aria-hidden] { width: auto; height: auto; background: transparent; border-radius: 0; color: var(--premium-lime); font-size: 1.15rem; }
+.player-app .hero-caption { position: absolute; right: 4.5%; bottom: 22px; color: #fff; display: grid; gap: 2px; text-align: right; }
+.player-app .hero-caption strong, .player-app .hero-signature { font-size: 1.8rem; font-weight: 800; font-style: italic; line-height: .97; text-transform: uppercase; letter-spacing: -.055em; transform: rotate(-9deg); }
+.player-app .hero-caption strong::after { content: ""; display: block; height: 3px; margin-top: 9px; background: var(--premium-lime); transform: rotate(-5deg); }
+.player-app .hero-caption span:last-child { margin-top: 11px; font-size: .5rem; color: rgba(255, 255, 255, .7); }
+.player-app .home-grid { display: grid; grid-template-columns: minmax(0, 2.16fr) minmax(280px, 1fr); gap: 21px; padding: 20px 0 22px; align-items: stretch; }
+.player-app .home-main { display: grid; gap: 21px; min-width: 0; }
+.player-app .home-sidebar { display: flex; flex-direction: column; gap: 20px; padding-top: 52px; min-width: 0; }
+.player-app .courts-section-head, .player-app .home-section-head { display: flex; justify-content: space-between; align-items: center; gap: 15px; margin: 0 0 12px; }
+.player-app .courts-section-head .section-title, .player-app .home-section-head .section-title { font-size: clamp(1.3rem, 1.8vw, 1.62rem); }
+.player-app .courts-section-head p, .player-app .home-section-head p { font-size: .71rem; color: var(--text-secondary); margin: 3px 0 0; line-height: 1.4; }
+.player-app .courts-section-head .btn, .player-app .home-section-head .btn { padding-inline: 0; color: var(--premium-forest); font-weight: 500; white-space: nowrap; font-size: .75rem; min-height: 30px; }
+.player-app .court-gallery { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.player-app .promo-court { overflow: hidden; border-radius: 8px; background: var(--surface); border: 1px solid var(--border); display: flex; flex-direction: column; box-shadow: var(--shadow-sm); transition: box-shadow .2s ease, transform .2s ease; }
+.player-app .promo-court:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
+.player-app .court-visual { display: block; position: relative; overflow: hidden; aspect-ratio: 1.85; background: #003c32; border-radius: 0; }
+.player-app .court-promo-image { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .4s ease; }
+.player-app .promo-court:hover .court-promo-image { transform: scale(1.035); }
+.player-app .court-visual::after { content: ""; position: absolute; inset: 65% 0 0; pointer-events: none; background: linear-gradient(0deg, rgba(0, 25, 20, .38), transparent); }
+.player-app .court-visual > .badge, .player-app .court-type { position: absolute; top: 9px; left: 9px; z-index: 1; padding: 3px 8px; border-radius: 15px; background: rgba(13, 34, 43, .75); color: #fff; border: 1px solid rgba(255, 255, 255, .65); font-size: .57rem; }
+.player-app .court-visual .court-status, .player-app .court-visual > .availability-badge { position: absolute; right: 9px; top: 9px; left: auto; border: 0; background: var(--premium-lime); color: #102410; font-size: .58rem; font-weight: 800; border-radius: 20px; padding: 6px 11px; z-index: 2; }
+.player-app .court-image-note { position: absolute; bottom: 5px; left: 9px; z-index: 1; font-size: .44rem; line-height: 1.2; color: rgba(255, 255, 255, .78); }
+.player-app .court-info { padding: 10px 13px 13px; display: flex; flex-direction: column; flex: 1; }
+.player-app .court-title-row { display: flex; align-items: start; justify-content: space-between; gap: 7px; }
+.player-app .court-title-row h3, .player-app .court-info h3 { font-size: .86rem; font-weight: 750; line-height: 1.3; overflow-wrap: anywhere; }
+.player-app .court-rate { display: flex; gap: 2px; align-items: baseline; white-space: nowrap; color: var(--text-primary); margin-top: 4px; }
+.player-app .court-rate strong { font-size: 1.24rem; font-weight: 850; letter-spacing: -.04em; }
+.player-app .court-rate small { font-size: .67rem; font-weight: 650; color: var(--text-primary); }
+.player-app .court-surface, .player-app .court-description { font-size: .69rem; line-height: 1.4; color: var(--text-secondary); margin: 2px 0 7px; }
+.player-app .court-meta { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 13px; font-size: .6rem; color: #41546f; margin: 1px 0 5px; }
+.player-app .court-meta span { display: inline-flex; align-items: center; gap: 5px; }
+.player-app .court-meta .ui-icon { width: 13px; height: 13px; }
+.player-app .court-event { font-size: .63rem; margin: 0 0 7px; color: var(--text-secondary); }
+.player-app .court-availability { display: flex; flex-wrap: wrap; gap: 4px 8px; font-size: .62rem; color: var(--text-secondary); margin-top: 5px; }
+.player-app .free-count { color: var(--premium-forest); font-weight: 650; }
+.player-app .court-card-footer { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding-top: 9px; margin-top: auto; }
+.player-app .court-card-footer .btn { width: 100%; min-height: 33px; font-size: .69rem; padding: 7px 5px; }
+.player-app .court-card-footer .btn:only-child { grid-column: 1 / -1; }
+.player-app .community-promo, .player-app .membership-promo { position: relative; isolation: isolate; overflow: hidden; border-radius: 8px; padding: 22px 25px; background: var(--premium-forest); color: #fff; }
+.player-app .community-promo { min-height: 294px; flex: 1; }
+.player-app .community-promo > img, .player-app .membership-promo > img { position: absolute; inset: 0; z-index: -2; width: 100%; height: 100%; object-fit: cover; }
+.player-app .community-promo::after, .player-app .membership-promo::after { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(90deg, rgba(0, 45, 35, .91), rgba(0, 45, 35, .54) 52%, rgba(0, 45, 35, .04)); }
+.player-app .community-promo h2, .player-app .community-promo h3 { font-size: clamp(1.8rem, 2.45vw, 2.45rem); line-height: .95; max-width: 8ch; font-weight: 850; text-transform: uppercase; }
+.player-app .community-promo p { margin: 8px 0 13px; font-size: .66rem; font-weight: 500; max-width: 26ch; text-transform: uppercase; }
+.player-app .community-promo ul, .player-app .membership-promo ul { display: grid; gap: 10px; list-style: none; padding: 0; margin: 14px 0 22px; font-size: .68rem; }
+.player-app .community-promo li, .player-app .membership-promo li { display: flex; align-items: center; gap: 9px; }
+.player-app .community-promo li::before { content: "✓"; display: grid; place-items: center; width: 16px; height: 16px; border: 1px solid var(--premium-lime); border-radius: 50%; color: var(--premium-lime); font-size: .64rem; flex: none; }
+.player-app .community-promo .btn { background: #fff; color: #0b172d; border-color: #fff; min-height: 36px; font-size: .73rem; padding-inline: 19px; }
+.player-app .membership-promo { min-height: 182px; padding: 24px; }
+.player-app .membership-promo .eyebrow { color: var(--premium-lime); font-size: .51rem; }
+.player-app .membership-promo h2, .player-app .membership-promo h3 { font-size: 1.75rem; margin: 4px 0; }
+.player-app .membership-promo p { max-width: 17ch; line-height: 1.25; font-size: .9rem; margin: 5px 0 13px; }
+.player-app .membership-promo .btn { min-height: 34px; border-radius: 20px; padding: 8px 22px; font-size: .74rem; }
+.player-app .home-events { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.player-app .home-event-card { display: grid; grid-template-columns: 43% minmax(0, 1fr); gap: 12px; padding: 6px; border: 1px solid var(--border); border-radius: 10px; box-shadow: var(--shadow-sm); min-width: 0; background: var(--surface); }
+.player-app .home-event-card > img, .player-app .home-event-image { width: 100%; height: 100%; min-height: 136px; object-fit: cover; border-radius: 7px; background: #003c32; }
+.player-app .home-event-content, .player-app .home-event-card > div:last-child { min-width: 0; padding: 3px 5px 3px 0; display: flex; flex-direction: column; align-items: stretch; }
+.player-app .home-event-card h3 { font-size: .77rem; line-height: 1.28; letter-spacing: -.03em; margin-bottom: 3px; }
+.player-app .home-event-card p { font-size: .6rem; color: var(--text-secondary); margin: 0 0 5px; }
+.player-app .home-event-card .event-meta, .player-app .home-event-card small { display: block; color: var(--text-secondary); font-size: .57rem; line-height: 1.7; }
+.player-app .home-event-card .btn { margin-top: auto; padding: 6px; min-height: 31px; font-size: .65rem; }
+.player-app .home-events > .empty { grid-column: 1 / -1; min-height: 140px; border: 1px solid var(--border); display: grid; place-content: center; gap: 4px; font-size: .8rem; }
+.player-app .dashboard-overview { margin: 16px 0 0; }
+.player-app .dashboard-welcome { display: none; }
+.player-app .site-footer, .player-app .booking-footer { background: #002f28; color: #fff; padding: 17px 0; margin: 0; border: 0; }
+.player-app .site-footer .container, .player-app .site-footer-inner { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+.player-app .site-footer .brand { gap: 10px; }
+.player-app .site-footer .brand-logo { background: var(--premium-lime); color: #003c32; border-radius: 50%; width: 29px; height: 29px; }
+.player-app .site-footer .brand-name { color: #fff; font-size: .8rem; }
+.player-app .site-footer .brand-tagline, .player-app .site-footer small { color: #e7eeeb; font-size: .6rem; }
+.player-app .site-footer nav { display: flex; gap: 26px; flex-wrap: wrap; }
+.player-app .site-footer button, .player-app .site-footer a { background: transparent; border: 0; padding: 0; color: #fff; font-size: .66rem; cursor: pointer; }
+.player-app .footer-slogan { font-size: .66rem; color: #eaf3ed; white-space: nowrap; }
+
+/* Reusable large overlays: the real homepage stays visible beneath them. */
+.player-app .site-overlay, .player-app #view-auth.auth-wrap { position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; padding: 28px; background: var(--overlay); backdrop-filter: blur(2px); min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+.player-app .site-sheet { position: relative; width: min(1080px, 100%); max-height: calc(100dvh - 56px); overflow: auto; overscroll-behavior: contain; padding: 27px; border: 1px solid var(--border); border-radius: 15px; background: var(--surface); box-shadow: var(--shadow-lg); margin: auto; animation: modal-in 180ms ease-out; }
+.player-app .site-sheet > .spread:first-of-type { align-items: start; padding-right: 32px; }
+.player-app .sheet-close { position: absolute; top: 16px; right: 16px; z-index: 5; display: grid; place-items: center; width: 34px; height: 34px; min-height: 34px; padding: 0; border: 0; border-radius: 50%; background: #f1f4f7; color: #0b172d; cursor: pointer; font-size: 1.18rem; }
+.player-app .sheet-close:hover { background: #e3e9ec; }
+.player-app .site-sheet > .page-title, .player-app .site-sheet > div:first-of-type > .page-title { padding-right: 30px; }
+.player-app .site-sheet .chips { border-radius: 9px; gap: 0; background: var(--surface-2); border: 1px solid var(--border); padding: 3px; }
+.player-app .site-sheet .chip { flex: 1; border: 0; border-radius: 7px; min-height: 44px; padding: 10px 14px; background: transparent; font-size: .85rem; font-weight: 650; color: var(--text-primary); }
+.player-app .site-sheet .chip[aria-pressed="true"], .player-app .site-sheet .chip[aria-selected="true"] { color: #fff; background: var(--premium-forest); }
+.player-app .modal-host { z-index: 80; padding: 28px; background: rgba(0, 20, 24, .62); backdrop-filter: blur(2px); }
+.player-app .modal { width: min(640px, 100%); max-height: calc(100dvh - 56px); border-radius: 14px; box-shadow: var(--shadow-lg); align-self: center; }
+.player-app .modal.wide { width: min(1080px, 100%); }
+.player-app .modal-head { padding: 23px 25px 0; align-items: center; }
+.player-app .modal-head .section-title { font-size: 1.65rem; line-height: 1.12; }
+.player-app .modal-head .btn-icon { background: #f1f4f7; flex: none; }
+.player-app .modal-body { padding: 20px 25px; }
+.player-app .modal-foot { padding: 15px 25px 22px; border-top: 1px solid var(--border); }
+.player-app .modal-foot .btn-primary { background: var(--premium-lime); border-color: var(--premium-lime); color: #0b190a; }
+
+/* Booking gallery and real availability selection */
+.player-app #tab-book { width: min(1130px, 100%); }
+.player-app .booking-page-head { padding-right: 35px; }
+.player-app .booking-page-head .eyebrow { margin-bottom: 3px; }
+.player-app .booking-page-head .page-title { font-size: clamp(1.8rem, 2.8vw, 2.45rem); }
+.player-app .booking-layout { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, .94fr); gap: 22px; align-items: start; }
+.player-app .booking-gallery { min-width: 0; }
+.player-app .booking-gallery > .court-visual, .player-app #booking-photo { aspect-ratio: 1.53; border-radius: 8px; }
+.player-app #booking-photo img { width: 100%; height: 100%; object-fit: cover; }
+.player-app .booking-gallery #book-courts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px; margin-top: 9px; }
+.player-app .court-pick { position: relative; padding: 0; display: flex; flex-direction: column; align-items: stretch; gap: 0; border-radius: 7px; overflow: hidden; border: 1px solid var(--border); background: var(--surface); text-align: left; min-width: 0; cursor: pointer; }
+.player-app .court-pick .court-visual { width: 100%; aspect-ratio: 1.85; }
+.player-app .court-pick-body { padding: 7px 9px; display: grid; gap: 2px; min-width: 0; }
+.player-app .court-pick .p-title { font-size: .68rem; flex-wrap: wrap; line-height: 1.3; font-weight: 650; }
+.player-app .court-pick .p-sub, .player-app .court-pick-rate { font-size: .58rem; color: var(--text-secondary); }
+.player-app .court-pick-rate small { margin-left: 3px; }
+.player-app .court-pick .badge { padding: 2px 5px; font-size: .48rem; }
+.player-app .court-pick-action { display: none; }
+.player-app .court-pick .court-image-note { display: none; }
+.player-app .court-selected-mark { display: none; position: absolute; top: 5px; right: 5px; z-index: 2; width: 21px; height: 21px; background: var(--premium-lime); color: var(--premium-forest); border-radius: 50%; place-items: center; font-size: .68rem; }
+.player-app .court-pick.is-selected { border-color: #83c900; box-shadow: 0 0 0 1px #83c900; }
+.player-app .court-pick.is-selected .court-selected-mark { display: grid; }
+.player-app .court-pick:disabled { opacity: .6; cursor: not-allowed; }
+.player-app .court-pick:disabled .court-promo-image { filter: grayscale(.65); }
+.player-app #booking-court-description { margin-top: 24px; }
+.player-app #booking-court-description .section-title, .player-app #booking-court-description h2 { font-size: 1.52rem; }
+.player-app #booking-court-description p { color: var(--text-secondary); font-size: .8rem; line-height: 1.5; margin: 10px 0 15px; }
+.player-app .court-amenities { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 24px; color: #53677f; }
+.player-app .court-amenities > span, .player-app .court-amenities > div { display: grid; justify-items: center; gap: 8px; text-align: center; font-size: .7rem; }
+.player-app .court-amenities .ui-icon { width: 24px; height: 24px; }
+.player-app .booking-controls { display: grid; gap: 13px; background: #fbfcfe; border-radius: 9px; padding: 13px; }
+.player-app .steps { justify-content: center; gap: 10px; margin: 0 0 3px; padding: 0; background: transparent; }
+.player-app .step { padding: 0; background: transparent; font-size: .65rem; gap: 6px; }
+.player-app .step .step-n { width: 25px; height: 25px; background: #e5e9ef; color: #66758b; font-size: .72rem; }
+.player-app .step.is-active .step-n, .player-app .step.is-done .step-n { background: #139007; color: #fff; }
+.player-app .booking-date-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 9px; }
+.player-app .calendar { padding: 13px; margin: 0; position: static; }
+.player-app .calendar-intro { display: none; }
+.player-app .calendar-head { margin-bottom: 10px; }
+.player-app .calendar-month { font-size: .79rem; }
+.player-app .calendar-grid { gap: 4px; }
+.player-app .calendar-dow { font-size: .6rem; }
+.player-app .day { min-height: 29px; min-width: 0; padding: 2px; border-radius: 5px; font-size: .73rem; }
+.player-app .day.is-selected { background: var(--premium-forest); color: #fff; box-shadow: none; transform: none; }
+.player-app .calendar-disclosure > summary, .player-app .booking-controls details > summary { cursor: pointer; font-size: .72rem; color: var(--premium-forest); padding: 3px 0 8px; }
+.player-app .booking-stage { padding: 0; border: 0; background: transparent; }
+.player-app .booking-stage .section-head { margin-bottom: 8px; align-items: center; }
+.player-app .booking-stage .section-title { font-size: .83rem; }
+.player-app .section-kicker { display: none; }
+.player-app .booking-stage .legend { gap: 8px; font-size: .52rem; }
+.player-app .slot-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; max-height: 172px; overflow-y: auto; padding: 1px; }
+.player-app .slot { min-height: 48px; padding: 7px 5px; border-radius: 6px; background: var(--surface); }
+.player-app .slot .slot-time { font-family: var(--font); font-size: .63rem; font-weight: 650; }
+.player-app .slot .slot-state { font-size: .53rem; }
+.player-app .slot.is-selected { background: var(--premium-forest); color: #fff; border-color: var(--premium-forest); box-shadow: none; }
+.player-app .slot.is-selected .slot-state { color: #dcf4cf; }
+.player-app #summary-card { padding: 14px; border: 0; border-radius: 9px; background: linear-gradient(120deg, #f4fbe9, #f2f8ef); }
+.player-app .summary-heading { margin-bottom: 10px; }
+.player-app .summary-heading .eyebrow { display: none; }
+.player-app .summary-heading .section-title { font-size: 1.18rem; margin: 0 !important; }
+.player-app .summary-row { font-size: .75rem; padding-block: 5px; }
+.player-app .summary-row dd { overflow-wrap: anywhere; text-align: right; }
+.player-app .summary-row.total { font-size: 1rem; padding-top: 10px; margin-top: 4px; }
+.player-app #summary-card .field { margin-bottom: 12px; }
+.player-app #summary-card .field.mt-4 { margin-top: 13px; }
+.player-app #summary-card .textarea { min-height: 66px; }
+.player-app #btn-confirm { min-height: 43px; }
+.player-app #book-courts > .empty, .player-app #today-courts > .empty { grid-column: 1 / -1; }
+.player-app #book-courts > .skeleton { min-height: 92px; }
+
+/* Reservation management, notifications, and event detail cards */
+.player-app .bookings-layout, .player-app .events-browser { display: grid; grid-template-columns: minmax(0, 1.12fr) minmax(0, .92fr); gap: 21px; align-items: start; }
+.player-app .list { background: transparent; border: 0; border-radius: 0; gap: 10px; overflow: visible; }
+.player-app .list-row { padding: 13px 14px; border: 1px solid var(--border); border-radius: 9px; gap: 13px; background: var(--surface); }
+.player-app .list-row:last-child { border-bottom: 1px solid var(--border); }
+.player-app .list-row.is-selected { border-color: #abd76f; background: #f4faed; }
+.player-app .list-title { font-size: .94rem; font-weight: 720; white-space: normal; line-height: 1.3; }
+.player-app .list-sub { font-size: .76rem; line-height: 1.5; }
+.player-app .list-meta { font-size: .64rem; }
+.player-app .list-lead { width: 44px; height: 44px; border-radius: 50%; font-size: 1.3rem; color: var(--premium-forest); background: #e1f0eb; }
+.player-app .booking-row { grid-template-columns: 120px minmax(0, 1fr) auto; }
+.player-app .booking-row .booking-thumb, .player-app .booking-row > img { width: 120px; height: 88px; border-radius: 7px; object-fit: cover; }
+.player-app .booking-row .list-end { flex-direction: column; align-items: end; gap: 5px; }
+.player-app #booking-detail { min-width: 0; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; background: var(--surface); }
+.player-app #booking-detail > .court-visual { aspect-ratio: 2.13; }
+.player-app .booking-detail-body { padding: 16px; }
+.player-app .booking-detail-body .section-title { font-size: 1.12rem; }
+.player-app .booking-detail-body .summary-list { margin-block: 12px 17px; }
+.player-app .booking-detail-actions { display: flex; gap: 9px; border-top: 1px solid var(--border); padding-top: 13px; }
+.player-app .booking-detail-actions .btn { flex: 1; }
+.player-app .event-list-card { display: grid; grid-template-columns: 39% minmax(0, 1fr); gap: 13px; padding: 10px; border: 1px solid var(--border); border-radius: 9px; background: var(--surface); }
+.player-app .event-list-card.is-selected { border-color: #259b36; box-shadow: 0 0 0 1px #259b36; }
+.player-app .event-list-card > img, .player-app .event-list-card .event-poster { width: 100%; height: 100%; min-height: 178px; border-radius: 7px; object-fit: cover; }
+.player-app .event-list-content { display: flex; flex-direction: column; min-width: 0; gap: 5px; }
+.player-app .event-list-content h3 { font-size: 1rem; }
+.player-app .event-list-content p { margin: 0; font-size: .71rem; color: var(--text-secondary); }
+.player-app .event-list-actions { display: flex; gap: 7px; margin-top: auto; }
+.player-app .event-list-actions .btn { flex: 1; min-height: 34px; font-size: .7rem; padding: 7px; }
+.player-app #event-spotlight { min-width: 0; }
+.player-app #event-spotlight > img, .player-app .event-spotlight-image { width: 100%; aspect-ratio: 2.5; object-fit: cover; border-radius: 9px; margin-bottom: 12px; }
+.player-app #event-spotlight h2 { font-size: 1.35rem; }
+.player-app #event-spotlight p { font-size: .77rem; color: var(--text-secondary); line-height: 1.6; }
+.player-app #event-spotlight .event-detail-meta { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin: 14px 0; }
+.player-app #event-spotlight .event-detail-meta > div { padding: 10px; border: 1px solid var(--border); border-radius: 8px; font-size: .7rem; }
+.player-app #tn-detail-view .grid { gap: 13px; }
+.player-app #tab-notifications { width: min(690px, 100%); padding: 28px; }
+.player-app #tab-notifications > .spread { gap: 10px; padding-right: 26px; }
+.player-app #tab-notifications .page-title { font-size: 1.85rem; }
+.player-app #tab-notifications > .spread [data-goto="dashboard"] { display: none; }
+.player-app #tab-notifications .chips { background: transparent; border: 0; padding: 0; gap: 7px; }
+.player-app #tab-notifications .chip { flex: 0 1 auto; border: 1px solid var(--border); min-height: 35px; font-size: .67rem; padding: 7px 12px; }
+.player-app #tab-notifications .chip[aria-pressed="true"] { background: var(--premium-lime); color: #102410; border-color: var(--premium-lime); }
+.player-app #notif-list .list-row { min-height: 86px; padding: 13px; gap: 15px; }
+.player-app #notif-list .list-lead { width: 52px; height: 52px; }
+.player-app #notif-list .list-row.is-unread { background: #fff; }
+.player-app #notif-list .list-dot { background: #b5f234; width: 11px; height: 11px; }
+.player-app #notif-list .list-end { align-self: start; padding-top: 4px; }
+
+/* Membership: real configured plans and benefits */
+.player-app #tab-membership { padding: 0; width: min(1080px, 100%); overflow: auto; }
+.player-app .membership-layout { display: grid; grid-template-columns: 205px minmax(0, 1fr); min-height: 580px; }
+.player-app .membership-sidebar { padding: 33px 18px; background: linear-gradient(155deg, #003b2f, #002e27); color: #fff; }
+.player-app .membership-sidebar .brand { flex-direction: column; text-align: center; margin-bottom: 35px; }
+.player-app .membership-sidebar .brand-logo { width: 44px; height: 44px; border-radius: 50%; background: var(--premium-lime); color: #003c32; }
+.player-app .membership-sidebar .brand-name { font-size: 1.2rem; }
+.player-app .membership-sidebar .brand-tagline { font-size: .67rem; color: #fff; }
+.player-app .membership-sidebar button { display: flex; align-items: center; gap: 11px; width: 100%; min-height: 47px; padding: 12px 13px; border: 0; border-radius: 7px; background: transparent; color: #fff; font-size: .84rem; text-align: left; cursor: pointer; margin-bottom: 8px; }
+.player-app .membership-sidebar button.is-active, .player-app .membership-sidebar button[aria-selected="true"] { background: var(--premium-lime); color: #08261d; font-weight: 750; }
+.player-app .membership-sidebar .membership-motto { margin: 42px 11px 0; border-top: 1px solid rgba(255, 255, 255, .45); padding-top: 28px; font-size: 1rem; line-height: 1.45; }
+.player-app .membership-main { padding: 28px; min-width: 0; }
+.player-app .membership-banner { position: relative; isolation: isolate; overflow: hidden; min-height: 190px; margin: -28px -28px 23px; padding: 37px 28px 25px; }
+.player-app .membership-banner > img { position: absolute; inset: 0; z-index: -2; width: 100%; height: 100%; object-fit: cover; object-position: 70% center; }
+.player-app .membership-banner::after { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(90deg, #fff 3%, rgba(255, 255, 255, .94) 43%, rgba(255, 255, 255, .08) 80%); }
+.player-app .membership-banner .eyebrow { color: #687e9a; font-size: .64rem; }
+.player-app .membership-banner h1, .player-app .membership-banner h2 { font-size: clamp(2.2rem, 3.6vw, 3rem); font-weight: 800; margin: 6px 0 4px; }
+.player-app .membership-banner p { font-size: .92rem; color: #516681; max-width: 37ch; margin: 0; }
+.player-app #membership-card { padding: 16px 18px; background: #f2f9e9; border-color: #dbeac9; margin-bottom: 22px; }
+.player-app #membership-card p { margin-block: 7px; font-size: .77rem; }
+.player-app #membership-card .section-title { font-size: 1.16rem; margin-top: 7px; }
+.player-app .membership-plans { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 11px; }
+.player-app .membership-plan { display: flex; flex-direction: column; justify-content: space-between; gap: 20px; padding: 21px 16px 16px; min-width: 0; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); }
+.player-app .membership-plan > div:first-child > strong { font-size: 1.35rem; letter-spacing: -.05em; line-height: 1.2; }
+.player-app .membership-plan > div:last-child > strong { font-size: 1.55rem; font-weight: 800; letter-spacing: -.045em; }
+.player-app .membership-plan .tiny { font-size: .69rem; }
+.player-app .membership-plan p { margin-top: 6px; }
+.player-app .membership-plan ul { padding-left: 16px; margin: 15px 0 0; font-size: .71rem; }
+.player-app .membership-plan li { margin-bottom: 9px; }
+.player-app .membership-plan .btn { width: 100%; font-size: .74rem; min-height: 39px; }
+.player-app .membership-benefits { display: grid; gap: 8px; font-size: .72rem; }
+
+/* Profile as a two-column account dialog */
+.player-app #tab-profile { width: min(780px, 100%); padding: 0; overflow: auto; }
+.player-app #tab-profile > .profile-heading, .player-app #tab-profile > div:first-of-type:not(.profile-layout) { background: #003c32; color: #fff; padding: 27px 35px; }
+.player-app #tab-profile .profile-heading .page-subtitle, .player-app #tab-profile > div:first-of-type > .page-subtitle { color: #d4e4de; font-size: .83rem; }
+.player-app #tab-profile > .sheet-close { color: #fff; background: rgba(255, 255, 255, .1); }
+.player-app .profile-layout { display: grid; grid-template-columns: 240px minmax(0, 1fr); padding: 25px; gap: 26px; align-items: start; }
+.player-app .profile-sidebar { min-width: 0; border-right: 1px solid var(--border); padding-right: 21px; text-align: center; }
+.player-app .profile-avatar { display: grid; place-items: center; width: 126px; height: 126px; margin: 0 auto 10px; border-radius: 50%; background: linear-gradient(135deg, #e3f5c5, #c5ecc4); color: #003c32; border: 4px solid #fff; box-shadow: 0 0 0 1px #d5e8d3; font-size: 2.9rem; font-weight: 800; }
+.player-app .profile-sidebar h2 { font-size: 1.27rem; overflow-wrap: anywhere; }
+.player-app .profile-sidebar > p { font-size: .73rem; color: var(--text-secondary); margin: 5px 0 21px; }
+.player-app #profile-menu { gap: 8px; }
+.player-app #profile-menu .list-row { padding: 11px 10px; grid-template-columns: 21px minmax(0, 1fr) auto; gap: 9px; min-height: 43px; background: #f1f4f7; border: 1px solid transparent; border-radius: 7px; }
+.player-app #profile-menu .list-row.is-active, .player-app #profile-menu .list-row.is-selected, .player-app #profile-menu .list-row[aria-selected="true"] { background: #d7ff75; }
+.player-app #profile-menu .list-lead { width: 21px; height: 21px; font-size: 1rem; border-radius: 0; background: transparent; color: #172b45; }
+.player-app #profile-menu .list-title { font-size: .71rem; text-align: left; line-height: 1.25; }
+.player-app #profile-menu .list-sub { display: none; }
+.player-app #profile-menu .list-end { grid-column: auto; }
+.player-app #profile-panels { min-width: 0; }
+.player-app #profile-panels .form-section { padding: 0; border: 0; }
+.player-app #profile-panels .section-title { font-size: 1.06rem; margin-top: 4px; }
+.player-app #profile-panels .label { color: #4d617d; margin-bottom: 8px; }
+.player-app #profile-panels .field { margin-bottom: 20px; }
+.player-app #profile-panels .input { min-height: 43px; }
+.player-app #form-profile > .btn { margin-top: 6px; width: 100%; background: var(--premium-lime); color: #122713; border-color: var(--premium-lime); }
+
+/* Registration and payment forms retain their existing API actions. */
+.player-app .registration-layout { display: grid; grid-template-columns: minmax(240px, .8fr) minmax(0, 1.2fr); gap: 23px; align-items: start; }
+.player-app .registration-sidebar { overflow: hidden; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); }
+.player-app .registration-sidebar > img { width: 100%; aspect-ratio: .9; object-fit: cover; }
+.player-app .registration-sidebar > div { padding: 15px; }
+.player-app .registration-sidebar h3 { font-size: 1.13rem; }
+.player-app .registration-sidebar p { font-size: .76rem; color: var(--text-secondary); }
+.player-app .registration-fields { min-width: 0; }
+.player-app .registration-fields .grid.cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 11px; }
+.player-app .registration-fields .section-title { font-size: .92rem; margin-bottom: 12px; }
+.player-app .registration-fields .field { margin-bottom: 13px; }
+.player-app .registration-fields .alert { font-size: .74rem; padding: 12px; }
+.player-app .payment-layout { display: grid; grid-template-columns: 200px minmax(0, 1fr); gap: 0; margin: -20px -25px; }
+.player-app .payment-sidebar { position: relative; isolation: isolate; padding: 25px 20px; background: #003c32; color: #fff; min-height: 510px; overflow: hidden; }
+.player-app .payment-sidebar > img { position: absolute; inset: 0; z-index: -1; width: 100%; height: 100%; object-fit: cover; opacity: .46; }
+.player-app .payment-sidebar h3 { font-size: 1.3rem; color: #fff; }
+.player-app .payment-sidebar p { font-size: .79rem; line-height: 1.6; color: #e1f4e9; }
+.player-app .payment-sidebar .payment-step { margin: 24px -5px 0; padding: 12px; border-radius: 8px; font-size: .78rem; }
+.player-app .payment-sidebar .payment-step.is-active { background: var(--premium-lime); color: #102410; }
+.player-app .payment-content { padding: 24px; min-width: 0; }
+.player-app .payment-summary-card, .player-app .premium-pay-panel { box-shadow: none; border-radius: 9px; background: #f4fbea; border-color: #d3e7b6; }
+.player-app .payment-summary-card { padding: 16px; }
+.player-app .payment-summary-card .eyebrow { color: #456a40; }
+.player-app .payment-total { border-top-style: solid; padding-top: 10px; margin-top: 11px; }
+.player-app .payment-total strong { font-size: 1.25rem; }
+.player-app .payment-channel-section { overflow-wrap: anywhere; }
+.player-app .payment-qr-wrap { border-radius: 9px; box-shadow: var(--shadow-sm); }
+.player-app .payment-entry-grid.grid.cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.player-app .receipt-frame { border-radius: 8px; background: #fafbfc; border: 1px dashed #b9c7d7; }
+
+/* Sign in is a dismissible layer, never a barrier to browsing the homepage. */
+.player-app #view-auth.auth-wrap { z-index: 70; }
+.player-app .auth-dialog { position: relative; display: grid; grid-template-columns: .85fr 1fr; width: min(850px, 100%); max-height: calc(100dvh - 56px); overflow: auto; background: #fff; border-radius: 15px; box-shadow: var(--shadow-lg); }
+.player-app .auth-hero { min-height: 590px; padding: 0; isolation: isolate; background: #003c32; overflow: hidden; }
+.player-app .auth-hero > .auth-hero-image { position: absolute; inset: 0; z-index: -2; width: 100%; height: 100%; object-fit: cover; object-position: 44% center; }
+.player-app .auth-hero::after { z-index: -1; background: linear-gradient(180deg, rgba(0, 45, 35, .24), rgba(0, 40, 31, .82)); }
+.player-app .auth-hero-content { display: flex; flex-direction: column; justify-content: space-between; flex: 1; padding: 35px 28px 0; }
+.player-app .auth-hero .brand { margin-bottom: 48px !important; }
+.player-app .auth-hero .brand-logo { width: 35px; height: 35px; border-radius: 50%; background: var(--premium-lime); color: #003c32; }
+.player-app .auth-hero .brand-name { font-size: .94rem; }
+.player-app .auth-hero .brand-tagline { font-size: .64rem; color: #e1ede6; }
+.player-app .auth-story { padding-bottom: 25px; }
+.player-app .auth-story .eyebrow { color: var(--premium-lime); font-size: .58rem; margin-bottom: 13px; }
+.player-app .auth-hero h1 { font-family: var(--font); font-weight: 850; font-size: 2.6rem; line-height: 1.03; letter-spacing: -.05em; text-transform: uppercase; margin: 0 0 17px; }
+.player-app .auth-hero p { font-size: .82rem; line-height: 1.6; }
+.player-app .auth-hero .hero-points { gap: 9px; display: grid; margin-top: 16px; }
+.player-app .auth-hero .hero-points li { font-size: .65rem; }
+.player-app .auth-hero-bottom { padding: 15px 28px 24px; border-top: 1px solid rgba(255, 255, 255, .2); }
+.player-app .auth-hero-bottom p { font-size: .62rem; overflow-wrap: anywhere; }
+.player-app .auth-hero-bottom > span { font-size: .5rem; color: #d3e2d9; }
+.player-app .auth-panel { display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 21px; padding: 40px 32px; }
+.player-app .auth-panel-intro, .player-app .auth-card { width: 100%; }
+.player-app .auth-heading { font-size: 2rem; line-height: 1.1; font-weight: 800; margin: 8px 0; }
+.player-app .auth-panel-intro p { color: var(--text-secondary); font-size: .79rem; line-height: 1.55; margin: 0; }
+.player-app .auth-card.card { background: transparent; border: 0; padding: 0; box-shadow: none; }
+.player-app .auth-card .section-title { font-size: 1rem; }
+.player-app .auth-card .tabs { margin-bottom: 20px; }
+.player-app .auth-card .field { margin-bottom: 15px; }
+.player-app .auth-card .btn-block { min-height: 43px; }
+.player-app .auth-card .grid.cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 11px; }
+.player-app .auth-assurance { display: flex; justify-content: center; align-items: center; gap: 7px; border-top: 1px solid var(--border); padding-top: 17px; margin-top: 21px; font-size: .64rem; color: var(--text-secondary); text-align: center; }
+.player-app .bottom-nav { background: #fff; border-top-color: var(--border); }
+.player-app .bottom-nav button.is-active { background: #e9f7d3; color: #004537; }
+
+/* Theme preference remains supported without changing the reference's brand colors. */
+[data-theme="dark"] .player-app { --brand-background: #10241f; --surface: #182d28; --surface-2: #20372f; --surface-3: #2a4238; --text-primary: #f0f5f1; --text-secondary: #bbcdc5; --text-muted: #9fb8ad; --border: #365148; --border-strong: #4a655a; --brand-primary-soft: #2a4936; }
+[data-theme="dark"] .player-app .booking-controls { background: #142721; }
+[data-theme="dark"] .player-app #summary-card, [data-theme="dark"] .player-app #membership-card, [data-theme="dark"] .player-app .payment-summary-card { background: #254335; }
+[data-theme="dark"] .player-app .list-row.is-selected { background: #294832; }
+[data-theme="dark"] .player-app #notif-list .list-row.is-unread { background: #203d30; }
+[data-theme="dark"] .player-app .membership-banner::after { background: linear-gradient(90deg, #182d28 3%, rgba(24, 45, 40, .94) 43%, rgba(24, 45, 40, .1) 80%); }
+[data-theme="dark"] .player-app .membership-banner p, [data-theme="dark"] .player-app #profile-panels .label { color: #c7d8d0; }
+[data-theme="dark"] .player-app #profile-menu .list-row { background: #243d32; }
+[data-theme="dark"] .player-app #profile-menu .list-row.is-active, [data-theme="dark"] .player-app #profile-menu .list-row.is-selected { background: #4a652f; }
+[data-theme="dark"] .player-app #profile-menu .list-lead { color: #e3eedf; }
+[data-theme="dark"] .player-app .auth-dialog, [data-theme="dark"] .player-app .bottom-nav { background: var(--surface); }
+
+@media (max-width: 1190px) {
+  .player-app .container { width: calc(100% - 48px); }
+  .player-app .appbar-inner { gap: 18px; }
+  .player-app #main-tabs.site-nav { gap: 17px; }
+  .player-app .appbar .brand-name { max-width: 170px; font-size: .93rem; }
+  .player-app .appbar .brand-tagline { max-width: 170px; }
+  .player-app .brand-pill { display: none; }
+  .player-app .site-actions { gap: 6px; }
+  .player-app .site-actions .btn-lime { padding-inline: 13px; }
+  .player-app .booking-hero { padding-inline: 5vw; min-height: 338px; }
+  .player-app .home-grid { grid-template-columns: minmax(0, 2fr) minmax(245px, 1fr); gap: 17px; }
+  .player-app .court-gallery { gap: 10px; }
+  .player-app .court-info { padding-inline: 10px; }
+  .player-app .court-card-footer { gap: 5px; }
+  .player-app .court-card-footer .btn { font-size: .62rem; }
+  .player-app .court-title-row { flex-wrap: wrap; }
+  .player-app .community-promo, .player-app .membership-promo { padding-inline: 19px; }
+  .player-app .home-events { grid-template-columns: 1fr; }
+  .player-app .home-event-card { grid-template-columns: 130px minmax(0, 1fr); }
+  .player-app .home-event-card > img, .player-app .home-event-image { min-height: 110px; max-height: 136px; }
+  .player-app .home-event-card h3 { font-size: .88rem; }
+  .player-app .home-event-card p, .player-app .home-event-card small, .player-app .home-event-card .event-meta { font-size: .67rem; }
+  .player-app .home-event-card .btn { width: 160px; margin-top: 8px; }
+  .player-app .membership-promo { min-height: 238px; }
+  .player-app .site-footer nav { gap: 15px; }
+  .player-app .footer-slogan { font-size: .58rem; }
+  .player-app .membership-layout { grid-template-columns: 180px minmax(0, 1fr); }
+  .player-app .membership-main { padding: 24px; }
+  .player-app .membership-banner { margin: -24px -24px 20px; }
+  .player-app .membership-plan { padding: 18px 12px 14px; }
+}
+@media (max-width: 980px) {
+  .player-app .appbar-inner { gap: 10px; }
+  .player-app #main-tabs.site-nav { gap: 12px; }
+  .player-app .site-nav button { font-size: .67rem; }
+  .player-app .site-actions .btn-lime { font-size: .69rem; min-height: 35px; }
+  .player-app .site-actions .btn-ghost { font-size: .7rem; }
+  .player-app .appbar .brand-name { max-width: 130px; }
+  .player-app .appbar .brand-tagline { max-width: 130px; font-size: .5rem; }
+  .player-app .booking-hero h1, .player-app .booking-hero h2 { font-size: 3.05rem; }
+  .player-app .home-grid { grid-template-columns: minmax(0, 1fr); }
+  .player-app .home-sidebar { display: grid; grid-template-columns: 1fr 1fr; padding-top: 0; gap: 16px; }
+  .player-app .community-promo, .player-app .membership-promo { min-height: 265px; }
+  .player-app .membership-promo h2, .player-app .membership-promo h3 { font-size: 2rem; }
+  .player-app .home-events { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .player-app .home-event-card { grid-template-columns: 39% minmax(0, 1fr); }
+  .player-app .home-event-card .btn { width: 100%; }
+  .player-app .court-card-footer .btn { font-size: .75rem; }
+  .player-app .court-info { padding: 12px; }
+  .player-app .court-title-row h3 { font-size: .95rem; }
+  .player-app .site-footer .container { flex-wrap: wrap; justify-content: center; }
+  .player-app .site-sheet { padding: 23px; }
+  .player-app .booking-layout { gap: 16px; grid-template-columns: minmax(0, 1.03fr) minmax(0, 1fr); }
+  .player-app .booking-controls { padding: 10px; }
+  .player-app .slot-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .player-app .booking-row { grid-template-columns: 90px minmax(0, 1fr); }
+  .player-app .booking-row .booking-thumb, .player-app .booking-row > img { width: 90px; height: 76px; }
+  .player-app .booking-row .list-end { grid-column: 2; flex-direction: row; justify-content: start; }
+  .player-app .event-list-card { grid-template-columns: 105px minmax(0, 1fr); gap: 10px; }
+  .player-app .event-list-card > img, .player-app .event-list-card .event-poster { min-height: 175px; }
+  .player-app .event-list-actions { flex-wrap: wrap; }
+  .player-app .membership-layout { grid-template-columns: 150px minmax(0, 1fr); }
+  .player-app .membership-sidebar { padding-inline: 11px; }
+  .player-app .membership-sidebar button { padding-inline: 8px; font-size: .75rem; }
+  .player-app .membership-plans { grid-template-columns: 1fr; }
+  .player-app .membership-plan { display: grid; grid-template-columns: minmax(0, 1fr) 145px; gap: 15px; }
+}
+@media (max-width: 767px) {
+  .player-app { --header-h: 62px; font-size: 14px; padding-bottom: calc(62px + env(safe-area-inset-bottom)); }
+  .player-app .container { width: calc(100% - 32px); }
+  .player-app .appbar-inner { min-height: var(--header-h); }
+  .player-app #main-tabs.site-nav { display: none; }
+  .player-app .appbar .brand-name { max-width: 185px; font-size: .92rem; }
+  .player-app .appbar .brand-tagline { display: block; max-width: 185px; font-size: .51rem; }
+  .player-app .appbar .brand-logo { width: 34px; height: 34px; }
+  .player-app .site-actions { gap: 3px; }
+  .player-app .site-actions .btn-lime { min-height: 35px; padding: 8px 12px; }
+  .player-app .site-actions .btn-lime .ui-icon { display: none; }
+  .player-app .site-actions .btn-ghost { padding-inline: 7px; }
+  .player-app .site-actions .theme-toggle { display: none; }
+  .player-app .booking-hero { min-height: 382px; padding: 32px 24px 68px; align-items: start; }
+  .player-app .booking-hero-image { object-position: 58% 50%; }
+  .player-app .booking-hero::after { background: linear-gradient(90deg, rgba(0, 27, 23, .85), rgba(0, 27, 23, .22)), linear-gradient(0deg, rgba(0, 34, 27, .56), transparent 55%); }
+  .player-app .booking-hero .eyebrow { font-size: .63rem; max-width: 35ch; }
+  .player-app .booking-hero h1, .player-app .booking-hero h2 { font-size: clamp(2.55rem, 8.5vw, 3.5rem); max-width: 12ch; }
+  .player-app .booking-hero p { max-width: 35ch; font-size: .88rem; line-height: 1.5; margin-block: 12px 18px; }
+  .player-app .hero-actions .btn { font-size: .83rem; }
+  .player-app .hero-points { gap: 9px 16px; margin-top: 24px; }
+  .player-app .hero-points li { font-size: .6rem; }
+  .player-app .hero-points .ui-icon { width: 16px; height: 16px; }
+  .player-app .hero-caption { right: 24px; bottom: 21px; }
+  .player-app .hero-caption strong { font-size: 1.25rem; }
+  .player-app .hero-caption span:last-child { font-size: .45rem; }
+  .player-app .home-grid { padding-top: 22px; gap: 20px; }
+  .player-app .home-main { gap: 24px; }
+  .player-app .courts-section-head, .player-app .home-section-head { gap: 8px; align-items: start; }
+  .player-app .courts-section-head .section-title, .player-app .home-section-head .section-title { font-size: 1.28rem; }
+  .player-app .courts-section-head p, .player-app .home-section-head p { font-size: .67rem; }
+  .player-app .courts-section-head .btn, .player-app .home-section-head .btn { font-size: .64rem; padding-top: 1px; }
+  .player-app .court-gallery { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .player-app .court-info { padding: 10px 11px 12px; }
+  .player-app .court-title-row h3 { font-size: .9rem; }
+  .player-app .court-visual { aspect-ratio: 1.5; }
+  .player-app .court-card-footer .btn { font-size: .66rem; min-height: 36px; }
+  .player-app .court-status { font-size: .5rem !important; padding: 4px 7px !important; }
+  .player-app .court-meta { font-size: .6rem; }
+  .player-app .home-events { grid-template-columns: 1fr; }
+  .player-app .home-event-card { grid-template-columns: 130px minmax(0, 1fr); gap: 13px; padding: 7px; }
+  .player-app .home-event-card h3 { font-size: .89rem; }
+  .player-app .home-event-card .btn { max-width: 220px; }
+  .player-app .home-sidebar { grid-template-columns: 1fr 1fr; gap: 12px; }
+  .player-app .community-promo, .player-app .membership-promo { padding: 22px 17px; min-height: 280px; }
+  .player-app .community-promo h2, .player-app .community-promo h3 { font-size: 1.85rem; }
+  .player-app .community-promo p { font-size: .56rem; }
+  .player-app .community-promo ul { font-size: .61rem; gap: 9px; margin-bottom: 18px; }
+  .player-app .community-promo .btn, .player-app .membership-promo .btn { font-size: .61rem; padding-inline: 10px; }
+  .player-app .membership-promo h2, .player-app .membership-promo h3 { font-size: 1.65rem; }
+  .player-app .membership-promo p { font-size: .85rem; }
+  .player-app .site-footer { padding: 23px 0; }
+  .player-app .site-footer .container { flex-direction: column; gap: 19px; }
+  .player-app .site-footer nav { gap: 19px; }
+  .player-app .site-footer button, .player-app .site-footer a { font-size: .65rem; }
+  .player-app .site-overlay, .player-app #view-auth.auth-wrap, .player-app .modal-host { padding: 12px; align-items: center; place-items: center; }
+  .player-app .site-sheet { padding: 21px 18px; max-height: calc(100dvh - 24px); border-radius: 13px; }
+  .player-app .site-sheet .page-title { font-size: 1.65rem; }
+  .player-app .site-sheet .page-subtitle { font-size: .77rem; }
+  .player-app .site-sheet > .spread:first-of-type { flex-wrap: wrap; padding-right: 28px; }
+  .player-app .sheet-close { top: 11px; right: 11px; width: 30px; height: 30px; min-height: 30px; }
+  .player-app .site-sheet .chip { min-height: 41px; padding: 8px 7px; font-size: .7rem; }
+  .player-app .booking-layout { grid-template-columns: 1fr; gap: 20px; }
+  .player-app .booking-gallery > .court-visual, .player-app #booking-photo { aspect-ratio: 1.9; }
+  .player-app .booking-gallery #book-courts { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .player-app .booking-gallery #book-courts .court-visual { aspect-ratio: 2; }
+  .player-app #booking-court-description { margin-top: 17px; }
+  .player-app #booking-court-description .section-title { font-size: 1.32rem; }
+  .player-app .court-amenities { margin-top: 13px; }
+  .player-app .booking-controls { padding: 12px; }
+  .player-app .steps { flex-wrap: wrap; overflow: visible; gap: 9px; }
+  .player-app .step { min-width: 0; font-size: .6rem; }
+  .player-app .slot-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); max-height: 185px; }
+  .player-app .bookings-layout, .player-app .events-browser { grid-template-columns: 1fr; gap: 18px; }
+  .player-app .booking-row { grid-template-columns: 95px minmax(0, 1fr); }
+  .player-app .booking-row .booking-thumb, .player-app .booking-row > img { width: 95px; height: 84px; }
+  .player-app .list-row > .list-end { grid-column: 2; justify-content: start; }
+  .player-app .event-list-card { grid-template-columns: 125px minmax(0, 1fr); }
+  .player-app .event-list-card > img { min-height: 175px; }
+  .player-app #tab-notifications { padding: 24px 18px; }
+  .player-app #tab-notifications .chips { gap: 5px; }
+  .player-app #tab-notifications .chip { font-size: .6rem; padding: 6px 8px; }
+  .player-app #notif-list .list-row { gap: 10px; grid-template-columns: 43px minmax(0, 1fr); }
+  .player-app #notif-list .list-lead { width: 43px; height: 43px; }
+  .player-app #notif-list .list-title { font-size: .86rem; }
+  .player-app #notif-list .list-sub { font-size: .72rem; }
+  .player-app #notif-list .list-end { padding-top: 0; }
+  .player-app .membership-layout { grid-template-columns: 1fr; }
+  .player-app .membership-sidebar { padding: 15px 16px; }
+  .player-app .membership-sidebar .brand, .player-app .membership-sidebar .membership-motto { display: none; }
+  .player-app .membership-sidebar nav { display: flex; gap: 4px; padding-right: 28px; overflow-x: auto; }
+  .player-app .membership-sidebar button { width: auto; white-space: nowrap; min-height: 35px; margin: 0; padding: 7px 10px; font-size: .67rem; }
+  .player-app .membership-main { padding: 20px; }
+  .player-app .membership-banner { margin: -20px -20px 20px; min-height: 183px; padding: 28px 20px 22px; }
+  .player-app .membership-banner h1, .player-app .membership-banner h2 { font-size: 2.2rem; }
+  .player-app .membership-banner p { font-size: .78rem; max-width: 28ch; }
+  .player-app .membership-plan { grid-template-columns: minmax(0, 1fr) 130px; padding: 18px; }
+  .player-app .membership-plan > div:first-child > strong { font-size: 1.2rem; }
+  .player-app .membership-plan > div:last-child > strong { font-size: 1.4rem; }
+  .player-app #tab-profile > .profile-heading, .player-app #tab-profile > div:first-of-type:not(.profile-layout) { padding: 25px; }
+  .player-app .profile-layout { grid-template-columns: 1fr; padding: 22px; gap: 22px; }
+  .player-app .profile-sidebar { border: 0; padding: 0; }
+  .player-app .profile-avatar { width: 90px; height: 90px; font-size: 2.1rem; }
+  .player-app .profile-sidebar h2 { font-size: 1.18rem; }
+  .player-app .profile-sidebar > p { margin-bottom: 15px; }
+  .player-app #profile-menu { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; }
+  .player-app #profile-menu .list-row { padding: 9px; min-height: 42px; }
+  .player-app #profile-panels .field { margin-bottom: 15px; }
+  .player-app .modal, .player-app .modal.wide { width: 100%; max-height: calc(100dvh - 24px); border-radius: 13px; align-self: center; }
+  .player-app .modal-head { padding: 20px 18px 0; }
+  .player-app .modal-head .section-title { font-size: 1.37rem; }
+  .player-app .modal-body { padding: 17px 18px; }
+  .player-app .modal-foot { padding: 14px 18px 18px; }
+  .player-app .registration-layout { grid-template-columns: 1fr; gap: 20px; }
+  .player-app .registration-sidebar { display: grid; grid-template-columns: 115px minmax(0, 1fr); }
+  .player-app .registration-sidebar > img { height: 100%; aspect-ratio: auto; }
+  .player-app .registration-sidebar > div { padding: 12px; }
+  .player-app .registration-sidebar h3 { font-size: .93rem; }
+  .player-app .registration-sidebar p { font-size: .69rem; }
+  .player-app .registration-fields .grid.cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  .player-app .payment-layout { grid-template-columns: 1fr; margin: -17px -18px; }
+  .player-app .payment-sidebar { min-height: 0; padding: 20px; }
+  .player-app .payment-sidebar p { margin: 5px 0; }
+  .player-app .payment-sidebar .payment-step { display: inline-block; margin: 8px 0 0; padding: 6px 10px; font-size: .65rem; }
+  .player-app .payment-content { padding: 18px; }
+  .player-app .payment-entry-grid.grid.cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  .player-app .auth-dialog { grid-template-columns: 1fr; max-height: calc(100dvh - 24px); }
+  .player-app .auth-hero { min-height: 150px; }
+  .player-app .auth-hero-content { padding: 25px; }
+  .player-app .auth-hero .brand { margin-bottom: 17px !important; }
+  .player-app .auth-story { padding: 0; }
+  .player-app .auth-hero h1 { font-size: 1.8rem; max-width: 19ch; margin-bottom: 0; }
+  .player-app .auth-story .eyebrow, .player-app .auth-hero .hero-points, .player-app .auth-hero-bottom, .player-app .auth-hero .auth-story > p { display: none; }
+  .player-app .auth-panel { padding: 25px; gap: 19px; }
+  .player-app .auth-heading { font-size: 1.7rem; }
+  .player-app .auth-card .grid.cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  .player-app .bottom-nav { z-index: 50; }
+}
+@media (max-width: 479px) {
+  .player-app .appbar .brand-name { font-size: .8rem; max-width: 142px; }
+  .player-app .appbar .brand-tagline { max-width: 142px; font-size: .45rem; }
+  .player-app .appbar .brand-logo { width: 29px; height: 29px; }
+  .player-app .appbar .brand { gap: 6px; }
+  .player-app .site-actions .btn-lime { font-size: .62rem; padding-inline: 9px; }
+  .player-app .site-actions .btn-ghost { font-size: .63rem; padding-inline: 5px; }
+  .player-app .site-actions .bell { width: 29px; }
+  .player-app .booking-hero { padding-inline: 21px; }
+  .player-app .booking-hero h1, .player-app .booking-hero h2 { font-size: 2.7rem; }
+  .player-app .hero-points { gap: 10px; }
+  .player-app .hero-points li { font-size: .52rem; gap: 4px; }
+  .player-app .court-gallery { grid-template-columns: 1fr; gap: 16px; }
+  .player-app .court-visual { aspect-ratio: 1.92; }
+  .player-app .court-info { padding: 12px 15px 15px; }
+  .player-app .court-title-row h3 { font-size: 1.03rem; }
+  .player-app .court-surface { font-size: .76rem; }
+  .player-app .court-meta { font-size: .67rem; }
+  .player-app .court-rate strong { font-size: 1.37rem; }
+  .player-app .court-card-footer .btn { min-height: 39px; font-size: .78rem; }
+  .player-app .home-sidebar { grid-template-columns: 1fr; }
+  .player-app .community-promo { min-height: 293px; padding: 25px; }
+  .player-app .community-promo h2, .player-app .community-promo h3 { font-size: 2.1rem; }
+  .player-app .community-promo p, .player-app .community-promo ul { font-size: .72rem; }
+  .player-app .community-promo .btn, .player-app .membership-promo .btn { font-size: .75rem; padding-inline: 17px; }
+  .player-app .membership-promo { min-height: 205px; padding: 25px; }
+  .player-app .membership-promo h2, .player-app .membership-promo h3 { font-size: 1.9rem; }
+  .player-app .home-event-card { grid-template-columns: 112px minmax(0, 1fr); gap: 10px; }
+  .player-app .home-event-card > img, .player-app .home-event-image { min-height: 142px; }
+  .player-app .home-event-card h3 { font-size: .82rem; }
+  .player-app .home-event-card .event-meta, .player-app .home-event-card small { font-size: .6rem; }
+  .player-app .site-overlay, .player-app #view-auth.auth-wrap, .player-app .modal-host { padding: 8px; }
+  .player-app .site-sheet, .player-app .modal, .player-app .modal.wide, .player-app .auth-dialog { max-height: calc(100dvh - 16px); }
+  .player-app .site-sheet { padding: 23px 14px 18px; }
+  .player-app .site-sheet .page-title { font-size: 1.45rem; }
+  .player-app .booking-gallery #book-courts { gap: 5px; }
+  .player-app .court-pick-body { padding: 6px; }
+  .player-app .court-pick .p-title { font-size: .6rem; }
+  .player-app .court-pick .p-sub { font-size: .52rem; }
+  .player-app .booking-controls { padding: 10px; }
+  .player-app .slot-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .player-app #tab-bookings .chips .chip { font-size: .67rem; }
+  .player-app .event-list-card { grid-template-columns: 103px minmax(0, 1fr); padding: 8px; gap: 9px; }
+  .player-app .event-list-content h3 { font-size: .86rem; }
+  .player-app .event-list-content p { font-size: .65rem; }
+  .player-app .event-list-actions .btn { font-size: .63rem; }
+  .player-app #tab-notifications .chip { font-size: .55rem; padding-inline: 6px; }
+  .player-app #tab-notifications > .spread { padding-right: 19px; }
+  .player-app #nt-mark-all { min-height: 31px; font-size: .64rem; }
+  .player-app .membership-main { padding: 17px; }
+  .player-app .membership-banner { margin: -17px -17px 17px; }
+  .player-app .membership-plan { grid-template-columns: 1fr; gap: 14px; }
+  .player-app .membership-plan > div:last-child { border-top: 1px solid var(--border); padding-top: 12px; }
+  .player-app .profile-layout { padding: 19px; }
+  .player-app #profile-menu .list-title { font-size: .63rem; }
+  .player-app .registration-fields .grid.cols-2, .player-app .payment-entry-grid.grid.cols-2 { grid-template-columns: 1fr !important; }
+  .player-app .modal-body { padding: 17px 15px; }
+  .player-app .modal-head { padding-inline: 15px; }
+  .player-app .modal-foot { padding-inline: 15px; }
+  .player-app .payment-layout { margin-inline: -15px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .player-app *, .player-app *::before, .player-app *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
+}
+@media print {
+  .player-app .site-overlay { position: static; padding: 0; background: #fff; display: block; }
+  .player-app .site-sheet { max-height: none; overflow: visible; box-shadow: none; border: 0; }
+  .player-app .sheet-close, .player-app .site-footer { display: none !important; }
+}
+
+/* Final bindings for the live court, event, and account views. */
+body.player-app.sheet-open { overflow: hidden; }
+.player-app .hero-signature { position: absolute; right: 5%; bottom: 40px; text-align: center; }
+.player-app .hero-signature::after { content: ""; display: block; height: 3px; background: var(--premium-lime); margin-top: 9px; transform: rotate(-5deg); }
+.player-app .hero-features { display: flex; align-items: center; flex-wrap: wrap; gap: 12px 24px; margin-top: 20px; font-size: .7rem; }
+.player-app .hero-features span { display: inline-flex; align-items: center; gap: 8px; }
+.player-app .hero-features b { font-size: 1.25rem; line-height: 1; color: var(--premium-lime); }
+.player-app .booking-hero .eyebrow > span { color: #fff; }
+.player-app .booking-hero .eyebrow > b { color: var(--premium-lime); font-weight: 500; }
+.player-app .membership-promo em { font-style: normal; color: var(--premium-lime); }
+.player-app #today-label { display: block; margin-top: 3px; font-size: .62rem; }
+.player-app .court-visual > .badge { left: auto; right: 8px; background: var(--premium-lime); color: #102410; border: 0; font-weight: 800; padding: 6px 10px; }
+.player-app .court-visual > .badge-booked, .player-app .court-visual > .badge-blocked, .player-app .court-visual > .badge-maintenance { background: #ffdc91; color: #593c13; }
+.player-app .court-type { max-width: 47%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.player-app .home-events-section > .card-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+.player-app .home-events-section .section-title { font-size: 1.3rem; }
+.player-app .home-events-section .page-subtitle { font-size: .7rem; margin-top: 4px; }
+.player-app .home-events-section > .card-header .btn { color: var(--premium-forest); white-space: nowrap; font-weight: 500; padding-inline: 0; }
+.player-app .event-artwork { position: relative; overflow: hidden; isolation: isolate; border-radius: 7px; background: #003c32; min-width: 0; }
+.player-app .event-artwork > .promo-image { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: cover; }
+.player-app .event-artwork-title { position: absolute; inset: auto 12px 17px; font-size: 1.4rem; font-style: italic; font-weight: 900; color: #fff; line-height: 1.1; letter-spacing: -.04em; text-transform: uppercase; text-shadow: 0 2px 12px #001c15; z-index: 1; overflow-wrap: anywhere; }
+.player-app .event-artwork:has(.event-artwork-title)::after { content: ""; position: absolute; inset: 0; background: linear-gradient(0deg, #00251ded, #00332100 85%); }
+.player-app .home-event-card { position: relative; }
+.player-app .home-event-card .event-artwork { min-height: 154px; }
+.player-app .home-event-card .event-artwork-title { font-size: 1.04rem; inset-inline: 9px; }
+.player-app .home-event-info > span:not(.event-date-badge) { display: block; font-size: .58rem; line-height: 1.6; color: var(--text-secondary); margin-bottom: 5px; }
+.player-app .home-event-info .event-date-badge { position: absolute; top: 12px; left: 12px; z-index: 3; display: grid; text-align: center; line-height: 1; padding: 6px 9px; background: #003c32; color: #fff; font-size: 1.25rem; font-weight: 800; border-radius: 5px; }
+.player-app .event-date-badge b { color: var(--premium-lime); font-size: .6rem; line-height: 1.5; text-transform: uppercase; }
+.player-app .site-footer { width: 100vw; margin-left: calc(50% - 50vw); padding: 19px max(3.3vw, calc((100vw - 1352px) / 2)); display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+.player-app .footer-brand { display: flex; align-items: center; gap: 6px; color: var(--premium-lime); font-size: .65rem; }
+.player-app .footer-brand strong { color: #fff; max-width: 210px; }
+.player-app .site-footer > span { font-size: .62rem; white-space: nowrap; }
+.player-app .pickleball-mark { display: inline-block; width: 29px; height: 29px; border-radius: 50%; background: radial-gradient(circle at 28% 22%, #003c32 0 2px, transparent 3px), radial-gradient(circle at 74% 37%, #003c32 0 3px, transparent 4px), radial-gradient(circle at 34% 76%, #003c32 0 3px, transparent 4px), radial-gradient(circle at 53% 49%, #003c32 0 2px, transparent 3px), var(--premium-lime); font-size: 0; flex-shrink: 0; }
+.player-app .booking-layout { margin-top: 20px; }
+.player-app .booking-inputs { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.player-app .booking-inputs .field { margin: 0; min-width: 0; }
+.player-app .player-stepper { display: flex; align-items: center; border: 1px solid var(--border-strong); background: var(--surface); border-radius: 7px; padding: 4px; }
+.player-app .player-stepper > button { width: 30px; height: 31px; flex-shrink: 0; border: 0; border-radius: 6px; background: var(--surface-2); color: var(--text-primary); font-size: 1.1rem; cursor: pointer; }
+.player-app .player-stepper > select { text-align: center; border: 0; padding: 0; min-height: 31px; background: transparent; appearance: none; font-size: 1.03rem; font-weight: 700; }
+.player-app .booking-calendar-details summary span { display: block; color: var(--text-secondary); font-size: .64rem; }
+.player-app #summary-card > .section-title { margin-bottom: 9px; font-size: 1.16rem; }
+.player-app .booking-list-card { width: 100%; display: grid; grid-template-columns: 115px minmax(0, 1fr) auto 9px; align-items: center; gap: 13px; padding: 13px; border: 1px solid var(--border); border-radius: 10px; text-align: left; background: var(--surface); color: var(--text-primary); font: inherit; cursor: pointer; }
+.player-app .booking-list-card:hover { border-color: #94ba6c; }
+.player-app .booking-list-card.is-selected { border-color: #a0d069; background: #f5faee; }
+.player-app .booking-list-card > .court-visual { aspect-ratio: 1.45; border-radius: 7px; }
+.player-app .booking-list-card .court-image-note { display: none; }
+.player-app .booking-list-main, .player-app .booking-list-end { display: grid; gap: 4px; min-width: 0; }
+.player-app .booking-list-main strong { font-size: .95rem; line-height: 1.3; }
+.player-app .booking-list-main > span { color: var(--text-secondary); font-size: .71rem; }
+.player-app .booking-list-end { justify-items: start; }
+.player-app .booking-list-end > strong { font-size: 1.15rem; white-space: nowrap; }
+.player-app .booking-detail-content { padding: 15px; }
+.player-app .booking-detail-content h2 { font-size: 1.12rem; }
+.player-app .booking-detail-content dl { margin-block: 12px; }
+.player-app .booking-detail-actions { flex-wrap: wrap; }
+.player-app .booking-detail-actions .btn { font-size: .75rem; }
+.player-app .btn-cancel { border-color: #ef5b5b; color: #d92222; }
+.player-app .book-again { margin-top: 12px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; padding: 18px; border: 1px solid var(--border); border-radius: 10px; }
+.player-app .event-list-card > .event-artwork { min-height: 195px; }
+.player-app .event-list-info { display: flex; flex-direction: column; align-items: start; gap: 6px; min-width: 0; }
+.player-app .event-list-info h3 { font-size: 1rem; line-height: 1.22; }
+.player-app .event-list-info p { margin: 0; font-size: .7rem; color: var(--text-secondary); }
+.player-app .event-list-info .badge { background: #e6fca7; color: #1b3617; }
+.player-app .event-card-actions { width: 100%; display: flex; flex-wrap: wrap; gap: 7px; margin-top: auto; padding-top: 7px; }
+.player-app .event-card-actions .btn { flex: 1; font-size: .7rem; padding-inline: 8px; }
+.player-app .event-spotlight > .event-artwork { aspect-ratio: 2.35; margin-bottom: 14px; }
+.player-app .event-spotlight h2 { font-size: 1.4rem; }
+.player-app .event-spotlight p { font-size: .77rem; line-height: 1.6; margin: 9px 0; }
+.player-app #event-spotlight p.event-detail-meta { display: block; margin: 9px 0; }
+.player-app .event-fee { display: flex; align-items: center; justify-content: space-between; padding: 16px; margin-top: 20px; background: #f1f8e9; border-radius: 8px; font-size: .79rem; }
+.player-app .event-fee strong { font-size: 1.2rem; }
+.player-app .membership-wordmark { display: grid; gap: 4px; justify-items: center; text-align: center; margin: 0 0 32px; }
+.player-app .membership-wordmark > strong { font-size: 1.1rem; line-height: 1.2; }
+.player-app .membership-wordmark > span:not(.pickleball-mark) { font-size: .57rem; }
+.player-app .membership-wordmark .brand-pill { display: inline-block; margin-top: 7px; }
+.player-app .membership-sidebar > p { margin: 38px 10px 0; border-top: 1px solid #ffffff60; padding-top: 26px; font-size: .95rem; }
+.player-app #membership-plans-card { padding: 0; border: 0; }
+.player-app .membership-plan .benefit-grid { display: grid; grid-template-columns: 1fr; margin-top: 17px; gap: 10px; }
+.player-app .membership-plan .benefit-grid > span { display: flex; gap: 7px; padding: 0; background: transparent; border: 0; color: var(--text-primary); font-size: .69rem; line-height: 1.5; }
+.player-app .membership-plan .benefit-grid > span::before { content: "✓"; display: inline-grid; place-items: center; width: 15px; height: 15px; margin-top: 2px; flex: none; background: #005335; color: #e1ff7a; border-radius: 50%; font-size: .55rem; }
+.player-app .membership-note { margin-top: 20px; padding: 16px 20px; border-radius: 9px; background: #edf6f4; font-size: .77rem; font-weight: 650; color: #103b31; }
+.player-app .membership-note > span { display: block; font-weight: 400; color: #637e82; font-size: .7rem; margin-top: 4px; }
+.player-app .registration-dialog, .player-app .modal.registration-dialog { width: min(850px, 100%); }
+.player-app .registration-sidebar > .event-artwork { padding: 0; aspect-ratio: .9; border-radius: 0; }
+.player-app .registration-sidebar > h2, .player-app .registration-sidebar > p { margin: 12px 15px; }
+.player-app .registration-sidebar > h2 { font-size: 1.15rem; }
+.player-app .registration-sidebar > .membership-note { margin: 12px; }
+.player-app .registration-player { display: grid; gap: 4px; padding: 13px 0 18px; }
+.player-app .registration-player > strong { font-size: 1.07rem; }
+.player-app .registration-player > span:last-child { color: var(--text-secondary); font-size: .75rem; overflow-wrap: anywhere; }
+.player-app .registration-total { display: grid; margin-right: auto; gap: 2px; }
+.player-app .registration-total span { font-size: .72rem; }
+.player-app .registration-total strong { font-size: 1.25rem; }
+.player-app .payment-dialog, .player-app .modal.payment-dialog { width: min(920px, 100%); }
+.player-app .payment-native-select { position: absolute; width: 1px; height: 1px; min-height: 0; padding: 0; overflow: hidden; clip-path: inset(50%); border: 0; }
+.player-app .payment-method-tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; margin: 8px 0 18px; }
+.player-app .payment-method-tile { display: grid; gap: 7px; place-items: center; min-height: 85px; padding: 10px 8px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--text-primary); font: inherit; font-size: .7rem; cursor: pointer; }
+.player-app .payment-method-tile > span { font-size: 1.4rem; line-height: 1; color: #004b38; font-weight: 800; }
+.player-app .payment-method-tile.is-selected { background: #f4fbdf; border-color: #88c700; box-shadow: 0 0 0 1px #88c700; }
+.player-app .payment-method-tile:disabled { cursor: not-allowed; opacity: .45; }
+.player-app .payment-sidebar > strong { font-size: 1rem; }
+.player-app .payment-sidebar ol { display: grid; gap: 18px; padding-left: 17px; margin-top: 45px; font-size: .76rem; }
+.player-app .payment-sidebar li.is-active { color: var(--premium-lime); font-weight: 700; }
+.player-app .court-detail-photo { aspect-ratio: 2; border-radius: 10px; margin-bottom: 18px; }
+.player-app .notification-heading { display: flex; gap: 16px; align-items: center; }
+.player-app .notification-heading > .notification-mark { width: 60px; height: 60px; background: var(--premium-lime); color: #003c32; border-radius: 50%; display: grid; place-items: center; flex-shrink: 0; }
+.player-app .site-sheet :where(h1,h2,h3,p,span) { overflow-wrap: anywhere; }
+[data-theme="dark"] .player-app .booking-list-card.is-selected, [data-theme="dark"] .player-app .payment-method-tile.is-selected, [data-theme="dark"] .player-app .event-fee { background: #284631; }
+[data-theme="dark"] .player-app .payment-method-tile > span { color: var(--premium-lime); }
+@media (min-width: 1000px) { .player-app .payment-method-tiles { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+@media (max-width: 980px) {
+  .player-app .site-footer { flex-wrap: wrap; justify-content: center; text-align: center; }
+  .player-app .booking-list-card { grid-template-columns: 90px minmax(0, 1fr); }
+  .player-app .booking-list-end { grid-column: 2; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+  .player-app .booking-list-card > span:last-child { display: none; }
+  .player-app .booking-list-card > .court-visual { grid-row: span 2; }
+}
+@media (max-width: 767px) {
+  .player-app .hero-signature { display: none; }
+  .player-app .hero-features { gap: 10px 16px; font-size: .62rem; }
+  .player-app .home-events-section > .card-header { align-items: start; }
+  .player-app .home-events-section .section-title { font-size: 1.2rem; }
+  .player-app .site-footer { padding-bottom: calc(82px + env(safe-area-inset-bottom)); }
+  .player-app .booking-inputs.grid.cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  .player-app .membership-wordmark, .player-app .membership-sidebar > p { display: none; }
+  .player-app .membership-sidebar { display: flex; gap: 6px; padding-right: 42px; overflow-x: auto; }
+  .player-app .membership-sidebar button { flex-shrink: 0; }
+  .player-app .event-list-info h3 { font-size: .92rem; }
+  .player-app .event-list-info p { font-size: .68rem; }
+  .player-app .event-list-card > .event-artwork { min-height: 178px; }
+  .player-app .event-artwork-title { font-size: 1.15rem; }
+  .player-app .registration-sidebar { display: block; }
+  .player-app .registration-sidebar > .event-artwork { aspect-ratio: 2.5; }
+  .player-app .registration-sidebar > p, .player-app .registration-sidebar > .membership-note { display: none; }
+  .player-app .payment-sidebar { min-height: 0; padding: 14px 20px; }
+  .player-app .payment-sidebar > p, .player-app .payment-sidebar > img { display: none; }
+  .player-app .payment-sidebar ol { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px 20px; margin-top: 10px; font-size: .62rem; }
+  .player-app .notification-heading { gap: 10px; }
+  .player-app .notification-heading > .notification-mark { width: 42px; height: 42px; }
+}
+@media (max-width: 479px) {
+  .player-app .home-events-section > .card-header { flex-direction: column; gap: 0; }
+  .player-app .booking-inputs.grid.cols-2 { grid-template-columns: 1fr !important; }
+  .player-app .booking-list-card { grid-template-columns: 82px minmax(0, 1fr); gap: 8px; padding: 9px; }
+  .player-app .booking-list-main > strong { font-size: .83rem; }
+  .player-app .booking-list-main > span { font-size: .66rem; }
+  .player-app .booking-list-end > strong { font-size: .95rem; }
+  .player-app .book-again { padding: 12px; }
+  .player-app .event-card-actions .btn { font-size: .64rem; }
+}
+
+/* The shared admin stylesheet also contains player tablet rules. These explicit
+   booking overrides avoid duplicated space below the site and protect layers. */
+body.player-app .app-body { padding-bottom: 0 !important; }
+body.player-app .site-sheet, body.player-app .auth-dialog { min-width: 0; }
+body.player-app .booking-inputs .input, body.player-app .booking-inputs .select { min-width: 0; width: 100%; }
+body.player-app .booking-inputs .player-stepper .select { min-height: 31px; }
+@media (min-width: 981px) {
+  .player-app .home-sidebar { padding-top: 66px; }
+}
+@media (max-width: 1024px) {
+  body.player-app { padding-bottom: 0; }
+  body.player-app .site-footer { padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
+  body.player-app .modal-host { z-index: 80; }
+  body.player-app .bottom-nav { z-index: 50; }
+}
+@media (max-width: 767px) {
+  body.player-app #main-tabs.site-nav { display: none; }
+  body.player-app .site-footer { padding-bottom: calc(82px + env(safe-area-inset-bottom)); }
+  body.player-app .modal, body.player-app .modal.wide { max-height: calc(100dvh - 24px); border-radius: 13px; align-self: center; }
+  body.player-app .modal-host { padding: 12px; }
+}
+@media (max-width: 479px) {
+  body.player-app .modal, body.player-app .modal.wide { max-height: calc(100dvh - 16px); }
+  body.player-app .modal-host { padding: 8px; }
+}

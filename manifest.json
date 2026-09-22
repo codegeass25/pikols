@@ -1,0 +1,30 @@
+{
+  "id": "./pikol-booking-pwa",
+  "name": "PIKOL Pickleball Booking",
+  "short_name": "PIKOL Booking",
+  "description": "Pickleball court booking, events, tournaments, open play and player portal.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": [
+    "window-controls-overlay",
+    "standalone"
+  ],
+  "orientation": "any",
+  "background_color": "#f5f7f6",
+  "theme_color": "#0f3d32",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

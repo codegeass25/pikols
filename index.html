@@ -1,0 +1,2513 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="description" content="Reserve a pickleball court in a few taps." />
+<title>Court Booking</title>
+<link rel="icon" id="favicon" href="data:," />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+<link rel="manifest" href="manifest.json" />
+<meta name="theme-color" content="#0f3d32" />
+<script src="config.js"></script>
+<link rel="stylesheet" href="styles.css" />
+<link rel="stylesheet" href="booking-premium.css" />
+<link rel="preload" as="image" href="assets/booking/hero-court.jpg" fetchpriority="high" />
+</head>
+<body class="player-app">
+
+<!-- ========================= BOOT SPLASH ========================= -->
+<div id="boot-splash" class="boot-splash" role="status" aria-live="polite">
+  <div class="boot-inner">
+    <div class="boot-logo" id="boot-logo"></div>
+    <div class="boot-name" id="boot-name"></div>
+    <div class="boot-bar"><span></span></div>
+  </div>
+</div>
+
+<!-- ============================ AUTH ============================ -->
+<div id="view-auth" class="auth-wrap hidden"><div class="auth-dialog" role="dialog" aria-modal="true" aria-label="Sign in to your club"><button type="button" class="sheet-close" data-close-auth aria-label="Close sign in">×</button>
+  <section class="auth-hero" aria-label="Welcome to the court">
+    <img class="auth-hero-image" src="assets/booking/hero-court.jpg" alt="A sunlit pickleball court surrounded by tropical greenery, a promotional illustration" width="1672" height="941" fetchpriority="high" decoding="async" />
+    <div class="auth-hero-content">
+      <div class="brand" style="margin-bottom:36px">
+        <div class="brand-logo" id="hero-logo">PB</div>
+        <div class="brand-text">
+          <div class="brand-name" id="hero-name" style="color:#fff">Pickleball Club</div>
+          <div class="brand-tagline" id="hero-short" style="color:rgba(255,255,255,.7)">Court booking</div>
+        </div>
+      </div>
+      <div class="auth-story">
+      <span class="eyebrow">YOUR COURT. YOUR MOMENT.</span>
+      <h1 id="hero-tagline">Make time for a great game.</h1>
+      <p id="hero-desc">A little competition. A lot of connection. Find your court, bring your people, and make your next game happen.</p>
+      <ul class="hero-points">
+        <li><span aria-hidden="true">✓</span> Live availability across every court</li>
+        <li><span aria-hidden="true">✓</span> Your bookings, all in one place</li>
+        <li><span aria-hidden="true">✓</span> Reserve in four simple steps</li>
+      </ul>
+      </div>
+    </div>
+    <div class="auth-hero-bottom"><p class="tiny" id="hero-contact" style="color:rgba(255,255,255,.7);margin:0"></p><span>COURT INSPIRATION · PROMOTIONAL IMAGE</span></div>
+  </section>
+
+  <section class="auth-panel" aria-label="Player sign in">
+    <div class="auth-panel-intro"><span class="eyebrow">LET’S PLAY</span><h2 class="auth-heading">Good to see you.</h2><p>Your next great game is just a few taps away.</p></div>
+    <div class="auth-card card">
+      <div class="spread" style="margin-bottom:16px">
+        <h3 class="section-title">Your next game awaits</h3>
+        <div class="row" style="gap:6px">
+          <button class="btn btn-ghost btn-icon theme-toggle" title="Toggle theme" aria-label="Toggle theme">◐</button>
+        </div>
+      </div>
+
+      <div class="tabs" role="tablist">
+        <button class="tab" role="tab" aria-selected="true" data-authtab="login">Login</button>
+        <button class="tab" role="tab" aria-selected="false" data-authtab="register">Register</button>
+      </div>
+
+      <form id="form-login" novalidate>
+        <div class="field">
+          <label class="label" for="li-email">Email address</label>
+          <input class="input" id="li-email" type="email" autocomplete="email" required placeholder="you@example.com" />
+        </div>
+        <div class="field">
+          <label class="label" for="li-pass">Password</label>
+          <input class="input" id="li-pass" type="password" autocomplete="current-password" required placeholder="••••••••" />
+        </div>
+        <button class="btn btn-primary btn-block" type="submit" data-loading="Signing in...">Login</button>
+      </form>
+
+      <form id="form-register" class="hidden" novalidate>
+        <div class="field">
+          <label class="label" for="rg-name">Full name</label>
+          <input class="input" id="rg-name" required autocomplete="name" placeholder="Juan Dela Cruz" />
+        </div>
+        <div class="field">
+          <label class="label" for="rg-email">Email address</label>
+          <input class="input" id="rg-email" type="email" required autocomplete="email" placeholder="you@example.com" />
+        </div>
+        <div class="field">
+          <label class="label" for="rg-mobile">Mobile number</label>
+          <input class="input" id="rg-mobile" required autocomplete="tel" placeholder="+63 917 000 0000" />
+          <span class="field-hint">Used for booking confirmations.</span>
+        </div>
+        <div class="grid cols-2" style="gap:0 14px">
+          <div class="field">
+            <label class="label" for="rg-pass">Password</label>
+            <input class="input" id="rg-pass" type="password" required autocomplete="new-password" minlength="8" />
+          </div>
+          <div class="field">
+            <label class="label" for="rg-pass2">Confirm password</label>
+            <input class="input" id="rg-pass2" type="password" required autocomplete="new-password" minlength="8" />
+          </div>
+        </div>
+        <button class="btn btn-primary btn-block" type="submit" data-loading="Creating account...">Create account</button>
+      </form>
+      <div class="auth-assurance"><span aria-hidden="true">↗</span> Pick a date. Find your court. Get out and play.</div>
+    </div>
+  </section>
+</div>
+
+</div>
+<!-- ============================ APP ============================ -->
+<div id="view-app">
+  <header class="appbar">
+    <div class="container appbar-inner">
+      <div class="brand">
+        <div class="brand-logo" id="app-logo">PB</div>
+        <div class="brand-text">
+          <div class="brand-name" id="app-name">Pickleball Club</div>
+          <div class="brand-tagline" id="app-tagline">Court booking</div>
+        </div>
+      </div>
+      <span class="brand-pill">PIKOL</span>
+      <nav class="site-nav" id="main-tabs" aria-label="Main navigation">
+        <button class="tab is-active" data-goto="dashboard" aria-current="page">Home</button>
+        <button class="tab" data-goto="courts">Courts</button>
+        <button class="tab" data-goto="openplay">Open Play</button>
+        <button class="tab" data-goto="tournaments">Tournaments</button>
+        <button class="tab" data-goto="membership">Membership</button>
+      </nav>
+      <div class="site-actions">
+        <span id="rt-status" class="hidden"><span id="rt-dot"></span><span id="rt-text"></span></span>
+        <button class="btn btn-ghost btn-icon bell" id="btn-bell" aria-label="Notifications" data-goto="notifications"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg><span class="bell-count hidden" id="bell-count"></span></button>
+        <button class="btn btn-ghost" id="site-account" data-goto="profile">Sign In</button>
+        <button class="btn btn-lime" data-goto="book"><span aria-hidden="true">▦</span> Book Now</button>
+        <button id="btn-logout" class="hidden" type="button">Sign out</button>
+      </div>
+    </div>
+  </header>
+  <main class="container app-body">
+    <section id="tab-dashboard">
+      <section class="booking-hero" aria-label="Play, book, compete">
+        <img class="booking-hero-image" src="assets/booking/hero-court.jpg" alt="Tropical blue pickleball court, promotional illustration" width="1672" height="941" fetchpriority="high" decoding="async" />
+        <div class="booking-hero-content">
+          <span class="eyebrow"><span data-facility-name>WENJELLY PICKLEBALL ZONE</span> <b>/ PIKOL</b></span>
+          <h1>PLAY. BOOK.<br><em>COMPETE.</em></h1>
+          <p><strong>Premium pickleball courts with fast online reservation.</strong><br>Dinks, drives, and good times await.</p>
+          <div class="hero-actions"><button class="btn btn-lime btn-lg" data-goto="book"><span aria-hidden="true">▦</span> Book a Court <span aria-hidden="true">→</span></button></div>
+          <div class="hero-features"><span><b aria-hidden="true">♛</b> Premium Facilities</span><span><b aria-hidden="true">♟</b> Vibrant Community</span><span><b aria-hidden="true">▥</b> Play. Improve. Belong.</span></div>
+        </div>
+        <div class="hero-signature">PICKLEBALL<br>LIVES HERE</div>
+        <div class="hero-caption"><span></span><span>Promotional image</span></div>
+      </section>
+      <div class="home-grid">
+        <div class="home-main">
+          <section id="home-courts" aria-labelledby="courts-title">
+            <div class="card-header courts-section-head"><div><h2 class="section-title" id="courts-title">Explore Our Courts</h2><p class="page-subtitle">Find your court. Bring your people. Make it a game.</p><span class="tiny muted" id="today-label"></span></div><button class="btn btn-ghost btn-sm" data-goto="book">View All Courts <span aria-hidden="true">→</span></button></div>
+            <div class="court-gallery" id="today-courts" aria-live="polite"><div class="skeleton" style="height:300px"></div></div>
+          </section>
+          <section class="home-events-section" aria-labelledby="home-events-title"><div class="card-header"><div><h2 class="section-title" id="home-events-title">Upcoming Events &amp; Tournaments</h2><p class="page-subtitle">Join our community events and take your game to the next level.</p></div><button class="btn btn-ghost btn-sm" data-goto="tournaments">View All Events →</button></div><div id="home-events" class="home-events"><div class="skeleton" style="height:160px"></div></div></section>
+        </div>
+        <aside class="home-sidebar">
+          <article class="community-promo"><img src="assets/booking/community.jpg" alt="Pickleball paddle and lime ball, promotional illustration" width="800" height="1000" loading="lazy"/><div class="promo-content"><h2>MORE THAN<br>A GAME.</h2><p>A COMMUNITY THAT PLAYS TOGETHER.</p><ul><li>Find your favourite court</li><li>Events &amp; tournaments</li><li>Membership benefits</li><li>More games. More good people.</li></ul><button class="btn btn-white" data-goto="membership">Join the Community →</button></div></article>
+          <article class="membership-promo"><img src="assets/booking/membership.jpg" alt="Pickleball community, promotional illustration" width="1200" height="600" loading="lazy"/><div class="promo-content"><span class="eyebrow" data-facility-name>WENJELLY PICKLEBALL ZONE</span><h2>Membership</h2><p><em>Play more.</em> Get more.<br>Be part of it all.</p><button class="btn btn-lime" data-goto="membership">View Plans →</button></div></article>
+        </aside>
+      </div>
+      <div class="hidden" aria-hidden="true"><span id="dash-name"></span><span id="dash-sub"></span><span id="st-upcoming"></span><span id="st-played"></span><div id="next-booking-card"></div><div id="recent-bookings"></div></div>
+    </section>
+    <div id="site-overlay" class="site-overlay hidden">
+    <section id="tab-book" class="site-sheet hidden" role="dialog" aria-modal="true" aria-labelledby="booking-title">
+      <button class="sheet-close" data-close-sheet aria-label="Close booking">×</button>
+      <div class="booking-page-head"><span class="eyebrow">BOOK YOUR GAME</span><h1 class="page-title" id="booking-title">Book a Court</h1><p class="page-subtitle" data-facility-name>WenJelly Pickleball Zone / PIKOL</p></div>
+      <div class="booking-layout">
+        <div class="booking-gallery"><div id="booking-photo" class="court-visual"></div><div class="pick-grid" id="book-courts" aria-label="Choose a court"></div><div id="booking-court-description"></div><p class="field-hint">Select a court above to explore its availability.</p></div>
+        <div class="booking-controls">
+          <div class="steps" id="steps"><div class="step" data-step="1"><span class="step-n">1</span>Date</div><div class="step" data-step="2"><span class="step-n">2</span>Court</div><div class="step" data-step="3"><span class="step-n">3</span>Time</div><div class="step" data-step="4"><span class="step-n">4</span>Confirm</div></div>
+          <div class="grid cols-2 booking-inputs"><div class="field"><label class="label" for="booking-date">Select Date</label><input class="input" id="booking-date" type="date" required/></div><div class="field"><label class="label" for="booking-time">Select Time Slot</label><select class="select" id="booking-time"><option value="">Choose a court first</option></select></div></div>
+          <details class="booking-calendar-details"><summary>Browse calendar <span id="book-date-label"></span></summary><div class="card calendar" id="calendar"><div class="calendar-head"><button class="btn btn-ghost btn-icon" id="cal-prev" aria-label="Previous month">‹</button><span class="calendar-month" id="cal-month"></span><button class="btn btn-ghost btn-icon" id="cal-next" aria-label="Next month">›</button></div><div class="calendar-grid" id="cal-dow"></div><div class="calendar-grid" id="cal-days" role="grid"></div><button class="btn btn-outline btn-sm btn-block" id="cal-today">Today</button></div></details>
+          <details id="slot-card" class="booking-times-details"><summary>View all time slots</summary><div class="slot-grid" id="slot-grid"></div></details>
+          <div class="grid cols-2 booking-inputs"><div class="field"><label class="label" for="bk-players">Number of Players</label><div class="player-stepper"><button type="button" data-player-change="-1" aria-label="Fewer players">−</button><select class="select" id="bk-players"><option>2</option><option>3</option><option selected>4</option><option>5</option><option>6</option></select><button type="button" data-player-change="1" aria-label="More players">+</button></div><span class="field-hint">2 to 6 players</span></div><div class="field"><label class="label" for="bk-notes">Additional Notes (Optional)</label><textarea class="textarea" id="bk-notes" maxlength="300" placeholder="Special requests, equipment, occasion…"></textarea></div></div>
+          <div class="card action-card" id="summary-card"><h2 class="section-title">Booking Summary</h2><dl class="summary-list" id="summary-list" aria-live="polite"></dl></div>
+          <p class="field-hint">Your reservation fee is paid after confirmation. Any remaining court balance is settled at the venue.</p><div id="booking-fee-status" class="hidden" role="status"><p class="field-hint">Payment details could not load.</p><button class="btn btn-outline btn-sm" data-retry-fees>Retry payment details</button></div><button class="btn btn-primary btn-block" id="btn-confirm" data-loading="Booking…">Continue to Confirmation →</button>
+        </div>
+      </div>
+    </section>
+    <!-- BOOKINGS -->
+    <section id="tab-bookings" class="site-sheet hidden stack" role="dialog" aria-modal="true" aria-label="My Bookings" style="gap:20px">
+      <button class="sheet-close" data-close-sheet aria-label="Close My Bookings">×</button>
+      <div class="spread">
+        <div><h1 class="page-title">My Bookings</h1><p class="page-subtitle">Upcoming reservations and full history.</p></div>
+        <button class="btn btn-primary" data-goto="book">＋ New booking</button>
+      </div>
+      <div class="chips" role="group" aria-label="Filter bookings">
+        <button class="chip" data-filter="upcoming" aria-pressed="true">Upcoming</button>
+        <button class="chip" data-filter="history" aria-pressed="false">History</button><button class="chip" data-filter="payments" aria-pressed="false">Payments</button>
+      </div>
+      <div class="bookings-layout"><div><div class="list" id="bookings-list"></div><div class="book-again"><strong>Ready for another game?</strong><button class="btn btn-primary" data-goto="book">Book a Court →</button></div></div><aside id="booking-detail" class="booking-detail"></aside></div>
+    </section>
+
+    <!-- TOURNAMENTS -->
+    <section id="tab-tournaments" class="site-sheet hidden stack" role="dialog" aria-modal="true" aria-label="Events & Registrations" style="gap:20px">
+      <button class="sheet-close" data-close-sheet aria-label="Close Events & Registrations">×</button>
+      <div class="spread">
+        <div><h1 class="page-title">Events &amp; Registrations</h1><p class="page-subtitle">Tournaments, Open Play sessions and your registrations.</p></div>
+        <button class="btn btn-ghost btn-sm" id="tn-refresh">↻ Refresh</button>
+      </div>
+      <div class="chips" id="ev-subtabs" role="group" aria-label="Event view">
+        <button class="chip" data-evtab="tournaments" aria-selected="true">Tournaments</button>
+        <button class="chip" data-evtab="openplay" aria-selected="false">Open Play</button>
+        <button class="chip" data-evtab="myregs" aria-selected="false">My registrations<span class="pill hidden" id="ev-reg-pill"></span></button>
+      </div>
+
+      <div id="ev-view-tournaments" class="stack" style="gap:20px">
+        <div id="tn-list-view" class="stack" style="gap:20px">
+          <div>
+            <div class="list-head"><h2 class="section-title">My matches</h2></div>
+            <div class="list" id="tn-my-matches"></div>
+          </div>
+          <div>
+            <div class="list-head"><h2 class="section-title">Tournaments</h2></div>
+            <div class="events-browser"><div class="list" id="tn-events"></div><aside class="event-spotlight" id="event-spotlight"></aside></div>
+          </div>
+        </div>
+        <div id="tn-detail-view" class="hidden stack" style="gap:16px"></div>
+      </div>
+
+      <div id="ev-view-openplay" class="hidden stack" style="gap:20px">
+        <div>
+          <div class="list-head"><h2 class="section-title">Open Play sessions</h2></div>
+          <div class="events-browser"><div class="list" id="op-events"></div><aside class="event-spotlight" id="openplay-spotlight"></aside></div>
+        </div>
+      </div>
+
+      <div id="ev-view-myregs" class="hidden stack" style="gap:20px">
+        <div>
+          <div class="list-head"><h2 class="section-title">Tournament registrations</h2></div>
+          <div class="list" id="my-trn-regs"></div>
+        </div>
+        <div>
+          <div class="list-head"><h2 class="section-title">Open Play registrations</h2></div>
+          <div class="list" id="my-op-regs"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- NOTIFICATIONS -->
+    <section id="tab-notifications" class="site-sheet hidden stack" role="dialog" aria-modal="true" aria-label="Notifications" style="gap:16px">
+      <button class="sheet-close" data-close-sheet aria-label="Close Notifications">×</button>
+      <div class="spread">
+        <div class="notification-heading"><span class="notification-mark" aria-hidden="true"><svg width="29" height="29" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg></span><div>
+          <h1 class="page-title">Notifications</h1>
+          <p class="page-subtitle">Booking, payment and event updates sent to you.</p>
+        </div></div>
+        <button class="btn btn-outline btn-sm" id="nt-mark-all">Mark all read</button>
+      </div>
+      <div class="chips" role="group" aria-label="Filter notifications">
+        <button class="chip" data-nfilter="all" aria-pressed="true">All</button>
+        <button class="chip" data-nfilter="unread" aria-pressed="false">Unread</button>
+        <button class="chip" data-nfilter="bookings" aria-pressed="false">Bookings</button>
+        <button class="chip" data-nfilter="payments" aria-pressed="false">Payments</button>
+        <button class="chip" data-nfilter="events" aria-pressed="false">Events</button>
+      </div>
+      <div class="list" id="notif-list"><div class="skeleton" style="height:120px"></div></div>
+    </section>
+
+    <!-- PROFILE -->
+    <section id="tab-profile" class="site-sheet hidden stack" role="dialog" aria-modal="true" aria-label="My Profile" style="gap:20px">
+      <button class="sheet-close" data-close-sheet aria-label="Close My Profile">×</button>
+      <div><h1 class="page-title">My Profile</h1><p class="page-subtitle">Manage your account details.</p></div>
+
+      <div class="profile-layout"><aside class="profile-sidebar"><div class="profile-avatar" id="profile-avatar" aria-hidden="true">P</div><h2 id="profile-display-name">Player</h2><p class="muted tiny">Play. Improve. Belong.</p><div class="list" id="profile-menu">
+        <button type="button" class="list-row is-clickable" data-panel="panel-profile">
+          <span class="list-lead">👤</span>
+          <span class="list-main"><span class="list-title">Personal information</span>
+            <span class="list-sub">View and update your name and mobile number</span></span>
+          <span class="list-end"><span class="list-chevron">›</span></span>
+        </button>
+        <button type="button" class="list-row is-clickable" data-goto="bookings"><span class="list-lead" aria-hidden="true">▦</span><span class="list-main"><span class="list-title">My Bookings</span></span><span class="list-end">›</span></button>
+        <button type="button" class="list-row is-clickable" data-my-matches><span class="list-lead" aria-hidden="true">♟</span><span class="list-main"><span class="list-title">My Matches</span></span><span class="list-end">›</span></button>
+        <button type="button" class="list-row is-clickable" data-panel="panel-rating">
+          <span class="list-lead">🏆</span>
+          <span class="list-main"><span class="list-title">My rating</span>
+            <span class="list-sub">Tournament rating, pending reviews and history</span></span>
+          <span class="list-end"><span class="list-chevron">›</span></span>
+        </button>
+        <button type="button" class="list-row is-clickable" data-goto="membership">
+          <span class="list-lead">◆</span>
+          <span class="list-main"><span class="list-title">Membership</span>
+            <span class="list-sub">Plan, benefits, expiry and renewal</span></span>
+          <span class="list-end"><span class="list-chevron">›</span></span>
+        </button>
+        <button type="button" class="list-row is-clickable" data-panel="panel-password">
+          <span class="list-lead">🔐</span>
+          <span class="list-main"><span class="list-title">Password &amp; security</span>
+            <span class="list-sub">Change your password and sign other devices out</span></span>
+          <span class="list-end"><span class="list-chevron">›</span></span>
+        </button>
+        <button type="button" class="list-row is-clickable" data-goto="notifications">
+          <span class="list-lead">🔔</span>
+          <span class="list-main"><span class="list-title">Notifications</span>
+            <span class="list-sub">Review all updates sent to you</span></span>
+          <span class="list-end"><span class="list-chevron">›</span></span>
+        </button>
+        <button type="button" class="list-row is-clickable" data-panel="panel-account">
+          <span class="list-lead is-plain">⚙</span>
+          <span class="list-main"><span class="list-title">Account settings</span>
+            <span class="list-sub">Appearance and sign out</span></span>
+          <span class="list-end"><span class="list-chevron">›</span></span>
+        </button>
+      </div>
+
+      </aside><div class="stack" id="profile-panels" style="gap:16px">
+        <div class="stack hidden" data-panelbox="panel-rating" style="gap:16px">
+          <div class="card summary-card" id="rating-summary-card"><div class="skeleton" style="height:120px"></div></div>
+          <section class="section-shell" id="rating-pending-card" style="display:none"></section>
+          <section class="section-shell" id="rating-history-card" style="display:none"></section>
+        </div>
+        <form class="form-section hidden" id="form-profile" data-panelbox="panel-profile">
+          <h2 class="section-title" style="margin-bottom:16px">Account details</h2>
+          <div class="field"><label class="label" for="pf-name">Full name</label><input class="input" id="pf-name" required /></div>
+          <div class="field"><label class="label" for="pf-email">Email</label><input class="input" id="pf-email" disabled /></div>
+          <div class="field"><label class="label" for="pf-mobile">Mobile number</label><input class="input" id="pf-mobile" required /></div>
+          <div class="field"><label class="label" for="pf-division">Official Division</label><input class="input" id="pf-division" value="Loading your division…" readonly /><span class="field-hint">Your division is based on your official tournament rating.</span></div>
+          <button class="btn btn-primary" type="submit" data-loading="Saving...">Save changes</button>
+        </form>
+        <form class="form-section hidden" id="form-password" data-panelbox="panel-password">
+          <h2 class="section-title" style="margin-bottom:16px">Change password</h2>
+          <div class="field"><label class="label" for="pw-cur">Current password</label><input class="input" id="pw-cur" type="password" required autocomplete="current-password" /></div>
+          <div class="field"><label class="label" for="pw-new">New password</label><input class="input" id="pw-new" type="password" minlength="8" required autocomplete="new-password" /></div>
+          <button class="btn btn-outline" type="submit" data-loading="Saving...">Update password</button>
+          <p class="field-hint mt-4" id="facility-contact"></p>
+        </form>
+
+        <section class="section-shell hidden" id="panel-account-box" data-panelbox="panel-account">
+          <h2 class="section-title" style="margin-bottom:14px">Account settings</h2>
+          <div class="list">
+            <button type="button" class="list-row is-clickable is-compact theme-toggle">
+              <span class="list-lead is-plain">◐</span>
+              <span class="list-main"><span class="list-title">Appearance</span>
+                <span class="list-sub">Switch between light and dark theme</span></span>
+              <span class="list-end"><span class="list-chevron">›</span></span></button>
+            <button type="button" class="list-row is-clickable is-compact" id="pf-logout">
+              <span class="list-lead is-plain">⏻</span>
+              <span class="list-main"><span class="list-title">Sign out</span>
+                <span class="list-sub">Log out of this device</span></span>
+              <span class="list-end"><span class="list-chevron">›</span></span></button>
+          </div>
+        </section>
+      </div>
+      </div>
+    </section>
+    <section id="tab-membership" class="site-sheet hidden" role="dialog" aria-modal="true" aria-labelledby="membership-title"><button class="sheet-close" data-close-sheet aria-label="Close membership">×</button><div class="membership-layout"><aside class="membership-sidebar"><div class="membership-wordmark"><span class="pickleball-mark" aria-hidden="true">●</span><strong data-facility-name>WENJELLY</strong><span>PICKLEBALL COMMUNITY</span><b class="brand-pill">PIKOL</b></div><button class="is-active" data-member-view="plans">Available Plans</button><button data-member-view="current">Current Membership</button><button data-member-view="benefits">Benefits</button><p>Same Passion.<br>Bigger Community.</p></aside><div class="membership-main"><div class="membership-banner"><img src="assets/booking/membership.jpg" alt="Paddle and pickleball, promotional illustration"/><div><span class="eyebrow" data-facility-name>WENJELLY PICKLEBALL ZONE</span><h1 id="membership-title">Membership</h1><p>More than a membership — it's a community.</p></div></div><div class="card summary-card" id="membership-card"></div><section class="section-shell" id="membership-plans-card"></section><div class="membership-note">A community that plays together, grows together.<span>Find your people. Make more time for the game.</span></div></div></div></section>
+    </div>
+    <footer class="site-footer"><div class="footer-brand"><span class="pickleball-mark" aria-hidden="true">●</span><strong data-facility-name>WENJELLY PICKLEBALL ZONE</strong> / PIKOL</div><nav aria-label="Footer navigation"><button data-goto="dashboard">Home</button><button data-goto="courts">Courts</button><button data-goto="openplay">Open Play</button><button data-goto="tournaments">Tournaments</button><button data-goto="membership">Membership</button></nav><span>Same Passion. Bigger Community.</span></footer>
+  </main>
+
+  <nav class="bottom-nav" aria-label="Primary">
+    <div class="bottom-nav-inner">
+      <button data-tab="dashboard" class="is-active"><span class="ico" aria-hidden="true"><svg class="ui-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m3 10 9-7 9 7v10H3V10Zm6 10v-7h6v7"/></svg></span>Home</button>
+      <button data-tab="book"><span class="ico" aria-hidden="true"><svg class="ui-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M7 3v4m10-4v4M3 11h18m-9 3v4m-2-2h4"/></svg></span>Book</button>
+      <button data-tab="bookings"><span class="ico" aria-hidden="true"><svg class="ui-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6m-6 4h6m-6 4h3"/></svg></span>My Games</button>
+      <button data-tab="tournaments"><span class="ico" aria-hidden="true"><svg class="ui-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h10v6a5 5 0 0 1-10 0V3Zm0 2H3v3a4 4 0 0 0 4 4m10-7h4v3a4 4 0 0 1-4 4m-5 2v6m-4 1h8"/></svg></span>Events</button>
+      <button data-tab="profile"><span class="ico" aria-hidden="true"><svg class="ui-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2"/></svg></span>Account</button>
+    </div>
+  </nav>
+</div>
+
+<div class="toast-host" id="toasts" role="status" aria-live="polite"></div>
+<button id="pwa-install-player" class="btn btn-primary btn-block pwa-install-inline" type="button" hidden>Install Booking App</button>
+<div id="modal-root"></div>
+
+<script src="qr-lite.js"></script>
+<script>
+/* ================= shared runtime (player app) ================= */
+(function () {
+  'use strict';
+
+  /* ---------- API base (configurable, never hard-coded for prod) ---------- */
+  var DEFAULT_API = window.PIKOL_API_BASE || 'https://pikol.mdmsportal.uk';
+  var qsApi = new URLSearchParams(location.search).get('api');
+  if (qsApi) localStorage.setItem('pb_api_url', qsApi.replace(/\/+$/, ''));
+  var API = localStorage.getItem('pb_api_url');
+  if (API === 'https://api.mdmsportal.uk') {
+    API = DEFAULT_API;
+    localStorage.setItem('pb_api_url', API);
+  }
+  if (!API) {
+    var isLocal = /^(localhost|127\.0\.0\.1)$/i.test(location.hostname || '');
+    API = isLocal && location.origin && location.origin !== 'null' ? location.origin : DEFAULT_API;
+  }
+
+  var TOKEN = localStorage.getItem('pb_token') || '';
+  var USER = null, BRAND = {}, AVAIL = null;
+
+  var $ = function (s, r) { return (r || document).querySelector(s); };
+  var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
+  var esc = function (v) {
+    return String(v == null ? '' : v).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  };
+
+  /* Convert API-relative asset URLs into absolute API URLs. This is required
+     when this frontend is hosted separately (for example GitHub Pages) from
+     the Node/Express API server. */
+  function assetUrl(url) {
+    url = String(url == null ? '' : url).trim();
+    if (!url) return '';
+    if (/^(?:https?:|data:|blob:|\/\/)/i.test(url)) return url;
+    if (url.charAt(0) === '/') return API.replace(/\/+$/, '') + url;
+    return API.replace(/\/+$/, '') + '/' + url.replace(/^\/+/, '');
+  }
+
+  /* Uploaded media lives on the API; default artwork stays frontend-relative. */
+  function defaultCourtPromo(c) {
+    var key = String(c.id == null ? c.name : c.id), hash = 0;
+    for (var i = 0; i < key.length; i++) hash = (hash * 31 + key.charCodeAt(i)) >>> 0;
+    var index = /^\d+$/.test(key) && Number(key) > 0 ? (Number(key) - 1) % 3 : hash % 3;
+    return 'assets/booking/court-0' + (index + 1) + '.jpg';
+  }
+  function courtPromo(c) { return c.image_url ? assetUrl(c.image_url) : defaultCourtPromo(c); }
+  function courtPhoto(c) {
+    return '<img class="court-promo-image" src="' + esc(courtPromo(c)) + '" data-fallback-src="' + defaultCourtPromo(c) + '" alt="' + esc(c.name) + (c.image_url ? ' court image' : ' promotional court illustration') + '" width="1100" height="825" loading="lazy" decoding="async" />' +
+      '<span class="court-image-note">' + (c.image_url ? 'Court image' : 'Promotional image') + '</span>';
+  }
+  document.addEventListener('error', function (event) {
+    var img = event.target;
+    if (!img || !img.matches || !img.matches('.court-promo-image,.auth-hero-image,.booking-hero-image,.promo-image')) return;
+    var fallback = img.dataset.fallbackSrc || 'assets/booking/hero-court.jpg';
+    var note = img.parentElement.querySelector('.court-image-note,.hero-caption span:last-child,.auth-hero-bottom > span');
+    if (note) note.textContent = 'Promotional image';
+    if (!img.dataset.fallback && img.getAttribute('src') !== fallback) {
+      img.dataset.fallback = 'true'; img.alt = 'Promotional pickleball court illustration'; img.src = fallback;
+    } else if (img.classList.contains('court-promo-image') && img.getAttribute('src') !== 'assets/booking/hero-court.jpg') {
+      img.dataset.fallback = 'true'; img.alt = 'Promotional pickleball court illustration'; img.src = 'assets/booking/hero-court.jpg';
+    } else { img.hidden = true; }
+  }, true);
+
+  /* ---------- toasts ---------- */
+  var ICONS = { success: '✓', error: '✕', warning: '⚠', info: 'ℹ' };
+  function toast(msg, type) {
+    type = type || 'info';
+    var el = document.createElement('div');
+    el.className = 'toast ' + type;
+    el.innerHTML = '<span class="icon" aria-hidden="true">' + ICONS[type] + '</span><span class="msg">' +
+      esc(msg) + '</span><button class="close" aria-label="Dismiss">✕</button>';
+    el.querySelector('.close').onclick = remove;
+    $('#toasts').appendChild(el);
+    var t = setTimeout(remove, 4600);
+    function remove() { clearTimeout(t); el.classList.add('leaving'); setTimeout(function () { el.remove(); }, 200); }
+  }
+
+  /* ---------- modal ---------- */
+  function modal(opts) {
+    var host = document.createElement('div');
+    host.className = 'modal-host';
+    host.innerHTML =
+      '<div class="modal" role="dialog" aria-modal="true" aria-label="' + esc(opts.title) + '">' +
+      '<div class="modal-head"><h2 class="section-title">' + esc(opts.title) + '</h2>' +
+      '<button class="btn btn-ghost btn-icon" data-close aria-label="Close">✕</button></div>' +
+      '<div class="modal-body">' + (opts.body || '') + '</div>' +
+      '<div class="modal-foot">' +
+      '<button class="btn btn-outline" data-close>' + esc(opts.cancelText || 'Cancel') + '</button>' +
+      (opts.confirmText ? '<button class="btn ' + (opts.danger ? 'btn-danger' : 'btn-primary') +
+        '" data-confirm data-loading="Working...">' + esc(opts.confirmText) + '</button>' : '') +
+      '</div></div>';
+    var returnFocus=document.activeElement;
+    $('#modal-root').appendChild(host);
+    enhanceDialog(host,opts);syncLayers();
+    var didClose=false;
+    function close() { if(didClose)return; didClose=true; host.remove(); document.removeEventListener('keydown', onKey); syncLayers(); if(returnFocus&&returnFocus.isConnected&&!returnFocus.closest('[inert]'))returnFocus.focus({preventScroll:true}); if(typeof opts.onClose==='function'){try{opts.onClose();}catch(_){} } }
+    function onKey(e) { if (e.key === 'Escape') close(); }
+    document.addEventListener('keydown', onKey);
+    $$('[data-close]', host).forEach(function (b) { b.onclick = close; });
+    if (!opts.locked) host.addEventListener('mousedown', function (e) { if (e.target === host) close(); });
+    var confirmBtn = $('[data-confirm]', host);
+    if (confirmBtn) {
+      confirmBtn.onclick = function () {
+        busy(confirmBtn, true);
+        Promise.resolve(opts.onConfirm && opts.onConfirm(host))
+          .then(function (r) { if (r !== false) close(); })
+          .catch(function (e) { toast(e.message, 'error'); })
+          .finally(function () { busy(confirmBtn, false); });
+      };
+      setTimeout(function(){ if(topLayer()===$('.modal',host))confirmBtn.focus(); }, 40);
+    }
+    if(!confirmBtn)setTimeout(function(){var b=$('[data-close]',host);if(b&&topLayer()===$('.modal',host))b.focus();},0);
+    return { close: close, host: host };
+  }
+
+  function busy(btn, on) {
+    if (!btn) return;
+    if (on) {
+      btn.dataset.text = btn.textContent;
+      btn.textContent = btn.dataset.loading || 'Working...';
+      btn.classList.add('is-loading');
+      btn.disabled = true;
+    } else {
+      if (btn.dataset.text) btn.textContent = btn.dataset.text;
+      btn.classList.remove('is-loading');
+      btn.disabled = false;
+    }
+  }
+
+  /* ---------- api ---------- */
+  function api(pathname, opts) {
+    opts = opts || {};
+    var requestToken = TOKEN;
+    var headers = { 'Content-Type': 'application/json' };
+    if (requestToken) headers.Authorization = 'Bearer ' + requestToken;
+    return fetch(API + pathname, {
+      method: opts.method || 'GET',
+      headers: headers,
+      body: opts.body ? JSON.stringify(opts.body) : undefined
+    }).then(function (res) {
+      return res.json().catch(function () { return {}; }).then(function (data) {
+        if (requestToken && requestToken !== TOKEN) throw new Error('Your session changed. Please try again.');
+        if (!res.ok) {
+          if (res.status === 401 && requestToken && requestToken === TOKEN) { signOutLocal(); }
+          throw new Error(data.error || ('Request failed (' + res.status + ')'));
+        }
+        return data;
+      });
+    }, function () { throw new Error('Cannot reach the booking server. Please try again later.'); });
+  }
+
+  /* ---------- theme ---------- */
+  function applyTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('pb_theme', theme);
+  }
+  applyTheme(localStorage.getItem('pb_theme') || 'light');
+  document.addEventListener('click', function (e) {
+    var t = e.target.closest('.theme-toggle');
+    if (!t) return;
+    applyTheme(document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+  });
+
+  /* ---------- white-label branding ---------- */
+  function applyBranding(b) {
+    BRAND = b || {};
+    var r = document.documentElement.style;
+    if (b.brand_primary) { r.setProperty('--brand-primary', b.brand_primary); document.body.style.setProperty('--booking-brand-primary', b.brand_primary); }
+    if (b.brand_secondary) r.setProperty('--brand-secondary', b.brand_secondary);
+    if (b.brand_accent) r.setProperty('--brand-accent', b.brand_accent);
+    var name = b.facility_name || 'Pickleball Club';
+    document.title = name + ' \u2014 Court Booking';
+    var initials = (b.short_name || name).trim().slice(0, 2).toUpperCase();
+    /* app_logo_url is the main interface logo, logo_url is the fallback. */
+    var appLogo = b.app_logo_url || b.logo_url || '';
+    var bootLogo = b.boot_logo_url || b.logo_url || '';
+    [['#hero-logo', b.logo_url || appLogo], ['#app-logo', appLogo]].forEach(function (pair) {
+      var el = $(pair[0]); if (!el) return;
+      el.innerHTML = pair[1] ? '<img src="' + esc(assetUrl(pair[1])) + '" alt="' + esc(name) + ' logo" />' : esc(initials);
+    });
+    var bl = $('#boot-logo');
+    if (bl) bl.innerHTML = bootLogo ? '<img src="' + esc(assetUrl(bootLogo)) + '" alt="' + esc(name) + ' logo" />' : esc(initials);
+    var bn = $('#boot-name'); if (bn) bn.textContent = name;
+    if (b.favicon_url) $('#favicon').href = assetUrl(b.favicon_url);
+    $('#hero-name').textContent = name;
+    $('#app-name').textContent = name;
+    $('#hero-short').textContent = b.short_name || 'Court booking';
+    $('#app-tagline').textContent = b.short_name || 'PICKLEBALL ZONE';
+    $$('[data-facility-name]').forEach(function(el){el.textContent=name;});
+    $('#hero-tagline').textContent = b.tagline || 'Make time for a great game.';
+    $('#hero-desc').textContent = b.description || 'A little competition. A lot of connection. Find your court, bring your people, and make your next game happen.';
+    var heroSource = b.hero_image_url ? assetUrl(b.hero_image_url) : 'assets/booking/hero-court.jpg';
+    $$('.auth-hero-image,.booking-hero-image').forEach(function (img) {
+      img.hidden = false;
+      delete img.dataset.fallback;
+      img.dataset.fallbackSrc = 'assets/booking/hero-court.jpg';
+      img.alt = b.hero_image_url ? name + ' featured court image' : 'Promotional pickleball court illustration';
+      img.src = heroSource;
+    });
+    $('.hero-caption span:last-child').textContent = b.hero_image_url ? 'Featured court image' : 'Promotional image';
+    $('.auth-hero-bottom > span').textContent = b.hero_image_url ? 'FEATURED COURT IMAGE' : 'COURT INSPIRATION · PROMOTIONAL IMAGE';
+    var contact = [b.address, b.contact_number, b.contact_email].filter(Boolean).join(' \u00b7 ');
+    $('#hero-contact').textContent = contact;
+    var fc = $('#facility-contact'); if (fc) fc.textContent = contact;
+  }
+
+  function hideSplash() {
+    var el = $('#boot-splash');
+    if (!el || el.classList.contains('is-hidden')) return;
+    el.classList.add('is-hidden');
+    setTimeout(function () { el.remove(); }, 500);
+  }
+
+  /* ---------- date helpers ---------- */
+  var MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  var DOW = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  function ymd(d) {
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
+  function humanDate(s) {
+    var d = new Date(s + 'T00:00:00');
+    return DOW[d.getDay()] + ', ' + MONTHS[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear();
+  }
+  function humanTime(t) {
+    var h = +t.slice(0, 2), m = t.slice(3, 5), ap = h >= 12 ? 'PM' : 'AM';
+    return ((h % 12) || 12) + ':' + m + ' ' + ap;
+  }
+  function money(v) {
+    if (!v) return 'Free';
+    return (BRAND.currency || '₱') + ' ' + Number(v).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  /* ---------- auth tabs ---------- */
+  $$('[data-authtab]').forEach(function (tab) {
+    tab.onclick = function () {
+      $$('[data-authtab]').forEach(function (t) { t.setAttribute('aria-selected', String(t === tab)); });
+      $('#form-login').classList.toggle('hidden', tab.dataset.authtab !== 'login');
+      $('#form-register').classList.toggle('hidden', tab.dataset.authtab !== 'register');
+    };
+  });
+
+  function submitHandler(form, fn) {
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var btn = form.querySelector('button[type=submit]');
+      busy(btn, true);
+      Promise.resolve(fn()).catch(function (err) { toast(err.message, 'error'); })
+        .finally(function () { busy(btn, false); });
+    });
+  }
+
+  submitHandler($('#form-login'), function () {
+    return api('/api/auth/login', {
+      method: 'POST',
+      body: { email: $('#li-email').value.trim(), password: $('#li-pass').value }
+    }).then(function (data) { onAuth(data); toast('Welcome back!', 'success'); });
+  });
+
+  submitHandler($('#form-register'), function () {
+    if ($('#rg-pass').value !== $('#rg-pass2').value) throw new Error('Passwords do not match');
+    return api('/api/auth/register', {
+      method: 'POST',
+      body: {
+        full_name: $('#rg-name').value.trim(),
+        email: $('#rg-email').value.trim(),
+        mobile: $('#rg-mobile').value.trim(),
+        password: $('#rg-pass').value,
+        confirm_password: $('#rg-pass2').value
+      }
+    }).then(function (data) { onAuth(data); toast('Account created. Welcome!', 'success'); });
+  });
+
+  function onAuth(data) {
+    TOKEN = data.token; USER = data.user;
+    localStorage.setItem('pb_token', TOKEN);
+    showApp();
+  }
+  function signOutLocal() {
+    TOKEN='';USER=null;CURRENT_MEMBERSHIP=null;myBookings=[];NOTIFS=[];afterAuth=null;
+    localStorage.removeItem('pb_token');setBell(0);
+    $('#modal-root').innerHTML='';
+    $('#form-profile').reset();$('#form-password').reset();
+    $('#bookings-list').innerHTML='';$('#booking-detail').innerHTML='';$('#notif-list').innerHTML='';
+    if(RT)RT.connect();showGuest();
+  }
+  $('#btn-logout').onclick = function () {
+    api('/api/auth/logout', { method: 'POST' }).catch(function () {}).finally(function () {
+      signOutLocal(); toast('Signed out.', 'info');
+    });
+  };
+
+  /* ---------- navigation ---------- */
+  var TABS = ['dashboard','book','bookings','tournaments','notifications','profile','membership'];
+  function goto(tab) {
+    if(tab==='courts'){closeSheet();$('#home-courts').scrollIntoView({behavior:'smooth',block:'start'});return;}
+    if(tab==='openplay'){EV_SUB='openplay';tab='tournaments';}
+    if(TABS.indexOf(tab)<0)return;
+    if(['bookings','notifications','profile'].indexOf(tab)>=0&&!requirePlayer(function(){goto(tab);}))return;
+    if(tab==='dashboard'){closeSheet();window.scrollTo({top:0,behavior:'smooth'});loadDashboard();return;}
+    if($('#site-overlay').classList.contains('hidden'))sheetReturnFocus=document.activeElement;
+    TABS.filter(function(t){return t!=='dashboard';}).forEach(function(t){$('#tab-'+t).classList.toggle('hidden',t!==tab);});
+    $('#site-overlay').classList.remove('hidden');syncLayers();
+    var panel=$('#tab-'+tab);panel.scrollTop=0;$('.sheet-close',panel).focus({preventScroll:true});
+    $$('.bottom-nav button').forEach(function(b){b.classList.toggle('is-active',b.dataset.tab===tab);});
+    if(tab==='bookings')loadBookings();
+    if(tab==='book')ensureBooking();
+    if(tab==='tournaments'){evGoto(EV_SUB);if(TOKEN)loadMyRegistrations();}
+    if(tab==='profile'){openPanel('panel-profile');loadRating();}
+    if(tab==='notifications')loadNotifications();
+    if(tab==='membership'){$('#membership-card').classList.add('hidden');$('#membership-plans-card').classList.remove('hidden','show-benefits');$$('[data-member-view]').forEach(function(b){b.classList.toggle('is-active',b.dataset.memberView==='plans');});loadMembership();}
+  }
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-tab],[data-goto]');
+    if (!b) return;
+    if(b.dataset.goto==='tournaments')EV_SUB='tournaments';
+    goto(b.dataset.tab || b.dataset.goto);
+  });
+
+  /* ---------- dashboard ---------- */
+  var myBookings = [];
+  var PAYCFG = null, CURRENT_MEMBERSHIP = null, membershipRequest = 0;
+  var STATUS_LABEL = {
+    pending_payment: 'Payment required',
+    payment_submitted: 'Payment submitted',
+    payment_verification: 'Verifying payment',
+    payment_verified: 'Payment verified',
+    pending: 'Processing',
+    confirmed: 'Confirmed',
+    rejected: 'Rejected',
+    cancelled: 'Cancelled',
+    completed: 'Completed'
+  };
+  var STATUS_ICON = {
+    pending: '⏳', confirmed: '✓', rejected: '✕', cancelled: '✕', completed: '★'
+  };
+  var ACTIVE_STATUSES = ['confirmed'];
+  function memberPrice(value,pct){var n=Math.max(0,Number(value)||0),p=Math.min(100,Math.max(0,Number(pct)||0));return Math.round(n*(1-p/100)*100)/100;}
+  function statusBadge(s) {
+    var cls = s === 'confirmed' || s === 'payment_verified' ? 'confirmed'
+      : s === 'rejected' || s === 'cancelled' ? s
+      : s === 'completed' ? 'completed' : 'pending';
+    return '<span class="badge badge-' + cls + '" data-icon="' + (STATUS_ICON[s] || '•') + '">' +
+      esc(STATUS_LABEL[s] || s) + '</span>';
+  }
+  function settlementOf(b) {
+    var fee = Number(b.amount || 0);
+    var paid = Number(b.reservation_paid || 0) + Number(b.game_paid || 0);
+    var balance = Math.max(0, fee - paid);
+    return {
+      game_fee: fee, total_paid: paid, balance: balance,
+      status: paid <= 0 ? 'unpaid' : balance > 0.009 ? 'partially_paid' : 'paid'
+    };
+  }
+  var SETTLE_LABEL = { unpaid: 'Unpaid', partially_paid: 'Balance due', paid: 'Fully settled' };
+  function settleBadge(b) {
+    if (b.status === 'cancelled' || b.status === 'rejected') return '';
+    var st = settlementOf(b);
+    var cls = st.status === 'paid' ? 'confirmed' : st.status === 'partially_paid' ? 'pending' : 'pending';
+    return '<span class="badge badge-' + cls + '" data-icon="' + (st.status === 'paid' ? '✓' : '₱') + '">' +
+      esc(SETTLE_LABEL[st.status]) + '</span>';
+  }
+  function settlementLine(b) {
+    if (b.status === 'cancelled' || b.status === 'rejected') return '';
+    var st = settlementOf(b);
+    if (!st.game_fee) return '';
+    return '<div class="s">Paid ' + money(st.total_paid) + ' of ' + money(st.game_fee) +
+      (st.balance > 0.009
+        ? ' · <strong style="color:var(--danger,#c0392b)">Balance ' + money(st.balance) + '</strong> (settle on-site)'
+        : ' · <strong>Settled</strong>') + '</div>';
+  }
+  /* Bookings are RECORDS: compact list rows (columns on desktop, stacked on
+     mobile) — never one big card per booking. */
+  function settlementText(b) {
+    if (b.status === 'cancelled' || b.status === 'rejected') return '';
+    var st = settlementOf(b);
+    if (!st.game_fee) return '';
+    return st.balance > 0.009
+      ? 'Paid ' + money(st.total_paid) + '<br><strong style="color:var(--danger,#c0392b)">Balance ' + money(st.balance) + '</strong>'
+      : 'Paid ' + money(st.total_paid) + '<br><strong>Settled</strong>';
+  }
+  function bookingRow(b, actions) {
+    var d = new Date(b.booking_date + 'T00:00:00');
+    return '<div class="list-row has-cols">' +
+      '<span class="list-lead">🏸</span>' +
+      '<span class="list-main"><span class="list-title">' + esc(b.court_name) + ' · ' +
+      humanTime(b.start_time) + ' – ' + humanTime(b.end_time) + '</span>' +
+      '<span class="list-sub">' + MONTHS[d.getMonth()].slice(0, 3) + ' ' + d.getDate() + ', ' + d.getFullYear() +
+      ' · <span class="num">' + esc(b.reference) + '</span></span>' +
+      (b.status === 'rejected' && b.rejection_reason
+        ? '<span class="list-sub is-danger">Reason: ' + esc(b.rejection_reason) + '</span>' : '') +
+      (b.payment_status === 'rejected' && b.payment_rejection_reason && b.status !== 'rejected'
+        ? '<span class="list-sub is-danger">Payment rejected: ' + esc(b.payment_rejection_reason) + '</span>' : '') +
+      '</span>' +
+      '<span class="list-col">' + money(b.amount) +
+      (Number(b.reservation_fee) > 0 ? '<br>fee ' + money(b.reservation_fee) : '') + '</span>' +
+      '<span class="list-col">' + settlementText(b) + '</span>' +
+      '<span class="list-end">' + statusBadge(b.status) + settleBadge(b) + (actions || '') + '</span></div>';
+  }
+
+  function loadDashboard() {
+    var today=ymd(new Date());
+    $('#today-label').textContent='Live availability · '+humanDate(today);
+    if(TOKEN&&USER)loadNotifications({preview:true});
+    loadHomeEvents();
+    return api('/api/availability?date='+today).then(function(data){
+      PUBLIC_COURTS=data.courts||[];
+      $('#today-courts').innerHTML=PUBLIC_COURTS.length?PUBLIC_COURTS.map(function(c){
+        var free=c.slots.filter(function(slot){return slot.status==='available';}).length;
+        var state=c.status==='active'?(free?'available':'booked'):c.status;
+        var label=state==='available'?'AVAILABLE':state==='booked'?'FULLY BOOKED':String(state).toUpperCase();
+        return '<article class="promo-court"><div class="court-visual">'+courtPhoto(c)+'<span class="court-type">'+esc(c.surface||'Pickleball')+'</span><span class="badge badge-'+esc(state)+'">'+esc(label)+'</span></div><div class="court-info"><h3>'+esc(c.name)+'</h3><p class="court-surface">'+esc(c.description||c.surface||'Your next great game starts here.')+'</p><div class="court-meta"><span>♟ 2–6 players</span><span>◷ '+(c.status==='active'?free+' open slots':esc(label))+'</span></div><div class="court-rate"><strong>'+money(c.hourly_rate)+'</strong><small>/hour</small></div><div class="court-card-footer"><button class="btn btn-outline" data-court-details="'+c.id+'">View Details</button><button class="btn btn-primary" data-book-court="'+c.id+'">Book Now</button></div></div></article>';
+      }).join(''):'<div class="empty"><strong>No courts yet</strong>Courts appear here once the facility adds them.</div>';
+    }).catch(function(e){$('#today-courts').innerHTML='<div class="empty"><strong>Courts could not load</strong><span>'+esc(e.message)+'</span><button class="btn btn-outline" data-goto="dashboard">Try again</button></div>';});
+  }
+
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-book-court]');
+    if (!b) return;
+    sel.date = ymd(new Date()); calCursor = new Date(); renderCalendar();
+    sel.court = Number(b.dataset.bookCourt);
+    sel.start = null;
+    goto('book');
+  });
+
+  /* ---------- bookings list ---------- */
+  var bookingFilter = 'upcoming';
+  $$('[data-filter]').forEach(function (t) {
+    t.onclick = function () {
+      bookingFilter = t.dataset.filter;
+      $$('[data-filter]').forEach(function (x) { x.setAttribute('aria-pressed', String(x === t)); });
+      renderBookings();
+    };
+  });
+  function loadBookings() {
+    return api('/api/bookings').then(function (rows) { myBookings = rows; renderBookings(); })
+      .catch(function (e) { toast(e.message, 'error'); });
+  }
+  function renderBookings() {
+    var today=ymd(new Date());
+    var rows=myBookings.filter(function(b){var upcoming=ACTIVE_STATUSES.indexOf(b.status)>-1&&b.booking_date>=today;if(bookingFilter==='payments')return Number(b.reservation_fee||0)>0||Number(b.amount||0)>0;return bookingFilter==='upcoming'?upcoming:!upcoming;});
+    var selected=rows.filter(function(b){return Number(b.id)===selectedBookingId;})[0]||rows[0];
+    if(selected)selectedBookingId=Number(selected.id);
+    $('#bookings-list').innerHTML=rows.length?rows.map(function(b){return '<button type="button" class="booking-list-card'+(b===selected?' is-selected':'')+'" data-select-booking="'+b.id+'" aria-pressed="'+String(b===selected)+'"><span class="court-visual">'+courtPhoto(bookingCourt(b))+'</span><span class="booking-list-main"><strong>'+esc(b.court_name)+'</strong><span>▦ '+humanDate(b.booking_date)+'</span><span>◷ '+humanTime(b.start_time)+' – '+humanTime(b.end_time)+'</span><span>♟ '+esc(b.players||'—')+' players</span></span><span class="booking-list-end"><strong>'+money(b.amount)+'</strong>'+statusBadge(b.status)+(bookingFilter==='payments'?settleBadge(b):'')+'</span><span aria-hidden="true">›</span></button>';}).join(''):'<div class="empty"><strong>No '+(bookingFilter==='upcoming'?'upcoming bookings':bookingFilter==='payments'?'payments':'booking history')+' yet</strong>Your reservations will appear here.</div>';
+    renderBookingDetail(selected);
+    $$('[data-filter]').forEach(function(el){var filter=el.dataset.filter,count=myBookings.filter(function(b){var upcoming=ACTIVE_STATUSES.indexOf(b.status)>-1&&b.booking_date>=today;return filter==='upcoming'?upcoming:filter==='history'?!upcoming:Number(b.reservation_fee||0)>0||Number(b.amount||0)>0;}).length;el.textContent=(filter==='upcoming'?'Upcoming':filter==='history'?'History':'Payments')+' ('+count+')';});
+  }
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-cancel]');
+    if (!b) return;
+    var booking = myBookings.filter(function (x) { return x.id === Number(b.dataset.cancel); })[0];
+    modal({
+      title: 'Cancel booking',
+      locked: true,
+      danger: true,
+      body: '<p>Cancel <strong>' + esc(booking.court_name) + '</strong> on ' + humanDate(booking.booking_date) +
+        ' at ' + humanTime(booking.start_time) + '?</p><p class="muted tiny">Reference ' + esc(booking.reference) + '. This cannot be undone.</p>',
+      confirmText: 'Cancel booking',
+      cancelText: 'Keep booking',
+      onConfirm: function () {
+        return api('/api/bookings/' + booking.id + '/cancel', { method: 'POST' }).then(function () {
+          toast('Booking cancelled.', 'success');
+          loadBookings(); loadDashboard();
+        });
+      }
+    });
+  });
+
+  /* ---------- booking flow ---------- */
+  var sel = { date: ymd(new Date()), court: null, start: null };
+  var calCursor = new Date();
+
+  function renderDow() {
+    $('#cal-dow').innerHTML = DOW.map(function (d) { return '<div class="calendar-dow">' + d.charAt(0) + '</div>'; }).join('');
+  }
+  function renderCalendar() {
+    var y = calCursor.getFullYear(), m = calCursor.getMonth();
+    $('#cal-month').textContent = MONTHS[m] + ' ' + y;
+    var first = new Date(y, m, 1).getDay();
+    var days = new Date(y, m + 1, 0).getDate();
+    var today = ymd(new Date());
+    var maxDate = ymd(new Date(Date.now() + 60 * 86400000));
+    var html = '';
+    for (var i = 0; i < first; i++) html += '<div class="day is-empty"></div>';
+    for (var d = 1; d <= days; d++) {
+      var val = y + '-' + String(m + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0');
+      var disabled = val < today || val > maxDate;
+      html += '<button type="button" class="day' + (val === today ? ' is-today' : '') +
+        (val === sel.date ? ' is-selected' : '') + '" data-date="' + val + '"' +
+        (disabled ? ' disabled aria-disabled="true"' : '') + ' aria-pressed="' + String(val === sel.date) + '" aria-label="' + humanDate(val) + '">' + d + '</button>';
+    }
+    $('#cal-days').innerHTML = html;
+  }
+  $('#cal-prev').onclick = function () { calCursor.setMonth(calCursor.getMonth() - 1); renderCalendar(); };
+  $('#cal-next').onclick = function () { calCursor.setMonth(calCursor.getMonth() + 1); renderCalendar(); };
+  $('#cal-today').onclick = function () {
+    calCursor = new Date(); sel.date = ymd(new Date()); sel.start = null; renderCalendar(); loadAvailability();
+  };
+  $('#cal-days').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-date]');
+    if (!b || b.disabled) return;
+    sel.date = b.dataset.date; sel.start = null;
+    renderCalendar(); loadAvailability();
+  });
+
+  function ensureBooking() { updateBookingPresentation(); if(!PAYCFG)loadPayCfg().catch(function(){$('#booking-fee-status').classList.remove('hidden');}); if (!AVAIL || AVAIL.date !== sel.date) loadAvailability(); else renderBooking(); }
+
+  var availabilityRequest = 0;
+  function loadAvailability() {
+    var request = ++availabilityRequest, date = sel.date;
+    AVAIL = null;
+    updateBookingPresentation();
+    $('#book-date-label').textContent = humanDate(date);
+    $('#book-courts').setAttribute('aria-busy', 'true');
+    $('#book-courts').innerHTML = '<div class="skeleton" style="height:260px"></div><div class="skeleton" style="height:260px"></div>';
+    $('#slot-grid').innerHTML = '<div class="empty" style="grid-column:1/-1" role="status">Finding your next game…</div>';
+    $('#summary-list').innerHTML = '<div class="summary-row"><dt>Date</dt><dd>' + esc(humanDate(date)) + '</dd></div><div class="summary-row"><dt>Availability</dt><dd>Loading…</dd></div>';
+    $('#btn-confirm').disabled = true;
+    return api('/api/availability?date=' + date).then(function (data) {
+      if (request !== availabilityRequest || date !== sel.date) return;
+      AVAIL = data;
+      var bookable = data.courts.filter(function (c) { return c.status === 'active' && c.slots.some(function (slot) { return slot.status === 'available'; }); });
+      var requestedCourt=sel.court;
+      if (sel.court && !bookable.some(function (c) { return c.id === sel.court; })) { sel.court = null; sel.start = null; }
+      if(!requestedCourt && bookable.length)sel.court=bookable[0].id;
+      var court = bookable.filter(function (c) { return c.id === sel.court; })[0];
+      if (sel.start && (!court || !court.slots.some(function (slot) { return slot.start === sel.start && (slot.bookable === undefined ? slot.status === 'available' : !!slot.bookable); }))) sel.start = null;
+      renderBooking();
+    }).catch(function (e) {
+      if (request !== availabilityRequest) return;
+      $('#book-courts').innerHTML = '<div class="empty"><strong>Let’s try that again.</strong><span>' + esc(e.message) + '</span><button type="button" class="btn btn-outline mt-4" data-retry-availability>Reload courts</button></div>';
+      $('#slot-grid').innerHTML = '<div class="empty" style="grid-column:1/-1">Reload courts to see available times.</div>';
+      $('#summary-list').innerHTML = '<div class="summary-row"><dt>Availability</dt><dd>Unable to load</dd></div>';
+    }).finally(function () { if (request === availabilityRequest) $('#book-courts').setAttribute('aria-busy', 'false'); });
+  }
+  document.addEventListener('click', function (e) { if (e.target.closest('[data-retry-availability]')) loadAvailability(); });
+
+  function renderBooking() {
+    $('#book-date-label').textContent = humanDate(sel.date);
+    if (!AVAIL) return;
+    updateBookingPresentation();
+    $('#book-courts').innerHTML = AVAIL.courts.map(function (c) {
+      var free = c.slots.filter(function (s) { return s.status === 'available'; }).length;
+      var evs = (c.events || []);
+      var bookable = c.status === 'active' && free > 0;
+      var st = c.status !== 'active' ? c.status : (free ? 'available' : 'booked');
+      return '<button type="button" class="pick court-pick' + (sel.court === c.id ? ' is-selected' : '') +
+        '" data-court="' + esc(c.id) + '" aria-pressed="' + String(sel.court === c.id) + '"' + (bookable ? '' : ' disabled aria-disabled="true"') + '>' +
+        '<span class="court-visual">' + courtPhoto(c) + '<span class="court-selected-mark" aria-hidden="true">✓</span></span>' +
+        '<span class="court-pick-body"><span class="p-title">' + esc(c.name) +
+        '<span class="badge badge-' + esc(st) + '">' +
+        (st === 'available' ? free + ' open' : st === 'booked' ? 'Full' : esc(st.charAt(0).toUpperCase() + st.slice(1))) +
+        '</span></span>' +
+        '<span class="p-sub">' + esc(c.surface || c.description || 'Pickleball court') + '</span>' +
+        '<span class="court-pick-rate"><strong>' + money(c.hourly_rate) + '</strong><small> / hour</small></span>' +
+        (evs.length ? '<span class="p-sub">' + evs.map(function (ev) {
+          return esc(ev.icon) + ' ' + esc(ev.label) + ' ' + humanTime(ev.start_time) + '–' + humanTime(ev.end_time);
+        }).join(' · ') + '</span>' : '') +
+        (c.exclusive_tournament ? '<span class="p-sub">' + esc(c.exclusive_label) + ' ' +
+          esc(c.exclusive_tournament.title) + '</span>' : '') +
+        '<span class="court-pick-action">' + (bookable ? (sel.court === c.id ? 'Selected ✓' : 'Select court ↗') : (st === 'booked' ? 'Fully booked' : 'Unavailable')) + '</span></span></button>';
+    }).join('') || '<div class="empty"><strong>No courts available</strong>Try another date or check back later.</div>';
+
+    var court = AVAIL.courts.filter(function (c) { return c.id === sel.court; })[0];
+    if (!court) {
+      $('#slot-grid').innerHTML = '<div class="empty" style="grid-column:1/-1"><strong>Select a court</strong>Choose a court above to see its available times.</div>';
+    } else {
+      /* Event slots are rendered as real calendar event cards: visible,
+         self-explanatory and impossible to select for a normal booking. */
+      $('#slot-grid').innerHTML = (court.slots.length ? '' : '<div class="empty" style="grid-column:1/-1"><strong>No time slots</strong>This court has no configured time slots yet.</div>') +
+        court.slots.map(function (s) {
+        var ok = s.bookable === undefined ? s.status === 'available' : !!s.bookable;
+        if (s.event) {
+          return '<div class="slot slot-event state-' + s.status + '" role="button" tabindex="0"' +
+            ' data-event-type="' + esc(s.event.type) + '" data-event-id="' + s.event.id + '"' +
+            ' aria-disabled="true"' +
+            ' aria-label="' + humanTime(s.start) + ' — ' + esc(s.status_label) + ': ' + esc(s.event.title) + ' (not bookable)">' +
+            '<span class="slot-time">' + humanTime(s.start) + '</span>' +
+            '<span class="slot-event-label">' + s.event.icon + ' ' + esc(s.status_label) + '</span>' +
+            '<span class="slot-event-title">' + esc(s.event.title) + '</span>' +
+            '<span class="slot-event-time">' + humanTime(s.event.start_time) + ' – ' + humanTime(s.event.end_time) + '</span>' +
+            '</div>';
+        }
+        return '<button type="button" class="slot state-' + s.status + (sel.start === s.start ? ' is-selected' : '') +
+          '" data-slot="' + s.start + '"' + (ok ? '' : ' disabled aria-disabled="true"') +
+          ' aria-pressed="' + String(sel.start === s.start) + '" aria-label="' + humanTime(s.start) + ' ' + esc(s.status_label || s.label) + '">' +
+          '<span class="slot-time">' + humanTime(s.start) + '</span>' +
+          '<span class="slot-state">' + esc(s.status_label || s.label) + '</span></button>';
+      }).join('');
+    }
+
+    var slotMin = AVAIL.slot_minutes;
+    var amount = court ? Number(court.hourly_rate) * (slotMin / 60) : 0;
+    var fee = PAYCFG ? Number(PAYCFG.reservation_fee || 0) : 0;
+    if(CURRENT_MEMBERSHIP){amount=memberPrice(amount,CURRENT_MEMBERSHIP.court_discount_percent);fee=memberPrice(fee,CURRENT_MEMBERSHIP.reservation_discount_percent);}
+    $('#summary-list').innerHTML =
+      row('Date', humanDate(sel.date)) +
+      row('Court', court ? court.name : 'Not selected') +
+      row('Time', sel.start ? humanTime(sel.start) + ' – ' + humanTime(addMin(sel.start, slotMin)) : 'Not selected') +
+      row('Duration', slotMin + ' minutes') +
+      row('Players', $('#bk-players').value + ' players') +
+      row('Court fee', court && sel.start ? money(amount) : '—') +
+      row('Reservation fee', PAYCFG ? money(fee) : 'Loading payment details…') +
+      row('Pay now', PAYCFG ? money(fee) : '—');
+    $('#btn-confirm').disabled = !(court && sel.start && PAYCFG);
+
+    var step = sel.start ? 4 : sel.court ? 3 : 2;
+    $$('#steps .step').forEach(function (el) {
+      var n = Number(el.dataset.step);
+      el.classList.toggle('is-active', n === step);
+      el.classList.toggle('is-done', n < step);
+    });
+    function row(k, v) { return '<div class="summary-row"><dt>' + k + '</dt><dd>' + esc(v) + '</dd></div>'; }
+  }
+  /* Tapping an event block explains the occupancy. It must never start a
+     booking flow, on desktop or on touch devices. */
+  function showEventInfo(el) {
+    if (!AVAIL) return;
+    var type = el.getAttribute('data-event-type');
+    var id = Number(el.getAttribute('data-event-id'));
+    var court = AVAIL.courts.filter(function (c) { return c.id === sel.court; })[0];
+    var ev = court && (court.events || []).filter(function (e) { return e.type === type && e.id === id; })[0];
+    if (!ev) return;
+    toast(ev.icon + ' ' + ev.label + ' — ' + ev.title + ' · ' + court.name + ' · ' +
+      humanTime(ev.start_time) + '–' + humanTime(ev.end_time) + '. This court is reserved for the event and cannot be booked.', 'info');
+  }
+  $('#slot-grid').addEventListener('click', function (e) {
+    var ev = e.target.closest('.slot-event');
+    if (!ev) return;
+    e.preventDefault();
+    e.stopPropagation();
+    showEventInfo(ev);
+  }, true);
+  $('#slot-grid').addEventListener('keydown', function (e) {
+    var ev = e.target.closest && e.target.closest('.slot-event');
+    if (!ev || (e.key !== 'Enter' && e.key !== ' ')) return;
+    e.preventDefault();
+    showEventInfo(ev);
+  });
+
+  function addMin(t, m) {
+    var total = (+t.slice(0, 2)) * 60 + (+t.slice(3, 5)) + m;
+    return String(Math.floor(total / 60) % 24).padStart(2, '0') + ':' + String(total % 60).padStart(2, '0');
+  }
+
+  $('#book-courts').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-court]');
+    if (!b || b.disabled) return;
+    sel.court = Number(b.dataset.court); sel.start = null; renderBooking();
+    $('#slot-card').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  });
+  $('#slot-grid').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-slot]');
+    if (!b || b.disabled) return;
+    sel.start = b.dataset.slot; renderBooking();
+    $('#summary-card').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  });
+
+  $('#btn-confirm').onclick = function () {
+    if(!requirePlayer(function(){goto('book');$('#btn-confirm').click();}))return;
+    if (!AVAIL) return;
+    var court = AVAIL.courts.filter(function (c) { return c.id === sel.court; })[0];
+    if (!court || !sel.start) return;
+    modal({
+      title: 'Confirm your booking',
+      wide:true,
+      locked: true,
+      body: '<dl class="summary-list">' +
+        '<div class="summary-row"><dt>Court</dt><dd>' + esc(court.name) + '</dd></div>' +
+        '<div class="summary-row"><dt>Date</dt><dd>' + humanDate(sel.date) + '</dd></div>' +
+        '<div class="summary-row"><dt>Time</dt><dd>' + humanTime(sel.start) + ' – ' +
+        humanTime(addMin(sel.start, AVAIL.slot_minutes)) + '</dd></div>' +
+        '<div class="summary-row"><dt>Court fee</dt><dd>' + esc(money(memberPrice(Number(court.hourly_rate) * AVAIL.slot_minutes / 60,CURRENT_MEMBERSHIP?CURRENT_MEMBERSHIP.court_discount_percent:0))) + '</dd></div>' +
+        '<div class="summary-row"><dt>Reservation fee</dt><dd>' + esc(money(memberPrice(PAYCFG ? PAYCFG.reservation_fee : 0,CURRENT_MEMBERSHIP?CURRENT_MEMBERSHIP.reservation_discount_percent:0))) + '</dd></div>' +
+        '<div class="summary-row"><dt>Pay now</dt><dd><strong>' + esc(money(memberPrice(PAYCFG ? PAYCFG.reservation_fee : 0,CURRENT_MEMBERSHIP?CURRENT_MEMBERSHIP.reservation_discount_percent:0))) + '</strong></dd></div></dl>' +
+        (CURRENT_MEMBERSHIP?'<div class="alert alert-success mt-3"><strong>Member benefits applied</strong><br><span class="tiny">Your configured court and reservation-fee discounts are already included.</span></div>':'') +
+        '<p class="field-hint mt-4">A valid conflict-free reservation is confirmed immediately. Payment is tracked separately and never needs a second reservation approval.</p>',
+      confirmText: 'Confirm booking',
+      cancelText: 'Go back',
+      onConfirm: function () {
+        return api('/api/bookings', {
+          method: 'POST',
+          body: {
+            court_id: sel.court, date: sel.date, start_time: sel.start,
+            players: Number($('#bk-players').value), notes: $('#bk-notes').value
+          }
+        }).then(function (b) {
+          toast(Number(b.reservation_fee||0)>0?'Reservation confirmed. Please complete your reservation fee payment.':'Reservation confirmed. See you on court!', 'success');
+          $('#bk-notes').value = '';
+          sel.start = null;
+          return loadAvailability().then(function () {
+            return loadBookings().then(function () {
+              goto('bookings');
+              if(Number(b.reservation_fee||0)>0)setTimeout(function () { if(TOKEN&&USER)paymentDialog(b.id); }, 250);
+            });
+          });
+        }).catch(function (err) {
+          toast(err.message, 'warning');
+          loadAvailability();
+          throw err;
+        });
+      }
+    });
+  };
+
+  /* ---------- reservation fee payment ---------- */
+  function loadPayCfg() {
+    return api('/api/payment-methods').then(function (cfg) { PAYCFG = cfg; $('#booking-fee-status').classList.add('hidden'); if(AVAIL)renderBooking(); return cfg; });
+  }
+
+  function filePayload(file) {
+    return new Promise(function (resolve, reject) {
+      if (!file) return reject(new Error('Upload the payment receipt.'));
+      if (file.size > 5 * 1024 * 1024) return reject(new Error('Receipt is too large (max 5MB).'));
+      var r = new FileReader();
+      r.onerror = function () { reject(new Error('The receipt could not be read.')); };
+      r.onload = function () { resolve({ mime: file.type, data: String(r.result).split(',').pop() }); };
+      r.readAsDataURL(file);
+    });
+  }
+  function methodInfo(key) {
+    return (PAYCFG && PAYCFG.methods || []).filter(function (x) { return x.key === key; })[0] || null;
+  }
+  function manualMethodPanel(m) {
+    if (!m) return '';
+    if (m.key === 'cash') return '<div class="payment-method-panel"><strong>Cash at venue</strong><p class="s muted">' + esc(m.instructions || '') + '</p></div>';
+    var qr = m.qr_text && window.PIKOL_QR ? '<div class="payment-qr-wrap auto-qr"><div class="payment-provider-badge">' + esc(m.label) + '</div>' + window.PIKOL_QR.svg(m.qr_text,220) + '<span class="tiny muted">Scan the PIKOL number QR or copy the number below</span></div>' : '';
+    var account = (m.account_name || m.account_number) ? '<div class="payment-account"><strong>' + esc(m.account_name || m.label) + '</strong><button type="button" class="copy-payment-number" data-copy-number="' + esc(m.account_number || '') + '">' + esc(m.account_number || '') + ' ⧉</button></div>' : '';
+    return '<div class="payment-method-panel premium-pay-panel">' + qr + account + '<p class="s muted">' + esc(m.instructions || '') + '</p>' +
+      (m.key === 'other' ? '<div class="field"><label class="label">Payment provider</label><input class="input" id="pm-other-provider" placeholder="e.g. BPI, UnionBank, another e-wallet" /></div>' : '') +
+      '<div class="grid cols-2 payment-entry-grid"><div class="field"><label class="label">Reference number</label><input class="input" id="pm-reference" autocomplete="off" placeholder="Enter transaction reference" /></div>' +
+      '<div class="field"><label class="label">Receipt / screenshot</label><input class="input" id="pm-receipt" type="file" accept="image/png,image/jpeg,image/webp" /></div></div>' +
+      '<div id="pm-receipt-preview" class="receipt-preview hidden"></div></div>';
+  }
+  function paymentDialog(bookingId,sourceBtn) {
+    if(sourceBtn&&sourceBtn.dataset.paymentDialogOpen==='1') return;
+    if(sourceBtn){sourceBtn.dataset.paymentDialogOpen='1';sourceBtn.disabled=true;sourceBtn.dataset.originalText=sourceBtn.textContent;sourceBtn.textContent='Payment pending…';}
+    var submitted=false;
+    function release(){if(!sourceBtn||submitted)return;delete sourceBtn.dataset.paymentDialogOpen;sourceBtn.disabled=false;sourceBtn.textContent=sourceBtn.dataset.originalText||'Pay';delete sourceBtn.dataset.originalText;}
+    var b = myBookings.filter(function (x) { return x.id === Number(bookingId); })[0]; if (!b){release();return;}
+    (PAYCFG ? Promise.resolve(PAYCFG) : loadPayCfg()).then(function () {
+      var fee = Number(b.reservation_fee == null ? PAYCFG.reservation_fee || 0 : b.reservation_fee);
+      if(!fee){release();toast('No reservation fee is due for this booking.','info');return;}
+      var options = (PAYCFG.methods || []).map(function (m) { return '<option value="' + esc(m.key) + '"'+(m.available===false?' disabled':'')+'>' + esc(m.label) + (m.available===false?' · setup incomplete':'') + '</option>'; }).join('');
+      var dlg = modal({ title:'Reservation fee', locked:true, wide:true,onClose:release,
+        body:'<div class="payment-checkout"><div class="payment-summary-card"><span class="eyebrow">BOOKING</span><strong class="num">'+esc(b.reference)+'</strong><div>'+esc(b.court_name)+' · '+humanDate(b.booking_date)+' · '+humanTime(b.start_time)+'</div><div class="payment-total"><span>Reservation fee</span><strong>'+esc(money(fee))+'</strong></div></div>'+
+          '<div class="field"><label class="label" for="pm-method">Payment method</label><select class="select" id="pm-method">'+options+'</select></div><div id="pm-details"></div></div>',
+        confirmText:'Submit payment', cancelText:'Later',
+        onConfirm:function(h){
+          var method=$('#pm-method',h).value; var info=methodInfo(method); if(!info) return Promise.reject(new Error('Select a payment method.'));
+          if(method==='cash') return api('/api/bookings/'+b.id+'/payment',{method:'POST',body:{payment_method:'cash'}}).then(function(r){submitted=true;toast(r.reused?'Payment is already pending.':'Cash selected. Staff will record it after collection.','success');loadBookings();loadDashboard();});
+          var ref=($('#pm-reference',h)||{}).value||''; var provider=method==='other'?(($('#pm-other-provider',h)||{}).value||''):''; var file=($('#pm-receipt',h)||{}).files&&$('#pm-receipt',h).files[0];
+          if(ref.trim().length<4) return Promise.reject(new Error('Enter the payment reference number.'));
+          if(method==='other'&&provider.trim().length<2) return Promise.reject(new Error('Specify the payment provider.'));
+          return filePayload(file).then(function(receipt){return api('/api/bookings/'+b.id+'/payment',{method:'POST',body:{payment_method:method,reference_number:ref.trim(),other_provider:provider.trim(),receipt:receipt}});}).then(function(r){submitted=true;toast(r.reused?'Payment is already pending.':(r.duplicate_warning?'Payment submitted with a duplicate warning for Admin review.':'Payment submitted for verification.'),'success');loadBookings();loadDashboard();});
+        }
+      });
+      var host=dlg.host||dlg, sel=$('#pm-method',host);
+      function sync(){ var info=methodInfo(sel.value); $('#pm-details',host).innerHTML=manualMethodPanel(info); var f=$('#pm-receipt',host); if(f)f.onchange=function(){var file=this.files&&this.files[0],box=$('#pm-receipt-preview',host);if(!file||!box)return;var rr=new FileReader();rr.onload=function(){box.classList.remove('hidden');box.innerHTML='<img src="'+rr.result+'" alt="Receipt preview" /><span>'+esc(file.name)+'</span>';};rr.readAsDataURL(file);}; }
+      sel.onchange=sync; sync();
+    }).catch(function(e){release();toast(e.message,'error');});
+  }
+  document.addEventListener('click', function (e) {
+    var copy=e.target.closest('[data-copy-number]'); if(copy){navigator.clipboard&&navigator.clipboard.writeText(copy.dataset.copyNumber);toast('Payment number copied.','success');return;}
+    var b=e.target.closest('[data-pay]'); if(b&&!b.disabled) paymentDialog(b.dataset.pay,b);
+  });
+
+  /* ---------- membership ---------- */
+  function membershipStatusLabel(s){return ({active:'Active',pending_payment:'Awaiting payment',payment_review:'For review',expired:'Expired',cancelled:'Cancelled'})[s]||String(s||'').replace(/_/g,' ');}
+  function membershipBenefits(p){return '<div class="benefit-grid tiny"><span>'+Number(p.court_discount_percent||0)+'% court discount</span><span>'+Number(p.reservation_discount_percent||0)+'% reservation-fee discount</span><span>'+Number(p.tournament_discount_percent||0)+'% tournament discount</span><span>'+Number(p.open_play_discount_percent||0)+'% Open Play discount</span><span>'+Number(p.advance_booking_days||0)+' days advance booking</span><span>Up to '+Number(p.max_active_bookings||0)+' active bookings</span></div>';}
+  function membershipPaymentDialog(membershipId,plan,methods,sourceBtn){
+    if(sourceBtn&&sourceBtn.dataset.paymentDialogOpen==='1') return;
+    if(sourceBtn){sourceBtn.dataset.paymentDialogOpen='1';sourceBtn.disabled=true;sourceBtn.dataset.originalText=sourceBtn.textContent;sourceBtn.textContent='Payment pending…';}
+    var submitted=false;
+    function release(){if(!sourceBtn||submitted)return;delete sourceBtn.dataset.paymentDialogOpen;sourceBtn.disabled=false;sourceBtn.textContent=sourceBtn.dataset.originalText||'Pay now';delete sourceBtn.dataset.originalText;}
+    methods=(methods||[]).filter(function(x){return x.available!==false;}); if(!methods.length){release();toast('No payment method is currently available.','error');return;}
+    var opts=methods.map(function(x){return '<option value="'+esc(x.key)+'">'+esc(x.label)+'</option>'}).join('');
+    var dlg=modal({title:'Membership payment',wide:true,body:'<div class="payment-summary-card"><strong>'+esc(plan.name||'Membership')+'</strong><div class="payment-total"><span>Membership fee</span><strong>'+money(plan.price||0)+'</strong></div></div><div class="field"><label class="label">Payment method</label><select class="select" id="mb-method">'+opts+'</select></div><div id="mb-pay"></div>',confirmText:'Submit payment',onClose:release,onConfirm:function(h){
+      var method=$('#mb-method',h).value;
+      if(method==='cash') return api('/api/membership/'+membershipId+'/payment',{method:'POST',body:{payment_method:'cash'}}).then(function(out){submitted=true;toast(out.reused?'Payment is already pending.':'Membership reserved. Pay at the venue to activate it.','success');return loadMembership();});
+      var ref=(($('#mb-ref',h)||{}).value||'').trim(),provider=(($('#mb-provider',h)||{}).value||'').trim(),file=($('#mb-receipt',h)||{}).files&&$('#mb-receipt',h).files[0];
+      if(ref.length<4) return Promise.reject(new Error('Enter the payment reference number.'));
+      if(method==='other'&&provider.length<2) return Promise.reject(new Error('Specify the payment provider.'));
+      if(!file) return Promise.reject(new Error('Upload the payment receipt.'));
+      return filePayload(file).then(function(receipt){return api('/api/membership/'+membershipId+'/payment',{method:'POST',body:{payment_method:method,reference_number:ref,other_provider:provider,receipt:receipt}})}).then(function(out){submitted=true;toast(out.reused?'Payment is already pending.':'Membership payment submitted for review.','success');return loadMembership();});
+    }});
+    var h=dlg.host,sel=$('#mb-method',h),pay=$('#mb-pay',h);
+    function render(){
+      var info=methods.filter(function(x){return x.key===sel.value})[0]||{};
+      if(sel.value==='cash'){pay.innerHTML='<div class="payment-method-panel"><strong>Cash · Pay at venue</strong><p class="tiny muted mt-2">Your membership activates immediately after staff records the cash payment.</p></div>';return;}
+      var qr=(info.qr_text&&window.PIKOL_QR)?'<div class="payment-qr-wrap auto-qr"><div class="payment-provider-badge">'+esc(info.label||'')+'</div>'+PIKOL_QR.svg(info.qr_text,200)+'<strong>'+esc(info.account_name||'')+'</strong><div class="num">'+esc(info.account_number||'')+'</div><button type="button" class="btn btn-ghost btn-sm" data-copy-member-number>Copy number</button></div>':'';
+      pay.innerHTML=qr+(info.instructions?'<p class="tiny muted">'+esc(info.instructions)+'</p>':'')+(sel.value==='other'?'<div class="field"><label class="label">Specify payment method</label><input class="input" id="mb-provider" placeholder="Bank / wallet / provider"></div>':'')+'<div class="grid cols-2"><div class="field"><label class="label">Reference number</label><input class="input" id="mb-ref"></div><div class="field"><label class="label">Receipt</label><input class="input" id="mb-receipt" type="file" accept="image/png,image/jpeg,image/webp"></div></div>';
+      var cp=$('[data-copy-member-number]',h); if(cp)cp.onclick=function(){navigator.clipboard&&navigator.clipboard.writeText(info.account_number||'').then(function(){toast('Payment number copied.','success')});};
+    }
+    sel.onchange=render; render();
+  }
+  function loadMembership(){
+    var request=++membershipRequest,memberToken=TOKEN;
+    return Promise.all([TOKEN?api('/api/my/membership'):Promise.resolve({}),api('/api/membership/plans')]).then(function(r){
+      if(memberToken!==TOKEN||request!==membershipRequest)return;
+      var resp=r[0]||{},m=resp.membership,pending=resp.pending_membership,plans=r[1]||[],card=$('#membership-card'),ph=$('#membership-plans-card'); CURRENT_MEMBERSHIP=(m&&m.status==='active')?m:null; if(!card||!ph)return;
+      if(AVAIL)renderBooking();
+      if(m&&m.status==='active'){
+        card.innerHTML='<span class="badge badge-approved">ACTIVE MEMBER</span><h2 class="section-title mt-3">'+esc(m.plan_name||'Club Member')+'</h2><p class="muted">Valid until '+esc(m.expires_at?humanDate(m.expires_at.slice(0,10)):'—')+'</p>'+membershipBenefits(m)+'<p class="tiny muted mt-3">Renewing before expiry extends your membership from the current expiry date.</p>'+(pending?'<div class="alert alert-info mt-3"><strong>Renewal: '+esc(membershipStatusLabel(pending.status))+'</strong><br><span class="tiny">'+(pending.status==='payment_review'?'Your renewal payment is for review.':'Complete the renewal payment below.')+'</span></div>':'');
+      }else if(m){
+        card.innerHTML='<span class="badge '+(m.status==='expired'?'badge-rejected':'badge-pending')+'">'+esc(membershipStatusLabel(m.status))+'</span><h2 class="section-title mt-3">'+esc(m.plan_name||'Membership')+'</h2><p class="muted">'+(m.status==='payment_review'?'Your receipt is for review. No additional approval is needed after payment is marked paid.':m.status==='pending_payment'?'Complete payment to activate your membership.':'Choose a plan below to join again.')+'</p>';
+      }else card.innerHTML='<span class="eyebrow">MEMBERSHIP</span><h2 class="section-title">Get member benefits</h2><p class="muted">Join a plan to unlock the benefits configured by the club.</p>';
+      var canStart=!m||m.status==='expired'||m.status==='cancelled'||m.status==='active';
+      ph.innerHTML='<h3 class="section-title">Available plans</h3><div class="membership-plans mt-3">'+(plans.length?plans.map(function(x){
+        var payTarget=(pending&&Number(pending.plan_id)===Number(x.id)?pending:(m&&Number(m.plan_id)===Number(x.id)&&m.status==='pending_payment'?m:null)); var pendingSame=!!payTarget;
+        var pendingPayment=payTarget&&payTarget.pending_payment; var alreadySubmitted=!!pendingPayment;
+        var cashDue=alreadySubmitted&&String(pendingPayment.payment_method||'').toLowerCase()==='cash';
+        var label=alreadySubmitted?(cashDue?'Pay at venue':'For review'):(pendingSame?'Pay now':(m&&m.status==='active'?'Renew':'Join'));
+        var show=canStart||pendingSame;
+        var button=show?'<button class="btn '+(alreadySubmitted?'btn-outline':'btn-primary')+' btn-sm mt-3" '+(alreadySubmitted?'disabled aria-disabled="true"':'data-member-action="'+(pendingSame?'pay':'join')+'"')+' data-plan-id="'+x.id+'" data-membership-id="'+(pendingSame?payTarget.id:'')+'">'+label+'</button>':'';
+        return '<article class="membership-plan"><div><strong>'+esc(x.name)+'</strong><p class="tiny muted">'+esc(x.description||'')+'</p>'+membershipBenefits(x)+'</div><div><strong>'+money(x.price)+'</strong><div class="tiny muted">'+Number(x.duration_days||365)+' days</div>'+button+'</div></article>';
+      }).join(''):'<div class="empty">Membership is currently unavailable or no active plan is configured.</div>')+'</div>';
+      ph.onclick=function(e){
+        var b=e.target.closest('[data-member-action]'); if(!b||b.disabled||b.dataset.actionBusy==='1')return;
+        var plan=plans.filter(function(x){return String(x.id)===String(b.dataset.planId)})[0]; if(!plan)return;
+        if(!requirePlayer(function(){goto('membership');}))return;
+        b.dataset.actionBusy='1'; var oldText=b.textContent; b.disabled=true; b.textContent=b.dataset.memberAction==='pay'?'Opening payment…':'Joining…';
+        Promise.resolve(PAYCFG||loadPayCfg()).then(function(cfg){
+          if(b.dataset.memberAction==='pay'){delete b.dataset.actionBusy;b.textContent=oldText;b.disabled=false;return membershipPaymentDialog(Number(b.dataset.membershipId),plan,(cfg||{}).methods||[],b);}
+          return api('/api/membership/join',{method:'POST',body:{plan_id:plan.id}}).then(function(out){
+            if(out.activated){toast(m&&m.status==='active'?'Membership renewed.':'Membership activated.','success');return loadMembership();}
+            var actualPlan=plans.filter(function(x){return Number(x.id)===Number(out.membership&&out.membership.plan_id);})[0]||plan;
+            delete b.dataset.actionBusy;b.textContent=oldText;b.disabled=false;membershipPaymentDialog(out.membership.id,actualPlan,(cfg||{}).methods||[],b);
+          });
+        }).catch(function(err){delete b.dataset.actionBusy;b.disabled=false;b.textContent=oldText;toast(err.message,'error')});
+      };
+    }).catch(function(e){toast(e.message,'error')});
+  }
+
+  /* ---------- profile ---------- */
+  submitHandler($('#form-profile'), function () {
+    return api('/api/auth/profile', {
+      method: 'PUT',
+      body: { full_name: $('#pf-name').value.trim(), mobile: $('#pf-mobile').value.trim() }
+    }).then(function (d) { USER = d.user; updateAccountPresentation(); toast('Profile updated.', 'success'); $('#dash-name').textContent = USER.full_name.split(' ')[0]; });
+  });
+  submitHandler($('#form-password'), function () {
+    return api('/api/auth/password', {
+      method: 'PUT',
+      body: { current_password: $('#pw-cur').value, new_password: $('#pw-new').value }
+    }).then(function () { $('#pw-cur').value = ''; $('#pw-new').value = ''; toast('Password updated.', 'success'); });
+  });
+
+  /* ---------- tournament rating (personal account) ---------- */
+  /* Ratings exist ONLY for completed tournament matches. Open Play,
+     regular play and bookings never expose any rating control.       */
+  var RATING = null;
+
+  function starRow(n) {
+    var out = '';
+    for (var i = 1; i <= 5; i++) out += i <= n ? '\u2605' : '\u2606';
+    return '<span class="rating-stars" aria-label="' + n + ' out of 5">' + out + '</span>';
+  }
+
+  function ratingStatusBadge(st) {
+    var cls = st === 'Promotion Pending' || st === 'Eligible for Evaluation' ? 'confirmed'
+      : st === 'Demotion Pending' ? 'cancelled' : 'pending';
+    return '<span class="badge badge-' + cls + '">' + esc(st) + '</span>';
+  }
+
+  function renderRatingSummary(s) {
+    var card = $('#rating-summary-card');
+    if (!card) return;
+    card.innerHTML =
+      '<div class="card-header"><h2 class="section-title">My Tournament Rating</h2>' +
+      ratingStatusBadge(s.evaluation_status) + '</div>' +
+      '<div class="grid cols-3" style="gap:12px">' +
+        '<div class="card tight stat-card"><span class="label">Tournament expertise</span>' +
+          '<span class="stat-value num">' + (s.verified_ratings ? s.average.toFixed(2) : '\u2013') + ' / 5</span>' +
+          '<span class="stat-trend">' + starRow(Math.round(s.average)) + '</span></div>' +
+        '<div class="card tight stat-card"><span class="label">Verified ratings</span>' +
+          '<span class="stat-value num">' + s.verified_ratings + '</span>' +
+          '<span class="stat-trend">' + s.required_ratings + ' required</span></div>' +
+        '<div class="card tight stat-card"><span class="label">Current division</span>' +
+          '<span class="stat-value">' + esc(s.division) + '</span>' +
+          '<span class="stat-trend">' + s.division_population + ' active players</span></div>' +
+      '</div>' +
+      '<div class="mt-4"><div class="tiny muted">Verified tournament rating progress \u2014 ' +
+        s.verified_ratings + ' / ' + s.required_ratings + '</div>' +
+        '<div class="rating-progress"><span style="width:' + s.progress_percent + '%"></span></div>' +
+        '<p class="tiny muted mt-4">' +
+          (s.remaining > 0
+            ? s.remaining + ' more verified tournament rating' + (s.remaining === 1 ? '' : 's') + ' needed'
+            : 'Enough verified tournament evidence collected.') +
+        ' Verified encounters: ' + s.verified_encounters + '.</p></div>';
+  }
+
+  function renderRatingPending(list) {
+    var card = $('#rating-pending-card');
+    if (!card) return;
+    if (!list.length) {
+      card.style.display = '';
+      card.innerHTML = '<div class="card-header"><h2 class="section-title">Pending Tournament Ratings</h2></div>' +
+        '<p class="muted tiny">No opponents are waiting for your rating. Ratings appear here after a tournament match is completed.</p>';
+      return;
+    }
+    card.style.display = '';
+    card.innerHTML = '<div class="card-header"><h2 class="section-title">Pending Tournament Ratings</h2>' +
+      '<span class="badge badge-pending">' + list.reduce(function (n, m) { return n + m.opponents.length; }, 0) + ' waiting</span></div>' +
+      list.map(function (m) {
+        return '<div class="rating-match">' +
+          '<div class="rating-match-head">\uD83C\uDFC6 ' + esc(m.tournament_name) + '</div>' +
+          '<div class="tiny muted">' + esc(m.round) + ' \u2014 ' +
+            (m.match_type === 'doubles' ? 'Doubles' : 'Singles') + ' \u00b7 ' + esc(m.division_name) + '</div>' +
+          '<div class="tiny muted mt-4">You played:</div>' +
+          m.opponents.map(function (o) {
+            return '<div class="rating-opponent" data-rating-row="' + m.match_id + ':' + o.user_id + '">' +
+              '<span class="rating-name">' + esc(o.name) + '</span>' +
+              '<span class="rating-picker">' +
+                [1,2,3,4,5].map(function (i) {
+                  return '<button type="button" class="star-btn" data-star="' + i + '" ' +
+                    'data-match="' + m.match_id + '" data-player="' + o.user_id + '" ' +
+                    'aria-label="Rate ' + i + ' star' + (i === 1 ? '' : 's') + '">\u2606</button>';
+                }).join('') +
+              '</span>' +
+              '<button class="btn btn-primary btn-sm" data-rate-submit="' + m.match_id + ':' + o.user_id + '" ' +
+                'data-loading="Submitting..." disabled>Rate Player</button>' +
+            '</div>';
+          }).join('') +
+        '</div>';
+      }).join('');
+  }
+
+  function renderRatingHistory(rows) {
+    var card = $('#rating-history-card');
+    if (!card) return;
+    card.style.display = '';
+    if (!rows.length) {
+      card.innerHTML = '<div class="card-header"><h2 class="section-title">My Tournament Rating History</h2></div>' +
+        '<p class="muted tiny">Your submitted tournament ratings will be listed here.</p>';
+      return;
+    }
+    card.innerHTML = '<div class="card-header"><h2 class="section-title">My Tournament Rating History</h2></div>' +
+      '<div class="table-wrap"><table class="data"><thead><tr>' +
+      '<th>Tournament</th><th>Match</th><th>Format</th><th>Opponent</th><th>Rating</th><th>Status</th>' +
+      '</tr></thead><tbody>' +
+      rows.map(function (r) {
+        return '<tr class="rating-history-row" data-history="' + r.id + '" style="cursor:pointer">' +
+          '<td>' + esc(r.tournament_name) + '</td>' +
+          '<td>' + esc(r.tournament_round || ('#' + r.match_id)) + '</td>' +
+          '<td>' + (r.match_type === 'doubles' ? 'Doubles' : 'Singles') + '</td>' +
+          '<td>' + esc(r.opponent_name) + '</td>' +
+          '<td>' + starRow(r.rating) + '</td>' +
+          '<td><span class="badge badge-confirmed">Verified</span></td></tr>';
+      }).join('') + '</tbody></table></div>';
+  }
+
+  function loadRating() {
+    return api('/api/my/rating').then(function (d) {
+      RATING = d;
+      $('#pf-division').value=d.summary.division||'Not yet assigned';
+      renderRatingSummary(d.summary);
+      renderRatingPending(d.pending);
+      renderRatingHistory(d.history);
+    }).catch(function (e) {
+      var card = $('#rating-summary-card');
+      $('#pf-division').value='Currently unavailable';
+      if (card) card.innerHTML = '<p class="muted tiny">' + esc(e.message) + '</p>';
+    });
+  }
+
+  /* star picking + submission */
+  document.addEventListener('click', function (e) {
+    var star = e.target.closest('.star-btn');
+    if (star) {
+      var row = star.closest('.rating-opponent');
+      var value = Number(star.dataset.star);
+      row.dataset.value = String(value);
+      $$('.star-btn', row).forEach(function (b) {
+        b.textContent = Number(b.dataset.star) <= value ? '\u2605' : '\u2606';
+        b.classList.toggle('is-on', Number(b.dataset.star) <= value);
+      });
+      var btn = row.querySelector('[data-rate-submit]');
+      if (btn) btn.disabled = false;
+      return;
+    }
+    var submit = e.target.closest('[data-rate-submit]');
+    if (!submit) return;
+    var parent = submit.closest('.rating-opponent');
+    var value2 = Number(parent.dataset.value || 0);
+    if (!value2) { toast('Choose 1 to 5 stars first.', 'warning'); return; }
+    var parts = submit.dataset.rateSubmit.split(':');
+    busy(submit, true);
+    api('/api/my/rating', {
+      method: 'POST',
+      body: { match_id: Number(parts[0]), rated_player_id: Number(parts[1]), rating: value2 }
+    }).then(function () {
+      toast('\u2713 Rating submitted', 'success');
+      return loadRating();
+    }).catch(function (err) {
+      var msg = err.message || 'Unable to submit rating. Please try again.';
+      if (/already submitted/i.test(msg)) {
+        submit.textContent = '\u2713 Already Rated';
+        submit.disabled = true;
+      }
+      toast(msg, 'error');
+    }).finally(function () { busy(submit, false); });
+  });
+
+  /* rating history drill-down: every rating is traceable to its match */
+  document.addEventListener('click', function (e) {
+    var row = e.target.closest('[data-history]');
+    if (!row || !RATING) return;
+    var id = Number(row.dataset.history);
+    var r = RATING.history.filter(function (x) { return x.id === id; })[0];
+    if (!r) return;
+    modal({
+      title: 'Verified tournament rating',
+      body: '<dl class="summary-list">' +
+        '<div><dt>Tournament</dt><dd>' + esc(r.tournament_name) + '</dd></div>' +
+        '<div><dt>Division</dt><dd>' + esc(r.division_name) + '</dd></div>' +
+        '<div><dt>Match</dt><dd>' + esc(r.tournament_round || ('#' + r.match_id)) + '</dd></div>' +
+        '<div><dt>Format</dt><dd>' + (r.match_type === 'doubles' ? 'Doubles' : 'Singles') + '</dd></div>' +
+        '<div><dt>Score</dt><dd>' + r.score_a + ' \u2013 ' + r.score_b + '</dd></div>' +
+        '<div><dt>Opponent</dt><dd>' + esc(r.opponent_name) + '</dd></div>' +
+        '<div><dt>Your rating</dt><dd>' + starRow(r.rating) + '</dd></div>' +
+        '<div><dt>Submitted</dt><dd>' + esc(String(r.created_at).slice(0, 10)) + '</dd></div>' +
+        '</dl>',
+      cancelText: 'Close'
+    });
+  });
+
+
+  /* ---------- tournaments (player) ---------- */
+  var TN_STATUS = {
+    published: 'Registration open', registration_open: 'Registration open', registration_closed: 'Registration closed',
+    ongoing: 'Ongoing', completed: 'Completed', cancelled: 'Cancelled', draft: 'Draft'
+  };
+  /* Badge follows the backend-calculated registration_open when available so
+     the card can never say "Registration open" while the API says closed. */
+  function tnBadgeFor(t) {
+    if (t.registration_open) return '<span class="badge badge-pending">Registration open</span>';
+    if (['ongoing','completed','cancelled'].indexOf(t.status) < 0 && t.published) {
+      return '<span class="badge badge-pending">Registration closed</span>';
+    }
+    return tnBadge(t.status);
+  }
+  function tnBadge(st) {
+    var cls = st === 'ongoing' ? 'confirmed' : st === 'completed' ? 'completed' : st === 'cancelled' ? 'cancelled' : 'pending';
+    return '<span class="badge badge-' + cls + '">' + esc(TN_STATUS[st] || st) + '</span>';
+  }
+  function tnWhen(t) {
+    if (!t.tournament_date) return 'Date to be announced';
+    /* Tournaments can run over several days: DATE FROM – DATE TO. */
+    var to = t.end_date && t.end_date !== t.tournament_date ? ' – ' + humanDate(t.end_date) : '';
+    return humanDate(t.tournament_date) + to + (t.start_time ? ' · ' + humanTime(t.start_time) : '');
+  }
+  function loadTournaments() {
+    $('#tn-detail-view').classList.add('hidden');
+    $('#tn-list-view').classList.remove('hidden');
+    api('/api/tournaments').then(function (rows) {
+      PUBLIC_EVENTS=rows;renderPublicEvents('tournament');
+    }).catch(function (e) { toast(e.message, 'error'); });
+
+    $('#tn-my-matches').parentElement.classList.toggle('hidden',!TOKEN);
+    if(!TOKEN)return;
+    api('/api/my/matches').then(function (rows) {
+      $('#tn-my-matches').innerHTML = rows.length ? rows.map(function (m) {
+        var opp = m.my_team_id === m.team_a_id ? m.team_b_name : m.team_a_name;
+        return '<div class="list-row">' +
+          '<span class="list-lead">⚔</span>' +
+          '<span class="list-main"><span class="list-title">' + esc(m.tournament_name) + ' · ' + esc(m.division_name) + '</span>' +
+          '<span class="list-sub">vs ' + esc(opp || 'TBD') + ' · Round ' + m.round + ' · ' +
+          (m.scheduled_date ? humanDate(m.scheduled_date) + (m.scheduled_time ? ' ' + humanTime(m.scheduled_time) : '') : 'Schedule TBA') +
+          (m.court_name ? ' · ' + esc(m.court_name) : '') + '</span>' +
+          (m.status === 'completed'
+            ? '<span class="list-sub"><strong>Result:</strong> ' + esc(String(m.score_a == null ? '-' : m.score_a)) + ' – ' +
+              esc(String(m.score_b == null ? '-' : m.score_b)) + (m.winner_name ? ' · Winner: ' + esc(m.winner_name) : '') + '</span>'
+            : '') +
+          '</span><span class="list-end"><span class="badge badge-' +
+          (m.status === 'completed' ? 'completed' : m.status === 'in_progress' ? 'confirmed' : 'pending') + '">' +
+          esc(m.status.replace('_', ' ')) + '</span></span></div>';
+      }).join('') : '<div class="empty"><strong>No matches yet</strong>Once you are drawn into a bracket, your matches show up here.</div>';
+    }).catch(function () {
+      $('#tn-my-matches').innerHTML = '<div class="empty"><strong>No matches yet</strong>Sign in to see your tournament schedule.</div>';
+    });
+  }
+  $('#tn-refresh').onclick = function () { evGoto(EV_SUB); loadMyRegistrations(); toast('Refreshed.', 'info'); };
+  /* ================== EVENTS: open play, registration, payments ================= */
+  var EV_SUB = 'tournaments';
+  var EV_TIMER = null;
+  var PAY_CFG = null;
+  var PAY_LABEL_C = { submitted: 'Under review', under_review: 'Under review', verified: 'Verified', rejected: 'Action needed', unpaid: 'Unpaid', waived: 'No fee' };
+  var PAY_BADGE_C = { submitted: 'pending', under_review: 'pending', verified: 'confirmed', rejected: 'rejected', unpaid: 'pending', waived: 'completed' };
+  var OPREG_LABEL_C = {
+    pending_payment: 'Awaiting payment', payment_submitted: 'Payment under review', confirmed: 'Confirmed',
+    rejected: 'Rejected', cancelled: 'Cancelled', completed: 'Completed'
+  };
+
+  function evGoto(sub) {
+    if(sub==='myregs'&&!requirePlayer(function(){goto('tournaments');evGoto('myregs');}))return;
+    EV_SUB = sub;
+    ['tournaments', 'openplay', 'myregs'].forEach(function (s) {
+      $('#ev-view-' + s).classList.toggle('hidden', s !== sub);
+    });
+    $$('#ev-subtabs .chip').forEach(function (b) { b.setAttribute('aria-selected', String(b.dataset.evtab === sub)); });
+    if (sub === 'openplay') loadOpenPlay();
+    if (sub === 'myregs') loadMyRegistrations();
+    if (sub === 'tournaments') loadTournaments();
+  }
+  $$('#ev-subtabs .chip').forEach(function (b) { b.onclick = function () { evGoto(b.dataset.evtab); }; });
+
+  function whenText(date, start, end) {
+    if (!date) return 'Date to be announced';
+    return humanDate(date) + (start ? ' · ' + humanTime(start) + (end ? ' – ' + humanTime(end) : '') : '');
+  }
+
+  /* ---- centralized event datetime logic (local time, overnight aware) ---- */
+  function parseLocalDateTime(date, time, addDays) {
+    if (!date) return null;
+    var dm = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(date).trim());
+    var tm = /^(\d{1,2}):(\d{2})/.exec(String(time || '00:00').trim());
+    if (!dm || !tm) return null;
+    var d = new Date(+dm[1], +dm[2] - 1, +dm[3] + (addDays || 0), +tm[1], +tm[2], 0, 0);
+    return isFinite(d.getTime()) ? d : null;
+  }
+  /* Overnight events (end_time <= start_time) end on the NEXT calendar day. */
+  function eventWindow(date, start, end) {
+    if (!date) return { start: null, end: null, endsNextDay: false };
+    var overnight = !!(start && end && String(end) <= String(start));
+    return {
+      start: parseLocalDateTime(date, start || '00:00', 0),
+      end: parseLocalDateTime(date, end || '23:59', overnight ? 1 : 0),
+      endsNextDay: overnight
+    };
+  }
+  function eventEnded(e, now) {
+    if (e && typeof e.ended === 'boolean' && e.ends_at) return e.ended;
+    var w = eventWindow(e.event_date, e.start_time, e.end_time);
+    if (!w.end) return false;
+    return w.end.getTime() < (now || Date.now());
+  }
+
+  function paymentConfig() {
+    if (PAY_CFG) return Promise.resolve(PAY_CFG);
+    return api('/api/events/payment-config').then(function (c) { PAY_CFG = c; return c; });
+  }
+
+  /* ------------------------------- payment flow -------------------------------- */
+  function openPaymentFlow(opts,sourceBtn) {
+    if(sourceBtn&&sourceBtn.dataset.paymentDialogOpen==='1') return Promise.resolve();
+    if(sourceBtn){sourceBtn.dataset.paymentDialogOpen='1';sourceBtn.disabled=true;sourceBtn.dataset.originalText=sourceBtn.textContent;sourceBtn.textContent='Payment pending…';}
+    var submitted=false;
+    function release(){if(!sourceBtn||submitted)return;delete sourceBtn.dataset.paymentDialogOpen;sourceBtn.disabled=false;sourceBtn.textContent=sourceBtn.dataset.originalText||'Pay now';delete sourceBtn.dataset.originalText;}
+    return paymentConfig().then(function(cfg){
+      var methods=(cfg.methods||[]).filter(function(x){return x.available!==false;});
+      var m=modal({title:'Pay '+money(opts.amountDue),wide:true,confirmText:'Submit payment',cancelText:'Close',onClose:release,
+        body:'<div class="payment-checkout"><div class="payment-summary-card"><span class="eyebrow">EVENT PAYMENT</span><strong>'+esc(opts.eventName)+'</strong>'+(opts.subtitle?'<div class="s muted">'+esc(opts.subtitle)+'</div>':'')+'<div class="payment-total"><span>Amount due</span><strong>'+money(opts.amountDue)+'</strong></div></div><div class="field"><label class="label">Payment method</label><select class="select" id="pf-method">'+methods.map(function(x){return '<option value="'+esc(x.key)+'">'+esc(x.label)+'</option>';}).join('')+'</select></div><div id="pf-details"></div></div>',
+        onConfirm:function(host){
+          var method=$('#pf-method',host).value, info=methods.filter(function(x){return x.key===method;})[0]; if(!info)return Promise.reject(new Error('Select a payment method.'));
+          if(method==='cash') return api('/api/event-payments',{method:'POST',body:{event_type:opts.eventType,registration_id:opts.registrationId,payment_method:'cash'}}).then(function(r){submitted=true;toast(r.reused?'Payment is already pending.':'Cash selected. Staff will record it after collection.','success');loadMyRegistrations();if(opts.onDone)opts.onDone();});
+          var ref=($('#pf-reference',host)||{}).value||'', provider=method==='other'?((($('#pf-other-provider',host)||{}).value)||''):'', file=($('#pf-receipt',host)||{}).files&&$('#pf-receipt',host).files[0];
+          if(ref.trim().length<4)return Promise.reject(new Error('Enter the payment reference number.')); if(method==='other'&&provider.trim().length<2)return Promise.reject(new Error('Specify the payment provider.'));
+          return filePayload(file).then(function(receipt){return api('/api/event-payments',{method:'POST',body:{event_type:opts.eventType,registration_id:opts.registrationId,payment_method:method,reference_number:ref.trim(),other_provider:provider.trim(),receipt:receipt}});}).then(function(r){submitted=true;toast(r.reused?'Payment is already pending.':'Payment submitted for Admin verification.','success');loadMyRegistrations();if(opts.onDone)opts.onDone();});
+        }});
+      var host=m.host;
+      function render(){var key=$('#pf-method',host).value,info=methods.filter(function(x){return x.key===key;})[0]||{}; if(key==='cash'){$('#pf-details',host).innerHTML='<div class="payment-method-panel"><strong>Cash at venue</strong><p class="s muted">'+esc(info.instructions||'')+'</p></div>';return;}
+        var qr=info.qr_text&&window.PIKOL_QR?'<div class="payment-qr-wrap auto-qr"><div class="payment-provider-badge">'+esc(info.label||key)+'</div>'+window.PIKOL_QR.svg(info.qr_text,220)+'<span class="tiny muted">Scan the PIKOL number QR or copy the number below</span></div>':'';
+        var acct=(info.account_name||info.account_number)?'<div class="payment-account"><strong>'+esc(info.account_name||info.label||key)+'</strong><button type="button" class="copy-payment-number" data-copy-number="'+esc(info.account_number||'')+'">'+esc(info.account_number||'')+' ⧉</button></div>':'';
+        $('#pf-details',host).innerHTML='<div class="payment-method-panel premium-pay-panel">'+qr+acct+'<p class="s muted">'+esc(info.instructions||'')+'</p>'+(key==='other'?'<div class="field"><label class="label">Payment provider</label><input class="input" id="pf-other-provider" placeholder="Specify bank / e-wallet" /></div>':'')+'<div class="grid cols-2 payment-entry-grid"><div class="field"><label class="label">Reference number</label><input class="input" id="pf-reference" /></div><div class="field"><label class="label">Receipt / screenshot</label><input class="input" id="pf-receipt" type="file" accept="image/png,image/jpeg,image/webp" /></div></div></div>';
+      }
+      $('#pf-method',host).onchange=render;render();return m;
+    }).catch(function(e){release();toast(e.message,'error');});
+  }
+
+  /* --------------------------- tournament registration ------------------------- */
+  function openTournamentRegistration(tournamentId, tournamentName) {
+    return api('/api/tournaments/' + tournamentId + '/registration-info').then(function (info) {
+      if (!info.registration_open) return toast('Registration is closed for this tournament.', 'error');
+      var open = info.divisions.filter(function (d) { return !d.full; });
+      if (!open.length) return toast('All divisions are full.', 'error');
+      /* STRICT DIVISION RULE - the server is the authority, this only keeps
+         the player from wasting a request on an impossible registration. */
+      var myDivision = info.player_division || 'Beginner';
+      var eligible = info.divisions.filter(function (d) { return d.eligible; });
+      if (!eligible.length) {
+        return toast('You are currently rated ' + myDivision + ', but this tournament does not have a ' +
+          myDivision + ' division available for registration.', 'error');
+      }
+      var eligibleOpen = eligible.filter(function (d) { return !d.full; });
+      if (!eligibleOpen.length) {
+        return toast('The ' + myDivision + ' division of this tournament is already full.', 'error');
+      }
+      var partner = null;   /* verified same-division partner (registered player) */
+      var partnerTimer = null;
+      var m = modal({
+        title: 'Register — ' + tournamentName,
+        confirmText: 'Submit registration',
+        body:
+          '<div class="stack" style="gap:14px">' +
+          '<div class="info-callout">' +
+          '<div class="s" style="font-weight:700;letter-spacing:.04em;text-transform:uppercase">Your current division</div>' +
+          '<div style="font-size:18px;font-weight:800">' + esc(myDivision) + '</div>' +
+          '<div class="s muted">You may only register for tournaments in your current division.</div></div>' +
+          '<div class="field"><label class="label" for="tr-division">Division</label><select class="input" id="tr-division">' +
+          info.divisions.map(function (d) {
+            var blocked = !d.eligible || d.full;
+            return '<option value="' + d.id + '"' + (blocked ? ' disabled' : '') +
+              ' data-eligible="' + (d.eligible ? '1' : '0') + '"' +
+              ' data-name="' + esc(d.name) + '" data-size="' + d.team_size + '" data-fee="' + d.fee + '">' +
+              esc(d.name) + ' — ' + money(d.fee) + (d.max_teams ? ' · ' + d.registered + '/' + d.max_teams : '') +
+              (d.full ? ' (FULL)' : '') + (d.eligible ? '' : ' — Not eligible') + '</option>';
+          }).join('') + '</select><div class="s muted" id="tr-division-note"></div></div>' +
+          '<div class="field"><label class="label" for="tr-team">Team name (optional)</label><input class="input" id="tr-team" maxlength="120" /></div>' +
+          '<div id="tr-partner" class="hidden stack" style="gap:12px">' +
+          '<div class="field"><label class="label" for="tr-partner-name">Partner (registered player)</label>' +
+          '<input class="input" id="tr-partner-name" maxlength="120" autocomplete="off" placeholder="Type your partner\'s name" />' +
+          '<div id="tr-partner-results" class="stack hidden" style="gap:6px;margin-top:6px"></div>' +
+          '<div class="s muted" id="tr-partner-hint">Only players in your current division (' + esc(myDivision) + ') can be selected.</div>' +
+          '<div class="s hidden" id="tr-partner-selected" style="font-weight:700"></div></div>' +
+          '</div>' +
+          '<div class="field"><label class="label" for="tr-notes">Notes for the organiser (optional)</label><textarea class="textarea" id="tr-notes" maxlength="400"></textarea></div>' +
+          '</div>',
+        onConfirm: function (host) {
+          var sel = $('#tr-division', host);
+          var opt = sel.options[sel.selectedIndex];
+          if (!opt || opt.dataset.eligible !== '1') {
+            toast('Registration blocked: You are currently rated ' + myDivision +
+              '. You can only register for the ' + myDivision + ' division.', 'error');
+            return false;
+          }
+          if (Number(opt.dataset.size) > 1 && !partner) {
+            toast('Select your partner from the suggestions. Only players in your division can be chosen.', 'error');
+            return false;
+          }
+          return api('/api/tournaments/' + tournamentId + '/register', {
+            method: 'POST',
+            body: {
+              division_id: sel.value,
+              team_name: $('#tr-team', host).value,
+              partner_name: partner ? partner.full_name : $('#tr-partner-name', host).value,
+              partner_email: partner ? partner.email : '',
+              partner_mobile: partner ? partner.mobile : '',
+              partner_user_id: partner ? partner.id : null,
+              notes: $('#tr-notes', host).value
+            }
+          }).then(function (r) {
+            /* When the previous payment was rejected the SAME registration is
+               reused, so the player never sees "already registered". */
+            toast(r.payment_retry
+              ? 'Your previous payment attempt was not completed. Choose a payment method to continue.'
+              : 'Registration submitted. It is pending admin approval.', r.payment_retry ? 'info' : 'success');
+            loadMyRegistrations();
+            if (r.payment_required) {
+              openPaymentFlow({
+                eventType: 'tournament', registrationId: r.registration.id, amountDue: r.amount_due,
+                eventName: tournamentName, subtitle: opt.textContent
+              });
+            }
+          }).catch(function (err) {
+            /* The server always states the precise reason - never a generic
+               "something went wrong". */
+            toast(err.message || 'Registration could not be completed.', 'error');
+            return false;
+          });
+        }
+      });
+      function sync() {
+        var sel = $('#tr-division', m.host);
+        var opt = sel.options[sel.selectedIndex];
+        if (!opt) return;
+        if (opt.dataset.eligible !== '1') {
+          toast('Registration blocked: You are currently rated ' + myDivision +
+            '. You can only register for the ' + myDivision + ' division.', 'error');
+          sel.value = String(eligibleOpen[0].id);
+          opt = sel.options[sel.selectedIndex];
+        }
+        var size = Number(opt.dataset.size || 1);
+        $('#tr-partner', m.host).classList.toggle('hidden', size < 2);
+        $('#tr-division-note', m.host).textContent = 'Your division: ' + myDivision + ' · Entry fee: ' +
+          Number(opt.dataset.fee || 0).toFixed(2) + ' · ' + (size > 1 ? size + ' players per team' : 'singles');
+      }
+      /* ---- same-division partner autosuggest (server-side filtered) ---- */
+      function clearPartner() {
+        partner = null;
+        var sel = $('#tr-partner-selected', m.host);
+        sel.classList.add('hidden');
+        sel.textContent = '';
+      }
+      function renderPartnerResults(list) {
+        var box = $('#tr-partner-results', m.host);
+        if (!list.length) {
+          box.classList.remove('hidden');
+          box.innerHTML = '<div class="s muted">No eligible partner found.</div>';
+          return;
+        }
+        box.classList.remove('hidden');
+        box.innerHTML = list.map(function (p) {
+          return '<button type="button" class="btn btn-outline btn-sm" data-partner-id="' + p.id + '" style="justify-content:flex-start">' +
+            esc(p.full_name) + ' — ' + esc(p.player_division) + '</button>';
+        }).join('');
+        $$('[data-partner-id]', box).forEach(function (b) {
+          b.onclick = function () {
+            var chosen = list.filter(function (p) { return String(p.id) === b.dataset.partnerId; })[0];
+            if (!chosen) return;
+            partner = chosen;
+            $('#tr-partner-name', m.host).value = chosen.full_name;
+            box.classList.add('hidden');
+            box.innerHTML = '';
+            var sel = $('#tr-partner-selected', m.host);
+            sel.classList.remove('hidden');
+            sel.textContent = 'Partner: ' + chosen.full_name + ' · ' + chosen.player_division;
+          };
+        });
+      }
+      $('#tr-partner-name', m.host).addEventListener('input', function () {
+        /* Editing the field always invalidates a previous selection so an
+           incompatible partner can never survive a manual edit. */
+        clearPartner();
+        var q = this.value.trim();
+        var box = $('#tr-partner-results', m.host);
+        if (partnerTimer) clearTimeout(partnerTimer);
+        if (q.length < 2) { box.classList.add('hidden'); box.innerHTML = ''; return; }
+        partnerTimer = setTimeout(function () {
+          api('/api/tournaments/' + tournamentId + '/eligible-partners?q=' + encodeURIComponent(q))
+            .then(function (r) { renderPartnerResults(r.players || []); })
+            .catch(function () { renderPartnerResults([]); });
+        }, 220);
+      });
+
+      /* Preselect the only division the player is allowed to enter. */
+      $('#tr-division', m.host).value = String(eligibleOpen[0].id);
+      $('#tr-division', m.host).onchange = function () { clearPartner(); sync(); };
+      sync();
+    }).catch(function (e) { toast(e.message, 'error'); });
+  }
+
+  /* --------------------------------- open play --------------------------------- */
+  function loadOpenPlay() {
+    return api('/api/open-play').then(function (rows) {
+      PUBLIC_OPENPLAY=rows;renderPublicEvents('openplay');
+    }).catch(function (e) { toast(e.message, 'error'); });
+  }
+
+  document.addEventListener('click', function (ev) {
+    var join = ev.target.closest('[data-op-join]');
+    if (!join) return;
+    if(!requirePlayer(function(){goto('openplay');var resume=document.createElement('button');resume.dataset.opJoin=join.dataset.opJoin;document.body.appendChild(resume);resume.click();resume.remove();}))return;
+    var id = join.dataset.opJoin;
+    api('/api/open-play/' + id).then(function (e) {
+      if (eventEnded(e)) return toast('This Open Play event has already ended', 'error');
+      modal({
+        title: 'Join ' + e.title,
+        confirmText: 'Confirm registration',
+        body: '<div class="stack" style="gap:10px">' +
+          '<div class="s">' + esc(whenText(e.event_date, e.start_time, e.end_time)) + (e.location ? ' · ' + esc(e.location) : '') + '</div>' +
+          '<div class="s">Entrance fee: <strong>' + money(e.entrance_fee) + '</strong></div>' +
+          (e.capacity ? '<div class="s muted">' + e.slots_left + ' slot(s) left</div>' : '') +
+          '<div class="field"><label class="label" for="op-notes">Notes (optional)</label><textarea class="textarea" id="op-notes" maxlength="300"></textarea></div>' +
+          '</div>',
+        onConfirm: function (host) {
+          return api('/api/open-play/' + e.id + '/register', { method: 'POST', body: { notes: $('#op-notes', host).value } })
+            .then(function (r) {
+              toast(r.payment_retry
+                ? 'Your previous payment attempt was not completed. Choose a payment method to keep your slot.'
+                : r.payment_required ? 'Registered. Please complete your payment.' : 'Your slot is confirmed.',
+                r.payment_retry ? 'info' : 'success');
+              loadOpenPlay(); loadMyRegistrations();
+              if (r.payment_required) {
+                openPaymentFlow({
+                  eventType: 'open_play', registrationId: r.registration.id, amountDue: r.amount_due,
+                  eventName: e.title, subtitle: whenText(e.event_date, e.start_time, e.end_time),
+                  onDone: loadOpenPlay
+                });
+              }
+            });
+        }
+      });
+    }).catch(function (err) { toast(err.message, 'error'); });
+  });
+
+  /* ------------------------------ my registrations ----------------------------- */
+  function lastPayment(r) { return (r.payments || [])[(r.payments || []).length - 1]; }
+
+  function payActions(eventType, r, name, subtitle) {
+    var pay = '';
+    if (Number(r.amount_due) > 0 && r.payment_status !== 'verified') {
+      if (r.payment_status === 'under_review') {
+        pay = '<span class="s muted">Receipt under review</span>';
+      } else {
+        var label = r.payment_status === 'rejected' ? 'Choose payment method' : 'Pay now';
+        pay = '<button class="btn btn-primary btn-sm" data-pay-now="' + eventType + ':' + r.id + ':' + r.amount_due + '" ' +
+          'data-pay-name="' + esc(name) + '" data-pay-sub="' + esc(subtitle || '') + '">' + label + '</button>';
+      }
+    }
+    if (r.is_active) {
+      pay += (pay ? ' ' : '') + '<button class="btn btn-outline btn-sm" data-cancel-registration="' + eventType + ':' + r.id + '">Cancel</button>';
+    }
+    return pay;
+  }
+
+  function loadMyRegistrations() {
+    if (!TOKEN) return Promise.resolve();
+    var p1 = api('/api/my/tournament-registrations').then(function (rows) {
+      $('#my-trn-regs').innerHTML = rows.length ? rows.map(function (r) {
+        var pay = lastPayment(r);
+        var sub = r.division_name;
+        return '<div class="list-row has-cols">' +
+          '<span class="list-lead">🏆</span>' +
+          '<span class="list-main"><span class="list-title">' + esc(r.tournament_name) + ' · ' + esc(r.division_name) + '</span>' +
+          '<span class="list-sub">' + esc(whenText(r.tournament_date, r.start_time)) + (r.venue ? ' · ' + esc(r.venue) : '') + '</span>' +
+          (r.registration_code ? '<span class="list-sub">Code: ' + esc(r.registration_code) + '</span>' : '') +
+          (r.status === 'disapproved' && r.rejection_reason ? '<span class="list-sub is-danger">Reason: ' + esc(r.rejection_reason) + '</span>' : '') +
+          (pay && pay.status === 'rejected' && pay.rejection_reason ? '<span class="list-sub is-danger">Receipt issue: ' + esc(pay.rejection_reason) + '</span>' : '') +
+          '</span>' +
+          '<span class="list-col">Fee ' + money(r.amount_due) + '</span>' +
+          '<span class="list-col">' + esc(PAY_LABEL_C[r.payment_status] || r.payment_status) + '</span>' +
+          '<span class="list-end">' +
+          '<span class="badge badge-' + (r.status === 'approved' ? 'confirmed' : r.status === 'disapproved' ? 'rejected' : 'pending') + '">' +
+          esc(r.status === 'pending' ? 'Pending approval' : r.status) + '</span>' +
+          payActions('tournament', r, r.tournament_name, sub) +
+          '</span></div>';
+      }).join('') : '<div class="empty"><strong>No tournament registrations</strong>Register from the Tournaments tab.</div>';
+      return rows;
+    });
+    var p2 = api('/api/my/open-play-registrations').then(function (rows) {
+      $('#my-op-regs').innerHTML = rows.length ? rows.map(function (r) {
+        var pay = lastPayment(r);
+        return '<div class="list-row has-cols">' +
+          '<span class="list-lead">◍</span>' +
+          '<span class="list-main"><span class="list-title">' + esc(r.title) + '</span>' +
+          '<span class="list-sub">' + esc(whenText(r.event_date, r.start_time, r.end_time)) + (r.location ? ' · ' + esc(r.location) : '') + '</span>' +
+          (r.registration_code ? '<span class="list-sub">Code: ' + esc(r.registration_code) + '</span>' : '') +
+          (pay && pay.status === 'rejected' && pay.rejection_reason ? '<span class="list-sub is-danger">Receipt issue: ' + esc(pay.rejection_reason) + '</span>' : '') +
+          '</span>' +
+          '<span class="list-col">Fee ' + money(r.amount_due) + '</span>' +
+          '<span class="list-col">' + esc(PAY_LABEL_C[r.payment_status] || r.payment_status) + '</span>' +
+          '<span class="list-end">' +
+          '<span class="badge badge-' + (r.status === 'confirmed' ? 'confirmed' : r.status === 'rejected' ? 'rejected' : 'pending') + '">' +
+          esc(OPREG_LABEL_C[r.status] || r.status) + '</span>' +
+          payActions('open_play', r, r.title, whenText(r.event_date, r.start_time, r.end_time)) +
+          '</span></div>';
+      }).join('') : '<div class="empty"><strong>No Open Play registrations</strong>Join a session from the Open Play tab.</div>';
+      return rows;
+    });
+    return Promise.all([p1, p2]).then(function (res) {
+      var action = res[0].concat(res[1]).filter(function (r) {
+        return Number(r.amount_due) > 0 && ['unpaid', 'rejected'].indexOf(r.payment_status) >= 0;
+      }).length;
+      var pill = $('#ev-reg-pill');
+      pill.textContent = action; pill.classList.toggle('hidden', !action);
+    }).catch(function (e) { toast(e.message, 'error'); });
+  }
+
+  document.addEventListener('click', function (ev) {
+    var cancel = ev.target.closest('[data-cancel-registration]');
+    if (cancel) {
+      var parts = cancel.dataset.cancelRegistration.split(':');
+      var type = parts[0], id = Number(parts[1]);
+      var label = type === 'tournament' ? 'tournament registration' : 'Open Play registration';
+      var endpoint = type === 'tournament'
+        ? '/api/tournament-registrations/' + id + '/cancel'
+        : '/api/open-play-registrations/' + id + '/cancel';
+      return modal({
+        title: 'Cancel ' + label, confirmText: 'Cancel registration', danger: true,
+        body: '<p class="muted">Are you sure you want to cancel this ' + label + '? The payment record will be retained for audit/history, but it will no longer appear in Admin → Transactions.</p>',
+        onConfirm: function () {
+          return api(endpoint, { method: 'POST' }).then(function () {
+            toast('Registration cancelled.', 'success');
+            loadMyRegistrations();
+            if (typeof loadOpenPlay === 'function') loadOpenPlay();
+          }).catch(function (err) {
+            toast(err.message || 'Registration could not be cancelled.', 'error');
+            return false;
+          });
+        }
+      });
+    }
+    var b = ev.target.closest('[data-pay-now]');
+    if (!b) return;
+    var parts = b.dataset.payNow.split(':');
+    if(b.disabled||b.dataset.paymentDialogOpen==='1') return;
+    openPaymentFlow({
+      eventType: parts[0], registrationId: Number(parts[1]), amountDue: Number(parts[2]),
+      eventName: b.dataset.payName, subtitle: b.dataset.paySub
+    },b);
+  });
+
+  /* Near real-time updates while the Events tab is open. */
+  EV_TIMER = setInterval(function () {
+    if (!TOKEN || document.hidden) return;
+    /* Socket.IO is the primary channel; this poll only covers offline gaps. */
+    if (RT && RT.connected()) return;
+    if ($('#tab-tournaments').classList.contains('hidden')) return;
+    if (EV_SUB === 'openplay') loadOpenPlay();
+    else if (EV_SUB === 'myregs') loadMyRegistrations();
+  }, 20000);
+
+
+
+  document.addEventListener('click', function (e) {
+    var reg = e.target.closest('[data-tn-register]');
+    if (reg) {
+      if(!requirePlayer(function(){goto('tournaments');openTournamentRegistration(Number(reg.dataset.tnRegister),reg.dataset.tnName);}))return;
+      return openTournamentRegistration(Number(reg.dataset.tnRegister), reg.dataset.tnName);
+    }
+    var b = e.target.closest('[data-tn]');
+    if (!b) return;
+    openTournament(Number(b.dataset.tn));
+  });
+
+  function openTournament(id) {
+    if($('#site-overlay').classList.contains('hidden'))goto('tournaments');
+    api('/api/tournaments/' + id).then(function (d) {
+      var t = d.tournament, divisions = d.divisions || [];
+      var html = '<div><button class="btn btn-ghost btn-sm" id="tn-back">← All tournaments</button></div>' +
+        '<section class="event-detail-surface stack" style="gap:8px">' +
+        (t.poster_url ? '<img src="' + esc(assetUrl(t.poster_url)) + '" alt="' + esc(t.name) + ' poster" style="width:100%;border-radius:12px;object-fit:cover;max-height:240px" />' : '') +
+        '<div class="spread"><h1 class="page-title">' + esc(t.name) + '</h1>' + tnBadgeFor(t) + '</div>' +
+        '<div class="s muted">' + esc(tnWhen(t)) + (t.venue ? ' · ' + esc(t.venue) : '') + '</div>' +
+        (t.description ? '<p class="s">' + esc(t.description) + '</p>' : '') +
+        (Number(d.prize_pool) > 0 ? '<div class="s"><strong>Total prize pool: ' + money(d.prize_pool) + '</strong></div>' : '') +
+        (t.registration_end ? '<div class="s muted">Registration closes ' + humanDate(t.registration_end) + '</div>' : '') +
+        (Number(t.registration_fee) > 0 ? '<div class="s">Registration fee from ' + money(t.registration_fee) + '</div>' : '') +
+        (t.registration_open
+          ? '<div><button class="btn btn-primary btn-sm" data-tn-register="' + t.id + '" data-tn-name="' + esc(t.name) + '">Register for this tournament</button></div>'
+          : '<div class="s muted">Registration is not open for this tournament.</div>') +
+        '</section>';
+
+      html += (divisions.length ? divisions.map(function (dv) {
+        var dTeams = dv.teams || [], dPrizes = dv.prizes || [], dMatches = dv.matches || [];
+        var rounds = {}, order = [];
+        dMatches.forEach(function (m) {
+          var key = m.round || ('Round ' + m.round_order);
+          if (!rounds[key]) { rounds[key] = []; order.push(key); }
+          rounds[key].push(m);
+        });
+        return '<section class="event-detail-section stack" style="gap:12px">' +
+          '<div class="spread"><h2 class="section-title">' + esc(dv.name) + '</h2>' +
+          '<span class="badge badge-pending">' + esc(String(dv.match_type || 'singles').replace('_', ' ')) + '</span></div>' +
+          (dv.description ? '<div class="s muted">' + esc(dv.description) + '</div>' : '') +
+          (dPrizes.length ? '<div><div class="s"><strong>Prizes</strong></div><ul class="s">' + dPrizes.map(function (pz) {
+            return '<li>' + esc(pz.label) + (Number(pz.amount) ? ' — ' + money(pz.amount) : '') + '</li>';
+          }).join('') + '</ul></div>' : '') +
+          '<div><div class="s"><strong>Participants (' + dTeams.length + ')</strong></div><div class="s muted">' +
+          (dTeams.length ? dTeams.map(function (x) { return esc(x.name); }).join(' · ') : 'No participants registered yet.') + '</div></div>' +
+          (order.length ? '<div><div class="s"><strong>Live bracket</strong></div><div class="bracket-board player-bracket">' + order.map(function (r) {
+            return '<section class="bracket-column"><div class="bracket-column-head"><strong>' + esc(String(r).replace(/_/g, ' ').replace(/^./, function (ch) { return ch.toUpperCase(); })) + '</strong></div>' +
+              rounds[r].map(function (m) {
+                var done = m.status === 'completed';
+                return '<article class="bracket-match '+(done?'is-done':'')+'"><div><span>'+esc(m.team_a_name||'TBD')+'</span><b class="num">'+(done?m.score_a:'—')+'</b></div><div><span>'+esc(m.team_b_name||'TBD')+'</span><b class="num">'+(done?m.score_b:'—')+'</b></div><small>'+(m.scheduled_date?humanDate(m.scheduled_date)+(m.scheduled_time?' · '+humanTime(m.scheduled_time):''):'Schedule TBA')+(m.court_name?' · '+esc(m.court_name):'')+'</small></article>';
+              }).join('') + '</section>';
+          }).join('') + '</div></div>' : '<div class="s muted">Bracket not generated yet.</div>') +
+          '</section>';
+      }).join('') : '<div class="empty"><strong>No divisions yet</strong>Details will be posted soon.</div>');
+
+      $('#tn-detail-view').innerHTML = html;
+      $('#tn-detail-view').classList.remove('hidden');
+      $('#tn-list-view').classList.add('hidden');
+      $('#tn-back').onclick = function () { loadTournaments(); };
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }).catch(function (e) { toast(e.message, 'error'); });
+  }
+
+  /* ================== NOTIFICATIONS (information -> LIST) ==================
+     Reads the real notification log for the signed-in player. Every row is an
+     actual email/SMS event created by the notification engine — nothing here
+     is simulated. Rendered as a compact list, never as large cards. */
+  var NOTIFS = [];
+  var NOTIF_FILTER = 'all';
+
+  var NOTIF_META = {
+    registration: { icon: '👋', label: 'Welcome', group: 'account' },
+    booking_confirmation: { icon: '✅', label: 'Booking confirmed', group: 'bookings' },
+    booking_pending: { icon: '🕒', label: 'Booking received', group: 'bookings' },
+    approval: { icon: '✅', label: 'Booking approved', group: 'bookings' },
+    rejection: { icon: '⛔', label: 'Booking rejected', group: 'bookings' },
+    cancellation: { icon: '✖', label: 'Booking cancelled', group: 'bookings' },
+    reschedule: { icon: '↻', label: 'Booking rescheduled', group: 'bookings' },
+    reminder: { icon: '⏰', label: 'Reminder', group: 'bookings' },
+    game_payment: { icon: '💳', label: 'Payment update', group: 'payments' },
+    payment_rejected: { icon: '💳', label: 'Payment rejected', group: 'payments' },
+    payment_auto_rejected: { icon: '💳', label: 'Payment rejected', group: 'payments' },
+    tournament_registration_submitted: { icon: '🏆', label: 'Tournament registration', group: 'events' },
+    tournament_registration_approved: { icon: '🏆', label: 'Registration approved', group: 'events' },
+    tournament_registration_disapproved: { icon: '🏆', label: 'Registration declined', group: 'events' },
+    tournament_receipt_submitted: { icon: '💳', label: 'Payment submitted', group: 'payments' },
+    tournament_payment_verified: { icon: '💳', label: 'Payment verified', group: 'payments' },
+    tournament_payment_rejected: { icon: '💳', label: 'Payment rejected', group: 'payments' },
+    open_play_registration_submitted: { icon: '◍', label: 'Open Play registration', group: 'events' },
+    open_play_receipt_submitted: { icon: '💳', label: 'Payment submitted', group: 'payments' },
+    open_play_payment_verified: { icon: '💳', label: 'Payment verified', group: 'payments' },
+    open_play_payment_rejected: { icon: '💳', label: 'Payment rejected', group: 'payments' }
+  };
+  function notifMeta(n) {
+    return NOTIF_META[n.type] || { icon: '🔔', label: String(n.type || 'Update').replace(/_/g, ' '), group: 'account' };
+  }
+  function relTime(iso) {
+    var t = new Date(iso);
+    if (!isFinite(t.getTime())) return '';
+    var diff = Math.round((Date.now() - t.getTime()) / 1000);
+    var time = t.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+    if (diff < 60) return 'Just now';
+    if (diff < 3600) return Math.floor(diff / 60) + ' min ago';
+    var midnight = new Date(); midnight.setHours(0, 0, 0, 0);
+    if (t >= midnight) return 'Today · ' + time;
+    if (t >= new Date(midnight.getTime() - 86400000)) return 'Yesterday · ' + time;
+    return MONTHS[t.getMonth()].slice(0, 3) + ' ' + t.getDate() + ' · ' + time;
+  }
+  function plainText(v) {
+    return String(v == null ? '' : v).replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+  }
+
+  function setBell(count) {
+    var el = $('#bell-count');
+    if (!el) return;
+    el.textContent = count > 99 ? '99+' : String(count);
+    el.classList.toggle('hidden', !count);
+  }
+
+  function notifRow(n, compact) {
+    var meta = notifMeta(n);
+    var unread = !n.read_at;
+    var title = plainText(n.subject) || meta.label;
+    var body = plainText(n.body).slice(0, 140);
+    return '<button type="button" class="list-row is-clickable is-compact' + (unread ? ' is-unread' : '') +
+      '" data-notif="' + n.id + '">' +
+      '<span class="list-lead' + (unread ? '' : ' is-plain') + '">' + meta.icon + '</span>' +
+      '<span class="list-main">' +
+      '<span class="list-title">' + (unread ? '<span class="list-dot" aria-label="Unread"></span> ' : '') + esc(title) + '</span>' +
+      (body ? '<span class="list-sub">' + esc(body) + '</span>' : '') +
+      '<span class="list-meta">' + esc(relTime(n.created_at)) +
+      (n.booking_reference && !compact ? ' · ' + esc(n.booking_reference) : '') + '</span>' +
+      '</span>' +
+      '<span class="list-end">' + (compact ? '<span class="list-chevron">›</span>'
+        : '<span class="badge badge-' + (n.status === 'sent' ? 'sent' : n.status === 'failed' ? 'failed' : 'pending') + '">' +
+          esc(n.status) + '</span>') + '</span></button>';
+  }
+
+  function renderNotifs() {
+    var host = $('#notif-list');
+    if (!host) return;
+    var rows = NOTIFS.filter(function (n) {
+      if (NOTIF_FILTER === 'all') return true;
+      if (NOTIF_FILTER === 'unread') return !n.read_at;
+      return notifMeta(n).group === NOTIF_FILTER;
+    });
+    $$('[data-nfilter]').forEach(function(button){var key=button.dataset.nfilter,count=NOTIFS.filter(function(n){return key==='all'||(key==='unread'?!n.read_at:notifMeta(n).group===key);}).length;button.textContent=key.charAt(0).toUpperCase()+key.slice(1)+' ('+count+')';});
+    host.innerHTML = rows.length
+      ? rows.map(function (n) { return notifRow(n, false); }).join('')
+      : '<div class="empty"><strong>Nothing here</strong>Updates about your bookings, payments and events appear in this list.</div>';
+  }
+
+  function renderNotifPreview() {
+    var host = $('#dash-notifs');
+    if (!host) return;
+    var rows = NOTIFS.slice(0, 4);
+    host.innerHTML = rows.length
+      ? rows.map(function (n) { return notifRow(n, true); }).join('')
+      : '<div class="empty"><strong>No notifications yet</strong>Booking and payment updates will appear here.</div>';
+  }
+
+  function loadNotifications(opts) {
+    if (!TOKEN) return Promise.resolve();
+    return api('/api/my/notifications?limit=80').then(function (data) {
+      NOTIFS = data.notifications || [];
+      setBell(data.unread || 0);
+      renderNotifPreview();
+      if (!(opts && opts.preview)) renderNotifs();
+    }).catch(function (e) {
+      var host = $('#notif-list');
+      if (host && !(opts && opts.preview)) {
+        host.innerHTML = '<div class="empty"><strong>Cannot load notifications</strong>' + esc(e.message) + '</div>';
+      }
+    });
+  }
+
+  $$('[data-nfilter]').forEach(function (c) {
+    c.onclick = function () {
+      NOTIF_FILTER = c.dataset.nfilter;
+      $$('[data-nfilter]').forEach(function (x) { x.setAttribute('aria-pressed', String(x === c)); });
+      renderNotifs();
+    };
+  });
+
+  var markAll = $('#nt-mark-all');
+  if (markAll) {
+    markAll.onclick = function () {
+      busy(markAll, true);
+      api('/api/my/notifications/read', { method: 'POST', body: {} })
+        .then(function () { return loadNotifications(); })
+        .catch(function (e) { toast(e.message, 'error'); })
+        .finally(function () { busy(markAll, false); });
+    };
+  }
+
+  /* Clicking a notification marks it read and opens the related record when
+     the existing system has one (booking reference -> My bookings). */
+  document.addEventListener('click', function (e) {
+    var el = e.target.closest('[data-notif]');
+    if (!el) return;
+    var n = NOTIFS.filter(function (x) { return x.id === Number(el.dataset.notif); })[0];
+    if (!n) return;
+    var meta = notifMeta(n);
+    if (!n.read_at) {
+      n.read_at = new Date().toISOString();
+      api('/api/my/notifications/read', { method: 'POST', body: { id: n.id } })
+        .then(function (r) { setBell(r.unread || 0); })
+        .catch(function () {});
+      renderNotifs(); renderNotifPreview();
+    }
+    modal({
+      title: plainText(n.subject) || meta.label,
+      body: '<div class="stack" style="gap:10px">' +
+        '<div class="list"><div class="list-row is-compact"><span class="list-lead is-plain">' + meta.icon + '</span>' +
+        '<span class="list-main"><span class="list-title">' + esc(meta.label) + '</span>' +
+        '<span class="list-sub">' + esc(relTime(n.created_at)) + ' · ' + esc(n.channel) + ' · ' + esc(n.status) + '</span></span>' +
+        '</div></div>' +
+        '<p class="s" style="white-space:pre-wrap">' + esc(plainText(n.body)) + '</p>' +
+        (n.booking_reference ? '<p class="tiny muted">Booking ' + esc(n.booking_reference) + '</p>' : '') +
+        '</div>',
+      cancelText: 'Close',
+      confirmText: n.booking_id ? 'Open booking' : (meta.group === 'events' ? 'Open events' : ''),
+      onConfirm: function () {
+        goto(n.booking_id ? 'bookings' : 'tournaments');
+      }
+    });
+  });
+
+  /* ---------- profile: settings list -> panels (forms are unchanged) ------- */
+  function openPanel(id) {
+    $$('#profile-panels [data-panelbox]').forEach(function (box) {
+      box.classList.toggle('hidden', box.dataset.panelbox !== id);
+    });
+    $$('#profile-menu [data-panel]').forEach(function (row) {
+      row.classList.toggle('is-selected', row.dataset.panel === id);
+    });
+    var open = $('#profile-panels [data-panelbox="' + id + '"]');
+    if (open) open.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+  document.addEventListener('click', function (e) {
+    var row = e.target.closest('[data-panel]');
+    if (!row) return;
+    openPanel(row.dataset.panel);
+    if(row.dataset.panel==='panel-membership')goto('membership');
+  });
+  /* Server address configuration is not exposed to players. */
+  var pfOut = $('#pf-logout'); if (pfOut) pfOut.onclick = function () { $('#btn-logout').click(); };
+
+  /* Reference presentation: public home, focused dialogs, live club data. */
+  var PUBLIC_COURTS = [], PUBLIC_EVENTS = [], PUBLIC_OPENPLAY = [];
+  var sheetReturnFocus = null, authReturnFocus = null, afterAuth = null;
+  var selectedBookingId = null, selectedEventId = null, selectedOpenPlayId = null;
+
+  function topLayer() {
+    var dialogs = $$('#modal-root .modal-host');
+    if (dialogs.length) return $('.modal', dialogs[dialogs.length - 1]);
+    if (!$('#view-auth').classList.contains('hidden')) return $('.auth-dialog');
+    if (!$('#site-overlay').classList.contains('hidden')) return $('#site-overlay .site-sheet:not(.hidden)');
+    return null;
+  }
+  function syncLayers() {
+    var layer = topLayer(), overlay = $('#site-overlay');
+    var authOpen = !$('#view-auth').classList.contains('hidden');
+    var modalOpen = !!$('#modal-root .modal-host');
+    $$('.appbar,#tab-dashboard,.site-footer,.bottom-nav').forEach(function(el){el.inert=!!layer;});
+    overlay.inert = authOpen || modalOpen;
+    $('#view-auth').inert = modalOpen;
+    $$('#modal-root .modal-host').forEach(function(el){el.inert=!!layer && !el.contains(layer);});
+    document.body.classList.toggle('sheet-open',!!layer);
+  }
+  function closeSheet() {
+    $('#site-overlay').classList.add('hidden');
+    TABS.filter(function(t){return t!=='dashboard';}).forEach(function(t){$('#tab-'+t).classList.add('hidden');});
+    syncLayers();
+    $$('.bottom-nav button').forEach(function(b){b.classList.toggle('is-active',b.dataset.tab==='dashboard');});
+    if(sheetReturnFocus && sheetReturnFocus.isConnected) sheetReturnFocus.focus({preventScroll:true});
+  }
+  function openAuth(next) {
+    afterAuth = typeof next==='function' ? next : null;
+    authReturnFocus = document.activeElement;
+    $('#view-auth').classList.remove('hidden');
+    syncLayers();
+    $('#li-email').focus();
+  }
+  function closeAuth() {
+    $('#view-auth').classList.add('hidden'); afterAuth=null;
+    syncLayers();
+    if(authReturnFocus && authReturnFocus.isConnected) authReturnFocus.focus({preventScroll:true});
+  }
+  function requirePlayer(next) { if(USER && TOKEN) return true; openAuth(next); return false; }
+  document.addEventListener('click',function(e){
+    if(e.target.closest('[data-my-matches]')){EV_SUB='tournaments';goto('tournaments');return;}
+    var retry=e.target.closest('[data-retry-fees]');
+    if(retry){busy(retry,true);loadPayCfg().catch(function(err){toast(err.message,'error');}).finally(function(){busy(retry,false);});}
+    if(e.target.closest('[data-close-sheet]')) closeSheet();
+    if(e.target.closest('[data-close-auth]')) closeAuth();
+    var adjust=e.target.closest('[data-player-change]');
+    if(adjust){var input=$('#bk-players');input.value=String(Math.max(2,Math.min(6,Number(input.value)+Number(adjust.dataset.playerChange))));renderBooking();}
+    var view=e.target.closest('[data-member-view]');
+    if(view){
+      var current=view.dataset.memberView==='current';
+      $('#membership-card').classList.toggle('hidden',!current);
+      $('#membership-plans-card').classList.toggle('hidden',current);
+      $$('.membership-sidebar [data-member-view]').forEach(function(b){b.classList.toggle('is-active',b===view);});
+      if(view.dataset.memberView==='benefits') $('#membership-plans-card').classList.add('show-benefits');
+      else $('#membership-plans-card').classList.remove('show-benefits');
+    }
+    var detail=e.target.closest('[data-court-details]');
+    if(detail){
+      var c=PUBLIC_COURTS.filter(function(x){return String(x.id)===detail.dataset.courtDetails;})[0]; if(!c)return;
+      modal({title:c.name,wide:true,body:'<div class="court-detail-photo court-visual">'+courtPhoto(c)+'</div><p>'+esc(c.description||c.surface||'Choose your preferred date and time to reserve this court.')+'</p><div class="spread"><span>'+esc(c.surface||'Pickleball court')+'</span><strong>'+money(c.hourly_rate)+'/hour</strong></div>',confirmText:'Book this Court →',cancelText:'Close',onConfirm:function(){sel.court=c.id;sel.start=null;goto('book');}});
+    }
+  });
+  $('#site-overlay').addEventListener('mousedown',function(e){if(e.target===this && !$('#modal-root .modal-host'))closeSheet();});
+  $('#view-auth').addEventListener('mousedown',function(e){if(e.target===this)closeAuth();});
+  document.addEventListener('keydown',function(e){
+    var layer=topLayer(); if(!layer)return;
+    if(e.key==='Escape'){
+      e.preventDefault();e.stopImmediatePropagation();
+      var close=$('[data-close],[data-close-auth],[data-close-sheet]',layer);if(close)close.click();return;
+    }
+    if(e.key==='Tab'){
+      var items=$$('button:not([disabled]),a[href],input:not([disabled]),select:not([disabled]),textarea:not([disabled]),summary,[tabindex="0"]',layer).filter(function(el){return !el.closest('.hidden,[hidden],[inert]') && el.getClientRects().length;});
+      if(!items.length){e.preventDefault();return;}
+      var first=items[0],last=items[items.length-1];
+      if(e.shiftKey && (document.activeElement===first || !layer.contains(document.activeElement))){e.preventDefault();last.focus();}
+      else if(!e.shiftKey && (document.activeElement===last || !layer.contains(document.activeElement))){e.preventDefault();first.focus();}
+    }
+  },true);
+
+  function updateAccountPresentation(){
+    $('#site-account').textContent=USER ? (USER.full_name||'My Account').split(' ')[0] : 'Sign In';
+    $('#btn-bell').classList.toggle('hidden',!USER);
+    $('#profile-avatar').textContent=USER ? USER.full_name.trim().split(/\s+/).slice(0,2).map(function(x){return x.charAt(0);}).join('') : 'P';
+    $('#profile-display-name').textContent=USER?USER.full_name:'Player';
+  }
+  function showGuest(){
+    $('#view-app').classList.remove('hidden');
+    $('#view-auth').classList.add('hidden');
+    updateAccountPresentation();closeSheet();loadDashboard();
+  }
+  function promoImage(url,alt,cls){
+    return '<img class="promo-image '+(cls||'')+'" src="'+esc(url?assetUrl(url):'assets/booking/hero-court.jpg')+'" alt="'+esc(alt)+(url?'':' — promotional illustration')+'" loading="lazy" decoding="async" data-fallback-src="assets/booking/hero-court.jpg" />';
+  }
+  function eventArtwork(e,type){
+    return '<div class="event-artwork">'+promoImage(e.poster_url,e.name||e.title||'Club event')+(e.poster_url?'':'<span class="event-artwork-title">'+esc(e.name||e.title)+'</span>')+'</div>';
+  }
+  function loadHomeEvents(){
+    return Promise.allSettled([api('/api/tournaments'),api('/api/open-play')]).then(function(results){
+      var rows=[];
+      if(results[0].status==='fulfilled'){PUBLIC_EVENTS=results[0].value;rows=rows.concat(PUBLIC_EVENTS.filter(function(e){return ['completed','cancelled'].indexOf(e.status)<0 && (!e.end_date&&!e.tournament_date || (e.end_date||e.tournament_date)>=ymd(new Date()));}).map(function(e){return {event:e,type:'tournament',date:e.tournament_date};}));}
+      if(results[1].status==='fulfilled'){PUBLIC_OPENPLAY=results[1].value;rows=rows.concat(PUBLIC_OPENPLAY.filter(function(e){return e.status==='published'&&!eventEnded(e);}).map(function(e){return {event:e,type:'openplay',date:e.event_date};}));}
+      rows.sort(function(a,b){return String(a.date||'9999').localeCompare(String(b.date||'9999'));});
+      $('#home-events').innerHTML=rows.length?rows.slice(0,2).map(function(item){
+        var e=item.event,date=item.date?new Date(item.date+'T00:00:00'):null;
+        return '<article class="home-event-card">'+eventArtwork(e,item.type)+'<div class="home-event-info">'+(date?'<span class="event-date-badge"><b>'+MONTHS[date.getMonth()].slice(0,3)+'</b>'+date.getDate()+'</span>':'')+'<h3>'+esc(e.name||e.title)+'</h3><p>'+esc(item.type==='tournament'?'Tournament':'Open Play · Community games')+'</p><span>'+esc(item.type==='tournament'?tnWhen(e):whenText(e.event_date,e.start_time,e.end_time))+'</span><span>'+esc(e.venue||e.location||BRAND.facility_name||'')+'</span><button class="btn btn-lime btn-sm" data-home-event="'+esc(item.type)+':'+esc(e.id)+'">View Details</button></div></article>';
+      }).join(''):'<div class="empty"><strong>'+(results.every(function(r){return r.status==='rejected';})?'Events could not load':'More good games are on the way')+'</strong><span>'+(results.every(function(r){return r.status==='rejected';})?'Try again to see upcoming events.':'Upcoming tournaments and Open Play sessions will appear here when published.')+'</span><button class="btn btn-outline btn-sm" data-retry-home-events>Refresh events</button></div>';
+    });
+  }
+  document.addEventListener('click',function(e){
+    if(e.target.closest('[data-retry-home-events]')) loadHomeEvents();
+    var b=e.target.closest('[data-home-event]');if(!b)return;
+    var bits=b.dataset.homeEvent.split(':');EV_SUB=bits[0]==='openplay'?'openplay':'tournaments';
+    if(EV_SUB==='openplay')selectedOpenPlayId=Number(bits[1]);else selectedEventId=Number(bits[1]);
+    goto('tournaments');
+  });
+  function updateBookingPresentation(){
+    $('#booking-date').value=sel.date;
+    $('#booking-date').min=ymd(new Date());
+    var c=AVAIL && AVAIL.courts.filter(function(x){return x.id===sel.court;})[0];
+    $('#booking-title').textContent=c?'Book '+c.name:'Book a Court';
+    $('#booking-photo').innerHTML=c?courtPhoto(c):'<img class="court-promo-image" src="assets/booking/hero-court.jpg" alt="Promotional court illustration"/><span class="court-image-note">Promotional image</span>';
+    $('#booking-court-description').innerHTML=c?'<div class="spread"><h2>'+esc(c.name)+'</h2><strong>'+money(c.hourly_rate)+'/hour</strong></div><p>'+esc(c.description||c.surface||'Find your favourite time and get ready to play.')+'</p><div class="court-amenities"><span>▦ '+esc(c.surface||'Pickleball court')+'</span><span>♟ 2–6 players</span><span>◷ '+Number(AVAIL.slot_minutes)+' minute slots</span></div>':'<h2>Your next game starts here.</h2><p>Select a court and a time that works for you.</p>';
+    var options='<option value="">'+(c?'Select an available time':'Choose a court first')+'</option>';
+    if(c)options+=c.slots.map(function(slot){var ok=slot.bookable===undefined?slot.status==='available':!!slot.bookable;return '<option value="'+esc(slot.start)+'"'+(ok?'':' disabled')+'>'+humanTime(slot.start)+' – '+humanTime(addMin(slot.start,AVAIL.slot_minutes))+(ok?'':' · '+esc(slot.status_label||slot.label||slot.status))+'</option>';}).join('');
+    $('#booking-time').innerHTML=options;$('#booking-time').value=sel.start||'';$('#booking-time').disabled=!c;
+  }
+  $('#booking-date').onchange=function(){
+    if(!this.value || !this.validity.valid)return;
+    sel.date=this.value;sel.start=null;calCursor=new Date(sel.date+'T00:00:00');renderCalendar();loadAvailability();
+  };
+  $('#booking-time').onchange=function(){sel.start=this.value||null;renderBooking();};
+  $('#bk-players').onchange=function(){if(AVAIL)renderBooking();};
+
+  function bookingCourt(b){return PUBLIC_COURTS.filter(function(c){return Number(c.id)===Number(b.court_id);})[0]||{id:b.court_id||b.id,name:b.court_name};}
+  function bookingActions(b){
+    var today=ymd(new Date()),out='';
+    if(b.status==='confirmed'&&Number(b.reservation_fee||0)>0&&['due','payment_due','rejected','pending'].indexOf(String(b.payment_status||'').toLowerCase())>=0&&b.booking_date>=today)out+='<button class="btn btn-primary" data-pay="'+b.id+'">'+(b.payment_status==='rejected'?'Resubmit payment':'Pay reservation fee')+'</button>';
+    if(ACTIVE_STATUSES.indexOf(b.status)>-1&&b.booking_date>=today)out+='<button class="btn btn-outline btn-cancel" data-cancel="'+b.id+'">Cancel Booking</button>';
+    return out;
+  }
+  function renderBookingDetail(b){
+    var host=$('#booking-detail');if(!b){host.innerHTML='<div class="empty"><strong>Your booking details</strong>Select a reservation to see its details.</div>';return;}
+    host.innerHTML='<div class="court-visual">'+courtPhoto(bookingCourt(b))+'</div><div class="booking-detail-content"><div class="spread"><h2>Booking Details</h2>'+statusBadge(b.status)+'</div><dl class="summary-list">'+detailRow('Court',b.court_name)+detailRow('Date',humanDate(b.booking_date))+detailRow('Time',humanTime(b.start_time)+' – '+humanTime(b.end_time))+detailRow('Players',String(b.players||'—'))+detailRow('Court fee',money(b.amount))+detailRow('Reservation fee',money(b.reservation_fee))+detailRow('Reference',b.reference)+detailRow('Payment status',SETTLE_LABEL[settlementOf(b).status])+'</dl>'+settlementLine(b)+(b.notes?'<p class="tiny muted">'+esc(b.notes)+'</p>':'')+(b.rejection_reason?'<p class="is-danger">'+esc(b.rejection_reason)+'</p>':'')+(b.payment_rejection_reason?'<p class="is-danger">Payment: '+esc(b.payment_rejection_reason)+'</p>':'')+'<div class="booking-detail-actions">'+bookingActions(b)+'</div></div>';
+  }
+  function detailRow(label,value){return '<div class="summary-row"><dt>'+esc(label)+'</dt><dd>'+esc(value)+'</dd></div>';}
+  document.addEventListener('click',function(e){var b=e.target.closest('[data-select-booking]');if(b){selectedBookingId=Number(b.dataset.selectBooking);renderBookings();}});
+  function eventListCard(e,type,selected){
+    var isTournament=type==='tournament',open=isTournament?e.registration_open:e.status==='published'&&!e.full&&!eventEnded(e);
+    return '<article class="event-list-card'+(selected?' is-selected':'')+'">'+eventArtwork(e,type)+'<div class="event-list-info"><span class="badge">'+(isTournament?'TOURNAMENT':'OPEN PLAY')+'</span><h3>'+esc(e.name||e.title)+'</h3><p>'+esc(isTournament?tnWhen(e):whenText(e.event_date,e.start_time,e.end_time))+'</p><p>'+esc(e.venue||e.location||BRAND.facility_name||'')+'</p><span class="tiny muted">'+(isTournament?Number(e.division_count||0)+' divisions · '+Number(e.team_count||0)+' participants':Number(e.registered||0)+' registered'+(e.capacity?' / '+Number(e.capacity)+' slots':''))+'</span><div class="event-card-actions"><button class="btn btn-outline btn-sm" data-select-event="'+type+':'+e.id+'">View Details</button>'+(open?'<button class="btn btn-lime btn-sm" '+(isTournament?'data-tn-register="'+e.id+'" data-tn-name="'+esc(e.name)+'"':'data-op-join="'+e.id+'"')+'>Register →</button>':'<span class="badge">'+esc(isTournament?(TN_STATUS[e.status]||'Registration closed'):(e.full?'Full':eventEnded(e)?'Ended':e.status))+'</span>')+'</div></div></article>';
+  }
+  function renderEventSpotlight(e,type){
+    var host=$(type==='tournament'?'#event-spotlight':'#openplay-spotlight');if(!e){host.innerHTML='';return;}
+    var tournament=type==='tournament',open=tournament?e.registration_open:e.status==='published'&&!e.full&&!eventEnded(e);
+    host.innerHTML=eventArtwork(e,type)+'<h2>'+esc(e.name||e.title)+'</h2><p class="event-detail-meta">'+esc(tournament?tnWhen(e):whenText(e.event_date,e.start_time,e.end_time))+'</p><p class="muted">'+esc(e.venue||e.location||BRAND.facility_name||'')+'</p><p>'+esc(e.description||'Come for the game. Stay for the community.')+'</p><div class="event-fee"><span>'+(tournament?'Registration fee from':'Entry fee')+'</span><strong>'+money(tournament?e.registration_fee:e.entrance_fee)+'</strong></div><div class="event-card-actions">'+(open?'<button class="btn btn-primary" '+(tournament?'data-tn-register="'+e.id+'" data-tn-name="'+esc(e.name)+'"':'data-op-join="'+e.id+'"')+'>Register Now →</button>':'<span class="muted">Registration is currently closed.</span>')+(tournament?'<button class="btn btn-outline" data-tn="'+e.id+'">View Full Details</button>':'')+'</div><div class="membership-note">Play. Compete. Belong.<span>Same passion. Bigger community.</span></div>';
+  }
+  function renderPublicEvents(type){
+    var isTournament=type==='tournament',rows=isTournament?PUBLIC_EVENTS:PUBLIC_OPENPLAY,id=isTournament?selectedEventId:selectedOpenPlayId;
+    var selected=rows.filter(function(e){return Number(e.id)===Number(id);})[0]||rows[0];
+    if(selected){if(isTournament)selectedEventId=Number(selected.id);else selectedOpenPlayId=Number(selected.id);}
+    $(isTournament?'#tn-events':'#op-events').innerHTML=rows.length?rows.map(function(e){return eventListCard(e,type,e===selected);}).join(''):'<div class="empty"><strong>'+(isTournament?'No tournaments yet':'No Open Play sessions yet')+'</strong>Published events will appear here.</div>';
+    renderEventSpotlight(selected,type);
+  }
+  document.addEventListener('click',function(e){var b=e.target.closest('[data-select-event]');if(!b)return;var bits=b.dataset.selectEvent.split(':');if(bits[0]==='tournament')selectedEventId=Number(bits[1]);else selectedOpenPlayId=Number(bits[1]);renderPublicEvents(bits[0]);});
+
+  function enhanceDialog(host,opts){
+    var body=$('.modal-body',host),dlg=$('.modal',host);
+    if(opts.wide)dlg.classList.add('wide');
+    var paymentSelect=$('#pm-method,#mb-method,#pf-method',host);
+    if(paymentSelect){
+      dlg.classList.add('payment-dialog');
+      $('.modal-head h2',host).textContent='Complete Your Payment';
+      var contents=document.createElement('div');contents.className='payment-content';
+      while(body.firstChild)contents.appendChild(body.firstChild);
+      body.innerHTML='<div class="payment-layout"><aside class="payment-sidebar"><strong>'+esc(BRAND.facility_name||'PIKOL')+'</strong><p>Good Players.<br>Better People.</p><ol><li>Review your selection</li><li class="is-active">Complete payment</li><li>Payment verification</li></ol><img src="assets/booking/community.jpg" alt="Pickleball paddle and ball, promotional illustration"/></aside></div>';
+      $('.payment-layout',body).appendChild(contents);
+      var tiles=document.createElement('div');tiles.className='payment-method-tiles';tiles.setAttribute('role','group');tiles.setAttribute('aria-label','Payment method');
+      paymentSelect.parentElement.appendChild(tiles);paymentSelect.classList.add('payment-native-select');
+      function draw(){tiles.innerHTML=Array.prototype.map.call(paymentSelect.options,function(o){return '<button type="button" class="payment-method-tile'+(o.selected?' is-selected':'')+'" data-method-value="'+esc(o.value)+'" aria-pressed="'+String(o.selected)+'"'+(o.disabled?' disabled':'')+'><span aria-hidden="true">'+(o.value==='cash'?'₱':o.value==='gcash'?'G':o.value==='maya'?'M':'▣')+'</span><strong>'+esc(o.textContent)+'</strong></button>';}).join('');}
+      tiles.onclick=function(e){var b=e.target.closest('[data-method-value]');if(!b||b.disabled)return;paymentSelect.value=b.dataset.methodValue;paymentSelect.dispatchEvent(new Event('change',{bubbles:true}));draw();};
+      paymentSelect.addEventListener('change',draw);draw();
+    }
+    if($('#tr-division',host)){
+      dlg.classList.add('registration-dialog');
+      $('.modal-head h2',host).textContent='Tournament Registration';
+      var fields=document.createElement('div');fields.className='registration-fields';while(body.firstChild)fields.appendChild(body.firstChild);
+      var evt=PUBLIC_EVENTS.filter(function(e){return opts.title.indexOf(e.name)>=0;})[0];
+      body.innerHTML='<div class="registration-layout"><aside class="registration-sidebar">'+eventArtwork(evt||{name:opts.title},'tournament')+'<h2>'+esc(evt?evt.name:opts.title)+'</h2><p>'+esc(evt?tnWhen(evt):'Play. Compete. Connect.')+'</p><p>'+esc(evt&&(evt.venue||evt.description)||'A community that shares your love of the game.')+'</p><div class="membership-note">Play. Compete. Belong.</div></aside></div>';
+      $('.registration-layout',body).appendChild(fields);
+      fields.insertAdjacentHTML('afterbegin','<div class="registration-player"><span class="eyebrow">PLAYER INFORMATION</span><strong>'+esc(USER&&USER.full_name||'')+'</strong><span>'+esc(USER&&USER.email||'')+'</span></div>');
+      var total=document.createElement('div');total.className='registration-total';
+      $('.modal-foot',host).prepend(total);
+      function updateFee(){var select=$('#tr-division',host),option=select.options[select.selectedIndex];total.innerHTML='<span>Registration Fee</span><strong>'+money(memberPrice(option?Number(option.dataset.fee||0):0,CURRENT_MEMBERSHIP?CURRENT_MEMBERSHIP.tournament_discount_percent:0))+'</strong>';}
+      $('#tr-division',host).addEventListener('change',updateFee);updateFee();
+      fields.insertAdjacentHTML('beforeend','<div class="membership-note">Before you register<span>Check your division and player details. Select a registered partner for team events. Payment instructions appear after registration.</span></div>');
+    }
+  }
+
+  /* ---------- boot ---------- */
+  function showApp() {
+    var resume=afterAuth,authToken=TOKEN;afterAuth=null;
+    $('#view-auth').classList.add('hidden');$('#view-app').classList.remove('hidden');
+    $('#pf-name').value=USER.full_name;$('#pf-email').value=USER.email;$('#pf-mobile').value=USER.mobile||'';
+    updateAccountPresentation();openPanel('panel-profile');syncLayers();
+    loadNotifications({preview:true});
+    Promise.all([loadMembership(),loadPayCfg().catch(function(){})]).then(function(){if(resume&&TOKEN===authToken&&USER)resume();});
+    loadDashboard();RT.connect();
+  }
+
+  /* ================= real-time synchronization (Socket.IO) ================= */
+  /* The server sends only ids/timestamps; data is re-read from the REST API. */
+  var RT = (function () {
+    var socket = null, loaded = false, everConnected = false;
+    var lastRun = {}, pending = {}, MIN_GAP = 1200;
+
+    function setStatus(state) {
+      var dot = $('#rt-dot'), txt = $('#rt-text');
+      if (!dot || !txt) return;
+      if (state === 'live') { dot.style.background = '#22c55e'; txt.textContent = 'Live'; }
+      else if (state === 'off') { dot.style.background = '#9ca3af'; txt.textContent = 'Offline'; }
+      else { dot.style.background = '#f59e0b'; txt.textContent = 'Reconnecting…'; }
+    }
+
+    /* Collapses bursts and prevents a duplicate reload right after a local
+       transaction already refreshed the same section. */
+    function run(name, fn) {
+      if (typeof fn !== 'function') return;
+      var now = Date.now(), last = lastRun[name] || 0;
+      if (now - last >= MIN_GAP) {
+        lastRun[name] = now;
+        try { fn(); } catch (e) {}
+        return;
+      }
+      if (pending[name]) return;
+      pending[name] = setTimeout(function () {
+        pending[name] = null; lastRun[name] = Date.now();
+        try { fn(); } catch (e) {}
+      }, MIN_GAP - (now - last));
+    }
+
+    function visible(tab) { return !$('#tab-' + tab).classList.contains('hidden'); }
+    function refreshAvailability() { if (visible('book')) run('availability', loadAvailability); }
+    function refreshEvents() {
+      if (!visible('tournaments')) return;
+      if (EV_SUB === 'openplay') run('openplay', loadOpenPlay);
+      else if (EV_SUB === 'tournaments') run('tournaments', loadTournaments);
+      else if (EV_SUB === 'myregs') run('myregs', loadMyRegistrations);
+    }
+    function refreshNotifications() {
+      if (!TOKEN) return;
+      run('notifications', function () { loadNotifications({ preview: !visible('notifications') }); });
+    }
+    function refreshCurrent() {
+      if (!TOKEN) { refreshAvailability(); refreshEvents(); return; }
+      if (visible('dashboard')) run('dashboard', loadDashboard);
+      refreshNotifications();
+      if (visible('notifications')) run('notifications-view', loadNotifications);
+      if (visible('bookings')) run('bookings', loadBookings);
+      refreshAvailability();
+      refreshEvents();
+    }
+
+    function bookingChange() {
+      if (TOKEN) { run('bookings', loadBookings); run('dashboard', loadDashboard); refreshNotifications(); }
+      refreshAvailability();
+    }
+    function refreshCourtViews() {
+      refreshAvailability();
+      if (visible('dashboard')) run('dashboard', loadDashboard);
+    }
+
+    var MAP = {
+      'booking:created': bookingChange,
+      'booking:updated': bookingChange,
+      'booking:status_changed': bookingChange,
+      'booking:cancelled': bookingChange,
+      'booking:rescheduled': bookingChange,
+      'booking:payment_updated': bookingChange,
+      'payment:submitted': function () { if (!TOKEN) return; run('bookings', loadBookings); if (visible('tournaments')) run('myregs', loadMyRegistrations); },
+      'payment:approved': function () { if (!TOKEN) return; run('bookings', loadBookings); run('dashboard', loadDashboard); if (visible('tournaments')) run('myregs', loadMyRegistrations); },
+      'payment:rejected': function () { if (!TOKEN) return; run('bookings', loadBookings); if (visible('tournaments')) run('myregs', loadMyRegistrations); },
+      'membership:updated': function () { if (!TOKEN) return; run('membership', loadMembership); run('dashboard', loadDashboard); refreshNotifications(); },
+      'membership:plans_updated': function () { if(visible('membership'))run('membership', loadMembership); },
+      'court:created': refreshCourtViews,
+      'court:updated': refreshCourtViews,
+      'court:status_changed': refreshCourtViews,
+      'court:deleted': refreshCourtViews,
+      'block:created': refreshAvailability,
+      'block:removed': refreshAvailability,
+      'availability:changed': refreshAvailability,
+      'openplay:created': function () { if (visible('tournaments')) run('openplay', loadOpenPlay); },
+      'openplay:updated': function () { if (visible('tournaments')) run('openplay', loadOpenPlay); },
+      'openplay:status_changed': function () { if (visible('tournaments')) run('openplay', loadOpenPlay); },
+      'openplay:deleted': function () { if (visible('tournaments')) run('openplay', loadOpenPlay); },
+      'openplay:registration_created': function () { if (!visible('tournaments')) return; run('openplay', loadOpenPlay); if (TOKEN) run('myregs', loadMyRegistrations); },
+      'openplay:registration_updated': function () { if (!visible('tournaments')) return; run('openplay', loadOpenPlay); if (TOKEN) run('myregs', loadMyRegistrations); },
+      'openplay:payment_updated': function () { if (TOKEN && visible('tournaments')) run('myregs', loadMyRegistrations); },
+      'tournament:created': function () { if (visible('tournaments')) run('tournaments', loadTournaments); },
+      'tournament:updated': function () { if (visible('tournaments')) run('tournaments', loadTournaments); },
+      'tournament:status_changed': function () { if (visible('tournaments')) run('tournaments', loadTournaments); },
+      'tournament:deleted': function () { if (visible('tournaments')) run('tournaments', loadTournaments); },
+      'tournament:match_updated': function () { if (visible('tournaments')) run('tournaments', loadTournaments); },
+      'tournament:registration_created': function () { if (!visible('tournaments')) return; run('tournaments', loadTournaments); if (TOKEN) run('myregs', loadMyRegistrations); },
+      'tournament:registration_updated': function () { if (!visible('tournaments')) return; run('tournaments', loadTournaments); if (TOKEN) run('myregs', loadMyRegistrations); },
+      'tournament:payment_updated': function () { if (TOKEN && visible('tournaments')) run('myregs', loadMyRegistrations); },
+      'settings:updated': function () { run('branding', function () { api('/api/branding').then(applyBranding).catch(function () {}); loadPayCfg().catch(function () {}); }); },
+      'branding:updated': function () { run('branding', function () { api('/api/branding').then(applyBranding).catch(function () {}); }); },
+      'system:data-reset': function () { if (TOKEN) signOutLocal(); refreshAvailability(); refreshEvents(); toast('Operational data was reset. Please sign in again if needed.', 'info'); },
+      'system:data-restored': function () { if (TOKEN) signOutLocal(); refreshAvailability(); refreshEvents(); toast('Operational data was restored. Please sign in again.', 'info'); }
+    };
+
+    function bind() {
+      Object.keys(MAP).forEach(function (evt) { socket.on(evt, MAP[evt]); });
+      socket.on('connect', function () {
+        setStatus('live');
+        if (everConnected) refreshCurrent();   /* re-sync after a dropout */
+        everConnected = true;
+      });
+      socket.on('disconnect', function () { setStatus('down'); });
+      socket.on('connect_error', function () { setStatus('down'); });
+      if (socket.io) {
+        socket.io.on('reconnect_attempt', function () { setStatus('down'); });
+        socket.io.on('reconnect', function () { setStatus('live'); refreshCurrent(); });
+      }
+    }
+
+    function load(cb) {
+      if (loaded || window.io) { loaded = true; return cb(); }
+      var sc = document.createElement('script');
+      sc.src = (API || '') + '/socket.io/socket.io.js';
+      sc.onload = function () { loaded = true; cb(); };
+      sc.onerror = function () { setStatus('off'); };
+      document.head.appendChild(sc);
+    }
+
+    return {
+      connect: function () {
+        load(function () {
+          if (!window.io) return setStatus('off');
+          if (socket) { socket.auth = { token: TOKEN || null }; socket.disconnect(); return socket.connect(); }
+          socket = window.io(API || undefined, { auth: { token: TOKEN || null }, transports: ['websocket', 'polling'] });
+          bind();
+        });
+      },
+      disconnect: function () { if (socket) socket.disconnect(); setStatus('off'); },
+      connected: function () { return !!(socket && socket.connected); }
+    };
+  })();
+
+  renderDow();
+  renderCalendar();
+  updateAccountPresentation();
+  loadDashboard();
+
+  loadPayCfg().catch(function () {});
+
+  RT.connect();
+  api('/api/branding').then(applyBranding).catch(function () {
+    toast('Cannot reach the booking server. Please try again later.', 'error');
+  }).then(function () { setTimeout(hideSplash, 700); }, function () { setTimeout(hideSplash, 700); });
+  setTimeout(hideSplash, 6000);
+
+  if (TOKEN) {
+    api('/api/auth/me').then(function (d) { USER = d.user; showApp(); }).catch(function () { signOutLocal(); });
+  }
+})();
+</script>
+<script src="cards.js"></script>
+
+<script>
+/* PIKOL_PWA_INSTALL_RUNTIME */
+(function(){
+  'use strict';
+  var btn=document.getElementById('pwa-install-player'),deferredPrompt=null,KEY='pikol_player_installed_v2';
+  var account=document.getElementById('panel-account-box'); if(btn&&account) account.appendChild(btn);
+  function standalone(){return window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true;}
+  function marked(){return localStorage.getItem(KEY)==='1';}
+  function setMarked(v){if(v)localStorage.setItem(KEY,'1');else localStorage.removeItem(KEY);}
+  function sync(){if(!btn)return;if(standalone()){setMarked(true);btn.hidden=true;return;}btn.hidden=!deferredPrompt||marked();}
+  window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();deferredPrompt=e;if(!standalone())setMarked(false);sync();});
+  window.addEventListener('appinstalled',function(){setMarked(true);deferredPrompt=null;sync();});
+  window.addEventListener('pageshow',sync);document.addEventListener('visibilitychange',function(){if(!document.hidden)sync();});
+  if(btn)btn.addEventListener('click',async function(){if(!deferredPrompt)return;btn.disabled=true;try{await deferredPrompt.prompt();var c=await deferredPrompt.userChoice;if(c&&c.outcome==='accepted')setMarked(true);}catch(_){}deferredPrompt=null;btn.disabled=false;sync();});
+  if('serviceWorker' in navigator)window.addEventListener('load',function(){navigator.serviceWorker.register('service-worker.js?v=27-reference-booking',{scope:'./',updateViaCache:'none'}).catch(function(){});});
+  sync();
+})();
+</script>
+
+</body>
+</html>
