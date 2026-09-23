@@ -1,7 +1,7 @@
-const CACHE = 'pikol-v27-reference-booking';
+const CACHE = 'pikol-v28-admin-reference';
 const SHELL = [
   './index.html','./admin.html','./scoring.html','./styles.css','./cards.js','./config.js','./qr-lite.js',
-  './booking-premium.css','./assets/booking/hero-court.jpg','./assets/booking/court-01.jpg','./assets/booking/court-02.jpg','./assets/booking/court-03.jpg',
+  './admin-premium.css?v=28','./admin-premium.css','./admin-charts.js','./admin-charts.js?v=28-admin-reference','./booking-premium.css','./assets/booking/hero-court.jpg','./assets/booking/court-01.jpg','./assets/booking/court-02.jpg','./assets/booking/court-03.jpg',
   './assets/booking/community.jpg','./assets/booking/membership.jpg',
   './manifest.json','./admin-manifest.json','./icons/icon-192.png','./icons/icon-512.png'
 ];
@@ -103,3 +103,4 @@ self.addEventListener('notificationclick', event => {
     return clients.openWindow ? clients.openWindow(target) : null;
   })());
 });
+

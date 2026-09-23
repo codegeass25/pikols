@@ -8,7 +8,7 @@
 <link rel="icon" id="favicon" href="data:," />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
 <link rel="manifest" href="admin-manifest.json?v=17-ios-push" />
 <meta name="theme-color" content="#0f3d32" />
 <meta name="mobile-web-app-capable" content="yes" />
@@ -30,6 +30,7 @@
 .admin-app .promo-image-actions .btn{white-space:normal}
 @media(max-width:620px){.admin-app .asset-card.booking-hero-asset{grid-template-columns:minmax(0,1fr)}.admin-app .booking-hero-asset .asset-preview{grid-column:1;grid-row:auto}.admin-app .booking-hero-asset .card-title,.admin-app .booking-hero-asset>p,.admin-app .booking-hero-asset>.input,.admin-app .booking-hero-asset>.row,.admin-app .booking-hero-asset .promo-preview-note{grid-column:1}.admin-app .court-promo-preview{max-height:250px}}
 </style>
+<link rel="stylesheet" href="admin-premium.css?v=28" />
 </head>
 <body class="admin-app">
 
@@ -53,7 +54,7 @@
           <div class="brand-tagline" style="color:rgba(255,255,255,.7)">Administration</div>
         </div>
       </div>
-      <h1>Facility control centre</h1>
+      <p class="admin-login-eyebrow">PIKOL / ADMIN CONSOLE</p><h1>Play. Connect.<br>Belong.</h1>
       <p>Courts, bookings, players, blocked schedules, notifications and reports — all in one dashboard.</p>
     </div>
     <p class="tiny" style="color:rgba(255,255,255,.7);margin:0">Authorised staff only.</p>
@@ -61,7 +62,7 @@
   <section class="auth-panel">
     <form class="auth-card card" id="form-login" novalidate>
       <div class="spread" style="margin-bottom:16px">
-        <h2 class="section-title">Admin login</h2>
+        <div><span class="admin-login-eyebrow">WELCOME BACK</span><h2 class="section-title">Your club, connected.</h2><p class="muted tiny">Sign in to your admin console.</p></div>
         <div class="row" style="gap:6px">
           <button type="button" class="btn btn-ghost btn-icon theme-toggle" title="Toggle theme" aria-label="Toggle theme">◐</button>
         </div>
@@ -70,7 +71,7 @@
         <input class="input" id="li-email" type="email" required autocomplete="email" /></div>
       <div class="field"><label class="label" for="li-pass">Password</label>
         <input class="input" id="li-pass" type="password" required autocomplete="current-password" /></div>
-      <button class="btn btn-primary btn-block" type="submit" data-loading="Signing in...">Login</button>
+      <button class="btn btn-primary btn-block" type="submit" data-loading="Signing in...">Sign in</button>
     </form>
   </section>
 </div>
@@ -79,108 +80,79 @@
 <div id="view-app" class="admin-shell hidden">
   <div class="drawer-backdrop" id="drawer-backdrop"></div>
 
-  <aside class="sidebar">
-    <div class="brand">
-      <div class="brand-logo" id="app-logo">PB</div>
-      <div class="brand-text">
-        <div class="brand-name" id="app-name">Pickleball Club</div>
-        <div class="brand-tagline">Admin console</div>
-      </div>
+  <aside class="sidebar" aria-label="Admin navigation">
+    <div class="admin-sidebar-art" aria-hidden="true"><img src="assets/booking/community.jpg" alt="" /><span>GOOD<br>PLAYERS<br>BRIGHTER<br>DAYS</span></div>
+    <div class="brand sidebar-brand">
+      <div class="brand-logo" id="app-logo"><img src="icons/icon-192.png" alt="Club logo" /></div>
+      <div class="brand-text"><strong class="sidebar-product">PIKOL</strong><span class="brand-tagline">Admin Console</span><div class="brand-name" id="app-name">WenJelly Pickleball Zone</div></div>
     </div>
     <nav class="nav" id="nav">
-      <button class="nav-item is-active" data-page="dashboard" data-group="dashboard"><span class="ico" aria-hidden="true">▤</span>Dashboard</button>
-      <button class="nav-item" data-page="calendar" data-group="schedule"><span class="ico" aria-hidden="true">▥</span>Bookings &amp; Schedule<span class="pill hidden" id="nav-pending"></span></button>
-      <button class="nav-item" data-page="payments" data-group="transactions"><span class="ico" aria-hidden="true">💳</span>Payments<span class="pill hidden" id="nav-payments"></span></button>
-      <button class="nav-item" data-page="players" data-group="players"><span class="ico" aria-hidden="true">◎</span>Players &amp; Membership</button>
-      <button class="nav-item" data-page="events" data-group="events"><span class="ico" aria-hidden="true">🏆</span>Events<span class="pill hidden" id="nav-events"></span></button>
-      <button class="nav-item" data-page="notifications" data-group="communications"><span class="ico" aria-hidden="true">✉</span>Communications</button>
-      <button class="nav-item" data-page="reports" data-group="reports"><span class="ico" aria-hidden="true">◔</span>Reports</button>
-      <button class="nav-item" data-page="settings" data-group="settings"><span class="ico" aria-hidden="true">⚙</span>Settings</button>
+      <button class="nav-item is-active" data-page="dashboard" data-group="dashboard"><span class="ico" aria-hidden="true"><svg class="admin-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1Z"/></svg></span>Dashboard</button>
+      <button class="nav-item" data-page="calendar" data-group="schedule"><span class="ico" aria-hidden="true"><svg class="admin-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 11h18M8 15h2M14 15h2M8 18h2"/></svg></span>Bookings &amp; Schedule<span class="pill hidden" id="nav-pending"></span></button>
+      <button class="nav-item" data-page="payments" data-group="transactions"><span class="ico" aria-hidden="true"><svg class="admin-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="3"/><path d="M2 9h20M6 15h4"/></svg></span>Payments<span class="pill hidden" id="nav-payments"></span></button>
+      <button class="nav-item" data-page="players" data-group="players"><span class="ico" aria-hidden="true"><svg class="admin-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="7" r="3"/><path d="M2 21v-3a7 7 0 0 1 14 0v3ZM16 4a3 3 0 0 1 0 6M19 14a5 5 0 0 1 3 4v3"/></svg></span>Players &amp; Membership</button>
+      <button class="nav-item" data-page="events" data-group="events"><span class="ico" aria-hidden="true"><svg class="admin-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3h8v6a4 4 0 0 1-8 0ZM8 5H4v3a4 4 0 0 0 4 4M16 5h4v3a4 4 0 0 1-4 4M12 13v5M8 21h8M9 18h6"/></svg></span>Events<span class="pill hidden" id="nav-events"></span></button>
+      <button class="nav-item" data-page="notifications" data-group="communications"><span class="ico" aria-hidden="true"><svg class="admin-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m2 6 10 7L22 6"/></svg></span>Communications</button>
+      <button class="nav-item" data-page="reports" data-group="reports"><span class="ico" aria-hidden="true"><svg class="admin-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 21V11M10 21V3M16 21V8M22 21V15"/></svg></span>Reports</button>
+      <button class="nav-item" data-page="settings" data-group="settings"><span class="ico" aria-hidden="true"><svg class="admin-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 3-.6 2.3-2 .9L4 5.6l-2 3.5 1.8 1.8v2.2L2 14.9l2 3.5 2.4-.6 2 .9L9 21h6l.6-2.3 2-.9 2.4.6 2-3.5-1.8-1.8v-2.2L22 9.1l-2-3.5-2.4.6-2-.9L15 3Z"/><circle cx="12" cy="12" r="3"/></svg></span>Settings</button>
     </nav>
-    <div style="margin-top:auto;display:flex;flex-direction:column;gap:8px">
-      <button class="btn btn-ghost btn-block theme-toggle" style="justify-content:flex-start">◐ Toggle theme</button>
-      <button class="btn btn-outline btn-block" id="btn-logout">Logout</button>
+    <div class="sidebar-actions">
+      <button class="btn btn-ghost btn-block theme-toggle" style="justify-content:flex-start"><svg class="admin-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5 19 19M5 19l1.5-1.5M17.5 6.5 19 5"/></svg> Toggle theme</button>
+      <button class="btn btn-ghost btn-block" id="btn-logout"><svg class="admin-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 3H4v18h5M14 7l5 5-5 5M8 12h11"/></svg> Logout</button>
     </div>
   </aside>
 
   <div class="admin-main">
     <header class="appbar">
       <div class="container appbar-inner">
-        <div class="row">
-          <button class="btn btn-ghost btn-icon mobile-only" id="drawer-open" aria-label="Open navigation">☰</button>
-          <div><div class="brand-name" id="page-title">Dashboard</div>
-            <div class="brand-tagline" id="admin-email"></div><div class="brand-tagline" id="admin-role-label" style="font-weight:700"></div></div>
+        <div class="row admin-toolbar-status">
+          <button class="btn btn-ghost btn-icon mobile-only" id="drawer-open" aria-label="Open navigation" aria-controls="nav" aria-expanded="false"><svg class="admin-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+          <span id="rt-status" title="Live connection to the booking server"><span id="rt-dot"></span><span id="rt-text">Connecting…</span></span>
         </div>
-        <div class="row" style="gap:6px">
-          <span class="tiny muted" id="rt-status" title="Real-time connection" style="display:inline-flex;align-items:center;gap:5px;white-space:nowrap">
-            <span id="rt-dot" style="width:8px;height:8px;border-radius:50%;background:#9ca3af;display:inline-block"></span><span id="rt-text">Connecting…</span>
-          </span>
-          <button class="btn btn-ghost btn-icon admin-alert-bell" id="btn-incharge-alerts" title="In-Charge alerts" aria-label="In-Charge alerts">🔔<span class="admin-alert-count hidden" id="admin-alert-count"></span></button>
-          <button class="btn btn-ghost btn-icon" id="btn-refresh" title="Refresh" aria-label="Refresh">⟳</button>
-          <button class="btn btn-primary btn-sm" id="btn-new-booking">＋ Booking</button>
+        <div class="row admin-toolbar-actions">
+          <button class="btn btn-ghost btn-icon admin-alert-bell" id="btn-incharge-alerts" title="In-Charge alerts" aria-label="In-Charge alerts"><svg class="admin-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg><span class="admin-alert-count hidden" id="admin-alert-count"></span></button>
+          <button class="btn btn-ghost btn-icon" id="btn-refresh" title="Refresh" aria-label="Refresh"><svg class="admin-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 7v5h-5M4 17v-5h5M6 6a8 8 0 0 1 14 6M4 12a8 8 0 0 0 14 6"/></svg></button>
+          <button class="btn btn-primary btn-sm" id="btn-new-booking"><svg class="admin-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v16M4 12h16"/></svg><span>Booking</span></button>
+          <div id="admin-account" class="admin-account"><span class="admin-avatar" id="admin-avatar" aria-hidden="true">A</span><span><strong id="admin-role-label">Admin</strong><span id="admin-email"></span></span></div>
         </div>
       </div>
     </header>
+    <section class="admin-hero" aria-labelledby="page-title">
+      <img class="admin-hero-image" id="admin-hero-image" src="assets/booking/hero-court.jpg" alt="" fetchpriority="high" />
+      <div class="admin-hero-heading"><h1 id="page-title">Dashboard</h1><p id="admin-hero-description">Manage bookings, players, payments and more — all in one place.</p></div>
+      <p class="admin-hero-motto">MORE THAN A GAME<br>A BRIGHTER COMMUNITY</p>
+      <p class="admin-hero-signature" aria-hidden="true">Play<br>Connect<br>Belong</p>
+    </section>
 
     <main class="admin-content">
       <nav class="subnav" id="subnav" hidden aria-label="Section"></nav>
       <!-- DASHBOARD — card-based command center -->
       <section id="page-dashboard">
-        <div class="page-head">
-          <h2 class="page-h1">Command center</h2>
-          <p class="page-subtitle">What needs your attention right now.</p>
-        </div>
-
         <div class="grid cols-4 kpi-grid" id="stat-grid"></div>
-
-        <section class="panel mt-5">
-          <div class="panel-head">
-            <h2 class="section-title">Needs attention</h2>
-            <button class="btn btn-ghost btn-sm" data-goto-page="payments">Open payments</button>
-          </div>
-          <div class="list" id="attention-grid"></div>
-        </section>
-
-        <section class="panel mt-5">
-          <div class="panel-head">
-            <h2 class="section-title">Upcoming schedule</h2>
-            <button class="btn btn-ghost btn-sm" data-goto-page="calendar">Open calendar</button>
-          </div>
-          <div class="list" id="upcoming-list"></div>
-        </section>
-
-        <details class="section-shell disclosure-section mt-5 insights-block">
-          <summary>Insights &amp; recent activity</summary>
-          <div class="grid cols-2 mt-4">
-            <div>
-              <h3 class="card-title">Bookings, last 14 days</h3>
-              <div class="chart-bars" id="chart-trend"></div>
-            </div>
-            <div>
-              <h3 class="card-title">Court utilisation, last 30 days</h3>
-              <div class="stack" id="chart-util" style="gap:14px"></div>
-            </div>
-          </div>
-          <div class="mt-5">
-            <h3 class="card-title">Recent bookings</h3><div class="list" id="recent-list"></div>
-          </div>
-        </details>
+        <div class="dashboard-overview">
+          <section class="panel attention-panel"><div class="panel-head"><h2 class="section-title">Needs attention</h2><button class="btn btn-ghost btn-sm" data-goto-page="payments">View payments →</button></div><div class="list" id="attention-grid"></div></section>
+          <section class="panel upcoming-panel"><div class="panel-head"><h2 class="section-title">Upcoming schedule</h2><button class="btn btn-ghost btn-sm" data-goto-page="calendar">Full schedule →</button></div><div class="list" id="upcoming-list"></div></section>
+          <aside class="admin-promo-card"><img src="assets/booking/court-01.jpg" alt="Sunlit pickleball courts surrounded by palms" loading="lazy" /><div><strong>A HEALTHIER<br>HAPPIER YOU</strong><span>Pickleball today.<br>Brighter tomorrows.</span></div></aside>
+        </div>
+        <div class="dashboard-insights">
+          <section class="panel chart-panel"><div class="panel-head"><h2 class="section-title">Insights &amp; court activity</h2><span class="tiny muted">Club overview</span></div><h3 class="card-title">Bookings, last 14 days</h3><div class="chart-bars" id="chart-trend"></div><div class="dashboard-court-activity"><h3 class="card-title">Court booking distribution</h3><div class="stack" id="chart-util"></div></div></section>
+          <section class="panel recent-panel"><div class="panel-head"><h2 class="section-title">Recent bookings</h2><button class="btn btn-ghost btn-sm" data-goto-page="bookings">View all bookings →</button></div><div id="recent-list"></div></section>
+        </div>
       </section>
-
 
       <!-- BOOKINGS -->
       <section id="page-bookings" class="hidden">
         <div class="section-shell">
           <div class="card-header">
-            <h2 class="section-title">All bookings</h2>
+            <div><h2 class="section-title">All bookings</h2><p class="page-subtitle">Court reservations, payments and status in one place.</p></div>
             <div class="row wrap">
-              <input class="input" id="bk-q" placeholder="Search name, email, reference" style="min-width:220px" />
-              <select class="select" id="bk-status" style="min-width:150px">
+              <input class="input" id="bk-q" aria-label="Search bookings" placeholder="Search name, email, reference" style="min-width:220px" />
+              <select class="select" id="bk-status" aria-label="Booking status" style="min-width:150px">
                 <option value="all">All statuses</option>
                 <option value="confirmed">Confirmed</option><option value="completed">Completed</option>
                 <option value="cancelled">Cancelled</option>
               </select>
-              <input class="input" id="bk-date" type="date" style="min-width:160px" />
+              <input class="input" id="bk-date" aria-label="Booking date" type="date" style="min-width:160px" />
               <button class="btn btn-outline btn-sm" id="bk-clear">Clear</button>
             </div>
           </div>
@@ -201,21 +173,21 @@
               <p class="page-subtitle">One simple queue for court, event and membership collections.</p>
             </div>
             <div class="row wrap" style="gap:6px">
-              <select class="input" id="tx-type" style="width:auto">
+              <select class="input" id="tx-type" aria-label="Transaction type" style="width:auto">
                 <option value="all">All transaction types</option>
                 <option value="booking">Court bookings</option>
                 <option value="tournament">Tournaments</option>
                 <option value="open_play">Open Play</option>
                 <option value="membership">Membership</option>
               </select>
-              <select class="input" id="tx-status" style="width:auto">
+              <select class="input" id="tx-status" aria-label="Transaction status" style="width:auto">
                 <option value="review">For review</option>
                 <option value="cash_due">Pay at venue</option>
                 <option value="verified">Paid</option>
                 <option value="rejected">Rejected</option>
                 <option value="all">All statuses</option>
               </select>
-              <input class="input" id="tx-q" placeholder="Client or reference" style="max-width:200px" />
+              <input class="input" id="tx-q" aria-label="Search transactions" placeholder="Client or reference" style="max-width:200px" />
               <button class="btn btn-outline btn-sm" id="tx-refresh">Refresh</button>
             </div>
           </div>
@@ -231,11 +203,11 @@
       <section id="page-calendar" class="hidden">
         <div class="section-shell">
           <div class="card-header">
-            <h2 class="section-title">Daily schedule</h2>
+            <div><h2 class="section-title">Daily schedule</h2><p class="page-subtitle">View and manage the court schedule for your club.</p></div>
             <div class="row">
-              <button class="btn btn-outline btn-sm" id="cal-prev-day">‹ Prev</button>
-              <input class="input" id="cal-date" type="date" style="min-width:170px" />
-              <button class="btn btn-outline btn-sm" id="cal-next-day">Next ›</button>
+              <button class="btn btn-outline btn-sm" id="cal-prev-day" aria-label="Previous day">‹</button>
+              <input class="input" id="cal-date" aria-label="Schedule date" type="date" style="min-width:170px" />
+              <button class="btn btn-outline btn-sm" id="cal-next-day" aria-label="Next day">›</button>
             </div>
           </div>
           <div class="legend" style="margin-bottom:14px">
@@ -262,7 +234,7 @@
       <section id="page-players" class="hidden">
         <div class="section-shell">
           <div class="card-header"><h2 class="section-title">Players</h2>
-            <input class="input" id="pl-q" placeholder="Search players" style="max-width:260px" /></div>
+            <input class="input" id="pl-q" aria-label="Search players" placeholder="Search players" style="max-width:260px" /></div>
           <div class="table-wrap"><table class="data" data-mobile-cards="true">
             <thead><tr><th>Name</th><th>Email</th><th>Mobile</th><th>Bookings</th><th>Status</th><th>Actions</th></tr></thead>
             <tbody id="players-body"></tbody>
@@ -274,7 +246,7 @@
       <section id="page-ratings" class="hidden">
         <div class="section-shell">
           <div class="card-header"><h2 class="section-title">Tournament rating evaluation</h2>
-            <input class="input" id="rat-q" placeholder="Search players" style="max-width:260px" /></div>
+            <input class="input" id="rat-q" aria-label="Search player ratings" placeholder="Search players" style="max-width:260px" /></div>
           <p class="muted tiny">Only verified ratings from completed tournament matches are counted. Required ratings = max(5, min(30, ceil(active players in division x 0.30))).</p>
           <div class="table-wrap"><table class="data">
             <thead><tr><th>Player</th><th>Division</th><th>Population</th><th>Required</th><th>Verified</th><th>Average</th><th>Opponents</th><th>Matches</th><th>Singles / Doubles</th><th>Status</th><th></th></tr></thead>
@@ -292,7 +264,7 @@
             <div class="list" id="membership-plans-admin"></div>
           </section>
           <section class="section-shell">
-            <div class="card-header"><h2 class="section-title">Members</h2><select class="select" id="membership-status-filter" style="width:auto"><option value="all">All</option><option value="active">Active</option><option value="pending_payment">Awaiting payment</option><option value="payment_review">For review</option><option value="expired">Expired</option></select></div>
+            <div class="card-header"><h2 class="section-title">Members</h2><select class="select" id="membership-status-filter" aria-label="Membership status" style="width:auto"><option value="all">All</option><option value="active">Active</option><option value="pending_payment">Awaiting payment</option><option value="payment_review">For review</option><option value="expired">Expired</option></select></div>
             <div class="list" id="memberships-admin"></div>
           </section>
         </div>
@@ -341,12 +313,12 @@
         <section class="section-shell" id="nt-pane-queue" hidden>
           <div class="card-header"><h2 class="section-title">Scheduled &amp; retrying messages</h2>
             <div class="row">
-              <select class="select" id="nq-status">
+              <select class="select" id="nq-status" aria-label="Scheduled message status">
                 <option value="pending">Pending</option><option value="failed">Failed</option>
                 <option value="sent">Sent</option><option value="cancelled">Cancelled</option>
                 <option value="all">All</option>
               </select>
-              <select class="select" id="nq-category">
+              <select class="select" id="nq-category" aria-label="Message category">
                 <option value="all">All categories</option><option value="reminder">Reminders</option>
                 <option value="announcement">Announcements</option><option value="booking">Bookings</option>
                 <option value="payment">Payments</option><option value="event">Events</option>
@@ -362,7 +334,7 @@
         </section>
 
         <section class="section-shell broadcast-composer" id="nt-pane-broadcast" hidden>
-          <div class="card-header"><h2 class="section-title">Send an announcement</h2></div>
+          <div class="card-header"><div><h2 class="section-title">Broadcast message</h2><p class="page-subtitle">Share an announcement with your community.</p></div></div>
           <form id="nb-form">
             <div class="field"><label class="label" for="nb-audience">Recipients</label>
               <select class="select" id="nb-audience">
@@ -383,16 +355,17 @@
               </div>
               <span class="field-hint">Tick both to send by email and SMS. Nothing is sent by SMS unless you choose it.</span></div>
             <div class="row wrap">
-              <button class="btn btn-primary" type="submit" data-loading="Queueing...">Queue announcement</button>
+              <button class="btn btn-primary" type="submit" data-loading="Queueing...">Queue broadcast</button>
             </div>
           </form>
+          <aside class="communication-tips"><strong>Communication tips</strong><ul><li>Keep updates short, friendly and actionable.</li><li>Choose the audience that needs your message.</li><li>Review the recipients and channels before queueing.</li></ul></aside>
         </section>
 
         <section class="section-shell" id="nt-pane-log">
-          <div class="card-header"><h2 class="section-title">Notification log</h2>
+          <div class="card-header"><div><h2 class="section-title">Message log</h2><p class="page-subtitle">Recent messages and their delivery status.</p></div>
             <div class="row">
-              <select class="select" id="nt-channel"><option value="all">All channels</option><option value="email">Email</option><option value="sms">SMS</option><option value="push">PWA Push</option></select>
-              <select class="select" id="nt-status"><option value="all">All statuses</option><option value="sent">Sent</option><option value="failed">Failed</option></select>
+              <select class="select" id="nt-channel" aria-label="Message channel"><option value="all">All channels</option><option value="email">Email</option><option value="sms">SMS</option><option value="push">PWA Push</option></select>
+              <select class="select" id="nt-status" aria-label="Message status"><option value="all">All statuses</option><option value="sent">Sent</option><option value="failed">Failed</option></select>
             </div></div>
           <div class="table-wrap"><table class="data" data-mobile-cards="true">
             <thead><tr><th>Created</th><th>Channel</th><th>Type</th><th>Recipient</th><th>Booking</th><th>Status</th><th></th></tr></thead>
@@ -403,24 +376,15 @@
 
       <!-- REPORTS -->
       <section id="page-reports" class="hidden">
-        <div class="section-shell">
-          <div class="card-header"><h2 class="section-title">Reports</h2>
-            <div class="row wrap">
-              <input class="input" id="rp-from" type="date" /><span class="muted tiny">to</span>
-              <input class="input" id="rp-to" type="date" />
-              <button class="btn btn-primary btn-sm" id="rp-run" data-loading="Loading...">Run report</button>
-            </div></div>
-          <div class="grid cols-4" id="rp-summary"></div>
-          <div class="grid cols-2 mt-5">
-            <div><h3 class="card-title" style="margin-bottom:12px">Bookings per day</h3><div class="chart-bars" id="rp-chart"></div></div>
-            <div><h3 class="card-title" style="margin-bottom:12px">Revenue by court</h3><div class="stack" id="rp-courts" style="gap:14px"></div></div>
-          </div>
-          <div class="grid cols-2 mt-5">
-            <div><h3 class="card-title" style="margin-bottom:12px">Peak hours</h3><div class="table-wrap"><table class="data" style="min-width:0">
-              <thead><tr><th>Start time</th><th>Bookings</th></tr></thead><tbody id="rp-peak"></tbody></table></div></div>
-            <div><h3 class="card-title" style="margin-bottom:12px">Top players</h3><div class="table-wrap"><table class="data" style="min-width:0">
-              <thead><tr><th>Player</th><th>Bookings</th></tr></thead><tbody id="rp-players"></tbody></table></div></div>
-          </div>
+        <div class="section-shell report-toolbar"><div class="card-header"><h2 class="section-title">Report date range</h2><div class="row wrap"><label class="tiny" for="rp-from">From</label><input class="input" id="rp-from" type="date" /><label class="tiny" for="rp-to">To</label><input class="input" id="rp-to" type="date" /><button class="btn btn-primary btn-sm" id="rp-run" data-loading="Loading...">Run report</button></div></div></div>
+        <div class="grid cols-4" id="rp-summary"></div><div id="rp-breakdown"></div>
+        <div class="grid cols-2 report-charts">
+          <section class="section-shell"><div class="card-header"><h3 class="section-title">Bookings per day</h3></div><div class="chart-bars" id="rp-chart"></div></section>
+          <section class="section-shell"><div class="card-header"><h3 class="section-title">Booked value by court</h3></div><div class="stack" id="rp-courts"></div></section>
+        </div>
+        <div class="grid cols-2 report-tables">
+          <section class="section-shell"><div class="card-header"><h3 class="section-title">Peak hours</h3></div><div class="table-wrap"><table class="data" style="min-width:0"><thead><tr><th>Start time</th><th>Bookings</th></tr></thead><tbody id="rp-peak"></tbody></table></div></section>
+          <section class="section-shell"><div class="card-header"><h3 class="section-title">Top players</h3></div><div class="table-wrap"><table class="data" style="min-width:0"><thead><tr><th>Player</th><th>Bookings</th></tr></thead><tbody id="rp-players"></tbody></table></div></section>
         </div>
       </section>
 
@@ -444,7 +408,7 @@
           <section class="section-shell mt-5">
             <div class="card-header">
               <h2 class="section-title">Tournament registrations</h2>
-              <select class="input" id="treg-status" style="width:auto">
+              <select class="input" id="treg-status" aria-label="Registration status" style="width:auto">
                 <option value="pending">Pending (actionable)</option>
                 <option value="active">Active registrations</option>
                 <option value="approved">Approved</option>
@@ -470,14 +434,19 @@
             <p class="page-subtitle">Tournaments and Open Play management in one place.</p>
           </div>
           <div class="list event-hub-list" id="ev-hub-cards">
-            <button class="list-row is-clickable event-hub-row" data-hub="tournaments" type="button">
-              <span class="event-hub-icon">🏆</span><span class="list-main"><span class="list-title">Tournaments</span><span class="list-sub">Registrations, brackets, matches, scorers and prizes.</span></span><span class="list-end"><span class="badge badge-pending" id="ev-hub-trn">—</span><span class="list-chevron">›</span></span>
-            </button>
-            <button class="list-row is-clickable event-hub-row" data-hub="openplay" type="button">
-              <span class="event-hub-icon">🏓</span><span class="list-main"><span class="list-title">Open Play</span><span class="list-sub">Sessions, fees, capacity and attendees.</span></span><span class="list-end"><span class="badge badge-pending" id="ev-hub-op">—</span><span class="list-chevron">›</span></span>
-            </button>
+            <button class="list-row is-clickable event-hub-row" data-hub="tournaments"><span class="event-hub-icon" aria-hidden="true">🏆</span><span class="list-main"><span class="list-title">Tournaments</span><span class="list-sub">Create and manage tournaments, registrations, draws and results — all in one place.</span></span><span class="badge" id="ev-hub-trn">Loading…</span><span class="event-hub-features"><span>Brackets</span><span>Registrations</span><span>Results</span></span><span class="event-hub-cta">Manage Tournaments <span aria-hidden="true">→</span></span></button>
+            <button class="list-row is-clickable event-hub-row" data-hub="openplay"><span class="event-hub-icon" aria-hidden="true">♟</span><span class="list-main"><span class="list-title">Open Play</span><span class="list-sub">Schedule sessions, track participants and keep your community active.</span></span><span class="badge" id="ev-hub-op">Loading…</span><span class="event-hub-features"><span>Schedules</span><span>Participants</span><span>Payments</span></span><span class="event-hub-cta">Manage Open Play <span aria-hidden="true">→</span></span></button>
           </div>
           <div class="grid cols-4" id="ev-hub-stats"></div>
+          <p id="ev-data-status" class="alert alert-warning" role="status" hidden></p>
+          <div class="grid cols-2 admin-events-tables">
+            <section class="section-shell"><div class="card-header"><h2 class="section-title">Upcoming events</h2><button class="btn btn-ghost btn-sm" data-goto-page="tournaments">Manage tournaments →</button></div>
+              <div class="table-wrap"><table class="data"><thead><tr><th>Date</th><th>Event</th><th>Type</th><th>Status</th><th></th></tr></thead><tbody id="ev-upcoming-body"></tbody></table></div>
+            </section>
+            <section class="section-shell"><div class="card-header"><h2 class="section-title">Recent tournament registrations</h2><button class="btn btn-ghost btn-sm" data-goto-page="tournaments">View registrations →</button></div>
+              <div class="table-wrap"><table class="data"><thead><tr><th>Player</th><th>Tournament</th><th>Date</th><th>Status</th></tr></thead><tbody id="ev-recent-body"></tbody></table></div>
+            </section>
+          </div>
         </div>
       </section>
 
@@ -872,6 +841,7 @@
 <div id="modal-root"></div>
 
 <script src="qr-lite.js"></script>
+<script src="admin-charts.js?v=28-admin-reference"></script>
 <script>
 /* ================= admin runtime ================= */
 (function () {
@@ -940,16 +910,46 @@
       '<button class="btn btn-outline" data-close>' + esc(opts.cancelText || 'Close') + '</button>' +
       (opts.confirmText ? '<button class="btn ' + (opts.danger ? 'btn-danger' : 'btn-primary') +
         '" data-confirm data-loading="Working...">' + esc(opts.confirmText) + '</button>' : '') + '</div></div>';
-    $('#modal-root').appendChild(host);
-    function close() { host.remove(); document.removeEventListener('keydown', onKey); }
-    function onKey(e) { if (e.key === 'Escape') close(); }
+    var previousFocus = document.activeElement;
+    var dialog = $('.modal', host), modalRoot = $('#modal-root');
+    dialog.setAttribute('tabindex', '-1');
+    if ($('#tx-receipt', host)) dialog.classList.add('admin-payment-dialog');
+    if ($('#mp-name', host)) dialog.classList.add('admin-membership-dialog');
+    if ($('.booking-detail-grid', host)) dialog.classList.add('admin-booking-dialog');
+    if (!modalRoot.children.length) modalRoot.dataset.previousOverflow = document.body.style.overflow;
+    modalRoot.appendChild(host);
+    document.body.style.overflow = 'hidden';
+    $('#view-app').inert = true;
+    function close() { host.remove(); }
+    function focusable() { return $$('button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), a[href], [tabindex="0"]', host).filter(function (el) { return el.getClientRects().length && !el.closest('[hidden],.hidden'); }); }
+    function onKey(e) {
+      if (modalRoot.lastElementChild !== host) return;
+      if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); close(); }
+      if (e.key === 'Tab') {
+        var items = focusable(), first = items[0], last = items[items.length - 1];
+        if (!items.length) { e.preventDefault(); dialog.focus(); return; }
+        if (e.shiftKey && (document.activeElement === first || document.activeElement === dialog || !host.contains(document.activeElement))) { e.preventDefault(); last.focus(); }
+        else if (!e.shiftKey && (document.activeElement === last || document.activeElement === dialog || !host.contains(document.activeElement))) { e.preventDefault(); first.focus(); }
+      }
+    }
+    var observer = new MutationObserver(function () {
+      if (host.isConnected) return;
+      observer.disconnect(); document.removeEventListener('keydown', onKey);
+      if (!modalRoot.children.length) {
+        document.body.style.overflow = modalRoot.dataset.previousOverflow || '';
+        $('#view-app').inert = false;
+      }
+      if (previousFocus && previousFocus.isConnected && (!modalRoot.children.length || modalRoot.lastElementChild.contains(previousFocus))) previousFocus.focus();
+    });
+    observer.observe(modalRoot, {childList:true});
+    requestAnimationFrame(function () { if (host.isConnected && modalRoot.lastElementChild === host) dialog.focus(); });
     document.addEventListener('keydown', onKey);
     $$('[data-close]', host).forEach(function (b) { b.onclick = close; });
     if (!opts.locked) host.addEventListener('mousedown', function (e) { if (e.target === host) close(); });
     var cb = $('[data-confirm]', host);
     if (cb) cb.onclick = function () {
       busy(cb, true);
-      Promise.resolve(opts.onConfirm && opts.onConfirm(host))
+      Promise.resolve().then(function () { return opts.onConfirm && opts.onConfirm(host); })
         .then(function (r) { if (r !== false) close(); })
         .catch(function (e) { toast(e.message, 'error'); })
         .finally(function () { busy(cb, false); });
@@ -1130,17 +1130,15 @@
     return api('/api/admin/transactions' + qs).then(function (d) {
       TX_REASONS = d.reason_codes || {};
       $('#tx-stats').innerHTML = [
-        ['For review', d.stats.pending_review], ['Pay at venue', d.stats.cash_due || 0],
-        ['Paid today', d.stats.verified_today], ['Total collected', money(d.stats.total_collected)]
-      ].map(function (x) {
-        return '<div class="card stat"><div class="stat-label">' + esc(x[0]) + '</div><div class="stat-value">' + esc(String(x[1])) + '</div></div>';
-      }).join('');
+        ['For review', d.stats.pending_review, 'clock', '', 'Submissions needing review'], ['Pay at venue', d.stats.cash_due || 0, 'money', '', 'Cash collections due'],
+        ['Paid today', d.stats.verified_today, 'calendar', '', 'Payments verified today'], ['Total collected', money(d.stats.total_collected), 'money', '', 'Verified payments · all time']
+      ].map(adminMetric).join('');
 
       $('#tx-body').innerHTML = d.transactions.length ? d.transactions.map(function (t) {
         return '<tr><td class="num">' + esc(t.booking_reference || t.transaction_key) +
           '<div class="tiny muted">' + esc(t.transaction_key) + '</div></td>' +
           '<td>' + txBadge(TX_TYPE_LABEL[t.transaction_type] || t.transaction_type, 'badge-pending') + '</td>' +
-          '<td>' + esc(t.client_name || '—') + '<div class="tiny muted">' + esc(t.client_email || '') + '</div></td>' +
+          '<td>' + adminPerson(t.client_name, t.client_email) + '</td>' +
           '<td>' + esc(t.item_name || '—') + (t.division_name ? '<div class="tiny muted">' + esc(t.division_name) + '</div>' : '') + '</td>' +
           '<td class="num">' + esc(money(t.amount_due)) + '</td>' +
           '<td>' + esc(String(t.payment_provider || 'MANUAL').toUpperCase()) + '<div class="tiny muted">' + esc((t.payment_method || '').toUpperCase()) + '</div>' +
@@ -1236,7 +1234,7 @@
     var bootLogo = b.boot_logo_url || b.logo_url || '';
     [['#hero-logo', b.logo_url || appLogo], ['#app-logo', appLogo]].forEach(function (pair) {
       var el = $(pair[0]); if (!el) return;
-      el.innerHTML = pair[1] ? '<img src="' + esc(assetUrl(pair[1])) + '" alt="' + esc(name) + ' logo" />' : esc(initials);
+      el.innerHTML = pair[1] ? '<img src="' + esc(assetUrl(pair[1])) + '" alt="' + esc(name) + ' logo" />' : (pair[0] === '#app-logo' ? '<img src="icons/icon-192.png" alt="Club logo" />' : esc(initials));
     });
     var bl = $('#boot-logo');
     if (bl) bl.innerHTML = bootLogo ? '<img src="' + esc(assetUrl(bootLogo)) + '" alt="' + esc(name) + ' logo" />' : esc(initials);
@@ -1244,6 +1242,8 @@
     if (b.favicon_url) $('#favicon').href = assetUrl(b.favicon_url);
     $('#hero-name').textContent = name;
     $('#app-name').textContent = name;
+    var hero = $('#admin-hero-image');
+    if (hero) { delete hero.dataset.fallback; hero.src = b.hero_image_url ? assetUrl(b.hero_image_url) : 'assets/booking/hero-court.jpg'; }
     var hs = $('#hero-short'); if (hs) hs.textContent = b.short_name || 'Admin console';
     SETTINGS.currency = b.currency;
     var sender = $('#s-smtp_from_name'); if (sender) sender.value = name;
@@ -1255,6 +1255,13 @@
     el.classList.add('is-hidden');
     setTimeout(function () { el.remove(); }, 500);
   }
+
+  document.addEventListener('error', function (e) {
+    var img = e.target;
+    if (img && img.id === 'admin-hero-image' && !img.dataset.fallback) {
+      img.dataset.fallback = 'true'; img.src = 'assets/booking/hero-court.jpg';
+    }
+  }, true);
 
   /* login */
   $('#form-login').addEventListener('submit', function (e) {
@@ -1370,6 +1377,8 @@
     tournaments: loadTournaments, events: loadEventsHub, openplay: loadOpenPlay,
     settings: loadSettings
   };
+  var ADMIN_ICON_PATHS = {"dashboard": "<path d=\"m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1Z\"/>", "calendar": "<rect x=\"3\" y=\"5\" width=\"18\" height=\"16\" rx=\"2\"/><path d=\"M16 3v4M8 3v4M3 11h18M8 15h2M14 15h2M8 18h2\"/>", "payments": "<rect x=\"2\" y=\"4\" width=\"20\" height=\"16\" rx=\"3\"/><path d=\"M2 9h20M6 15h4\"/>", "players": "<circle cx=\"9\" cy=\"7\" r=\"3\"/><path d=\"M2 21v-3a7 7 0 0 1 14 0v3ZM16 4a3 3 0 0 1 0 6M19 14a5 5 0 0 1 3 4v3\"/>", "events": "<path d=\"M8 3h8v6a4 4 0 0 1-8 0ZM8 5H4v3a4 4 0 0 0 4 4M16 5h4v3a4 4 0 0 1-4 4M12 13v5M8 21h8M9 18h6\"/>", "notifications": "<rect x=\"2\" y=\"4\" width=\"20\" height=\"16\" rx=\"2\"/><path d=\"m2 6 10 7L22 6\"/>", "reports": "<path d=\"M4 21V11M10 21V3M16 21V8M22 21V15\"/>", "settings": "<path d=\"m9 3-.6 2.3-2 .9L4 5.6l-2 3.5 1.8 1.8v2.2L2 14.9l2 3.5 2.4-.6 2 .9L9 21h6l.6-2.3 2-.9 2.4.6 2-3.5-1.8-1.8v-2.2L22 9.1l-2-3.5-2.4.6-2-.9L15 3Z\"/><circle cx=\"12\" cy=\"12\" r=\"3\"/>", "theme": "<circle cx=\"12\" cy=\"12\" r=\"4\"/><path d=\"M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5 19 19M5 19l1.5-1.5M17.5 6.5 19 5\"/>", "logout": "<path d=\"M9 3H4v18h5M14 7l5 5-5 5M8 12h11\"/>", "bell": "<path d=\"M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4\"/>", "refresh": "<path d=\"M20 7v5h-5M4 17v-5h5M6 6a8 8 0 0 1 14 6M4 12a8 8 0 0 0 14 6\"/>", "plus": "<path d=\"M12 4v16M4 12h16\"/>", "menu": "<path d=\"M4 6h16M4 12h16M4 18h16\"/>", "court": "<rect x=\"3\" y=\"3\" width=\"18\" height=\"18\" rx=\"2\"/><path d=\"M12 3v18M3 9h18M3 15h18M7 9v6M17 9v6\"/>", "user": "<circle cx=\"12\" cy=\"8\" r=\"4\"/><path d=\"M4 22v-2a8 8 0 0 1 16 0v2\"/>", "check": "<path d=\"m5 12 4 4L19 6\"/>", "clock": "<circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M12 7v5l3 2\"/>", "list": "<path d=\"M9 6h12M9 12h12M9 18h12M3 6h1M3 12h1M3 18h1\"/>", "blocked": "<circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"m6 6 12 12\"/>", "star": "<path d=\"m12 2 3 6 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1Z\"/>"};
+  function adminIcon(name) { return '<svg class="admin-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (ADMIN_ICON_PATHS[name] || ADMIN_ICON_PATHS.calendar) + '</svg>'; }
   var PAGE_TITLES = {
     ratings: 'Players', blocks: 'Schedule', calendar: 'Schedule', bookings: 'Schedule', courts: 'Schedule',
     players: 'Players & Membership', memberships: 'Players & Membership', events: 'Events', tournaments: 'Events', openplay: 'Events',
@@ -1389,7 +1398,7 @@
     if (!g) { host.hidden = true; host.innerHTML = ''; return; }
     host.hidden = false;
     host.innerHTML = g.tabs.map(function (t) {
-      return '<button class="subnav-item' + (t[0] === page ? ' is-active' : '') + '" data-goto-page="' + t[0] + '">' + t[1] + '</button>';
+      return '<button class="subnav-item' + (t[0] === page ? ' is-active' : '') + '" data-goto-page="' + t[0] + '" aria-current="' + (t[0] === page ? 'page' : 'false') + '">' + adminIcon(({bookings:'list',courts:'court',blocks:'blocked',memberships:'players',ratings:'star',tournaments:'events',openplay:'players'})[t[0]] || t[0]) + '<span>' + t[1] + '</span></button>';
     }).join('');
   }
   var current = 'dashboard';
@@ -1478,7 +1487,11 @@
     var mobileMore = ['players','memberships','ratings','notifications','reports','settings'].indexOf(page) >= 0;
     $$('#admin-mobile-nav [data-mobile-page]').forEach(function(b){b.classList.toggle('is-active',b.dataset.mobilePage===page||(b.dataset.mobilePage==='calendar'&&GROUP_OF[page]==='schedule')||(b.dataset.mobilePage==='events'&&GROUP_OF[page]==='events')||(b.dataset.mobilePage==='more'&&mobileMore));});
     $('#page-title').textContent = page === 'settings' ? 'Settings' : (PAGE_TITLES[page] || (page.charAt(0).toUpperCase() + page.slice(1))); 
+    var description = {dashboard:'Manage bookings, players, payments and more — all in one place.',calendar:'Plan. Play. Belong. Manage court availability and the daily schedule.',bookings:'Manage bookings, payments and availability — keep your club running smoothly.',courts:'Your courts, ready for the next game. Manage rates, status and promotional images.',blocks:'Plan maintenance and reserved periods without missing a beat.',payments:'Track and manage your court, event and membership collections.',players:'Build a stronger community, one player at a time.',memberships:'Memberships that bring your community closer.',ratings:'Follow player progress and review verified tournament ratings.',events:'Create memorable experiences. Build a stronger community.',tournaments:'Build community through competition, play and connection.',openplay:'More games. More connections. Bring your players together.',notifications:'Connect. Engage. Build a stronger community.',reports:'Track growth, engagement and performance — all in one place.',settings:'Configure your club, payments, communications and more.'};
+    $('#admin-hero-description').textContent = description[page] || '';
+    $('#view-app').dataset.page = page;
     $('#view-app').classList.remove('drawer-open');
+    $('#drawer-open').setAttribute('aria-expanded','false');
     window.scrollTo({ top: 0, behavior: 'smooth' });
     LOADERS[page]();
     if (page === 'settings') applyAdminOperationalSettingsUI();
@@ -1490,8 +1503,8 @@
     var b = e.target.closest('[data-goto-page]');
     if (b) { e.preventDefault(); goto(b.dataset.gotoPage); }
   });
-  $('#drawer-open').onclick = function () { $('#view-app').classList.toggle('drawer-open'); };
-  $('#drawer-backdrop').onclick = function () { $('#view-app').classList.remove('drawer-open'); };
+  $('#drawer-open').onclick = function () { $('#view-app').classList.toggle('drawer-open'); this.setAttribute('aria-expanded', String($('#view-app').classList.contains('drawer-open'))); };
+  $('#drawer-backdrop').onclick = function () { $('#view-app').classList.remove('drawer-open'); $('#drawer-open').setAttribute('aria-expanded','false'); $('#drawer-open').focus(); };
   $('#btn-refresh').onclick = function () { LOADERS[current](); toast('Refreshed.', 'info'); };
   var alertBell=$('#btn-incharge-alerts'); if(alertBell)alertBell.onclick=showInChargeAlerts;
 
@@ -1902,7 +1915,7 @@
     if ((el = e.target.closest('[data-div-winners]'))) { setWinners(el.dataset.divWinners); return; }
     if ((el = e.target.closest('[data-div-bracket]'))) {
       var bid=el.dataset.divBracket;
-      api('/api/admin/tournaments/'+TRN_OPEN).then(function(detail){var div=divisionById(detail,bid)||{};modal({title:'Generate tournament structure',wide:true,confirmText:'Generate',body:'<div class="alert alert-info"><strong>Registration-driven:</strong> official approved teams are used automatically. Existing matches are replaced.</div><div class="field"><label class="label">Competition format</label><select class="select" id="bg-format"><option value="single_elimination">Single Elimination</option><option value="double_elimination">Double Elimination</option><option value="round_robin">Round Robin</option><option value="group_knockout">Group Stage + Knockout</option></select></div><label class="switch"><input type="checkbox" id="bg-lock" checked><span class="track"></span><span>Lock bracket after generation</span></label>',onOpen:function(){},onConfirm:function(h){return api('/api/admin/divisions/'+bid+'/bracket',{method:'POST',body:{replace:true,force_unlock:true,format:$('#bg-format',h).value,lock:$('#bg-lock',h).checked}}).then(function(){toast('Tournament structure generated.','success');openTournament(TRN_OPEN);});}});setTimeout(function(){var f=document.getElementById('bg-format');if(f)f.value=div.competition_format||'single_elimination';},0);}).catch(function(err){toast(err.message,'error');});
+      api('/api/admin/tournaments/'+TRN_OPEN).then(function(detail){var div=divisionById(detail,bid)||{};modal({title:'Generate tournament structure',wide:true,confirmText:'Generate',body:'<div class="alert alert-info"><strong>Registration-driven:</strong> official approved teams are used automatically. Existing matches are replaced.</div><fieldset class="admin-form-section"><legend>Select bracket format</legend><div class="bracket-format-grid"><label class="bracket-format-option"><input type="radio" name="bracket-format" value="single_elimination" checked><span><strong>Single Elimination</strong><small>Simple bracket. Fast and exciting.</small></span></label><label class="bracket-format-option"><input type="radio" name="bracket-format" value="double_elimination"><span><strong>Double Elimination</strong><small>A second chance in the lower bracket.</small></span></label><label class="bracket-format-option"><input type="radio" name="bracket-format" value="round_robin"><span><strong>Round Robin</strong><small>Every participant plays every other participant.</small></span></label><label class="bracket-format-option"><input type="radio" name="bracket-format" value="group_knockout"><span><strong>Group Stage + Knockout</strong><small>Group matches followed by a knockout bracket.</small></span></label></div><select class="select hidden" id="bg-format" aria-label="Competition format"><option value="single_elimination">Single Elimination</option><option value="double_elimination">Double Elimination</option><option value="round_robin">Round Robin</option><option value="group_knockout">Group Stage + Knockout</option></select></fieldset><label class="switch"><input type="checkbox" id="bg-lock" checked><span class="track"></span><span>Lock bracket after generation</span></label>',onOpen:function(){},onConfirm:function(h){return api('/api/admin/divisions/'+bid+'/bracket',{method:'POST',body:{replace:true,force_unlock:true,format:$('#bg-format',h).value,lock:$('#bg-lock',h).checked}}).then(function(){toast('Tournament structure generated.','success');openTournament(TRN_OPEN);});}});setTimeout(function(){var f=document.getElementById('bg-format');if(f){f.value=div.competition_format||'single_elimination';var h=f.closest('.modal-host');$$('[name="bracket-format"]',h).forEach(function(r){r.checked=r.value===f.value;r.onchange=function(){if(r.checked)f.value=r.value;};});}},0);}).catch(function(err){toast(err.message,'error');});
       return;
     }
     if ((el = e.target.closest('[data-div-schedule]'))) {
@@ -2096,44 +2109,60 @@
   }
 
   /* ---------- dashboard ---------- */
+
+  function adminMetricIcon(kind) {
+    var paths = {
+      calendar: '<rect x="4" y="5" width="16" height="16" rx="2"/><path d="M8 3v4m8-4v4M4 10h16M8 14h2m4 0h2m-8 3h2m4 0h2"/>',
+      people: '<circle cx="9" cy="7" r="3"/><path d="M3 21v-4a6 6 0 0 1 12 0v4M17 4a3 3 0 0 1 0 6m1 3a5 5 0 0 1 3 4v4"/>',
+      money: '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18M7 15h4"/>',
+      court: '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M12 4v16M3 12h18M7 4v16m10-16v16"/>',
+      clock: '<circle cx="12" cy="12" r="9"/><path d="M12 6v6l4 2"/>',
+      crown: '<path d="m3 7 4 4 5-7 5 7 4-4-2 13H5Z"/>',
+      trophy: '<path d="M8 3h8v6a4 4 0 0 1-8 0ZM8 5H4v3a4 4 0 0 0 4 4m8-7h4v3a4 4 0 0 1-4 4M12 13v7m-5 1h10"/>'
+    };
+    return '<svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' + (paths[kind] || paths.calendar) + '</svg>';
+  }
+  function adminMetric(c) {
+    var tag = c[3] ? 'button' : 'div';
+    return '<' + tag + ' class="card tight stat-card admin-metric' + (c[3] ? ' hoverable' : '') + '"' + (c[3] ? ' type="button" data-goto-page="' + esc(c[3]) + '"' : '') + '><span class="admin-metric-icon is-' + esc(c[2] || 'calendar') + '">' + adminMetricIcon(c[2]) + '</span><span class="admin-metric-copy"><span class="label">' + esc(c[0]) + '</span><strong class="stat-value num">' + esc(c[1]) + '</strong><span class="admin-metric-note">' + esc(c[4] || '') + '</span></span></' + tag + '>';
+  }
+  function adminPerson(name, detail) {
+    var initials = String(name || '?').trim().split(/\s+/).slice(0, 2).map(function (part) { return part.charAt(0); }).join('').toUpperCase();
+    return '<span class="admin-player-cell"><span class="admin-avatar" aria-hidden="true">' + esc(initials) + '</span><span>' + esc(name || 'Unknown player') + (detail ? '<span class="tiny muted">' + esc(detail) + '</span>' : '') + '</span></span>';
+  }
+  function adminStatus(status) {
+    var good = ['confirmed', 'completed', 'approved', 'verified', 'published', 'active'].indexOf(status) >= 0;
+    var bad = ['cancelled', 'disapproved', 'rejected', 'no_show'].indexOf(status) >= 0;
+    return '<span class="badge ' + (good ? 'badge-confirmed' : bad ? 'badge-rejected' : 'badge-pending') + '">' + esc(String(status || 'unknown').replace(/_/g, ' ')) + '</span>';
+  }
   function loadDashboard() {
     return api('/api/admin/dashboard').then(function (d) {
-      var s = d.stats;
-      /* Six cards only: what an operator needs at a glance today. */
-      var cards = [
-        ["Today's bookings", s.today_bookings, '▦', 'bookings'],
-        ['Revenue collected', money(s.total_revenue), '₱', 'reports'],
-        ['Players', s.total_players, '◎', 'players'],
-        ['Available courts', s.available_courts, '🏟', 'courts']
-      ];
-      $('#stat-grid').innerHTML = cards.map(function (c) {
-        return '<button class="card tight stat-card hoverable" data-goto-page="' + c[3] + '"><div class="spread"><span class="label">' + esc(c[0]) +
-          '</span><span class="stat-icon" aria-hidden="true">' + c[2] + '</span></div>' +
-          '<span class="stat-value num">' + esc(c[1]) + '</span></button>';
-      }).join('');
+      var s = d.stats || {};
+      $('#stat-grid').innerHTML = [
+        ["Today's bookings", s.today_bookings || 0, 'calendar', 'bookings', 'Confirmed & completed'],
+        ['Registered players', s.total_players || 0, 'people', 'players', 'Your club community'],
+        ['Revenue collected', money(s.total_revenue), 'money', 'reports', 'Verified payments · all time'],
+        ['Active courts', s.available_courts || 0, 'court', 'courts', 'Courts enabled for booking'],
+        ['Payment reviews', s.pending_payments || 0, 'clock', 'payments', 'Submissions needing review']
+      ].map(adminMetric).join('');
       loadAttention(s);
-      $('#nav-pending').textContent = s.pending_bookings;
+      $('#nav-pending').textContent = s.pending_bookings || 0;
       $('#nav-pending').classList.toggle('hidden', !s.pending_bookings);
-      var payQueue = (s.pending_payments || 0);
-      $('#nav-payments').textContent = payQueue;
-      $('#nav-payments').classList.toggle('hidden', !payQueue);
-
-      var max = Math.max.apply(null, d.trend.map(function (t) { return t.total; }).concat([1]));
-      $('#chart-trend').innerHTML = d.trend.length ? d.trend.map(function (t) {
-        return '<div class="bar-col" title="' + esc(t.date) + ': ' + t.total + '"><div class="bar" style="height:' +
-          Math.max(4, (t.total / max) * 130) + 'px"></div><span class="bar-label">' + t.date.slice(8) + '</span></div>';
-      }).join('') : '<div class="empty" style="width:100%"><strong>No data yet</strong>Bookings will appear here.</div>';
-
-      var umax = Math.max.apply(null, d.utilization.map(function (u) { return u.total; }).concat([1]));
-      $('#chart-util').innerHTML = d.utilization.map(function (u) {
-        return '<div><div class="spread tiny"><span>' + esc(u.name) + '</span><span class="num">' + u.total + '</span></div>' +
-          '<div class="meter mt-4" style="margin-top:6px"><i style="width:' + (u.total / umax * 100) + '%"></i></div></div>';
-      }).join('') || '<div class="empty">No court data.</div>';
-
-      $('#recent-list').innerHTML = d.recent.length ? d.recent.map(miniBooking).join('') : '<div class="empty">No bookings yet.</div>';
-      $('#upcoming-list').innerHTML = d.upcoming.length ? d.upcoming.map(miniBooking).join('') : '<div class="empty">Nothing scheduled.</div>';
+      $('#nav-payments').textContent = s.pending_payments || 0;
+      $('#nav-payments').classList.toggle('hidden', !s.pending_payments);
+      var to = new Date().toISOString().slice(0, 10), from = new Date(Date.now() - 13 * 86400000).toISOString().slice(0, 10);
+      $('#chart-trend').innerHTML = AdminCharts.bars(d.trend || [], {from: from, to: to, label: 'Bookings in the last 14 days'});
+      $('#chart-util').innerHTML = AdminCharts.donut((d.utilization || []).map(function (c) { return {name: c.name, total: c.total}; }), {label: 'Court booking distribution', totalLabel: 'Court bookings'});
+      var recent = d.recent || [];
+      $('#recent-list').innerHTML = '<div class="table-wrap"><table class="data admin-recent-table"><thead><tr><th scope="col">Reference</th><th scope="col">Player / guest</th><th scope="col">Date &amp; time</th><th scope="col">Court</th><th scope="col">Amount</th><th scope="col">Status</th></tr></thead><tbody>' + (recent.map(function (b) {
+        return '<tr><td class="num">' + esc(b.reference) + '</td><td>' + adminPerson(b.player_name) + '</td><td>' + humanDate(b.booking_date) + '<div class="tiny muted">' + humanTime(b.start_time) + '</div></td><td>' + esc(b.court_name) + '</td><td class="num">' + esc(money(b.amount)) + '</td><td>' + adminStatus(b.status) + '</td></tr>';
+      }).join('') || '<tr><td colspan="6"><div class="empty">No bookings yet.</div></td></tr>') + '</tbody></table></div>';
+      $('#upcoming-list').innerHTML = (d.upcoming || []).map(function (b) {
+        return '<div class="list-row admin-schedule-row"><span class="admin-schedule-dot" aria-hidden="true"></span><div class="admin-schedule-time"><strong class="num">' + humanTime(b.start_time) + ' – ' + humanTime(b.end_time) + '</strong><span class="tiny muted">' + humanDate(b.booking_date) + '</span></div><span class="badge admin-court-badge">' + esc(b.court_name) + '</span><div class="list-main"><span class="list-title">' + esc(b.player_name) + '</span><span class="list-sub">' + esc(b.reference) + '</span></div><span class="badge badge-confirmed">' + esc(b.players || '—') + ' players</span></div>';
+      }).join('') || '<div class="empty"><strong>All clear</strong>No upcoming bookings scheduled.</div>';
     }).catch(function (e) { toast(e.message, 'error'); });
   }
+
   function miniBooking(b) {
     var d = new Date(b.booking_date + 'T00:00:00');
     return '<div class="list-row"><div class="list-lead num">' + d.getDate() + '<span>' +
@@ -2198,6 +2227,17 @@
   });
   $('#bk-clear').onclick = function () { $('#bk-q').value = ''; $('#bk-status').value = 'all'; $('#bk-date').value = ''; loadBookings(); };
 
+  function bookingDetailsBody(b) {
+    function rows(items) { return '<dl class="summary-list">' + items.map(function (item) { return '<div class="summary-row"><dt>' + esc(item[0]) + '</dt><dd>' + esc(item[1] == null ? '—' : item[1]) + '</dd></div>'; }).join('') + '</dl>'; }
+    function section(icon, title, content) { return '<section class="detail-card"><h3 class="detail-card-head">' + adminIcon(icon) + esc(title) + '</h3>' + content + '</section>'; }
+    return '<div class="booking-detail-intro"><span>Reference <strong>' + esc(b.reference) + '</strong></span>' + badge(b.status) + '</div><div class="booking-detail-grid">' +
+      section('court', 'Booking summary', rows([['Court',b.court_name],['Court amount',money(b.amount)],['Reservation fee',money(b.reservation_fee)]])) +
+      section('user', 'Player information', rows([['Player',b.player_name],['Email',b.player_email],['Mobile',b.player_mobile || '—'],['Players',b.players]])) +
+      section('calendar', 'Schedule details', rows([['Date',humanDate(b.booking_date)],['Time',humanTime(b.start_time) + ' – ' + humanTime(b.end_time)]])) +
+      section('payments', 'Payment information', rows([['Method',String(b.payment_method || '—').toUpperCase()],['Payment status',String(b.payment_record_status || b.payment_status || 'none').replace(/_/g,' ')],['Payment amount',b.payment_amount == null ? '—' : money(b.payment_amount)]])) +
+      section('list', 'Booking notes', rows([['Created by',b.created_by || '—'],['Notes',b.notes || 'No additional notes.']])) + '</div>';
+  }
+
   function loadBookings() {
     var p = new URLSearchParams();
     if ($('#bk-q').value.trim()) p.set('q', $('#bk-q').value.trim());
@@ -2218,7 +2258,7 @@
           '</td><td>' + (b.payment_amount != null ? esc(money(b.payment_amount)) : '—') + '<div class="tiny">' +
           badge(b.payment_record_status || b.payment_status || 'none') + '</div></td><td>' + settleBadge(b) + '</td><td>' +
           badge(b.status) + '</td><td><div class="row wrap" style="gap:6px">' + act.join('') + '</div></td></tr>';
-      }).join('') : '<tr><td colspan="9"><div class="empty"><strong>No bookings found</strong>Try a different filter.</div></td></tr>';
+      }).join('') : '<tr><td colspan="10"><div class="empty"><strong>No bookings found</strong>Try a different filter.</div></td></tr>';
     }).catch(function (e) { toast(e.message, 'error'); });
   }
 
@@ -2241,17 +2281,10 @@
     var det = e.target.closest('[data-detail]');
     if (det) {
       var b = BOOKINGS.filter(function (x) { return x.id === Number(det.dataset.detail); })[0];
+      if (!b) return;
       modal({
-        title: 'Booking ' + b.reference, wide: true,
-        body: '<dl class="summary-list">' +
-          ['Player|' + b.player_name, 'Email|' + b.player_email, 'Mobile|' + (b.player_mobile || '—'),
-           'Court|' + b.court_name, 'Date|' + humanDate(b.booking_date),
-           'Time|' + humanTime(b.start_time) + ' – ' + humanTime(b.end_time),
-           'Players|' + b.players, 'Amount|' + money(b.amount), 'Status|' + b.status,
-           'Created by|' + b.created_by, 'Notes|' + (b.notes || '—')].map(function (r) {
-            var p = r.split('|');
-            return '<div class="summary-row"><dt>' + esc(p[0]) + '</dt><dd>' + esc(p[1]) + '</dd></div>';
-          }).join('') + '</dl>',
+        title: 'Booking details',
+        body: bookingDetailsBody(b),
         confirmText: 'Send reminder',
         onConfirm: function () {
           return api('/api/admin/bookings/' + b.id + '/reminder', { method: 'POST' })
@@ -2336,16 +2369,16 @@
             humanTime(c.exclusive_tournament.start_time) + ' – ' +
             humanTime(c.exclusive_tournament.end_time) + '</span></div>'
           : '';
-        return '<div class="card court-card"><div class="spread"><h3 class="card-title">' + esc(c.name) + '</h3>' +
+        return '<div class="card court-card"><div class="spread calendar-court-head"><div class="row"><span class="calendar-court-icon">' + adminIcon('court') + '</span><div><h3 class="card-title">' + esc(c.name) + '</h3><span class="tiny muted">Court schedule</span></div></div>' +
           badge(c.status) + '</div>' + excl + (events ? '<div class="event-chips">' + events + '</div>' : '') +
           '<div class="court-preview">' + (c.slots.length ? '' : '<div class="court-preview-row"><span class="tiny muted">No time slots configured for this court yet.</span></div>') + c.slots.map(function (s) {
-            var ico = s.booking_status === 'available' ? '✓ ' : s.booked ? '✕ ' : '⛔ ';
+            var ico = '<span class="schedule-dot" aria-hidden="true"></span>';
             /* Same terminology everywhere: AVAILABLE / BOOKED - Regular /
                BOOKED - Open Play / BOOKED - Tournament. */
             var text = s.status_label + (s.event ? ' · ' + s.event.title : '');
             return '<div class="court-preview-row"><span class="num">' + humanTime(s.start) + '</span>' +
-              '<span class="st st-' + s.status + (s.booked ? ' is-booked' : '') + '">' + ico + esc(text) + '</span></div>';
-          }).join('') + '</div>' + slotEditor(c) + '</fieldset>';
+              '<span class="st st-' + s.status + (s.booked ? ' is-booked' : '') + '">' + ico + '<span>' + esc(text) + '</span></span></div>';
+          }).join('') + '</div>' + slotEditor(c) + '</div>';
       }).join('');
       wireSlotEditors();
     }).catch(function (e) { toast(e.message, 'error'); });
@@ -2646,7 +2679,7 @@
     return api('/api/admin/players' + (q ? '?q=' + encodeURIComponent(q) : '')).then(function (rows) {
       PLAYERS = rows;
       $('#players-body').innerHTML = rows.length ? rows.map(function (p) {
-        return '<tr><td>' + esc(p.full_name) + '</td><td>' + esc(p.email) + '</td><td class="num">' + esc(p.mobile || '—') +
+        return '<tr><td>' + adminPerson(p.full_name) + '</td><td>' + esc(p.email) + '</td><td class="num">' + esc(p.mobile || '—') +
           '</td><td class="num">' + p.booking_count + '</td><td>' + badge(p.status) + '</td><td>' +
           '<button class="btn btn-outline btn-sm" data-player-status="' + p.id + '" data-to="' +
           (p.status === 'active' ? 'suspended' : 'active') + '">' + (p.status === 'active' ? 'Suspend' : 'Reactivate') + '</button></td></tr>';
@@ -2729,19 +2762,16 @@
     $$('[data-nttab]').forEach(function (x) { x.setAttribute('aria-selected', String(x.dataset.nttab === key)); });
     Object.keys(NT_PANES).forEach(function (k) {
       var pane = $(NT_PANES[k]); if (!pane) return;
-      var hide = k !== key; pane.hidden = hide; pane.classList.toggle('hidden', hide);
+      var hide = key === 'broadcast' ? k !== 'broadcast' : (key === 'queue' && k === 'log'); pane.hidden = hide; pane.classList.toggle('hidden', hide);
     });
-    if (shouldLoad === false) return;
-    if (key === 'queue') loadQueue();
-    if (key === 'broadcast') previewAudience();
-    if (key === 'log') loadNotifications();
+    $('#page-notifications').dataset.notificationTab = key;
+    if (shouldLoad !== false) loadCommunicationsView();
   }
   $$('[data-nttab]').forEach(function (t) { t.onclick = function () { setNotificationTab(t.dataset.nttab); }; });
   setNotificationTab('log', false);
   function loadCommunicationsView() {
-    if (NT_ACTIVE === 'queue') return loadQueue();
     if (NT_ACTIVE === 'broadcast') return previewAudience();
-    return loadNotifications();
+    return Promise.all([NT_ACTIVE === 'log' ? loadNotifications() : Promise.resolve(), loadQueue(), previewAudience()]);
   }
 
   function loadQueue() {
@@ -2819,40 +2849,37 @@
   $('#rp-from').value = ymd(new Date(Date.now() - 29 * 86400000));
   $('#rp-to').value = ymd(new Date());
   $('#rp-run').onclick = function () { var b = this; busy(b, true); runReport().finally(function () { busy(b, false); }); };
+
   function runReport() {
-    var p = new URLSearchParams({ from: $('#rp-from').value, to: $('#rp-to').value });
+    var from = $('#rp-from').value, to = $('#rp-to').value;
+    if (!from || !to || from > to) { toast('Choose a valid date range, with the start before the end.', 'error'); return Promise.resolve(); }
+    var p = new URLSearchParams({ from: from, to: to });
     return api('/api/admin/reports?' + p.toString()).then(function (d) {
-      var s = d.summary;
+      var s = d.summary || {}, f = d.finance || {}, m = d.membershipStats || {};
       $('#rp-summary').innerHTML = [
-        ['Total bookings', s.total || 0], ['Confirmed', s.confirmed || 0], ['Completed', s.completed || 0],
-        ['Pending', s.pending || 0], ['Cancelled', s.cancelled || 0], ['Rejected', s.rejected || 0],
-        ['Total business revenue', money((d.finance || {}).total_revenue)],
-        ['Reservation fees', money((d.finance || {}).reservation_revenue)],
-        ['Game payments', money((d.finance || {}).game_revenue)],
-        ['Event revenue', money((d.finance || {}).event_revenue)],
-        ['Membership revenue', money((d.finance || {}).membership_revenue)],
-        ['Active members', (d.membershipStats || {}).active || 0],
-        ['Outstanding balance', money((d.finance || {}).outstanding_balance)],
-        ['Booked value', money(s.revenue)], ['Range', d.from + ' → ' + d.to]
-      ].map(function (c) {
-        return '<div class="card tight stat-card"><span class="label">' + esc(c[0]) + '</span><span class="stat-value num" style="font-size:1.45rem">' + esc(c[1]) + '</span></div>';
-      }).join('');
-      var max = Math.max.apply(null, d.byDay.map(function (x) { return x.total; }).concat([1]));
-      $('#rp-chart').innerHTML = d.byDay.length ? d.byDay.map(function (x) {
-        return '<div class="bar-col" title="' + esc(x.date) + ': ' + x.total + '"><div class="bar" style="height:' +
-          Math.max(4, x.total / max * 130) + 'px"></div><span class="bar-label">' + x.date.slice(5) + '</span></div>';
-      }).join('') : '<div class="empty" style="width:100%">No bookings in this range.</div>';
-      var rmax = Math.max.apply(null, d.byCourt.map(function (x) { return x.revenue; }).concat([1]));
-      $('#rp-courts').innerHTML = d.byCourt.map(function (x) {
-        return '<div><div class="spread tiny"><span>' + esc(x.name) + '</span><span class="num">' + money(x.revenue) + '</span></div>' +
-          '<div class="meter" style="margin-top:6px"><i style="width:' + (x.revenue / rmax * 100) + '%"></i></div></div>';
-      }).join('') || '<div class="empty">No court data.</div>';
-      $('#rp-peak').innerHTML = d.peak.map(function (x) {
-        return '<tr><td class="num">' + humanTime(x.hour) + '</td><td class="num">' + x.total + '</td></tr>'; }).join('') ||
-        '<tr><td colspan="2" class="muted">No data</td></tr>';
-      $('#rp-players').innerHTML = d.topPlayers.map(function (x) {
-        return '<tr><td>' + esc(x.name) + '<div class="tiny muted">' + esc(x.email) + '</div></td><td class="num">' + x.total + '</td></tr>'; }).join('') ||
-        '<tr><td colspan="2" class="muted">No data</td></tr>';
+        ['Total bookings', s.total || 0, 'calendar', '', 'Selected booking dates'],
+        ['Revenue collected', money(f.total_revenue), 'money', '', 'Verified within this period'],
+        ['Active members', m.active || 0, 'people', '', 'Current active memberships'],
+        ['Outstanding balance', money(f.outstanding_balance), 'clock', '', 'Bookings in this period'],
+        ['Booked value', money(s.revenue), 'court', '', 'Confirmed & completed']
+      ].map(adminMetric).join('');
+      var details = $('#rp-breakdown');
+      if (details) details.innerHTML = '<details class="admin-report-details"><summary>Financial &amp; booking breakdown</summary><dl class="admin-report-breakdown">' + [
+        ['Reservation fees collected', money(f.reservation_revenue)], ['Game payments collected', money(f.game_revenue)],
+        ['Event fees collected', money(f.event_revenue)], ['Membership fees collected', money(f.membership_revenue)],
+        ['Confirmed bookings', s.confirmed || 0], ['Completed bookings', s.completed || 0],
+        ['Cancelled bookings', s.cancelled || 0], ['No-show bookings', s.no_show || 0],
+        ['Pending bookings', s.pending || 0], ['Rejected bookings', s.rejected || 0], ['Date range', d.from + ' → ' + d.to]
+      ].map(function (item) { return '<div><dt>' + esc(item[0]) + '</dt><dd class="num">' + esc(item[1]) + '</dd></div>'; }).join('') + '</dl></details>';
+      $('#rp-chart').innerHTML = AdminCharts.bars(d.byDay || [], {from: d.from, to: d.to, label: 'Bookings per day'});
+      $('#rp-courts').innerHTML = AdminCharts.donut((d.byCourt || []).map(function (c) { return {name: c.name, total: c.revenue}; }), {label: 'Booked value by court', totalLabel: 'Booked value', format: money});
+      var peak = d.peak || [], max = Math.max.apply(null, peak.map(function (x) { return Number(x.total) || 0; }).concat([1]));
+      $('#rp-peak').innerHTML = peak.map(function (x) {
+        return '<tr><td class="num">' + humanTime(x.hour) + '</td><td><div class="admin-peak-value"><span class="num">' + esc(x.total) + '</span><div class="meter"><i style="width:' + ((Number(x.total) || 0) / max * 100) + '%"></i></div></div></td></tr>';
+      }).join('') || '<tr><td colspan="2" class="muted">No bookings in this date range.</td></tr>';
+      $('#rp-players').innerHTML = (d.topPlayers || []).map(function (x) {
+        return '<tr><td>' + adminPerson(x.name, x.email) + '</td><td class="num">' + esc(x.total) + '</td></tr>';
+      }).join('') || '<tr><td colspan="2" class="muted">No players in this date range.</td></tr>';
     }).catch(function (e) { toast(e.message, 'error'); });
   }
 
@@ -2915,31 +2942,41 @@
     }).catch(function () { /* silent: badges must never interrupt admin work */ });
   }
 
+
   function loadEventsHub() {
-    /* The Events hub no longer depends on the old Registration Payments card or
-       its payment endpoint. Transactions remain available from the Transactions
-       sidebar, so entering Events cannot be blocked by payment-review data. */
+    /* Each panel remains usable when another source is unavailable. */
     return Promise.all([
-      api('/api/admin/tournaments').catch(function () { return []; }),
-      api('/api/admin/open-play').catch(function () { return []; }),
-      api('/api/admin/tournament-registrations?status=all').catch(function () { return []; })
+      api('/api/admin/tournaments').catch(function () { return null; }),
+      api('/api/admin/open-play').catch(function () { return null; }),
+      api('/api/admin/tournament-registrations?status=all').catch(function () { return null; }),
+      api('/api/admin/event-payments?status=under_review').catch(function () { return null; })
     ]).then(function (r) {
-      var tournaments = r[0] || [], openplay = r[1] || [], registrations = r[2] || [];
-      var tournamentVerified = registrations.reduce(function (sum, reg) {
-        return sum + (String(reg.payment_status || '') === 'verified' ? Number(reg.amount_due || 0) : 0);
-      }, 0);
-      var openPlayVerified = openplay.reduce(function (sum, e) { return sum + Number(e.collected || 0); }, 0);
-      var opRegistered = openplay.reduce(function (a, e) { return a + (e.registered || 0); }, 0);
-      $('#ev-hub-trn').textContent = tournaments.length + ' tournament' + (tournaments.length === 1 ? '' : 's');
-      $('#ev-hub-op').textContent = openplay.length + ' event' + (openplay.length === 1 ? '' : 's');
+      var tournaments = r[0] || [], openplay = r[1] || [], registrations = r[2] || [], today = ymd(new Date());
+      var missing = r.some(function (rows) { return rows === null; });
+      var warning = $('#ev-data-status');
+      if (warning) { warning.hidden = !missing; warning.textContent = missing ? 'Some event data could not be loaded. Refresh to try again; the available lists are shown below.' : ''; }
+      var opRegistered = openplay.reduce(function (sum, e) { return sum + Number(e.registered || 0); }, 0);
+      var paymentStats = r[3] && r[3].stats || {};
+      $('#ev-hub-trn').textContent = r[0] === null ? 'Unavailable' : tournaments.length + ' tournament' + (tournaments.length === 1 ? '' : 's');
+      $('#ev-hub-op').textContent = r[1] === null ? 'Unavailable' : openplay.length + ' event' + (openplay.length === 1 ? '' : 's');
+      var events = tournaments.map(function (t) { return {date: t.tournament_date, until: t.end_date || t.tournament_date, name: t.name, venue: t.court_name || t.venue, type: 'Tournament', page: 'tournaments', status: t.status}; })
+        .concat(openplay.map(function (e) { return {date: e.event_date, until: e.event_date, name: e.title, venue: e.court_name || e.location, type: 'Open Play', page: 'openplay', status: e.status}; }))
+        .filter(function (e) { return e.until && e.until >= today && ['cancelled','completed','draft'].indexOf(e.status) < 0; })
+        .sort(function (a, b) { return String(a.date).localeCompare(String(b.date)); });
       $('#ev-hub-stats').innerHTML = [
-        ['Published tournaments', tournaments.filter(function (t) { return t.published; }).length],
-        ['Published Open Play', openplay.filter(function (e) { return e.published; }).length],
-        ['Open Play registrations', opRegistered],
-        ['Event revenue verified', money(tournamentVerified + openPlayVerified)]
-      ].map(function (s) {
-        return '<div class="card stat"><div class="stat-label">' + esc(s[0]) + '</div><div class="stat-value">' + esc(String(s[1])) + '</div></div>';
-      }).join('');
+        ['Upcoming events', r[0] === null || r[1] === null ? '—' : events.length, 'calendar', '', 'Scheduled events, including ongoing'],
+        ['Open Play registrations', r[1] === null ? '—' : opRegistered, 'people', '', 'Across all sessions'],
+        ['Payment reviews', r[3] === null ? '—' : paymentStats.pending_review || 0, 'clock', '', 'Tournament & Open Play payments'],
+        ['Event revenue collected', r[3] === null ? '—' : money(paymentStats.total_collected), 'money', '', 'Verified payments · all time']
+      ].map(adminMetric).join('');
+      var upcoming = $('#ev-upcoming-body');
+      if (upcoming) upcoming.innerHTML = events.slice(0, 8).map(function (e) {
+        return '<tr><td>' + humanDate(e.date) + '</td><td><strong>' + esc(e.name) + '</strong><div class="tiny muted">' + esc(e.venue || 'Venue to be announced') + '</div></td><td><span class="badge ' + (e.type === 'Tournament' ? 'badge-pending' : 'badge-confirmed') + '">' + esc(e.type) + '</span></td><td>' + adminStatus(e.status) + '</td><td><button class="btn btn-ghost btn-sm" data-goto-page="' + e.page + '">Manage</button></td></tr>';
+      }).join('') || '<tr><td colspan="5" class="muted">' + (r[0] === null || r[1] === null ? 'Unable to load all upcoming events.' : 'No upcoming events scheduled.') + '</td></tr>';
+      var recent = $('#ev-recent-body');
+      if (recent) recent.innerHTML = registrations.slice().sort(function (a, b) { return String(b.created_at || '').localeCompare(String(a.created_at || '')) || Number(b.id) - Number(a.id); }).slice(0, 8).map(function (reg) {
+        return '<tr><td>' + adminPerson(reg.client_name || reg.full_name || reg.player_name) + '</td><td>' + esc(reg.tournament_name) + '<div class="tiny muted">' + esc(reg.division_name || '') + '</div></td><td>' + (reg.created_at ? humanDate(String(reg.created_at).slice(0, 10)) : '—') + '</td><td>' + adminStatus(reg.payment_rejected ? 'rejected' : reg.status) + '</td></tr>';
+      }).join('') || '<tr><td colspan="4" class="muted">' + (r[2] === null ? 'Could not load recent registrations.' : 'No tournament registrations yet.') + '</td></tr>';
     }).catch(function (e) { toast(e.message, 'error'); });
   }
 
@@ -3230,9 +3267,15 @@
 
   /* ---------- membership administration ---------- */
   var MEMBERSHIP_PLANS=[];
-  function membershipPlanForm(p){p=p||{};return '<div class="grid cols-2"><div class="field"><label class="label">Plan name</label><input class="input" id="mp-name" value="'+esc(p.name||'')+'"></div><div class="field"><label class="label">Price</label><input class="input" id="mp-price" type="number" min="0" step="0.01" value="'+Number(p.price||0)+'"></div><div class="field"><label class="label">Duration (days)</label><input class="input" id="mp-days" type="number" min="1" value="'+Number(p.duration_days||365)+'"></div><div class="field"><label class="label">Court discount %</label><input class="input" id="mp-court" type="number" min="0" max="100" value="'+Number(p.court_discount_percent||0)+'"></div><div class="field"><label class="label">Reservation-fee discount %</label><input class="input" id="mp-res" type="number" min="0" max="100" value="'+Number(p.reservation_discount_percent||0)+'"></div><div class="field"><label class="label">Tournament discount %</label><input class="input" id="mp-trn" type="number" min="0" max="100" value="'+Number(p.tournament_discount_percent||0)+'"></div><div class="field"><label class="label">Open Play discount %</label><input class="input" id="mp-op" type="number" min="0" max="100" value="'+Number(p.open_play_discount_percent||0)+'"></div><div class="field"><label class="label">Advance booking days</label><input class="input" id="mp-advance" type="number" min="0" value="'+Number(p.advance_booking_days||14)+'"></div><div class="field"><label class="label">Max active bookings</label><input class="input" id="mp-max" type="number" min="1" value="'+Number(p.max_active_bookings||5)+'"></div><div class="field"><label class="label">Cancellation window (hours)</label><input class="input" id="mp-cancel" type="number" min="0" value="'+Number(p.cancellation_hours||4)+'"></div></div><div class="field"><label class="label">Description</label><textarea class="textarea" id="mp-desc">'+esc(p.description||'')+'</textarea></div><label class="switch mt-3"><input type="checkbox" id="mp-active"'+((p.status||'active')==='active'?' checked':'')+'><span class="track"></span><span>Plan active / available to players</span></label>'}
+  function membershipPlanForm(p) {
+    p=p||{};
+    function field(id,label,value,min,max,step) { return '<div class="field"><label class="label" for="mp-'+id+'">'+label+'</label><input class="input" id="mp-'+id+'" type="number" min="'+min+'"'+(max!=null?' max="'+max+'"':'')+' step="'+(step||1)+'" value="'+Number(value)+'"></div>'; }
+    return '<fieldset class="admin-form-section"><legend>Plan details</legend><div class="field"><label class="label" for="mp-name">Plan name</label><input class="input" id="mp-name" value="'+esc(p.name||'')+'" placeholder="e.g. Premier Player"></div><div class="grid cols-2">'+
+      field('days','Duration (days)',p.duration_days||365,1)+field('price','Price ('+esc(SETTINGS.currency||'PHP')+')',p.price||0,0,null,'0.01')+'</div><div class="field"><label class="label" for="mp-desc">Description</label><textarea class="textarea" id="mp-desc" rows="2" placeholder="What makes this plan right for your players?">'+esc(p.description||'')+'</textarea></div></fieldset>'+
+      '<fieldset class="admin-form-section"><legend>Booking benefits</legend><div class="grid cols-2">'+field('court','Court discount %',p.court_discount_percent||0,0,100)+field('res','Reservation-fee discount %',p.reservation_discount_percent||0,0,100)+field('trn','Tournament discount %',p.tournament_discount_percent||0,0,100)+field('op','Open Play discount %',p.open_play_discount_percent||0,0,100)+field('advance','Advance booking days',p.advance_booking_days||14,0)+field('max','Max active bookings',p.max_active_bookings||5,1)+field('cancel','Cancellation window (hours)',p.cancellation_hours||4,0)+'</div></fieldset><label class="switch mt-3"><input type="checkbox" id="mp-active"'+((p.status||'active')==='active'?' checked':'')+'><span class="track"></span><span>Plan active / available to players</span></label>';
+  }
   function readMembershipPlan(h){return{name:$('#mp-name',h).value.trim(),description:$('#mp-desc',h).value.trim(),price:Number($('#mp-price',h).value)||0,duration_days:Number($('#mp-days',h).value)||365,court_discount_percent:Number($('#mp-court',h).value)||0,reservation_discount_percent:Number($('#mp-res',h).value)||0,tournament_discount_percent:Number($('#mp-trn',h).value)||0,open_play_discount_percent:Number($('#mp-op',h).value)||0,advance_booking_days:Number($('#mp-advance',h).value)||0,max_active_bookings:Number($('#mp-max',h).value)||1,cancellation_hours:Number($('#mp-cancel',h).value)||0,member_only_events:false,priority_waitlist:false,status:$('#mp-active',h).checked?'active':'inactive'};}
-  function loadMembershipAdmin(){return Promise.all([api('/api/admin/membership-plans'),api('/api/admin/memberships')]).then(function(r){MEMBERSHIP_PLANS=r[0]||[];var memberships=r[1]||[],filter=($('#membership-status-filter')||{}).value||'all';$('#membership-plans-admin').innerHTML=MEMBERSHIP_PLANS.length?MEMBERSHIP_PLANS.map(function(p){return '<div class="list-row"><span class="list-main"><span class="list-title">'+esc(p.name)+'</span><span class="list-sub">'+money(p.price)+' · '+p.duration_days+' days · '+p.court_discount_percent+'% court · '+p.reservation_discount_percent+'% fee discount</span></span><span class="list-end">'+badge(p.status)+'<button class="btn btn-ghost btn-sm" data-edit-membership-plan="'+p.id+'">Edit</button></span></div>';}).join(''):'<div class="empty">No membership plans yet.</div>';var rows=memberships.filter(function(m){return filter==='all'||m.status===filter;});$('#memberships-admin').innerHTML=rows.length?rows.map(function(m){return '<div class="list-row"><span class="list-main"><span class="list-title">'+esc(m.full_name)+' · '+esc(m.plan_name)+'</span><span class="list-sub">'+esc(m.email)+' · '+esc(m.status.replace(/_/g,' '))+(m.expires_at?' · expires '+esc(m.expires_at.slice(0,10)):'')+'</span></span><span class="list-end">'+badge(m.status)+'</span></div>';}).join(''):'<div class="empty">No memberships match this filter.</div>';});}
+  function loadMembershipAdmin(){return Promise.all([api('/api/admin/membership-plans'),api('/api/admin/memberships')]).then(function(r){MEMBERSHIP_PLANS=r[0]||[];var memberships=r[1]||[],filter=($('#membership-status-filter')||{}).value||'all';$('#membership-plans-admin').innerHTML=MEMBERSHIP_PLANS.length?MEMBERSHIP_PLANS.map(function(p){return '<article class="membership-plan-card"><div class="spread"><span class="plan-icon">'+adminIcon('star')+'</span>'+badge(p.status)+'</div><h3>'+esc(p.name)+'</h3><p class="membership-plan-price">'+money(p.price)+'<small> / '+p.duration_days+' days</small></p><p class="tiny muted">'+esc(p.description||'Your next game, with more benefits.')+'</p><ul class="plan-benefits"><li>'+Number(p.court_discount_percent||0)+'% court discount</li><li>'+Number(p.reservation_discount_percent||0)+'% reservation-fee discount</li><li>'+Number(p.advance_booking_days||0)+'-day advance booking</li><li>Up to '+Number(p.max_active_bookings||0)+' active bookings</li></ul><button class="btn btn-outline btn-block" data-edit-membership-plan="'+p.id+'">Edit plan</button></article>';}).join(''):'<div class="empty">No membership plans yet.</div>';var rows=memberships.filter(function(m){return filter==='all'||m.status===filter;});$('#memberships-admin').innerHTML=rows.length?rows.map(function(m){return '<div class="list-row"><span class="list-main"><span class="list-title">'+esc(m.full_name)+' · '+esc(m.plan_name)+'</span><span class="list-sub">'+esc(m.email)+' · '+esc(m.status.replace(/_/g,' '))+(m.expires_at?' · expires '+esc(m.expires_at.slice(0,10)):'')+'</span></span><span class="list-end">'+badge(m.status)+'</span></div>';}).join(''):'<div class="empty">No memberships match this filter.</div>';});}
   $('#btn-new-membership-plan').onclick=function(){modal({title:'New membership plan',wide:true,body:membershipPlanForm(),confirmText:'Create plan',onConfirm:function(h){return api('/api/admin/membership-plans',{method:'POST',body:readMembershipPlan(h)}).then(function(){toast('Membership plan created.','success');loadMembershipAdmin();});}});};
   $('#membership-plans-admin').onclick=function(e){var b=e.target.closest('[data-edit-membership-plan]');if(!b)return;var p=MEMBERSHIP_PLANS.filter(function(x){return String(x.id)===String(b.dataset.editMembershipPlan);})[0];modal({title:'Edit membership plan',wide:true,body:membershipPlanForm(p),confirmText:'Save plan',onConfirm:function(h){var body=readMembershipPlan(h);return api('/api/admin/membership-plans/'+p.id,{method:'PUT',body:body}).then(function(){toast('Membership plan updated.','success');loadMembershipAdmin();});}});};
   $('#membership-status-filter').onchange=loadMembershipAdmin;
@@ -3350,7 +3393,7 @@
   };
 
   /* ---------- In-Charge PWA push ---------- */
-  var ADMIN_SW_VERSION='27-reference-booking';
+  var ADMIN_SW_VERSION='28-admin-reference';
   var PUSH_PREP={reg:null,publicKey:null,serverStatus:null,ready:false,error:null,promise:null};
   function b64ToUint8(s){s=String(s||'').replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';var raw=atob(s),a=new Uint8Array(raw.length);for(var i=0;i<raw.length;i++)a[i]=raw.charCodeAt(i);return a;}
   function bytesEqual(a,b){if(!a||!b)return false;var x=new Uint8Array(a),y=new Uint8Array(b);if(x.length!==y.length)return false;for(var i=0;i<x.length;i++)if(x[i]!==y[i])return false;return true;}
@@ -4016,7 +4059,9 @@
   function showApp() {
     $('#view-auth').classList.add('hidden');
     $('#view-app').classList.remove('hidden');
-    $('#admin-email').textContent = USER.email;
+    $('#admin-email').textContent = USER.full_name || USER.email;
+    $('#admin-account').title = USER.email || '';
+    $('#admin-avatar').textContent = (USER.full_name || USER.email || 'A').trim().split(/\s+/).slice(0, 2).map(function (n) { return n.charAt(0); }).join('').toUpperCase();
     applyRoleUI();
     loadCourts();
     var pushParams=new URLSearchParams(location.search),pushPage=pushParams.get('push_page');
@@ -4044,8 +4089,9 @@
 
 <script>
 /* PIKOL_PWA_INSTALL_RUNTIME */
-(function(){'use strict';var btn=document.getElementById('pwa-install-admin'),deferredPrompt=null,KEY='pikol_admin_installed_v3';function ios(){return /iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);}function standalone(){return window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true;}function marked(){return localStorage.getItem(KEY)==='1';}function setMarked(v){if(v)localStorage.setItem(KEY,'1');else localStorage.removeItem(KEY);}function showIosGuide(){var g=document.getElementById('ios-pwa-guide');if(g)g.hidden=false;if(typeof toast==='function')toast('iPhone: Safari → Share → Add to Home Screen. Then open PIKOL Admin from the Home Screen icon.','error');}function sync(){if(!btn)return;if(standalone()){setMarked(true);btn.hidden=true;return;}if(ios()){btn.hidden=false;btn.textContent='Install Admin App on iPhone';return;}btn.textContent='Install Admin App';btn.hidden=!deferredPrompt||marked();}window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();deferredPrompt=e;if(!standalone())setMarked(false);sync();});window.addEventListener('appinstalled',function(){setMarked(true);deferredPrompt=null;sync();});window.addEventListener('pageshow',sync);document.addEventListener('visibilitychange',function(){if(!document.hidden)sync();});if(btn)btn.addEventListener('click',async function(){if(ios()){showIosGuide();return;}if(!deferredPrompt)return;btn.disabled=true;try{await deferredPrompt.prompt();var c=await deferredPrompt.userChoice;if(c&&c.outcome==='accepted')setMarked(true);}catch(_){}deferredPrompt=null;btn.disabled=false;sync();});if('serviceWorker' in navigator)window.addEventListener('load',function(){navigator.serviceWorker.register('service-worker.js?v=27-reference-booking',{scope:'./',updateViaCache:'none'}).catch(function(){});});sync();})();
+(function(){'use strict';var btn=document.getElementById('pwa-install-admin'),deferredPrompt=null,KEY='pikol_admin_installed_v3';function ios(){return /iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);}function standalone(){return window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true;}function marked(){return localStorage.getItem(KEY)==='1';}function setMarked(v){if(v)localStorage.setItem(KEY,'1');else localStorage.removeItem(KEY);}function showIosGuide(){var g=document.getElementById('ios-pwa-guide');if(g)g.hidden=false;if(typeof toast==='function')toast('iPhone: Safari → Share → Add to Home Screen. Then open PIKOL Admin from the Home Screen icon.','error');}function sync(){if(!btn)return;if(standalone()){setMarked(true);btn.hidden=true;return;}if(ios()){btn.hidden=false;btn.textContent='Install Admin App on iPhone';return;}btn.textContent='Install Admin App';btn.hidden=!deferredPrompt||marked();}window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();deferredPrompt=e;if(!standalone())setMarked(false);sync();});window.addEventListener('appinstalled',function(){setMarked(true);deferredPrompt=null;sync();});window.addEventListener('pageshow',sync);document.addEventListener('visibilitychange',function(){if(!document.hidden)sync();});if(btn)btn.addEventListener('click',async function(){if(ios()){showIosGuide();return;}if(!deferredPrompt)return;btn.disabled=true;try{await deferredPrompt.prompt();var c=await deferredPrompt.userChoice;if(c&&c.outcome==='accepted')setMarked(true);}catch(_){}deferredPrompt=null;btn.disabled=false;sync();});if('serviceWorker' in navigator)window.addEventListener('load',function(){navigator.serviceWorker.register('service-worker.js?v=28-admin-reference',{scope:'./',updateViaCache:'none'}).catch(function(){});});sync();})();
 </script>
 
 </body>
 </html>
+
