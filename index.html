@@ -178,12 +178,12 @@
         <div class="booking-gallery"><div id="booking-photo" class="court-visual"></div><div class="pick-grid" id="book-courts" aria-label="Choose a court"></div><div id="booking-court-description"></div><p class="field-hint">Select a court above to explore its availability.</p></div>
         <div class="booking-controls">
           <div class="steps" id="steps"><div class="step" data-step="1"><span class="step-n">1</span>Date</div><div class="step" data-step="2"><span class="step-n">2</span>Court</div><div class="step" data-step="3"><span class="step-n">3</span>Time</div><div class="step" data-step="4"><span class="step-n">4</span>Confirm</div></div>
-          <div class="grid cols-2 booking-inputs"><div class="field"><label class="label" for="booking-date">Select Date</label><input class="input" id="booking-date" type="date" required/></div><div class="field"><label class="label" for="booking-time">Select Time Slot</label><select class="select" id="booking-time"><option value="">Choose a court first</option></select></div></div>
+          <div class="grid cols-3 booking-inputs"><div class="field"><label class="label" for="booking-date">Select Date</label><input class="input" id="booking-date" type="date" required/></div><div class="field"><label class="label" for="booking-time">Start Time</label><select class="select" id="booking-time"><option value="">Choose a court first</option></select></div><div class="field"><label class="label" for="booking-end">End Time</label><select class="select" id="booking-end" disabled><option value="">Select start time first</option></select></div></div>
           <details class="booking-calendar-details"><summary>Browse calendar <span id="book-date-label"></span></summary><div class="card calendar" id="calendar"><div class="calendar-head"><button class="btn btn-ghost btn-icon" id="cal-prev" aria-label="Previous month">‹</button><span class="calendar-month" id="cal-month"></span><button class="btn btn-ghost btn-icon" id="cal-next" aria-label="Next month">›</button></div><div class="calendar-grid" id="cal-dow"></div><div class="calendar-grid" id="cal-days" role="grid"></div><button class="btn btn-outline btn-sm btn-block" id="cal-today">Today</button></div></details>
           <details id="slot-card" class="booking-times-details"><summary>View all time slots</summary><div class="slot-grid" id="slot-grid"></div></details>
           <div class="grid cols-2 booking-inputs"><div class="field"><label class="label" for="bk-players">Number of Players</label><div class="player-stepper"><button type="button" data-player-change="-1" aria-label="Fewer players">−</button><select class="select" id="bk-players"><option>2</option><option>3</option><option selected>4</option><option>5</option><option>6</option></select><button type="button" data-player-change="1" aria-label="More players">+</button></div><span class="field-hint">2 to 6 players</span></div><div class="field"><label class="label" for="bk-notes">Additional Notes (Optional)</label><textarea class="textarea" id="bk-notes" maxlength="300" placeholder="Special requests, equipment, occasion…"></textarea></div></div>
           <div class="card action-card" id="summary-card"><h2 class="section-title">Booking Summary</h2><dl class="summary-list" id="summary-list" aria-live="polite"></dl></div>
-          <p class="field-hint">Your reservation fee is paid after confirmation. Any remaining court balance is settled at the venue.</p><div id="booking-fee-status" class="hidden" role="status"><p class="field-hint">Payment details could not load.</p><button class="btn btn-outline btn-sm" data-retry-fees>Retry payment details</button></div><button class="btn btn-primary btn-block" id="btn-confirm" data-loading="Booking…">Continue to Confirmation →</button>
+          <p class="field-hint">Select a continuous time range. The full court fee is calculated automatically using the applicable daytime/evening rates and is paid online before staff approval.</p><div id="booking-fee-status" class="hidden" role="status"><p class="field-hint">Payment details could not load.</p><button class="btn btn-outline btn-sm" data-retry-fees>Retry payment details</button></div><button class="btn btn-primary btn-block" id="btn-confirm" data-loading="Booking…">Continue to Confirmation →</button>
         </div>
       </div>
     </section>
@@ -797,7 +797,7 @@
     if (!b) return;
     sel.date = ymd(new Date()); calCursor = new Date(); renderCalendar();
     sel.court = Number(b.dataset.bookCourt);
-    sel.start = null;
+    sel.start = null; sel.end = null; sel.end = null;
     goto('book');
   });
 
@@ -845,7 +845,7 @@
   });
 
   /* ---------- booking flow ---------- */
-  var sel = { date: ymd(new Date()), court: null, start: null };
+  var sel = { date: ymd(new Date()), court: null, start: null, end: null };
   var calCursor = new Date();
 
   function renderDow() {
@@ -872,12 +872,12 @@
   $('#cal-prev').onclick = function () { calCursor.setMonth(calCursor.getMonth() - 1); renderCalendar(); };
   $('#cal-next').onclick = function () { calCursor.setMonth(calCursor.getMonth() + 1); renderCalendar(); };
   $('#cal-today').onclick = function () {
-    calCursor = new Date(); sel.date = ymd(new Date()); sel.start = null; renderCalendar(); loadAvailability();
+    calCursor = new Date(); sel.date = ymd(new Date()); sel.start = null; sel.end = null; sel.end = null; renderCalendar(); loadAvailability();
   };
   $('#cal-days').addEventListener('click', function (e) {
     var b = e.target.closest('[data-date]');
     if (!b || b.disabled) return;
-    sel.date = b.dataset.date; sel.start = null;
+    sel.date = b.dataset.date; sel.start = null; sel.end = null; sel.end = null;
     renderCalendar(); loadAvailability();
   });
 
@@ -899,10 +899,10 @@
       AVAIL = data;
       var bookable = data.courts.filter(function (c) { return c.status === 'active' && c.slots.some(function (slot) { return slot.status === 'available'; }); });
       var requestedCourt=sel.court;
-      if (sel.court && !bookable.some(function (c) { return c.id === sel.court; })) { sel.court = null; sel.start = null; }
+      if (sel.court && !bookable.some(function (c) { return c.id === sel.court; })) { sel.court = null; sel.start = null; sel.end = null; sel.end = null; }
       if(!requestedCourt && bookable.length)sel.court=bookable[0].id;
       var court = bookable.filter(function (c) { return c.id === sel.court; })[0];
-      if (sel.start && (!court || !court.slots.some(function (slot) { return slot.start === sel.start && (slot.bookable === undefined ? slot.status === 'available' : !!slot.bookable); }))) sel.start = null;
+      if (sel.start && (!court || !court.slots.some(function (slot) { return slot.start === sel.start && (slot.bookable === undefined ? slot.status === 'available' : !!slot.bookable); }))) { sel.start = null; sel.end = null; sel.end = null; }
       renderBooking();
     }).catch(function (e) {
       if (request !== availabilityRequest) return;
@@ -913,6 +913,30 @@
   }
   document.addEventListener('click', function (e) { if (e.target.closest('[data-retry-availability]')) loadAvailability(); });
 
+  function rangePricing(court,start,end) {
+    if(!court||!start||!end)return {total:0,duration:0,dayAmount:0,eveningAmount:0,dayMinutes:0,eveningMinutes:0};
+    var sm=(+start.slice(0,2))*60+(+start.slice(3,5)), em=(+end.slice(0,2))*60+(+end.slice(3,5));
+    var b=(AVAIL&&AVAIL.evening_rate_start)||court.evening_rate_start||'16:00';
+    var bm=(+b.slice(0,2))*60+(+b.slice(3,5));
+    var dm=Math.max(0,Math.min(em,bm)-sm), xm=Math.max(0,em-Math.max(sm,bm));
+    var dr=Number(court.day_hourly_rate==null?court.hourly_rate:court.day_hourly_rate)||0;
+    var er=Number(court.evening_hourly_rate==null?court.hourly_rate:court.evening_hourly_rate)||0;
+    var da=dm/60*dr, ea=xm/60*er, total=da+ea;
+    if(CURRENT_MEMBERSHIP)total=memberPrice(total,CURRENT_MEMBERSHIP.court_discount_percent);
+    return {total:total,duration:em-sm,dayAmount:da,eveningAmount:ea,dayMinutes:dm,eveningMinutes:xm,dayRate:dr,eveningRate:er,boundary:b};
+  }
+  function validRangeEnds(court,start) {
+    if(!court||!start)return [];
+    var out=[], active=false;
+    for(var i=0;i<court.slots.length;i++){
+      var sl=court.slots[i], ok=sl.bookable===undefined?sl.status==='available':!!sl.bookable;
+      if(sl.start===start)active=true;
+      if(!active)continue;
+      if(!ok)break;
+      out.push(sl.end);
+    }
+    return out;
+  }
   function renderBooking() {
     $('#book-date-label').textContent = humanDate(sel.date);
     if (!AVAIL) return;
@@ -930,7 +954,7 @@
         (st === 'available' ? free + ' open' : st === 'booked' ? 'Full' : esc(st.charAt(0).toUpperCase() + st.slice(1))) +
         '</span></span>' +
         '<span class="p-sub">' + esc(c.surface || c.description || 'Pickleball court') + '</span>' +
-        '<span class="court-pick-rate"><strong>' + money(c.hourly_rate) + '</strong><small> / hour</small></span>' +
+        '<span class="court-pick-rate"><strong>' + money(c.day_hourly_rate==null?c.hourly_rate:c.day_hourly_rate) + '</strong><small> day · ' + money(c.evening_hourly_rate==null?c.hourly_rate:c.evening_hourly_rate) + ' after ' + humanTime(c.evening_rate_start||AVAIL.evening_rate_start||'16:00') + '</small></span>' +
         (evs.length ? '<span class="p-sub">' + evs.map(function (ev) {
           return esc(ev.icon) + ' ' + esc(ev.label) + ' ' + humanTime(ev.start_time) + '–' + humanTime(ev.end_time);
         }).join(' · ') + '</span>' : '') +
@@ -968,21 +992,28 @@
     }
 
     var slotMin = AVAIL.slot_minutes;
-    var amount = court ? Number(court.hourly_rate) * (slotMin / 60) : 0;
-    var fee = PAYCFG ? Number(PAYCFG.reservation_fee || 0) : 0;
-    if(CURRENT_MEMBERSHIP){amount=memberPrice(amount,CURRENT_MEMBERSHIP.court_discount_percent);fee=memberPrice(fee,CURRENT_MEMBERSHIP.reservation_discount_percent);}
+    var ends = validRangeEnds(court,sel.start);
+    var endSel=$('#booking-end');
+    endSel.innerHTML = sel.start ? '<option value="">Choose end time</option>'+ends.map(function(x){return '<option value="'+x+'"'+(sel.end===x?' selected':'')+'>'+humanTime(x)+'</option>';}).join('') : '<option value="">Select start time first</option>';
+    endSel.disabled=!sel.start;
+    if(sel.end && ends.indexOf(sel.end)<0)sel.end=null;
+    var pricing=rangePricing(court,sel.start,sel.end);
+    var hours=pricing.duration/60;
+    var breakdown='';
+    if(pricing.dayMinutes) breakdown += row('Daytime '+humanTime(sel.start)+'–'+humanTime(pricing.boundary), money(pricing.dayAmount));
+    if(pricing.eveningMinutes) breakdown += row('After '+humanTime(pricing.boundary)+' portion', money(pricing.eveningAmount));
     $('#summary-list').innerHTML =
       row('Date', humanDate(sel.date)) +
       row('Court', court ? court.name : 'Not selected') +
-      row('Time', sel.start ? humanTime(sel.start) + ' – ' + humanTime(addMin(sel.start, slotMin)) : 'Not selected') +
-      row('Duration', slotMin + ' minutes') +
+      row('Time range', sel.start && sel.end ? humanTime(sel.start) + ' – ' + humanTime(sel.end) : 'Not selected') +
+      row('Duration', sel.start && sel.end ? (Number.isInteger(hours)?hours:hours.toFixed(1)) + ' hour' + (hours===1?'':'s') : '—') +
       row('Players', $('#bk-players').value + ' players') +
-      row('Court fee', court && sel.start ? money(amount) : '—') +
-      row('Reservation fee', PAYCFG ? money(fee) : 'Loading payment details…') +
-      row('Pay now', PAYCFG ? money(fee) : '—');
-    $('#btn-confirm').disabled = !(court && sel.start && PAYCFG);
+      breakdown +
+      row('Full court fee', court && sel.start && sel.end ? money(pricing.total) : '—') +
+      row('Pay now', court && sel.start && sel.end ? money(pricing.total) : '—');
+    $('#btn-confirm').disabled = !(court && sel.start && sel.end && PAYCFG);
 
-    var step = sel.start ? 4 : sel.court ? 3 : 2;
+    var step = (sel.start && sel.end) ? 4 : sel.court ? 3 : 2;
     $$('#steps .step').forEach(function (el) {
       var n = Number(el.dataset.step);
       el.classList.toggle('is-active', n === step);
@@ -1024,21 +1055,21 @@
   $('#book-courts').addEventListener('click', function (e) {
     var b = e.target.closest('[data-court]');
     if (!b || b.disabled) return;
-    sel.court = Number(b.dataset.court); sel.start = null; renderBooking();
+    sel.court = Number(b.dataset.court); sel.start = null; sel.end = null; sel.end = null; renderBooking();
     $('#slot-card').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   });
   $('#slot-grid').addEventListener('click', function (e) {
     var b = e.target.closest('[data-slot]');
     if (!b || b.disabled) return;
-    sel.start = b.dataset.slot; renderBooking();
-    $('#summary-card').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    sel.start = b.dataset.slot; sel.end = null; renderBooking();
+    $('#booking-end').focus();
   });
 
   $('#btn-confirm').onclick = function () {
     if(!requirePlayer(function(){goto('book');$('#btn-confirm').click();}))return;
     if (!AVAIL) return;
     var court = AVAIL.courts.filter(function (c) { return c.id === sel.court; })[0];
-    if (!court || !sel.start) return;
+    if (!court || !sel.start || !sel.end) return;
     modal({
       title: 'Confirm your booking',
       wide:true,
@@ -1047,29 +1078,28 @@
         '<div class="summary-row"><dt>Court</dt><dd>' + esc(court.name) + '</dd></div>' +
         '<div class="summary-row"><dt>Date</dt><dd>' + humanDate(sel.date) + '</dd></div>' +
         '<div class="summary-row"><dt>Time</dt><dd>' + humanTime(sel.start) + ' – ' +
-        humanTime(addMin(sel.start, AVAIL.slot_minutes)) + '</dd></div>' +
-        '<div class="summary-row"><dt>Court fee</dt><dd>' + esc(money(memberPrice(Number(court.hourly_rate) * AVAIL.slot_minutes / 60,CURRENT_MEMBERSHIP?CURRENT_MEMBERSHIP.court_discount_percent:0))) + '</dd></div>' +
-        '<div class="summary-row"><dt>Reservation fee</dt><dd>' + esc(money(memberPrice(PAYCFG ? PAYCFG.reservation_fee : 0,CURRENT_MEMBERSHIP?CURRENT_MEMBERSHIP.reservation_discount_percent:0))) + '</dd></div>' +
-        '<div class="summary-row"><dt>Pay now</dt><dd><strong>' + esc(money(memberPrice(PAYCFG ? PAYCFG.reservation_fee : 0,CURRENT_MEMBERSHIP?CURRENT_MEMBERSHIP.reservation_discount_percent:0))) + '</strong></dd></div></dl>' +
-        (CURRENT_MEMBERSHIP?'<div class="alert alert-success mt-3"><strong>Member benefits applied</strong><br><span class="tiny">Your configured court and reservation-fee discounts are already included.</span></div>':'') +
-        '<p class="field-hint mt-4">A valid conflict-free reservation is confirmed immediately. Payment is tracked separately and never needs a second reservation approval.</p>',
+        humanTime(sel.end) + '</dd></div>' +
+        '<div class="summary-row"><dt>Duration</dt><dd>' + esc((rangePricing(court,sel.start,sel.end).duration/60) + ' hour(s)') + '</dd></div>' +
+        '<div class="summary-row"><dt>Full court fee</dt><dd><strong>' + esc(money(rangePricing(court,sel.start,sel.end).total)) + '</strong></dd></div></dl>' +
+        (CURRENT_MEMBERSHIP?'<div class="alert alert-success mt-3"><strong>Member court discount applied</strong></div>':'') +
+        '<p class="field-hint mt-4">After submitting the request, pay the full court fee online and upload your proof. Staff confirms the booking after payment review.</p>',
       confirmText: 'Confirm booking',
       cancelText: 'Go back',
       onConfirm: function () {
         return api('/api/bookings', {
           method: 'POST',
           body: {
-            court_id: sel.court, date: sel.date, start_time: sel.start,
+            court_id: sel.court, date: sel.date, start_time: sel.start, end_time: sel.end,
             players: Number($('#bk-players').value), notes: $('#bk-notes').value
           }
         }).then(function (b) {
-          toast(Number(b.reservation_fee||0)>0?'Reservation confirmed. Please complete your reservation fee payment.':'Reservation confirmed. See you on court!', 'success');
+          toast('Booking request created. Please pay the full court fee for review.', 'success');
           $('#bk-notes').value = '';
-          sel.start = null;
+          sel.start = null; sel.end = null;
           return loadAvailability().then(function () {
             return loadBookings().then(function () {
               goto('bookings');
-              if(Number(b.reservation_fee||0)>0)setTimeout(function () { if(TOKEN&&USER)paymentDialog(b.id); }, 250);
+              setTimeout(function () { if(TOKEN&&USER)paymentDialog(b.id); }, 250);
             });
           });
         }).catch(function (err) {
@@ -1081,7 +1111,7 @@
     });
   };
 
-  /* ---------- reservation fee payment ---------- */
+  /* ---------- full booking payment ---------- */
   function loadPayCfg() {
     return api('/api/payment-methods').then(function (cfg) { PAYCFG = cfg; $('#booking-fee-status').classList.add('hidden'); if(AVAIL)renderBooking(); return cfg; });
   }
@@ -1101,7 +1131,6 @@
   }
   function manualMethodPanel(m) {
     if (!m) return '';
-    if (m.key === 'cash') return '<div class="payment-method-panel"><strong>Cash at venue</strong><p class="s muted">' + esc(m.instructions || '') + '</p></div>';
     var qr = m.qr_text && window.PIKOL_QR ? '<div class="payment-qr-wrap auto-qr"><div class="payment-provider-badge">' + esc(m.label) + '</div>' + window.PIKOL_QR.svg(m.qr_text,220) + '<span class="tiny muted">Scan the PIKOL number QR or copy the number below</span></div>' : '';
     var account = (m.account_name || m.account_number) ? '<div class="payment-account"><strong>' + esc(m.account_name || m.label) + '</strong><button type="button" class="copy-payment-number" data-copy-number="' + esc(m.account_number || '') + '">' + esc(m.account_number || '') + ' ⧉</button></div>' : '';
     return '<div class="payment-method-panel premium-pay-panel">' + qr + account + '<p class="s muted">' + esc(m.instructions || '') + '</p>' +
@@ -1117,16 +1146,15 @@
     function release(){if(!sourceBtn||submitted)return;delete sourceBtn.dataset.paymentDialogOpen;sourceBtn.disabled=false;sourceBtn.textContent=sourceBtn.dataset.originalText||'Pay';delete sourceBtn.dataset.originalText;}
     var b = myBookings.filter(function (x) { return x.id === Number(bookingId); })[0]; if (!b){release();return;}
     (PAYCFG ? Promise.resolve(PAYCFG) : loadPayCfg()).then(function () {
-      var fee = Number(b.reservation_fee == null ? PAYCFG.reservation_fee || 0 : b.reservation_fee);
-      if(!fee){release();toast('No reservation fee is due for this booking.','info');return;}
+      var fee = Number(b.amount || 0);
+      if(!fee){release();toast('No booking fee is due for this booking.','info');return;}
       var options = (PAYCFG.methods || []).map(function (m) { return '<option value="' + esc(m.key) + '"'+(m.available===false?' disabled':'')+'>' + esc(m.label) + (m.available===false?' · setup incomplete':'') + '</option>'; }).join('');
-      var dlg = modal({ title:'Reservation fee', locked:true, wide:true,onClose:release,
-        body:'<div class="payment-checkout"><div class="payment-summary-card"><span class="eyebrow">BOOKING</span><strong class="num">'+esc(b.reference)+'</strong><div>'+esc(b.court_name)+' · '+humanDate(b.booking_date)+' · '+humanTime(b.start_time)+'</div><div class="payment-total"><span>Reservation fee</span><strong>'+esc(money(fee))+'</strong></div></div>'+
+      var dlg = modal({ title:'Full booking payment', locked:true, wide:true,onClose:release,
+        body:'<div class="payment-checkout"><div class="payment-summary-card"><span class="eyebrow">BOOKING</span><strong class="num">'+esc(b.reference)+'</strong><div>'+esc(b.court_name)+' · '+humanDate(b.booking_date)+' · '+humanTime(b.start_time)+'</div><div class="payment-total"><span>Full court fee</span><strong>'+esc(money(fee))+'</strong></div></div>'+
           '<div class="field"><label class="label" for="pm-method">Payment method</label><select class="select" id="pm-method">'+options+'</select></div><div id="pm-details"></div></div>',
         confirmText:'Submit payment', cancelText:'Later',
         onConfirm:function(h){
           var method=$('#pm-method',h).value; var info=methodInfo(method); if(!info) return Promise.reject(new Error('Select a payment method.'));
-          if(method==='cash') return api('/api/bookings/'+b.id+'/payment',{method:'POST',body:{payment_method:'cash'}}).then(function(r){submitted=true;toast(r.reused?'Payment is already pending.':'Cash selected. Staff will record it after collection.','success');loadBookings();loadDashboard();});
           var ref=($('#pm-reference',h)||{}).value||''; var provider=method==='other'?(($('#pm-other-provider',h)||{}).value||''):''; var file=($('#pm-receipt',h)||{}).files&&$('#pm-receipt',h).files[0];
           if(ref.trim().length<4) return Promise.reject(new Error('Enter the payment reference number.'));
           if(method==='other'&&provider.trim().length<2) return Promise.reject(new Error('Specify the payment provider.'));
@@ -1155,7 +1183,7 @@
     var opts=methods.map(function(x){return '<option value="'+esc(x.key)+'">'+esc(x.label)+'</option>'}).join('');
     var dlg=modal({title:'Membership payment',wide:true,body:'<div class="payment-summary-card"><strong>'+esc(plan.name||'Membership')+'</strong><div class="payment-total"><span>Membership fee</span><strong>'+money(plan.price||0)+'</strong></div></div><div class="field"><label class="label">Payment method</label><select class="select" id="mb-method">'+opts+'</select></div><div id="mb-pay"></div>',confirmText:'Submit payment',onClose:release,onConfirm:function(h){
       var method=$('#mb-method',h).value;
-      if(method==='cash') return api('/api/membership/'+membershipId+'/payment',{method:'POST',body:{payment_method:'cash'}}).then(function(out){submitted=true;toast(out.reused?'Payment is already pending.':'Membership reserved. Pay at the venue to activate it.','success');return loadMembership();});
+      
       var ref=(($('#mb-ref',h)||{}).value||'').trim(),provider=(($('#mb-provider',h)||{}).value||'').trim(),file=($('#mb-receipt',h)||{}).files&&$('#mb-receipt',h).files[0];
       if(ref.length<4) return Promise.reject(new Error('Enter the payment reference number.'));
       if(method==='other'&&provider.length<2) return Promise.reject(new Error('Specify the payment provider.'));
@@ -1165,7 +1193,7 @@
     var h=dlg.host,sel=$('#mb-method',h),pay=$('#mb-pay',h);
     function render(){
       var info=methods.filter(function(x){return x.key===sel.value})[0]||{};
-      if(sel.value==='cash'){pay.innerHTML='<div class="payment-method-panel"><strong>Cash · Pay at venue</strong><p class="tiny muted mt-2">Your membership activates immediately after staff records the cash payment.</p></div>';return;}
+      
       var qr=(info.qr_text&&window.PIKOL_QR)?'<div class="payment-qr-wrap auto-qr"><div class="payment-provider-badge">'+esc(info.label||'')+'</div>'+PIKOL_QR.svg(info.qr_text,200)+'<strong>'+esc(info.account_name||'')+'</strong><div class="num">'+esc(info.account_number||'')+'</div><button type="button" class="btn btn-ghost btn-sm" data-copy-member-number>Copy number</button></div>':'';
       pay.innerHTML=qr+(info.instructions?'<p class="tiny muted">'+esc(info.instructions)+'</p>':'')+(sel.value==='other'?'<div class="field"><label class="label">Specify payment method</label><input class="input" id="mb-provider" placeholder="Bank / wallet / provider"></div>':'')+'<div class="grid cols-2"><div class="field"><label class="label">Reference number</label><input class="input" id="mb-ref"></div><div class="field"><label class="label">Receipt</label><input class="input" id="mb-receipt" type="file" accept="image/png,image/jpeg,image/webp"></div></div>';
       var cp=$('[data-copy-member-number]',h); if(cp)cp.onclick=function(){navigator.clipboard&&navigator.clipboard.writeText(info.account_number||'').then(function(){toast('Payment number copied.','success')});};
@@ -1534,13 +1562,13 @@
         body:'<div class="payment-checkout"><div class="payment-summary-card"><span class="eyebrow">EVENT PAYMENT</span><strong>'+esc(opts.eventName)+'</strong>'+(opts.subtitle?'<div class="s muted">'+esc(opts.subtitle)+'</div>':'')+'<div class="payment-total"><span>Amount due</span><strong>'+money(opts.amountDue)+'</strong></div></div><div class="field"><label class="label">Payment method</label><select class="select" id="pf-method">'+methods.map(function(x){return '<option value="'+esc(x.key)+'">'+esc(x.label)+'</option>';}).join('')+'</select></div><div id="pf-details"></div></div>',
         onConfirm:function(host){
           var method=$('#pf-method',host).value, info=methods.filter(function(x){return x.key===method;})[0]; if(!info)return Promise.reject(new Error('Select a payment method.'));
-          if(method==='cash') return api('/api/event-payments',{method:'POST',body:{event_type:opts.eventType,registration_id:opts.registrationId,payment_method:'cash'}}).then(function(r){submitted=true;toast(r.reused?'Payment is already pending.':'Cash selected. Staff will record it after collection.','success');loadMyRegistrations();if(opts.onDone)opts.onDone();});
+          
           var ref=($('#pf-reference',host)||{}).value||'', provider=method==='other'?((($('#pf-other-provider',host)||{}).value)||''):'', file=($('#pf-receipt',host)||{}).files&&$('#pf-receipt',host).files[0];
           if(ref.trim().length<4)return Promise.reject(new Error('Enter the payment reference number.')); if(method==='other'&&provider.trim().length<2)return Promise.reject(new Error('Specify the payment provider.'));
           return filePayload(file).then(function(receipt){return api('/api/event-payments',{method:'POST',body:{event_type:opts.eventType,registration_id:opts.registrationId,payment_method:method,reference_number:ref.trim(),other_provider:provider.trim(),receipt:receipt}});}).then(function(r){submitted=true;toast(r.reused?'Payment is already pending.':'Payment submitted for Admin verification.','success');loadMyRegistrations();if(opts.onDone)opts.onDone();});
         }});
       var host=m.host;
-      function render(){var key=$('#pf-method',host).value,info=methods.filter(function(x){return x.key===key;})[0]||{}; if(key==='cash'){$('#pf-details',host).innerHTML='<div class="payment-method-panel"><strong>Cash at venue</strong><p class="s muted">'+esc(info.instructions||'')+'</p></div>';return;}
+      function render(){var key=$('#pf-method',host).value,info=methods.filter(function(x){return x.key===key;})[0]||{}; 
         var qr=info.qr_text&&window.PIKOL_QR?'<div class="payment-qr-wrap auto-qr"><div class="payment-provider-badge">'+esc(info.label||key)+'</div>'+window.PIKOL_QR.svg(info.qr_text,220)+'<span class="tiny muted">Scan the PIKOL number QR or copy the number below</span></div>':'';
         var acct=(info.account_name||info.account_number)?'<div class="payment-account"><strong>'+esc(info.account_name||info.label||key)+'</strong><button type="button" class="copy-payment-number" data-copy-number="'+esc(info.account_number||'')+'">'+esc(info.account_number||'')+' ⧉</button></div>':'';
         $('#pf-details',host).innerHTML='<div class="payment-method-panel premium-pay-panel">'+qr+acct+'<p class="s muted">'+esc(info.instructions||'')+'</p>'+(key==='other'?'<div class="field"><label class="label">Payment provider</label><input class="input" id="pf-other-provider" placeholder="Specify bank / e-wallet" /></div>':'')+'<div class="grid cols-2 payment-entry-grid"><div class="field"><label class="label">Reference number</label><input class="input" id="pf-reference" /></div><div class="field"><label class="label">Receipt / screenshot</label><input class="input" id="pf-receipt" type="file" accept="image/png,image/jpeg,image/webp" /></div></div></div>';
@@ -2248,32 +2276,34 @@
   });
   function updateBookingPresentation(){
     $('#booking-date').value=sel.date;
-    $('#booking-date').min=ymd(new Date());
+    $('#booking-date').min=(AVAIL&&AVAIL.facility_date)||ymd(new Date());
     var c=AVAIL && AVAIL.courts.filter(function(x){return x.id===sel.court;})[0];
     $('#booking-title').textContent=c?'Book '+c.name:'Book a Court';
     $('#booking-photo').innerHTML=c?courtPhoto(c):'<img class="court-promo-image" src="assets/booking/hero-court.jpg" alt="Promotional court illustration"/><span class="court-image-note">Promotional image</span>';
-    $('#booking-court-description').innerHTML=c?'<div class="spread"><h2>'+esc(c.name)+'</h2><strong>'+money(c.hourly_rate)+'/hour</strong></div><p>'+esc(c.description||c.surface||'Find your favourite time and get ready to play.')+'</p><div class="court-amenities"><span>▦ '+esc(c.surface||'Pickleball court')+'</span><span>♟ 2–6 players</span><span>◷ '+Number(AVAIL.slot_minutes)+' minute slots</span></div>':'<h2>Your next game starts here.</h2><p>Select a court and a time that works for you.</p>';
+    $('#booking-court-description').innerHTML=c?'<div class="spread"><h2>'+esc(c.name)+'</h2><strong>'+money(c.day_hourly_rate||c.hourly_rate)+'/hr day · '+money(c.evening_hourly_rate||c.hourly_rate)+'/hr after 4PM</strong></div><p>'+esc(c.description||c.surface||'Find your favourite time and get ready to play.')+'</p><div class="court-amenities"><span>▦ '+esc(c.surface||'Pickleball court')+'</span><span>♟ 2–6 players</span><span>◷ '+Number(AVAIL.slot_minutes)+' minute slots</span></div>':'<h2>Your next game starts here.</h2><p>Select a court and a time that works for you.</p>';
     var options='<option value="">'+(c?'Select an available time':'Choose a court first')+'</option>';
     if(c)options+=c.slots.map(function(slot){var ok=slot.bookable===undefined?slot.status==='available':!!slot.bookable;return '<option value="'+esc(slot.start)+'"'+(ok?'':' disabled')+'>'+humanTime(slot.start)+' – '+humanTime(addMin(slot.start,AVAIL.slot_minutes))+(ok?'':' · '+esc(slot.status_label||slot.label||slot.status))+'</option>';}).join('');
     $('#booking-time').innerHTML=options;$('#booking-time').value=sel.start||'';$('#booking-time').disabled=!c;
   }
   $('#booking-date').onchange=function(){
     if(!this.value || !this.validity.valid)return;
-    sel.date=this.value;sel.start=null;calCursor=new Date(sel.date+'T00:00:00');renderCalendar();loadAvailability();
+    sel.date=this.value;sel.start=null;sel.end=null;calCursor=new Date(sel.date+'T00:00:00');renderCalendar();loadAvailability();
   };
-  $('#booking-time').onchange=function(){sel.start=this.value||null;renderBooking();};
+  $('#booking-time').onchange=function(){sel.start=this.value||null;sel.end=null;renderBooking();};
+  $('#booking-end').onchange=function(){sel.end=this.value||null;renderBooking();};
+
   $('#bk-players').onchange=function(){if(AVAIL)renderBooking();};
 
   function bookingCourt(b){return PUBLIC_COURTS.filter(function(c){return Number(c.id)===Number(b.court_id);})[0]||{id:b.court_id||b.id,name:b.court_name};}
   function bookingActions(b){
     var today=ymd(new Date()),out='';
-    if(b.status==='confirmed'&&Number(b.reservation_fee||0)>0&&['due','payment_due','rejected','pending'].indexOf(String(b.payment_status||'').toLowerCase())>=0&&b.booking_date>=today)out+='<button class="btn btn-primary" data-pay="'+b.id+'">'+(b.payment_status==='rejected'?'Resubmit payment':'Pay reservation fee')+'</button>';
+    if(['pending_payment','payment_submitted','payment_verified','pending_approval'].indexOf(b.status)>-1&&['due','payment_due','rejected','pending'].indexOf(String(b.payment_status||'').toLowerCase())>=0&&b.booking_date>=today)out+='<button class="btn btn-primary" data-pay="'+b.id+'">'+(b.payment_status==='rejected'?'Resubmit payment':'Pay full court fee')+'</button>';
     if(ACTIVE_STATUSES.indexOf(b.status)>-1&&b.booking_date>=today)out+='<button class="btn btn-outline btn-cancel" data-cancel="'+b.id+'">Cancel Booking</button>';
     return out;
   }
   function renderBookingDetail(b){
     var host=$('#booking-detail');if(!b){host.innerHTML='<div class="empty"><strong>Your booking details</strong>Select a reservation to see its details.</div>';return;}
-    host.innerHTML='<div class="court-visual">'+courtPhoto(bookingCourt(b))+'</div><div class="booking-detail-content"><div class="spread"><h2>Booking Details</h2>'+statusBadge(b.status)+'</div><dl class="summary-list">'+detailRow('Court',b.court_name)+detailRow('Date',humanDate(b.booking_date))+detailRow('Time',humanTime(b.start_time)+' – '+humanTime(b.end_time))+detailRow('Players',String(b.players||'—'))+detailRow('Court fee',money(b.amount))+detailRow('Reservation fee',money(b.reservation_fee))+detailRow('Reference',b.reference)+detailRow('Payment status',SETTLE_LABEL[settlementOf(b).status])+'</dl>'+settlementLine(b)+(b.notes?'<p class="tiny muted">'+esc(b.notes)+'</p>':'')+(b.rejection_reason?'<p class="is-danger">'+esc(b.rejection_reason)+'</p>':'')+(b.payment_rejection_reason?'<p class="is-danger">Payment: '+esc(b.payment_rejection_reason)+'</p>':'')+'<div class="booking-detail-actions">'+bookingActions(b)+'</div></div>';
+    host.innerHTML='<div class="court-visual">'+courtPhoto(bookingCourt(b))+'</div><div class="booking-detail-content"><div class="spread"><h2>Booking Details</h2>'+statusBadge(b.status)+'</div><dl class="summary-list">'+detailRow('Court',b.court_name)+detailRow('Date',humanDate(b.booking_date))+detailRow('Time',humanTime(b.start_time)+' – '+humanTime(b.end_time))+detailRow('Players',String(b.players||'—'))+detailRow('Court fee',money(b.amount))+detailRow('Reference',b.reference)+detailRow('Payment status',SETTLE_LABEL[settlementOf(b).status])+'</dl>'+settlementLine(b)+(b.notes?'<p class="tiny muted">'+esc(b.notes)+'</p>':'')+(b.rejection_reason?'<p class="is-danger">'+esc(b.rejection_reason)+'</p>':'')+(b.payment_rejection_reason?'<p class="is-danger">Payment: '+esc(b.payment_rejection_reason)+'</p>':'')+'<div class="booking-detail-actions">'+bookingActions(b)+'</div></div>';
   }
   function detailRow(label,value){return '<div class="summary-row"><dt>'+esc(label)+'</dt><dd>'+esc(value)+'</dd></div>';}
   document.addEventListener('click',function(e){var b=e.target.closest('[data-select-booking]');if(b){selectedBookingId=Number(b.dataset.selectBooking);renderBookings();}});
@@ -2513,7 +2543,7 @@
   window.addEventListener('appinstalled',function(){setMarked(true);deferredPrompt=null;sync();});
   window.addEventListener('pageshow',sync);document.addEventListener('visibilitychange',function(){if(!document.hidden)sync();});
   if(btn)btn.addEventListener('click',async function(){if(!deferredPrompt)return;btn.disabled=true;try{await deferredPrompt.prompt();var c=await deferredPrompt.userChoice;if(c&&c.outcome==='accepted')setMarked(true);}catch(_){}deferredPrompt=null;btn.disabled=false;sync();});
-  if('serviceWorker' in navigator)window.addEventListener('load',function(){navigator.serviceWorker.register('service-worker.js?v=29-tournament-tested',{scope:'./',updateViaCache:'none'}).catch(function(){});});
+  if('serviceWorker' in navigator)window.addEventListener('load',function(){navigator.serviceWorker.register('service-worker.js?v=30-master-upgrade',{scope:'./',updateViaCache:'none'}).catch(function(){});});
   sync();
 })();
 </script>

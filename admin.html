@@ -158,7 +158,7 @@
             </div>
           </div>
           <div class="table-wrap"><table class="data" data-mobile-cards="true">
-            <thead><tr><th>Reference</th><th>Client</th><th>Court</th><th>Date & time</th><th>Reservation fee</th><th>Payment</th><th>Payment status</th><th>Settlement</th><th>Booking status</th><th>Actions</th></tr></thead>
+            <thead><tr><th>Reference</th><th>Client</th><th>Court</th><th>Date & time</th><th>Full court fee</th><th>Payment</th><th>Payment status</th><th>Settlement</th><th>Booking status</th><th>Actions</th></tr></thead>
             <tbody id="bookings-body"></tbody>
           </table></div>
         </div>
@@ -183,7 +183,7 @@
               </select>
               <select class="input" id="tx-status" aria-label="Transaction status" style="width:auto">
                 <option value="review">For review</option>
-                <option value="cash_due">Pay at venue</option>
+                
                 <option value="verified">Paid</option>
                 <option value="rejected">Rejected</option>
                 <option value="all">All statuses</option>
@@ -586,7 +586,7 @@
             <div class="field"><label class="label" for="s-slot_minutes">Slot length (minutes)</label>
               <select class="select" id="s-slot_minutes" data-key="slot_minutes"><option>30</option><option>60</option><option>90</option><option>120</option></select></div>
           </div>
-          <div class="field"><label class="label" for="s-currency">Currency label</label><input class="input" id="s-currency" data-key="currency" maxlength="6" /></div>
+          <div class="grid cols-3"><div class="field"><label class="label" for="s-currency">Currency label</label><input class="input" id="s-currency" data-key="currency" maxlength="6" /></div><div class="field"><label class="label" for="s-facility_timezone">Facility time zone</label><select class="select" id="s-facility_timezone" data-key="facility_timezone"><option value="Asia/Manila">Asia/Manila (UTC+08:00)</option></select></div><div class="field"><label class="label" for="s-evening_rate_start">Evening rate starts</label><input class="input" id="s-evening_rate_start" data-key="evening_rate_start" type="time" step="900" /></div></div>
           <div><button class="btn btn-primary" type="submit" data-loading="Saving...">Save booking rules</button></div>
         </form>
 
@@ -596,14 +596,9 @@
             <p class="page-subtitle">One payment workflow for Court Booking, Tournament and Open Play. Digital payments are verified manually from the submitted reference and receipt.</p></div>
             <span class="badge badge-approved">MANUAL VERIFICATION</span>
           </div>
-          <div class="grid cols-2" style="gap:0 18px">
-            <div class="field"><label class="label" for="s-reservation_fee">Reservation fee amount</label><input class="input" id="s-reservation_fee" data-key="reservation_fee" inputmode="decimal" /></div>
-            <div class="field"><label class="label" for="s-payment_note">Payment note shown to clients</label><input class="input" id="s-payment_note" data-key="payment_note" /></div>
-          </div>
+          <div class="field"><label class="label" for="s-payment_note">Payment note shown to clients</label><input class="input" id="s-payment_note" data-key="payment_note" /></div>
+          <div class="alert alert-info"><strong>Full online payment only</strong><br>Reservation Fee, Cash and Payment at Venue are disabled. Court bookings must be paid in full through an enabled digital/manual-transfer method before approval.</div>
           <div class="payment-channel-grid">
-            <div class="payment-channel-section">
-              <div class="spread"><div><strong>Cash</strong><div class="tiny muted">Staff records payment after physical collection.</div></div><label class="switch"><input type="checkbox" id="s-cash_enabled" data-key="cash_enabled"><span class="track"></span></label></div>
-            </div>
             <div class="payment-channel-section">
               <div class="spread"><div><strong>GCash</strong><div class="tiny muted">QR + number → manual reference → receipt upload → Admin verification.</div></div><label class="switch"><input type="checkbox" id="s-gcash_enabled" data-key="gcash_enabled"><span class="track"></span></label></div>
               <div class="grid cols-2 mt-3"><div class="field"><label class="label">Account name</label><input class="input" id="s-gcash_account_name" data-key="gcash_account_name"></div><div class="field"><label class="label">Mobile number</label><input class="input" id="s-gcash_number" data-key="gcash_number" inputmode="tel"></div></div>
@@ -615,6 +610,12 @@
               <div class="grid cols-2 mt-3"><div class="field"><label class="label">Account name</label><input class="input" id="s-maya_account_name" data-key="maya_account_name"></div><div class="field"><label class="label">Mobile number</label><input class="input" id="s-maya_number" data-key="maya_number" inputmode="tel"></div></div>
               <div class="field"><label class="label">Instructions</label><input class="input" id="s-maya_instructions" data-key="maya_instructions" placeholder="Scan QR, send payment, then upload your receipt."></div>
               <div class="auto-payment-qr-card" id="maya-auto-qr"><div class="payment-qr-wrap auto-qr" data-auto-qr="maya"></div><div class="tiny muted">Generated automatically from the mobile number. No upload required.</div></div>
+            </div>
+            <div class="payment-channel-section">
+              <div class="spread"><div><strong>GoTyme Bank</strong><div class="tiny muted">Bank transfer → reference → receipt upload → staff verification.</div></div><label class="switch"><input type="checkbox" id="s-gotyme_enabled" data-key="gotyme_enabled"><span class="track"></span></label></div>
+              <div class="grid cols-2 mt-3"><div class="field"><label class="label">Account name</label><input class="input" id="s-gotyme_account_name" data-key="gotyme_account_name"></div><div class="field"><label class="label">Account number</label><input class="input" id="s-gotyme_number" data-key="gotyme_number"></div></div>
+              <div class="field"><label class="label">Official QR image URL (optional)</label><input class="input" id="s-gotyme_qr_url" data-key="gotyme_qr_url" placeholder="https://... or /branding/..."></div>
+              <div class="field"><label class="label">Instructions</label><input class="input" id="s-gotyme_instructions" data-key="gotyme_instructions" placeholder="Send exact amount, enter reference, upload receipt."></div>
             </div>
             <div class="payment-channel-section">
               <div class="spread"><div><strong>Others</strong><div class="tiny muted">Client must specify the bank/e-wallet/provider.</div></div><label class="switch"><input type="checkbox" id="s-other_enabled" data-key="other_enabled"><span class="track"></span></label></div>
@@ -792,21 +793,32 @@
                     <form id="form-adminpw" style="max-width:420px">
             <div class="field"><label class="label" for="ap-cur">Current password</label><input class="input" id="ap-cur" type="password" required autocomplete="current-password" /></div>
             <div class="field"><label class="label" for="ap-new">New password</label><input class="input" id="ap-new" type="password" minlength="8" required autocomplete="new-password" /></div>
-            <button class="btn btn-primary" type="submit" data-loading="Saving...">Change admin password</button>
+            <button class="btn btn-primary" type="submit" data-loading="Saving...">Change password</button>
           </form>
+          <section id="staff-users-panel" class="mt-5 admin-only-panel">
+            <div class="spread"><div><h3 class="card-title">Staff users & role access</h3><p class="tiny muted">Create Admin, Booking Manager, Event Manager and Scorer accounts.</p></div><button class="btn btn-primary btn-sm" type="button" id="btn-add-staff-user">＋ Add user</button></div>
+            <div id="staff-users-list" class="list mt-3"></div>
+          </section>
+          <hr style="border:0;border-top:1px solid var(--border);margin:24px 0" />
+          <section id="promo-qr-panel" class="admin-only-panel">
+            <h3 class="card-title">Promotional Booking QR Generator</h3>
+            <p class="tiny muted">Generates a 1080 × 1350 Facebook-ready PNG using the official Booking Site URL from Club → Website.</p>
+            <div class="row wrap mt-3"><button class="btn btn-primary" type="button" id="btn-generate-promo-qr">Generate Preview</button><button class="btn btn-outline" type="button" id="btn-download-promo-qr" disabled>Download PNG</button></div>
+            <canvas id="promo-qr-canvas" width="1080" height="1350" style="width:min(100%,540px);margin-top:16px;border-radius:18px;border:1px solid var(--border);display:none"></canvas>
+          </section>
           <hr style="border:0;border-top:1px solid var(--border);margin:24px 0" />
           <h3 class="card-title" style="margin-bottom:8px">Operational backup & restore</h3>
           <p class="muted tiny" style="margin-top:0;max-width:780px">
-            Creates a lightweight PIKOL operational backup containing player accounts, bookings, payments and receipt files, memberships,
+            Creates a PIKOL operational backup containing courts and court slots, player accounts, bookings, payments and receipt files, memberships and plan definitions,
             tournaments/brackets/scoring history, Open Play, notifications and audit history.
-            <strong>Not included:</strong> Admin/scorer accounts, Settings/branding, courts and court slots, membership-plan definitions, and deployment/.env configuration.
+            <strong>Not included:</strong> staff accounts (Admin, Booking Manager, Event Manager, Scorer), Settings/branding, and deployment/.env configuration.
           </p>
           <div class="row wrap mt-4" style="gap:10px">
             <button class="btn btn-outline" id="btn-backup" type="button" data-loading="Preparing...">Download Operational Backup</button>
             <input id="restore-operational-file" type="file" class="hidden" accept=".pikolbackup,application/octet-stream" />
             <button class="btn btn-outline" id="btn-restore-operational" type="button" data-loading="Restoring...">Restore Operational Backup</button>
           </div>
-          <p class="field-hint mt-3" style="max-width:780px">Restore replaces the current operational data only. The current facility configuration is preserved, so the same courts and membership-plan definitions should still exist.</p>
+          <p class="field-hint mt-3" style="max-width:780px">Restore replaces the current operational data only. Settings/branding and staff access accounts remain unchanged; courts, schedules and other operating records are restored from the backup.</p>
 
           <hr style="border:0;border-top:1px solid var(--border);margin:24px 0" />
           <div class="panel" style="border:1px solid var(--danger,#ef4444);background:color-mix(in srgb, var(--danger,#ef4444) 6%, transparent)">
@@ -816,7 +828,7 @@
                 <p class="muted tiny" style="margin:0;max-width:760px">
                   Permanently removes client/player records, bookings, payments, transactions, tournament and Open Play records,
                   registrations, receipt history, notification history, audit logs, legacy gateway history, and uploaded payment receipts.
-                  <strong>Settings, facility configuration, admin accounts, courts and court time-slots are preserved.</strong>
+                  <strong>Only Settings/branding and staff access accounts are preserved. Courts, court slots and all other operating data are wiped.</strong>
                 </p>
               </div>
               <span class="badge badge-rejected" data-icon="!">PERMANENT</span>
@@ -1033,10 +1045,10 @@
   function settlementModal(bookingId) {
     api('/api/bookings/' + bookingId + '/settlement').then(function (r) {
       var st = r.settlement;
-      var methods = ['cash'];
+      var methods = [];
       var ledger = (r.payments || []).map(function (pm) {
         return '<tr><td>' + esc(pm.payment_type === 'game_payment' ? 'Game payment' :
-          pm.payment_type === 'reservation_fee' ? 'Reservation fee' : 'Other') + '</td><td>' +
+          pm.payment_type === 'booking_fee' ? 'Booking fee' : 'Other') + '</td><td>' +
           esc(String(pm.payment_method || '').toUpperCase()) + '</td><td class="num">' + esc(money(pm.amount)) +
           '</td><td>' + esc(String(pm.payment_provider || '').toUpperCase()) + '</td><td>' + badge(pm.status) + '</td></tr>';
       }).join('') || '<tr><td colspan="5" class="muted tiny">No payments recorded yet.</td></tr>';
@@ -1081,19 +1093,32 @@
     if (sb) settlementModal(sb.dataset.settle);
   });
 
+  document.addEventListener('click', function (e) {
+    var ap = e.target.closest('[data-booking-approve]');
+    if (!ap) return;
+    if (!confirm('Approve this paid booking request?')) return;
+    busy(ap, true);
+    api('/api/admin/bookings/' + encodeURIComponent(ap.dataset.bookingApprove) + '/approve', {method:'POST'})
+      .then(function(){ toast('Booking approved.', 'success'); return loadBookings(); })
+      .catch(function(err){ toast(err.message, 'error'); })
+      .finally(function(){ busy(ap, false); });
+  });
+
   /* ---------- payments & manual receipt verification ---------- */
   function bookingActions(b) {
     var act = [];
     if (canSettle(b)) {
-      act.push('<button class="btn btn-primary btn-sm" data-settle="' + b.id + '">Record game payment</button>');
+      
     } else if (['confirmed', 'completed'].indexOf(b.status) >= 0) {
-      act.push('<button class="btn btn-ghost btn-sm" data-settle="' + b.id + '">Ledger</button>');
+      
     }
     const method = String(b.payment_method || '').toLowerCase();
     const isCashBooking = method === 'cash' || String(b.payment_provider || '').toUpperCase() === 'CASH';
     if (b.payment_id) {
-      act.push('<button class="btn btn-outline btn-sm" data-payment="' + b.payment_id + '" data-bid="' + b.id + '">' +
-        (isCashBooking && String(b.payment_record_status || '').toLowerCase() === 'submitted' ? 'Record cash received' : 'Payment details') + '</button>');
+      act.push('<button class="btn btn-outline btn-sm" data-payment="' + b.payment_id + '" data-bid="' + b.id + '">Payment details</button>');
+    }
+    if (b.status === 'pending_approval' && String(b.payment_status || '').toLowerCase() === 'paid') {
+      act.push('<button class="btn btn-success btn-sm" data-booking-approve="' + b.id + '">Approve booking</button>');
     }
     if (b.status === 'confirmed') {
       act.push('<button class="btn btn-ghost btn-sm" data-status="completed" data-id="' + b.id + '">Complete</button>');
@@ -1111,7 +1136,7 @@
 
   var TX_TYPE_LABEL = { booking: 'Booking', tournament: 'Tournament', open_play: 'Open Play', membership: 'Membership' };
   var TX_STATUS_LABEL = {
-    AWAITING_PAYMENT: 'Payment due', PAYMENT_SUBMITTED: 'For review', UNDER_REVIEW: 'For review', PAY_AT_VENUE: 'Pay at venue',
+    AWAITING_PAYMENT: 'Payment due', PAYMENT_SUBMITTED: 'For review', UNDER_REVIEW: 'For review',
     VERIFIED: 'Paid', APPROVED: 'Paid', REJECTED: 'Rejected',
     CANCELLED: 'Cancelled', COMPLETED: 'Completed'
   };
@@ -1131,7 +1156,7 @@
     return api('/api/admin/transactions' + qs).then(function (d) {
       TX_REASONS = d.reason_codes || {};
       $('#tx-stats').innerHTML = [
-        ['For review', d.stats.pending_review, 'clock', '', 'Submissions needing review'], ['Pay at venue', d.stats.cash_due || 0, 'money', '', 'Cash collections due'],
+        ['For review', d.stats.pending_review, 'clock', '', 'Submissions needing review'],
         ['Paid today', d.stats.verified_today, 'calendar', '', 'Payments verified today'], ['Total collected', money(d.stats.total_collected), 'money', '', 'Verified payments · all time']
       ].map(adminMetric).join('');
 
@@ -1271,7 +1296,7 @@
     busy(btn, true);
     api('/api/auth/login', { method: 'POST', body: { email: $('#li-email').value.trim(), password: $('#li-pass').value } })
       .then(function (d) {
-        if (d.user.role !== 'admin') throw new Error('This account is not authorized for the Admin System');
+        if (['admin','booking_manager','event_manager'].indexOf(d.user.role)<0) throw new Error('This account is not authorized for the Staff System');
         TOKEN = d.token; USER = d.user; localStorage.setItem('pb_admin_token', TOKEN);
         showApp(); toast('Welcome back, ' + d.user.full_name.split(' ')[0] + '.', 'success');
       })
@@ -1470,16 +1495,37 @@
     });
   }
   function isAdmin() { return !!(USER && USER.role === 'admin'); }
-  function applyRoleUI() {
-    $$('#nav .nav-item').forEach(function (b) { b.classList.remove('hidden'); });
-    $('#btn-new-booking').classList.toggle('hidden', !isAdmin());
-    $('#admin-role-label').textContent = 'ADMIN'; $('#admin-role-label').style.color = '';
+  function staffRole(){return USER&&USER.role||'';}
+  function allowedStaffPages(){
+    if(isAdmin()) return null;
+    if(staffRole()==='booking_manager') return ['dashboard','bookings','payments','settings'];
+    if(staffRole()==='event_manager') return ['dashboard','events','tournaments','openplay','settings'];
+    return ['dashboard'];
   }
-  function applyAdminOperationalSettingsUI() { /* Admin owns the full settings area. */ }
+  function applyRoleUI() {
+    var allowed=allowedStaffPages();
+    $$('#nav .nav-item').forEach(function (b) {
+      var p=b.dataset.page;
+      if(staffRole()==='booking_manager'&&p==='calendar'){b.dataset.page='bookings';p='bookings';}
+      b.classList.toggle('hidden', !!allowed && allowed.indexOf(p)<0);
+    });
+    $('#btn-new-booking').classList.toggle('hidden', !isAdmin());
+    $('#admin-role-label').textContent = isAdmin()?'ADMIN':(staffRole()==='booking_manager'?'BOOKING MANAGER':'EVENT MANAGER');
+    $$('.admin-only-panel').forEach(function(x){x.classList.toggle('hidden',!isAdmin());});
+  }
+  function applyAdminOperationalSettingsUI() {
+    if(isAdmin()) return;
+    $$('[data-settab]').forEach(function(t){t.classList.add('hidden');});
+    var sys=$('[data-settab="system"]');if(sys){sys.classList.remove('hidden');sys.click();}
+    $$('.settings-section').forEach(function(x){x.classList.add('hidden');});
+    $('#set-security').classList.remove('hidden');
+    $('#set-security').querySelectorAll('#btn-backup,#btn-restore-operational,#btn-reset-system-data,.admin-only-panel').forEach(function(x){x.classList.add('hidden');});
+  }
   function goto(page) {
     /* Registration payments were merged into the Payments. */
     if (page === 'evpayments') page = 'payments';
     if (!LOADERS[page]) page = 'dashboard';
+    var allowed=allowedStaffPages(); if(allowed && allowed.indexOf(page)<0) page='dashboard';
     current = page;
     PAGES.forEach(function (p) { $('#page-' + p).classList.toggle('hidden', p !== page); });
     var groupFor = GROUP_OF[page] || page;
@@ -1494,6 +1540,7 @@
     $('#view-app').classList.remove('drawer-open');
     $('#drawer-open').setAttribute('aria-expanded','false');
     window.scrollTo({ top: 0, behavior: 'smooth' });
+    if(page==='settings' && !isAdmin()){ applyAdminOperationalSettingsUI(); return; }
     LOADERS[page]();
     if (page === 'settings') applyAdminOperationalSettingsUI();
   }
@@ -1576,7 +1623,7 @@
       '<div class="field"><label class="label" for="tf-start">Start time</label><input class="input" id="tf-start" type="time" step="900" value="' + esc(t.start_time || '') + '" />' +
       '<span class="tiny muted">A tournament is an exclusive administrative event: every time option stays selectable.</span></div>' +
       '<div class="field"><label class="label" for="tf-end">End time</label><input class="input" id="tf-end" type="time" step="900" value="' + esc(t.end_time || '') + '" /></div>' +
-      '<div class="field"><label class="label" for="tf-poster">Poster image URL</label><input class="input" id="tf-poster" maxlength="400" value="' + esc(t.poster_url || '') + '" /></div>' +
+      '<div class="field"><label class="label" for="tf-poster">Promotional image</label><input class="input" id="tf-poster" maxlength="400" value="' + esc(t.poster_url || '') + '" placeholder="Uploaded image URL appears here" /><button class="btn btn-outline btn-sm mt-3" type="button" data-tournament-poster-upload>Upload promotional image</button><input type="file" data-tournament-poster-file accept="image/png,image/jpeg,image/webp" class="hidden" /><div data-tournament-poster-preview class="mt-3">'+(t.poster_url?'<img src="'+esc(assetUrl(t.poster_url))+'" style="max-height:160px;border-radius:12px">':'')+'</div></div>' +
       '<div class="field"><label class="label" for="tf-regs">Registration opens</label><input class="input" id="tf-regs" type="date" value="' + esc(t.registration_start || '') + '" /></div>' +
       '<div class="field"><label class="label" for="tf-rege">Registration closes</label><input class="input" id="tf-rege" type="date" value="' + esc(t.registration_end || '') + '" /></div>' +
       '<div class="field"><label class="label" for="tf-fee">Registration fee</label>' +
@@ -1627,6 +1674,21 @@
     }).catch(function(e){toast(e.message,'error');});
   };
 
+  document.addEventListener('click',function(e){
+    var btn=e.target.closest('[data-tournament-poster-upload]'); if(!btn)return;
+    var host=btn.closest('.modal-host'); var input=host&&$('[data-tournament-poster-file]',host); if(input)input.click();
+  });
+  document.addEventListener('change',function(e){
+    var input=e.target.closest&&e.target.closest('[data-tournament-poster-file]'); if(!input)return;
+    var f=input.files&&input.files[0]; if(!f)return;
+    if(f.size>5*1024*1024){toast('Image is too large (max 5MB).','error');return;}
+    var host=input.closest('.modal-host'),fr=new FileReader();
+    fr.onload=function(){
+      api('/api/admin/events/upload-image',{method:'POST',body:{kind:'poster',mime:f.type,data:fr.result}})
+      .then(function(r){$('#tf-poster',host).value=r.url;var p=$('[data-tournament-poster-preview]',host);if(p)p.innerHTML='<img src="'+esc(assetUrl(r.url))+'" style="max-height:160px;border-radius:12px">';toast('Tournament promotional image uploaded.','success');})
+      .catch(function(err){toast(err.message,'error');});
+    };fr.readAsDataURL(f);
+  });
   function openTournament(id) {
     TRN_OPEN = id;
     return Promise.all([api('/api/admin/tournaments/' + id), api('/api/admin/scorers').catch(function(){ return []; }), api('/api/courts')]).then(function (r) {
@@ -2243,7 +2305,7 @@
     function rows(items) { return '<dl class="summary-list">' + items.map(function (item) { return '<div class="summary-row"><dt>' + esc(item[0]) + '</dt><dd>' + esc(item[1] == null ? '—' : item[1]) + '</dd></div>'; }).join('') + '</dl>'; }
     function section(icon, title, content) { return '<section class="detail-card"><h3 class="detail-card-head">' + adminIcon(icon) + esc(title) + '</h3>' + content + '</section>'; }
     return '<div class="booking-detail-intro"><span>Reference <strong>' + esc(b.reference) + '</strong></span>' + badge(b.status) + '</div><div class="booking-detail-grid">' +
-      section('court', 'Booking summary', rows([['Court',b.court_name],['Court amount',money(b.amount)],['Reservation fee',money(b.reservation_fee)]])) +
+      section('court', 'Booking summary', rows([['Court',b.court_name],['Court amount',money(b.amount)],['Payment required',money(b.amount)]])) +
       section('user', 'Player information', rows([['Player',b.player_name],['Email',b.player_email],['Mobile',b.player_mobile || '—'],['Players',b.players]])) +
       section('calendar', 'Schedule details', rows([['Date',humanDate(b.booking_date)],['Time',humanTime(b.start_time) + ' – ' + humanTime(b.end_time)]])) +
       section('payments', 'Payment information', rows([['Method',String(b.payment_method || '—').toUpperCase()],['Payment status',String(b.payment_record_status || b.payment_status || 'none').replace(/_/g,' ')],['Payment amount',b.payment_amount == null ? '—' : money(b.payment_amount)]])) +
@@ -2266,7 +2328,7 @@
         return '<tr><td class="num">' + esc(b.reference) + '</td><td>' + esc(b.player_name) + '<div class="tiny muted">' +
           esc(b.player_email) + '</div></td><td>' + esc(b.court_name) + '</td><td>' + humanDate(b.booking_date) +
           '<div class="tiny muted num">' + humanTime(b.start_time) + ' – ' + humanTime(b.end_time) + '</div></td><td>' +
-          esc(money(b.reservation_fee)) + '</td><td>' + esc(b.payment_method ? b.payment_method.toUpperCase() : '—') +
+          esc(money(b.amount)) + '</td><td>' + esc(b.payment_method ? b.payment_method.toUpperCase() : '—') +
           '</td><td>' + (b.payment_amount != null ? esc(money(b.payment_amount)) : '—') + '<div class="tiny">' +
           badge(b.payment_record_status || b.payment_status || 'none') + '</div></td><td>' + settleBadge(b) + '</td><td>' +
           badge(b.status) + '</td><td><div class="row wrap" style="gap:6px">' + act.join('') + '</div></td></tr>';
@@ -2591,7 +2653,7 @@
       COURTS = rows;
       $('#courts-grid').innerHTML = rows.length ? rows.map(function (c) {
         return '<div class="list-row"><div class="list-main"><div class="list-title">' + esc(c.name) + '</div>' +
-          '<div class="list-sub">' + esc(c.surface || 'Surface not set') + ' · ' + money(c.hourly_rate) + '/hr' + (c.description ? ' · ' + esc(c.description) : '') + '</div></div>' +
+          '<div class="list-sub">' + esc(c.surface || 'Surface not set') + ' · ' + money(c.day_hourly_rate==null?c.hourly_rate:c.day_hourly_rate) + '/hr before 4PM · ' + money(c.evening_hourly_rate==null?c.hourly_rate:c.evening_hourly_rate) + '/hr 4PM onward' + (c.description ? ' · ' + esc(c.description) : '') + '</div></div>' +
           '<div class="list-end">' + badge(c.status) + '<button class="btn btn-outline btn-sm" data-edit-court="' + c.id + '">Edit</button>' +
           '<button class="btn btn-outline btn-sm" data-court-promo="' + esc(c.id) + '">Promotional image</button>' +
           '<button class="btn btn-outline btn-sm" data-court-status="' + c.id + '" data-to="' + (c.status === 'active' ? 'inactive' : 'active') + '">' +
@@ -2625,7 +2687,7 @@
     return '<div class="field"><label class="label" for="ct-name">Name</label><input class="input" id="ct-name" value="' + esc(c.name || '') + '" /></div>' +
       '<div class="field"><label class="label" for="ct-desc">Description</label><input class="input" id="ct-desc" value="' + esc(c.description || '') + '" /></div>' +
       '<div class="field"><label class="label" for="ct-surface">Surface</label><input class="input" id="ct-surface" value="' + esc(c.surface || '') + '" /></div>' +
-      '<div class="field"><label class="label" for="ct-rate">Hourly rate</label><input class="input" id="ct-rate" type="number" min="0" step="0.01" value="' + (c.hourly_rate || 0) + '" /></div>' +
+      '<div class="grid cols-2"><div class="field"><label class="label" for="ct-day-rate">6AM–4PM Hourly Rate</label><input class="input" id="ct-day-rate" type="number" min="0" step="0.01" value="' + Number(c.day_hourly_rate==null?c.hourly_rate||0:c.day_hourly_rate) + '" /></div><div class="field"><label class="label" for="ct-evening-rate">4PM Onward Hourly Rate</label><input class="input" id="ct-evening-rate" type="number" min="0" step="0.01" value="' + Number(c.evening_hourly_rate==null?c.hourly_rate||0:c.evening_hourly_rate) + '" /></div></div>' +
       '<div class="field"><label class="label" for="ct-status">Status</label><select class="select" id="ct-status">' +
       ['active', 'maintenance', 'inactive'].map(function (s) {
         return '<option value="' + s + '"' + (c.status === s ? ' selected' : '') + '>' + s.charAt(0).toUpperCase() + s.slice(1) + '</option>';
@@ -2633,7 +2695,7 @@
   }
   function readCourt(host) {
     return { name: $('#ct-name', host).value.trim(), description: $('#ct-desc', host).value.trim(),
-      surface: $('#ct-surface', host).value.trim(), hourly_rate: Number($('#ct-rate', host).value),
+      surface: $('#ct-surface', host).value.trim(), day_hourly_rate: Number($('#ct-day-rate', host).value), evening_hourly_rate: Number($('#ct-evening-rate', host).value),
       status: $('#ct-status', host).value };
   }
   $('#btn-new-court').onclick = function () {
@@ -2664,7 +2726,7 @@
     if (st) {
       var court = COURTS.filter(function (x) { return x.id === Number(st.dataset.courtStatus); })[0];
       var payload = { name: court.name, description: court.description, surface: court.surface,
-        hourly_rate: court.hourly_rate, status: st.dataset.to };
+        day_hourly_rate: court.day_hourly_rate==null?court.hourly_rate:court.day_hourly_rate, evening_hourly_rate: court.evening_hourly_rate==null?court.hourly_rate:court.evening_hourly_rate, status: st.dataset.to };
       api('/api/admin/courts/' + court.id, { method: 'PUT', body: payload })
         .then(function () { toast(court.name + ' set to ' + st.dataset.to + '.', 'success'); loadCourts(); })
         .catch(function (err) { toast(err.message, 'error'); });
@@ -2877,7 +2939,7 @@
       ].map(adminMetric).join('');
       var details = $('#rp-breakdown');
       if (details) details.innerHTML = '<details class="admin-report-details"><summary>Financial &amp; booking breakdown</summary><dl class="admin-report-breakdown">' + [
-        ['Reservation fees collected', money(f.reservation_revenue)], ['Game payments collected', money(f.game_revenue)],
+        ['Booking fees collected', money(f.reservation_revenue)], ['Game payments collected', money(f.game_revenue)],
         ['Event fees collected', money(f.event_revenue)], ['Membership fees collected', money(f.membership_revenue)],
         ['Confirmed bookings', s.confirmed || 0], ['Completed bookings', s.completed || 0],
         ['Cancelled bookings', s.cancelled || 0], ['No-show bookings', s.no_show || 0],
@@ -3329,7 +3391,7 @@
   }
   function loadSettings() {
     return api('/api/admin/settings').then(function (s) {
-      SETTINGS = s;
+      SETTINGS = s; if(isAdmin())loadStaffUsers();
       $$('[data-key]').forEach(function (el) {
         var v = s[el.dataset.key];
         if (el.type === 'checkbox') el.checked = String(v) === '1';
@@ -3373,9 +3435,9 @@
     });
   }
   saveSettings($('#set-branding'), ['facility_name','short_name','tagline','description','address','contact_number','contact_email','website','social_facebook','social_instagram','brand_primary','brand_secondary','brand_accent','booking_prefix']);
-  saveSettings($('#set-booking'), ['open_time','close_time','slot_minutes','currency']);
+  saveSettings($('#set-booking'), ['open_time','close_time','slot_minutes','currency','facility_timezone','evening_rate_start']);
   saveSettings($('#set-membership'), ['membership_enabled','membership_sms_enabled','membership_expiry_reminder_days','nonmember_advance_days','nonmember_max_active_bookings']);
-  saveSettings($('#set-payments'), ['reservation_fee','payment_note','cash_enabled','gcash_enabled','gcash_account_name','gcash_number','gcash_instructions','maya_enabled','maya_account_name','maya_number','maya_instructions','other_enabled','other_label','other_instructions']);
+  saveSettings($('#set-payments'), ['payment_note','gcash_enabled','gcash_account_name','gcash_number','gcash_instructions','maya_enabled','maya_account_name','maya_number','maya_instructions','gotyme_enabled','gotyme_account_name','gotyme_number','gotyme_qr_url','gotyme_instructions','other_enabled','other_label','other_instructions']);
   saveSettings($('#set-tournament'), ['tournament_default_format','tournament_default_seeding','tournament_match_duration_minutes','tournament_rest_minutes','tournament_group_size','tournament_group_qualifiers','tournament_scoring_best_of','tournament_scoring_points_to_win','tournament_scoring_win_by','tournament_third_place','tournament_double_reset_final']);
   /* smtp_from_name is derived from the white-label facility name. */
   saveSettings($('#set-email'), ['email_enabled','smtp_host','smtp_port','smtp_secure','smtp_user','smtp_pass','smtp_from_email']);
@@ -3405,7 +3467,7 @@
   };
 
   /* ---------- In-Charge PWA push ---------- */
-  var ADMIN_SW_VERSION='29-tournament-tested';
+  var ADMIN_SW_VERSION='30-master-upgrade';
   var PUSH_PREP={reg:null,publicKey:null,serverStatus:null,ready:false,error:null,promise:null};
   function b64ToUint8(s){s=String(s||'').replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';var raw=atob(s),a=new Uint8Array(raw.length);for(var i=0;i<raw.length;i++)a[i]=raw.charCodeAt(i);return a;}
   function bytesEqual(a,b){if(!a||!b)return false;var x=new Uint8Array(a),y=new Uint8Array(b);if(x.length!==y.length)return false;for(var i=0;i<x.length;i++)if(x[i]!==y[i])return false;return true;}
@@ -3801,13 +3863,52 @@
           .then(function (r) { toast('Test SMS sent to '+maskMobile(r.recipient||$('#ts-to',host).value)+' from '+(r.sender_mobile_masked||'configured SIM')+'.', 'success'); });
       } });
   };
+
+  function loadStaffUsers(){
+    if(!isAdmin())return Promise.resolve();
+    return api('/api/admin/staff-users').then(function(rows){
+      var box=$('#staff-users-list'); if(!box)return;
+      box.innerHTML=(rows||[]).length?(rows||[]).map(function(u){
+        return '<div class="list-row"><div class="list-main"><div class="list-title">'+esc(u.full_name)+'</div><div class="list-sub">'+esc(u.email)+' · '+esc(String(u.role).replace(/_/g,' '))+'</div></div><div class="list-end">'+statusBadge(u.status)+'<button class="btn btn-outline btn-sm" data-staff-edit="'+u.id+'">Edit</button></div></div>';
+      }).join(''):'<div class="empty">No staff users found.</div>';
+    }).catch(function(e){toast(e.message,'error');});
+  }
+  function staffUserModal(u){
+    u=u||{};
+    return modal({title:u.id?'Edit staff user':'Add staff user',confirmText:u.id?'Save changes':'Create user',
+      body:'<div class="grid cols-2"><div class="field"><label class="label">Full name</label><input class="input" id="su-name" value="'+esc(u.full_name||'')+'"></div><div class="field"><label class="label">Email</label><input class="input" id="su-email" type="email" value="'+esc(u.email||'')+'" '+(u.id?'readonly':'')+'></div><div class="field"><label class="label">Mobile</label><input class="input" id="su-mobile" value="'+esc(u.mobile||'')+'"></div><div class="field"><label class="label">Role</label><select class="select" id="su-role">'+['admin','booking_manager','event_manager','scorer'].map(function(r){return '<option value="'+r+'"'+(u.role===r?' selected':'')+'>'+r.replace(/_/g,' ').replace(/\b\w/g,function(x){return x.toUpperCase();})+'</option>';}).join('')+'</select></div><div class="field"><label class="label">'+(u.id?'New password (optional)':'Temporary password')+'</label><input class="input" id="su-pass" type="password" minlength="8"></div>'+(u.id?'<div class="field"><label class="label">Status</label><select class="select" id="su-status"><option value="active"'+(u.status==='active'?' selected':'')+'>Active</option><option value="inactive"'+(u.status==='inactive'?' selected':'')+'>Inactive</option></select></div>':'')+'</div>',
+      onConfirm:function(h){
+        var body={full_name:$('#su-name',h).value.trim(),email:$('#su-email',h).value.trim(),mobile:$('#su-mobile',h).value.trim(),role:$('#su-role',h).value,password:$('#su-pass',h).value};
+        if(u.id)body.status=$('#su-status',h).value;
+        return api('/api/admin/staff-users'+(u.id?'/'+u.id:''),{method:u.id?'PUT':'POST',body:body}).then(function(){toast(u.id?'Staff user updated.':'Staff user created.','success');loadStaffUsers();});
+      }});
+  }
+  var addStaff=$('#btn-add-staff-user'); if(addStaff)addStaff.onclick=function(){staffUserModal();};
+  document.addEventListener('click',function(e){var b=e.target.closest('[data-staff-edit]');if(!b)return;api('/api/admin/staff-users').then(function(rows){var u=(rows||[]).find(function(x){return Number(x.id)===Number(b.dataset.staffEdit);});if(u)staffUserModal(u);});});
+
+  function svgToImage(svg){
+    return new Promise(function(resolve,reject){var img=new Image(),blob=new Blob([svg],{type:'image/svg+xml'}),url=URL.createObjectURL(blob);img.onload=function(){URL.revokeObjectURL(url);resolve(img)};img.onerror=function(){URL.revokeObjectURL(url);reject(new Error('QR render failed'))};img.src=url;});
+  }
+  var promoReady=false;
+  var genQr=$('#btn-generate-promo-qr'); if(genQr)genQr.onclick=function(){
+    var website=String((SETTINGS&&SETTINGS.website)||'').trim();
+    if(!website)return toast('Set the official Booking Site URL under Club → Website first.','error');
+    if(!window.PIKOL_QR)return toast('QR generator is not available.','error');
+    var c=$('#promo-qr-canvas'),ctx=c.getContext('2d'),name=(SETTINGS.facility_name||'PIKOL Pickleball'),tag=(SETTINGS.tagline||'Book your court online');
+    ctx.clearRect(0,0,c.width,c.height);ctx.fillStyle='#071f1d';ctx.fillRect(0,0,c.width,c.height);
+    var g=ctx.createLinearGradient(0,0,1080,1350);g.addColorStop(0,'rgba(255,255,255,.08)');g.addColorStop(1,'rgba(255,255,255,0)');ctx.fillStyle=g;ctx.fillRect(0,0,1080,1350);
+    ctx.textAlign='center';ctx.fillStyle='#fff';ctx.font='700 54px system-ui';ctx.fillText(name,540,120);ctx.font='900 86px system-ui';ctx.fillText('BOOK YOUR COURT',540,235);ctx.font='500 34px system-ui';ctx.fillText(tag,540,295);
+    var svg=window.PIKOL_QR.svg(website,700);
+    svgToImage(svg).then(function(img){ctx.fillStyle='#fff';ctx.beginPath();ctx.roundRect(165,350,750,750,36);ctx.fill();ctx.drawImage(img,205,390,670,670);ctx.fillStyle='#bdfc42';ctx.font='800 42px system-ui';ctx.fillText('SCAN TO BOOK',540,1175);ctx.fillStyle='#fff';ctx.font='500 27px system-ui';ctx.fillText(website.replace(/^https?:\/\//,''),540,1230);ctx.font='500 22px system-ui';ctx.fillStyle='rgba(255,255,255,.72)';ctx.fillText('Official Booking Site',540,1280);c.style.display='block';promoReady=true;$('#btn-download-promo-qr').disabled=false;}).catch(function(e){toast(e.message,'error');});
+  };
+  var dlQr=$('#btn-download-promo-qr'); if(dlQr)dlQr.onclick=function(){if(!promoReady)return;var a=document.createElement('a');a.download='PIKOL-BOOKING-QR-1080x1350.png';a.href=$('#promo-qr-canvas').toDataURL('image/png');a.click();};
+
   $('#form-adminpw').addEventListener('submit', function (e) {
     e.preventDefault();
-    if (!isAdmin()) return toast('Only the normal Admin can use this Operational Settings action.', 'error');
     var btn = e.target.querySelector('button[type=submit]');
     busy(btn, true);
     api('/api/auth/password', { method: 'PUT', body: { current_password: $('#ap-cur').value, new_password: $('#ap-new').value } })
-      .then(function () { $('#ap-cur').value = ''; $('#ap-new').value = ''; toast('Admin password updated.', 'success'); })
+      .then(function () { $('#ap-cur').value = ''; $('#ap-new').value = ''; toast('Password updated.', 'success'); })
       .catch(function (err) { toast(err.message, 'error'); })
       .finally(function () { busy(btn, false); });
   });
@@ -4092,7 +4193,7 @@
     toast('Cannot reach the booking server. Please try again later.', 'error');
   });
   if (TOKEN) api('/api/auth/me').then(function (d) {
-    if (d.user.role !== 'admin') throw new Error('not admin');
+    if (['admin','booking_manager','event_manager'].indexOf(d.user.role)<0) throw new Error('not staff');
     USER = d.user; showApp();
   }).catch(function () { signOutLocal(); });
 })();
@@ -4101,7 +4202,7 @@
 
 <script>
 /* PIKOL_PWA_INSTALL_RUNTIME */
-(function(){'use strict';var btn=document.getElementById('pwa-install-admin'),deferredPrompt=null,KEY='pikol_admin_installed_v3';function ios(){return /iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);}function standalone(){return window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true;}function marked(){return localStorage.getItem(KEY)==='1';}function setMarked(v){if(v)localStorage.setItem(KEY,'1');else localStorage.removeItem(KEY);}function showIosGuide(){var g=document.getElementById('ios-pwa-guide');if(g)g.hidden=false;if(typeof toast==='function')toast('iPhone: Safari → Share → Add to Home Screen. Then open PIKOL Admin from the Home Screen icon.','error');}function sync(){if(!btn)return;if(standalone()){setMarked(true);btn.hidden=true;return;}if(ios()){btn.hidden=false;btn.textContent='Install Admin App on iPhone';return;}btn.textContent='Install Admin App';btn.hidden=!deferredPrompt||marked();}window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();deferredPrompt=e;if(!standalone())setMarked(false);sync();});window.addEventListener('appinstalled',function(){setMarked(true);deferredPrompt=null;sync();});window.addEventListener('pageshow',sync);document.addEventListener('visibilitychange',function(){if(!document.hidden)sync();});if(btn)btn.addEventListener('click',async function(){if(ios()){showIosGuide();return;}if(!deferredPrompt)return;btn.disabled=true;try{await deferredPrompt.prompt();var c=await deferredPrompt.userChoice;if(c&&c.outcome==='accepted')setMarked(true);}catch(_){}deferredPrompt=null;btn.disabled=false;sync();});if('serviceWorker' in navigator)window.addEventListener('load',function(){navigator.serviceWorker.register('service-worker.js?v=29-tournament-tested',{scope:'./',updateViaCache:'none'}).catch(function(){});});sync();})();
+(function(){'use strict';var btn=document.getElementById('pwa-install-admin'),deferredPrompt=null,KEY='pikol_admin_installed_v3';function ios(){return /iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);}function standalone(){return window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true;}function marked(){return localStorage.getItem(KEY)==='1';}function setMarked(v){if(v)localStorage.setItem(KEY,'1');else localStorage.removeItem(KEY);}function showIosGuide(){var g=document.getElementById('ios-pwa-guide');if(g)g.hidden=false;if(typeof toast==='function')toast('iPhone: Safari → Share → Add to Home Screen. Then open PIKOL Admin from the Home Screen icon.','error');}function sync(){if(!btn)return;if(standalone()){setMarked(true);btn.hidden=true;return;}if(ios()){btn.hidden=false;btn.textContent='Install Admin App on iPhone';return;}btn.textContent='Install Admin App';btn.hidden=!deferredPrompt||marked();}window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();deferredPrompt=e;if(!standalone())setMarked(false);sync();});window.addEventListener('appinstalled',function(){setMarked(true);deferredPrompt=null;sync();});window.addEventListener('pageshow',sync);document.addEventListener('visibilitychange',function(){if(!document.hidden)sync();});if(btn)btn.addEventListener('click',async function(){if(ios()){showIosGuide();return;}if(!deferredPrompt)return;btn.disabled=true;try{await deferredPrompt.prompt();var c=await deferredPrompt.userChoice;if(c&&c.outcome==='accepted')setMarked(true);}catch(_){}deferredPrompt=null;btn.disabled=false;sync();});if('serviceWorker' in navigator)window.addEventListener('load',function(){navigator.serviceWorker.register('service-worker.js?v=30-master-upgrade',{scope:'./',updateViaCache:'none'}).catch(function(){});});sync();})();
 </script>
 
 </body>
