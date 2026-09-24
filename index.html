@@ -512,9 +512,11 @@
     var requestToken = TOKEN;
     var headers = { 'Content-Type': 'application/json' };
     if (requestToken) headers.Authorization = 'Bearer ' + requestToken;
+    var method = opts.method || 'GET';
     return fetch(API + pathname, {
-      method: opts.method || 'GET',
+      method: method,
       headers: headers,
+      cache: opts.cache || (method === 'GET' ? 'no-store' : 'default'),
       body: opts.body ? JSON.stringify(opts.body) : undefined
     }).then(function (res) {
       return res.json().catch(function () { return {}; }).then(function (data) {
@@ -787,7 +789,7 @@
         var free=c.slots.filter(function(slot){return slot.status==='available';}).length;
         var state=c.status==='active'?(free?'available':'booked'):c.status;
         var label=state==='available'?'AVAILABLE':state==='booked'?'FULLY BOOKED':String(state).toUpperCase();
-        return '<article class="promo-court"><div class="court-visual">'+courtPhoto(c)+'<span class="court-type">'+esc(c.surface||'Pickleball')+'</span><span class="badge badge-'+esc(state)+'">'+esc(label)+'</span></div><div class="court-info"><h3>'+esc(c.name)+'</h3><p class="court-surface">'+esc(c.description||c.surface||'Your next great game starts here.')+'</p><div class="court-meta"><span>♟ 2–6 players</span><span>◷ '+(c.status==='active'?free+' open slots':esc(label))+'</span></div><div class="court-rate"><strong>'+money(c.hourly_rate)+'</strong><small>/hour</small></div><div class="court-card-footer"><button class="btn btn-outline" data-court-details="'+c.id+'">View Details</button><button class="btn btn-primary" data-book-court="'+c.id+'">Book Now</button></div></div></article>';
+        return '<article class="promo-court"><div class="court-visual">'+courtPhoto(c)+'<span class="court-type">'+esc(c.surface||'Pickleball')+'</span><span class="badge badge-'+esc(state)+'">'+esc(label)+'</span></div><div class="court-info"><h3>'+esc(c.name)+'</h3><p class="court-surface">'+esc(c.description||c.surface||'Your next great game starts here.')+'</p><div class="court-meta"><span>♟ 2–6 players</span><span>◷ '+(c.status==='active'?free+' open slots':esc(label))+'</span></div><div class="court-rate" style="display:grid;gap:3px"><span><strong>'+money(c.day_hourly_rate==null?c.hourly_rate:c.day_hourly_rate)+'</strong><small>/hr · '+humanTime(data.open_time||'06:00')+'–'+humanTime(c.evening_rate_start||data.evening_rate_start||'16:00')+'</small></span><span><strong>'+money(c.evening_hourly_rate==null?c.hourly_rate:c.evening_hourly_rate)+'</strong><small>/hr · '+humanTime(c.evening_rate_start||data.evening_rate_start||'16:00')+' onward</small></span></div><div class="court-card-footer"><button class="btn btn-outline" data-court-details="'+c.id+'">View Details</button><button class="btn btn-primary" data-book-court="'+c.id+'">Book Now</button></div></div></article>';
       }).join(''):'<div class="empty"><strong>No courts yet</strong>Courts appear here once the facility adds them.</div>';
     }).catch(function(e){$('#today-courts').innerHTML='<div class="empty"><strong>Courts could not load</strong><span>'+esc(e.message)+'</span><button class="btn btn-outline" data-goto="dashboard">Try again</button></div>';});
   }
@@ -881,7 +883,7 @@
     renderCalendar(); loadAvailability();
   });
 
-  function ensureBooking() { updateBookingPresentation(); if(!PAYCFG)loadPayCfg().catch(function(){$('#booking-fee-status').classList.remove('hidden');}); if (!AVAIL || AVAIL.date !== sel.date) loadAvailability(); else renderBooking(); }
+  function ensureBooking() { updateBookingPresentation(); if(!PAYCFG)loadPayCfg().catch(function(){$('#booking-fee-status').classList.remove('hidden');}); loadAvailability(); }
 
   var availabilityRequest = 0;
   function loadAvailability() {
@@ -2218,7 +2220,7 @@
     var detail=e.target.closest('[data-court-details]');
     if(detail){
       var c=PUBLIC_COURTS.filter(function(x){return String(x.id)===detail.dataset.courtDetails;})[0]; if(!c)return;
-      modal({title:c.name,wide:true,body:'<div class="court-detail-photo court-visual">'+courtPhoto(c)+'</div><p>'+esc(c.description||c.surface||'Choose your preferred date and time to reserve this court.')+'</p><div class="spread"><span>'+esc(c.surface||'Pickleball court')+'</span><strong>'+money(c.hourly_rate)+'/hour</strong></div>',confirmText:'Book this Court →',cancelText:'Close',onConfirm:function(){sel.court=c.id;sel.start=null;goto('book');}});
+      modal({title:c.name,wide:true,body:'<div class="court-detail-photo court-visual">'+courtPhoto(c)+'</div><p>'+esc(c.description||c.surface||'Choose your preferred date and time to reserve this court.')+'</p><div class="spread" style="align-items:flex-start;gap:16px"><span>'+esc(c.surface||'Pickleball court')+'</span><div style="text-align:right;display:grid;gap:4px"><strong>'+money(c.day_hourly_rate==null?c.hourly_rate:c.day_hourly_rate)+'/hr · before '+humanTime(c.evening_rate_start||'16:00')+'</strong><strong>'+money(c.evening_hourly_rate==null?c.hourly_rate:c.evening_hourly_rate)+'/hr · '+humanTime(c.evening_rate_start||'16:00')+' onward</strong></div></div>',confirmText:'Book this Court →',cancelText:'Close',onConfirm:function(){sel.court=c.id;sel.start=null;goto('book');}});
     }
   });
   $('#site-overlay').addEventListener('mousedown',function(e){if(e.target===this && !$('#modal-root .modal-host'))closeSheet();});
@@ -2280,9 +2282,9 @@
     var c=AVAIL && AVAIL.courts.filter(function(x){return x.id===sel.court;})[0];
     $('#booking-title').textContent=c?'Book '+c.name:'Book a Court';
     $('#booking-photo').innerHTML=c?courtPhoto(c):'<img class="court-promo-image" src="assets/booking/hero-court.jpg" alt="Promotional court illustration"/><span class="court-image-note">Promotional image</span>';
-    $('#booking-court-description').innerHTML=c?'<div class="spread"><h2>'+esc(c.name)+'</h2><strong>'+money(c.day_hourly_rate||c.hourly_rate)+'/hr day · '+money(c.evening_hourly_rate||c.hourly_rate)+'/hr after 4PM</strong></div><p>'+esc(c.description||c.surface||'Find your favourite time and get ready to play.')+'</p><div class="court-amenities"><span>▦ '+esc(c.surface||'Pickleball court')+'</span><span>♟ 2–6 players</span><span>◷ '+Number(AVAIL.slot_minutes)+' minute slots</span></div>':'<h2>Your next game starts here.</h2><p>Select a court and a time that works for you.</p>';
+    $('#booking-court-description').innerHTML=c?'<div class="spread"><h2>'+esc(c.name)+'</h2><strong>'+money(c.day_hourly_rate==null?c.hourly_rate:c.day_hourly_rate)+'/hr · before '+humanTime(c.evening_rate_start||AVAIL.evening_rate_start||'16:00')+' · '+money(c.evening_hourly_rate==null?c.hourly_rate:c.evening_hourly_rate)+'/hr · '+humanTime(c.evening_rate_start||AVAIL.evening_rate_start||'16:00')+' onward</strong></div><p>'+esc(c.description||c.surface||'Find your favourite time and get ready to play.')+'</p><div class="court-amenities"><span>▦ '+esc(c.surface||'Pickleball court')+'</span><span>♟ 2–6 players</span><span>◷ '+Number(AVAIL.slot_minutes)+' minute slots</span></div>':'<h2>Your next game starts here.</h2><p>Select a court and a time that works for you.</p>';
     var options='<option value="">'+(c?'Select an available time':'Choose a court first')+'</option>';
-    if(c)options+=c.slots.map(function(slot){var ok=slot.bookable===undefined?slot.status==='available':!!slot.bookable;return '<option value="'+esc(slot.start)+'"'+(ok?'':' disabled')+'>'+humanTime(slot.start)+' – '+humanTime(addMin(slot.start,AVAIL.slot_minutes))+(ok?'':' · '+esc(slot.status_label||slot.label||slot.status))+'</option>';}).join('');
+    if(c)options+=c.slots.map(function(slot){var ok=slot.bookable===undefined?slot.status==='available':!!slot.bookable;return '<option value="'+esc(slot.start)+'"'+(ok?'':' disabled')+'>'+humanTime(slot.start)+(ok?'':' · '+esc(slot.status_label||slot.label||slot.status))+'</option>';}).join('');
     $('#booking-time').innerHTML=options;$('#booking-time').value=sel.start||'';$('#booking-time').disabled=!c;
   }
   $('#booking-date').onchange=function(){
@@ -2509,6 +2511,18 @@
     };
   })();
 
+  var lastPublicFreshCheck = 0;
+  function refreshPublicFreshData() {
+    if (document.hidden || Date.now() - lastPublicFreshCheck < 500) return;
+    lastPublicFreshCheck = Date.now();
+    if (!$('#tab-dashboard').classList.contains('hidden')) loadDashboard();
+    if (!$('#tab-book').classList.contains('hidden')) loadAvailability();
+  }
+  window.addEventListener('focus', refreshPublicFreshData);
+  window.addEventListener('pageshow', refreshPublicFreshData);
+  document.addEventListener('visibilitychange', function(){ if(!document.hidden) refreshPublicFreshData(); });
+  window.addEventListener('storage', function(e){ if(e.key==='pikol_public_data_version') refreshPublicFreshData(); });
+
   renderDow();
   renderCalendar();
   updateAccountPresentation();
@@ -2543,7 +2557,7 @@
   window.addEventListener('appinstalled',function(){setMarked(true);deferredPrompt=null;sync();});
   window.addEventListener('pageshow',sync);document.addEventListener('visibilitychange',function(){if(!document.hidden)sync();});
   if(btn)btn.addEventListener('click',async function(){if(!deferredPrompt)return;btn.disabled=true;try{await deferredPrompt.prompt();var c=await deferredPrompt.userChoice;if(c&&c.outcome==='accepted')setMarked(true);}catch(_){}deferredPrompt=null;btn.disabled=false;sync();});
-  if('serviceWorker' in navigator)window.addEventListener('load',function(){navigator.serviceWorker.register('service-worker.js?v=30-master-upgrade',{scope:'./',updateViaCache:'none'}).catch(function(){});});
+  if('serviceWorker' in navigator)window.addEventListener('load',function(){navigator.serviceWorker.register('service-worker.js?v=31-ui-sync-qr-fix',{scope:'./',updateViaCache:'none'}).catch(function(){});});
   sync();
 })();
 </script>
