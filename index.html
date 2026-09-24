@@ -21,11 +21,12 @@
 .checkout-hold-banner{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:14px 16px;border:1px solid rgba(132,204,22,.45);background:linear-gradient(135deg,rgba(236,252,203,.92),rgba(255,255,255,.96));border-radius:16px;margin:0 0 16px;color:#17310c}.checkout-hold-banner strong{display:block}.checkout-hold-copy{display:grid;gap:3px}.checkout-hold-count{font-variant-numeric:tabular-nums;font-size:1.5rem;font-weight:900;letter-spacing:.02em;white-space:nowrap}.checkout-hold-banner.is-expired{border-color:rgba(220,38,38,.35);background:#fff1f2;color:#881337}.slot.state-held,.slot.state-pending{opacity:.78}.slot.state-held .slot-state{font-weight:800}.payment-dialog .modal-foot .btn-primary[disabled]{opacity:.55;cursor:not-allowed}
 </style>
 
-<style id="pikol-court-carousel-v34">
-/* V34: true court carousel on phones/tablets. The page itself never scrolls sideways. */
-html,body{max-width:100%;overflow-x:hidden}
-.player-app,#view-app,.app-main,.booking-main,.container,.booking-gallery{min-width:0;max-width:100%}
-.player-app img,.player-app video,.player-app canvas{max-width:100%}
+<style id="pikol-court-carousel-v35">
+/* V35 FINAL: compact native-like court carousel on phone/tablet.
+   The carousel track moves; the document itself never scrolls sideways. */
+html,body{width:100%;max-width:100%;overflow-x:hidden}
+.player-app,#view-app,.app-main,.booking-main,.container,.booking-gallery,.card{min-width:0;max-width:100%}
+.player-app img,.player-app video,.player-app canvas,.player-app svg{max-width:100%}
 @media (max-width:1024px){
   #today-courts.court-gallery,
   #book-courts.pick-grid{
@@ -36,7 +37,8 @@ html,body{max-width:100%;overflow-x:hidden}
     max-width:100%;
     min-width:0;
     overflow:hidden !important;
-    padding:4px 0 0 !important;
+    box-sizing:border-box;
+    padding:4px clamp(10px,2.7vw,20px) 0 !important;
     touch-action:pan-y;
     overscroll-behavior-x:none;
   }
@@ -48,7 +50,7 @@ html,body{max-width:100%;overflow-x:hidden}
     gap:0;
     align-items:stretch;
     transform:translate3d(0,0,0);
-    transition:transform 420ms cubic-bezier(.22,.61,.36,1);
+    transition:transform 400ms cubic-bezier(.22,.72,.25,1);
     will-change:transform;
     touch-action:pan-y;
     user-select:none;
@@ -69,8 +71,94 @@ html,body{max-width:100%;overflow-x:hidden}
     box-sizing:border-box;
     margin:0 !important;
   }
-  #today-courts .pikol-carousel-track > .promo-court,
-  #book-courts .pikol-carousel-track > .court-pick{height:auto}
+
+  /* HOME COURT CARD: deliberately compact so the image, both rates and both
+     actions stay together in one comfortable mobile/tablet view. */
+  #today-courts .promo-court{
+    height:auto !important;
+    max-height:none !important;
+    border-radius:12px;
+  }
+  #today-courts .promo-court .court-visual{
+    aspect-ratio:auto !important;
+    height:clamp(132px,28vw,190px) !important;
+    min-height:0 !important;
+  }
+  #today-courts .promo-court .court-promo-image{
+    width:100%;height:100%;object-fit:cover;object-position:center;
+  }
+  #today-courts .promo-court .court-info{
+    padding:10px 12px 12px !important;
+    gap:0;
+  }
+  #today-courts .promo-court .court-info h3{
+    font-size:clamp(.88rem,2.3vw,1rem) !important;
+    line-height:1.22;
+    margin:0 0 3px;
+  }
+  #today-courts .promo-court .court-surface{
+    display:-webkit-box;
+    -webkit-box-orient:vertical;
+    -webkit-line-clamp:1;
+    overflow:hidden;
+    margin:0 0 5px;
+    font-size:.69rem !important;
+    line-height:1.3;
+  }
+  #today-courts .promo-court .court-meta{
+    margin:0 0 5px;
+    gap:8px;
+    font-size:.6rem !important;
+    line-height:1.25;
+    flex-wrap:wrap;
+  }
+  #today-courts .promo-court .court-rate{
+    margin-top:2px !important;
+    gap:1px !important;
+    white-space:normal !important;
+  }
+  #today-courts .promo-court .court-rate > span{
+    display:flex;
+    align-items:baseline;
+    gap:5px;
+    min-width:0;
+  }
+  #today-courts .promo-court .court-rate strong{
+    font-size:1.02rem !important;
+    line-height:1.2;
+  }
+  #today-courts .promo-court .court-rate small{
+    font-size:.61rem !important;
+    line-height:1.2;
+    white-space:normal;
+  }
+  #today-courts .promo-court .court-card-footer{
+    display:grid !important;
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;
+    gap:7px !important;
+    padding-top:8px !important;
+    margin-top:4px !important;
+  }
+  #today-courts .promo-court .court-card-footer .btn{
+    width:100%;
+    min-width:0;
+    min-height:36px !important;
+    padding:7px 6px !important;
+    font-size:.7rem !important;
+    white-space:nowrap;
+  }
+
+  /* Booking-modal court selector stays compact as well. */
+  #book-courts .court-pick{height:auto !important;border-radius:10px}
+  #book-courts .court-pick .court-visual{
+    aspect-ratio:auto !important;
+    height:clamp(105px,23vw,155px) !important;
+  }
+  #book-courts .court-pick .court-promo-image{width:100%;height:100%;object-fit:cover;object-position:center}
+  #book-courts .court-pick-body{padding:8px 10px !important;gap:2px}
+  #book-courts .court-pick .p-title{font-size:.72rem !important;line-height:1.25}
+  #book-courts .court-pick .p-sub,#book-courts .court-pick-rate{font-size:.61rem !important}
+
   .pikol-carousel-controls{
     display:flex;
     align-items:center;
@@ -78,22 +166,33 @@ html,body{max-width:100%;overflow-x:hidden}
     gap:10px;
     width:100%;
     max-width:100%;
-    padding:12px 4px 2px;
+    padding:9px 4px 1px;
+    box-sizing:border-box;
   }
   .pikol-carousel-arrow{
-    width:36px;height:36px;min-width:36px;border-radius:999px;
+    width:34px;height:34px;min-width:34px;border-radius:999px;
     border:1px solid var(--border,#dfe5e2);background:var(--surface,#fff);color:var(--text,#14251f);
-    display:grid;place-items:center;font:800 22px/1 inherit;cursor:pointer;
-    box-shadow:0 5px 14px rgba(15,61,50,.08);
+    display:grid;place-items:center;font:800 21px/1 inherit;cursor:pointer;
+    box-shadow:0 4px 12px rgba(15,61,50,.07);
   }
   .pikol-carousel-arrow:disabled{opacity:.28;cursor:default}
-  .pikol-carousel-dots{display:flex;align-items:center;justify-content:center;gap:7px;min-width:72px}
+  .pikol-carousel-dots{display:flex;align-items:center;justify-content:center;gap:7px;min-width:66px}
   .pikol-carousel-dot{
     width:7px;height:7px;min-width:7px;padding:0;border:0;border-radius:99px;
     background:color-mix(in srgb,var(--text,#14251f) 22%,transparent);cursor:pointer;
     transition:width 220ms ease,background 220ms ease,transform 220ms ease;
   }
-  .pikol-carousel-dot.is-active{width:22px;background:var(--primary,#0f3d32);transform:scaleY(1.08)}
+  .pikol-carousel-dot.is-active{width:21px;background:var(--primary,#0f3d32);transform:scaleY(1.08)}
+}
+@media (max-width:479px){
+  #today-courts.court-gallery,#book-courts.pick-grid{padding-inline:8px !important}
+  #today-courts .promo-court .court-visual{height:132px !important}
+  #today-courts .promo-court .court-info{padding:9px 10px 10px !important}
+  #today-courts .promo-court .court-meta{display:none !important}
+  #today-courts .promo-court .court-rate strong{font-size:.96rem !important}
+  #today-courts .promo-court .court-rate small{font-size:.58rem !important}
+  #today-courts .promo-court .court-card-footer .btn{min-height:34px !important;font-size:.67rem !important}
+  #book-courts .court-pick .court-visual{height:108px !important}
 }
 @media (min-width:1025px){
   #today-courts .pikol-carousel-track,
@@ -2787,7 +2886,7 @@ html,body{max-width:100%;overflow-x:hidden}
   window.addEventListener('appinstalled',function(){setMarked(true);deferredPrompt=null;sync();});
   window.addEventListener('pageshow',sync);document.addEventListener('visibilitychange',function(){if(!document.hidden)sync();});
   if(btn)btn.addEventListener('click',async function(){if(!deferredPrompt)return;btn.disabled=true;try{await deferredPrompt.prompt();var c=await deferredPrompt.userChoice;if(c&&c.outcome==='accepted')setMarked(true);}catch(_){}deferredPrompt=null;btn.disabled=false;sync();});
-  if('serviceWorker' in navigator)window.addEventListener('load',function(){var reloading=false;navigator.serviceWorker.addEventListener('controllerchange',function(){if(reloading)return;reloading=true;location.reload();});navigator.serviceWorker.register('service-worker.js?v=33-final-ui-polish',{scope:'./',updateViaCache:'none'}).then(function(reg){return reg.update();}).catch(function(){});});
+  if('serviceWorker' in navigator)window.addEventListener('load',function(){var reloading=false;navigator.serviceWorker.addEventListener('controllerchange',function(){if(reloading)return;reloading=true;location.reload();});navigator.serviceWorker.register('service-worker.js?v=35-compact-carousel-settings',{scope:'./',updateViaCache:'none'}).then(function(reg){return reg.update();}).catch(function(){});});
   sync();
 })();
 </script>

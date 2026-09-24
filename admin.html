@@ -40,8 +40,10 @@ body.admin-app:not(.role-ready) #view-app{visibility:hidden !important}
 body.admin-app.role-ready #view-app{visibility:visible}
 </style>
 
-<style id="pikol-settings-adaptive-v34">
-/* V34: the existing Admin mobile layout is preserved; only Settings is hardened for small screens. */
+<style id="pikol-settings-adaptive-v35">
+/* V35 FINAL: Settings is the only Admin area changed here.
+   On phone/tablet, Settings uses one vertical, event-hub-like navigation and
+   one visible content group at a time. No horizontal settings navigation. */
 #page-settings,#page-settings *{box-sizing:border-box}
 #page-settings{width:100%;max-width:100%;min-width:0;overflow-x:hidden}
 #page-settings .settings-nav,#page-settings .settings-section,#page-settings form,#page-settings section,#page-settings .grid,#page-settings .row,#page-settings .field,#page-settings .asset-card{min-width:0;max-width:100%}
@@ -49,41 +51,80 @@ body.admin-app.role-ready #view-app{visibility:visible}
 #page-settings .input,#page-settings .select,#page-settings .textarea{max-width:100%;min-width:0}
 #page-settings .page-subtitle,#page-settings .tiny,#page-settings .field-hint,#page-settings .card-title,#page-settings p,#page-settings label{overflow-wrap:anywhere}
 #page-settings #promo-qr-canvas{height:auto !important;max-width:100% !important}
-@media(max-width:1024px){
-  #page-settings .settings-nav-premium{width:100%;max-width:100%;overflow:hidden;margin-inline:0}
+#page-settings .settings-panel-enter{opacity:0;transform:translateY(8px)}
+#page-settings .settings-panel-enter.is-visible{opacity:1;transform:translateY(0);transition:opacity 240ms ease,transform 280ms cubic-bezier(.22,.72,.25,1)}
+
+@media (max-width:1024px){
+  #page-settings .settings-nav-premium{
+    width:100%;max-width:100%;overflow:visible;margin:0 0 14px;padding:0;background:transparent;border:0;box-shadow:none;
+  }
   #page-settings .settings-nav-premium .tabs{
-    display:grid !important;
-    grid-template-columns:repeat(auto-fit,minmax(145px,1fr));
-    width:100%;max-width:100%;gap:8px;overflow:visible !important;padding:0 !important;
+    display:flex !important;
+    flex-direction:column !important;
+    gap:8px !important;
+    width:100%;
+    max-width:100%;
+    overflow:visible !important;
+    padding:0 !important;
+    margin:0 !important;
   }
   #page-settings .settings-nav-premium .tab{
-    width:100%;min-width:0;max-width:100%;white-space:normal;text-align:center;line-height:1.2;
-    padding:10px 8px;margin:0;
+    position:relative;
+    display:flex !important;
+    align-items:center;
+    justify-content:flex-start;
+    width:100% !important;
+    max-width:100% !important;
+    min-width:0 !important;
+    min-height:48px;
+    margin:0 !important;
+    padding:11px 42px 11px 14px !important;
+    border:1px solid var(--border);
+    border-radius:10px !important;
+    background:var(--surface);
+    color:var(--text-primary);
+    text-align:left;
+    white-space:normal !important;
+    overflow:visible !important;
+    font-size:.78rem;
+    font-weight:700;
+    line-height:1.25;
+    box-shadow:0 2px 8px rgba(15,61,50,.035);
+    transition:background 180ms ease,border-color 180ms ease,transform 180ms ease,box-shadow 180ms ease,color 180ms ease;
   }
-  #page-settings .settings-section{width:100%;max-width:100%;margin-left:0;margin-right:0}
-  #page-settings .row{max-width:100%;flex-wrap:wrap}
-  #page-settings .spread{max-width:100%;gap:10px;flex-wrap:wrap}
-  #page-settings .asset-preview{max-width:100%;overflow:hidden}
-  #page-settings .asset-card{overflow:hidden}
+  #page-settings .settings-nav-premium .tab::after{
+    content:'›';position:absolute;right:15px;top:50%;transform:translateY(-50%);font-size:21px;line-height:1;color:var(--text-secondary);transition:transform 180ms ease,color 180ms ease;
+  }
+  #page-settings .settings-nav-premium .tab:active{transform:scale(.992)}
+  #page-settings .settings-nav-premium .tab[aria-selected="true"]{
+    background:color-mix(in srgb,var(--admin-green,#075e54) 8%,var(--surface,#fff));
+    border-color:color-mix(in srgb,var(--admin-green,#075e54) 42%,var(--border,#d8e1dd));
+    color:var(--admin-green,#075e54);
+    box-shadow:0 4px 14px rgba(7,94,84,.08);
+  }
+  #page-settings .settings-nav-premium .tab[aria-selected="true"]::after{color:var(--admin-green,#075e54);transform:translateY(-50%) translateX(2px)}
+  #page-settings .settings-section{width:100%;max-width:100%;margin-left:0;margin-right:0;overflow-x:hidden}
+  #page-settings .row,#page-settings .spread{max-width:100%;gap:10px;flex-wrap:wrap}
+  #page-settings .asset-preview,#page-settings .asset-card{max-width:100%;overflow:hidden}
+  #page-settings .booking-hero-asset{grid-template-columns:minmax(0,1fr) !important}
+  #page-settings .booking-hero-asset .asset-preview{grid-column:1 !important;grid-row:auto !important}
 }
-@media(max-width:720px){
-  #page-settings .grid.cols-2,#page-settings .grid.cols-3,#page-settings .grid.cols-4{
-    grid-template-columns:minmax(0,1fr) !important;
-  }
-  #page-settings .settings-nav-premium .tabs{grid-template-columns:repeat(2,minmax(0,1fr))}
-  #page-settings .settings-nav-premium .tab:last-child:nth-child(odd){grid-column:1/-1}
+@media (max-width:767px){
+  #page-settings{padding-inline:0 !important}
+  #page-settings .grid.cols-2,#page-settings .grid.cols-3,#page-settings .grid.cols-4{grid-template-columns:minmax(0,1fr) !important}
   #page-settings .color-field{grid-template-columns:48px minmax(0,1fr) !important;width:100%}
   #page-settings .color-field input[type="color"]{max-width:48px}
   #page-settings .row > .btn,#page-settings .spread > .btn{max-width:100%}
   #page-settings #staff-users-panel .spread{display:grid;grid-template-columns:minmax(0,1fr);align-items:start}
   #page-settings #staff-users-panel .spread .btn{width:100%}
-  #page-settings .booking-hero-asset{grid-template-columns:minmax(0,1fr) !important}
-  #page-settings .booking-hero-asset .asset-preview{grid-column:1 !important;grid-row:auto !important}
+  #page-settings .settings-nav-premium .tab{min-height:46px;padding:10px 40px 10px 12px !important;font-size:.74rem}
 }
-@media(max-width:390px){
-  #page-settings .settings-nav-premium .tabs{grid-template-columns:minmax(0,1fr)}
-  #page-settings .settings-nav-premium .tab:last-child:nth-child(odd){grid-column:auto}
+@media (max-width:420px){
   #page-settings .row > .btn{width:100%;justify-content:center}
+  #page-settings .settings-section{padding-left:12px !important;padding-right:12px !important}
+}
+@media (prefers-reduced-motion:reduce){
+  #page-settings .settings-panel-enter.is-visible,#page-settings .settings-nav-premium .tab{transition-duration:1ms !important}
 }
 </style>
 </head>
@@ -3486,8 +3527,26 @@ body.admin-app.role-ready #view-app{visibility:visible}
   function showSettingsGroup(sel) {
     var all = [];
     Object.keys(SETTAB_GROUPS).forEach(function (k) { all = all.concat(SETTAB_GROUPS[k]); });
-    all.forEach(function (selector) { var el = $(selector); if (el) el.classList.add('hidden'); });
-    (SETTAB_GROUPS[sel] || []).forEach(function (selector) { var el = $(selector); if (el) el.classList.remove('hidden'); });
+    all.forEach(function (selector) {
+      var el = $(selector);
+      if (!el) return;
+      el.classList.add('hidden');
+      el.classList.remove('settings-panel-enter','is-visible');
+    });
+    var shown=[];
+    (SETTAB_GROUPS[sel] || []).forEach(function (selector) {
+      var el = $(selector); if (!el) return;
+      el.classList.remove('hidden');
+      shown.push(el);
+    });
+    /* One smooth vertical view: only the selected settings group is visible.
+       Animate the group in place; never create a horizontal settings track. */
+    if (window.matchMedia && window.matchMedia('(max-width: 1024px)').matches) {
+      shown.forEach(function(el){
+        el.classList.add('settings-panel-enter');
+        requestAnimationFrame(function(){ requestAnimationFrame(function(){ el.classList.add('is-visible'); }); });
+      });
+    }
     if(!isAdmin())applyAdminOperationalSettingsUI();
   }
   $$('[data-settab]').forEach(function (t) {
@@ -3589,7 +3648,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
   };
 
   /* ---------- In-Charge PWA push ---------- */
-  var ADMIN_SW_VERSION='33-final-ui-polish';
+  var ADMIN_SW_VERSION='35-compact-carousel-settings';
   var PUSH_PREP={reg:null,publicKey:null,serverStatus:null,ready:false,error:null,promise:null};
   function b64ToUint8(s){s=String(s||'').replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';var raw=atob(s),a=new Uint8Array(raw.length);for(var i=0;i<raw.length;i++)a[i]=raw.charCodeAt(i);return a;}
   function bytesEqual(a,b){if(!a||!b)return false;var x=new Uint8Array(a),y=new Uint8Array(b);if(x.length!==y.length)return false;for(var i=0;i<x.length;i++)if(x[i]!==y[i])return false;return true;}
@@ -4357,7 +4416,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
 
 <script>
 /* PIKOL_PWA_INSTALL_RUNTIME */
-(function(){'use strict';var btn=document.getElementById('pwa-install-admin'),deferredPrompt=null,KEY='pikol_admin_installed_v3';function ios(){return /iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);}function standalone(){return window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true;}function marked(){return localStorage.getItem(KEY)==='1';}function setMarked(v){if(v)localStorage.setItem(KEY,'1');else localStorage.removeItem(KEY);}function showIosGuide(){var g=document.getElementById('ios-pwa-guide');if(g)g.hidden=false;if(typeof toast==='function')toast('iPhone: Safari → Share → Add to Home Screen. Then open PIKOL Admin from the Home Screen icon.','error');}function sync(){if(!btn)return;if(standalone()){setMarked(true);btn.hidden=true;return;}if(ios()){btn.hidden=false;btn.textContent='Install Admin App on iPhone';return;}btn.textContent='Install Admin App';btn.hidden=!deferredPrompt||marked();}window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();deferredPrompt=e;if(!standalone())setMarked(false);sync();});window.addEventListener('appinstalled',function(){setMarked(true);deferredPrompt=null;sync();});window.addEventListener('pageshow',sync);document.addEventListener('visibilitychange',function(){if(!document.hidden)sync();});if(btn)btn.addEventListener('click',async function(){if(ios()){showIosGuide();return;}if(!deferredPrompt)return;btn.disabled=true;try{await deferredPrompt.prompt();var c=await deferredPrompt.userChoice;if(c&&c.outcome==='accepted')setMarked(true);}catch(_){}deferredPrompt=null;btn.disabled=false;sync();});if('serviceWorker' in navigator)window.addEventListener('load',function(){var reloading=false;navigator.serviceWorker.addEventListener('controllerchange',function(){if(reloading)return;reloading=true;location.reload();});navigator.serviceWorker.register('service-worker.js?v=33-final-ui-polish',{scope:'./',updateViaCache:'none'}).then(function(reg){return reg.update();}).catch(function(){});});sync();})();
+(function(){'use strict';var btn=document.getElementById('pwa-install-admin'),deferredPrompt=null,KEY='pikol_admin_installed_v3';function ios(){return /iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);}function standalone(){return window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true;}function marked(){return localStorage.getItem(KEY)==='1';}function setMarked(v){if(v)localStorage.setItem(KEY,'1');else localStorage.removeItem(KEY);}function showIosGuide(){var g=document.getElementById('ios-pwa-guide');if(g)g.hidden=false;if(typeof toast==='function')toast('iPhone: Safari → Share → Add to Home Screen. Then open PIKOL Admin from the Home Screen icon.','error');}function sync(){if(!btn)return;if(standalone()){setMarked(true);btn.hidden=true;return;}if(ios()){btn.hidden=false;btn.textContent='Install Admin App on iPhone';return;}btn.textContent='Install Admin App';btn.hidden=!deferredPrompt||marked();}window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();deferredPrompt=e;if(!standalone())setMarked(false);sync();});window.addEventListener('appinstalled',function(){setMarked(true);deferredPrompt=null;sync();});window.addEventListener('pageshow',sync);document.addEventListener('visibilitychange',function(){if(!document.hidden)sync();});if(btn)btn.addEventListener('click',async function(){if(ios()){showIosGuide();return;}if(!deferredPrompt)return;btn.disabled=true;try{await deferredPrompt.prompt();var c=await deferredPrompt.userChoice;if(c&&c.outcome==='accepted')setMarked(true);}catch(_){}deferredPrompt=null;btn.disabled=false;sync();});if('serviceWorker' in navigator)window.addEventListener('load',function(){var reloading=false;navigator.serviceWorker.addEventListener('controllerchange',function(){if(reloading)return;reloading=true;location.reload();});navigator.serviceWorker.register('service-worker.js?v=35-compact-carousel-settings',{scope:'./',updateViaCache:'none'}).then(function(reg){return reg.update();}).catch(function(){});});sync();})();
 </script>
 
 </body>
