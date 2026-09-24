@@ -1040,6 +1040,25 @@ body.admin-app.role-ready #view-app{visibility:visible}
   function ymd(d) { return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
   function humanDate(s) { var d = new Date(s + 'T00:00:00'); return DOW[d.getDay()] + ', ' + MONTHS[d.getMonth()].slice(0, 3) + ' ' + d.getDate() + ', ' + d.getFullYear(); }
   function humanTime(t) { var h = +t.slice(0, 2), ap = h >= 12 ? 'PM' : 'AM'; return ((h % 12) || 12) + ':' + t.slice(3, 5) + ' ' + ap; }
+  function rateWindowLabels(source) {
+    source = source || SETTINGS || {};
+    var open = source.open_time || '06:00';
+    var evening = source.evening_rate_start || '16:00';
+    var close = source.close_time || '22:00';
+    return {
+      day: humanTime(open) + '–before ' + humanTime(evening),
+      evening: humanTime(evening) + '–' + humanTime(close)
+    };
+  }
+  function slotRangeLabel(start, end) {
+    if (!end) {
+      var step = Math.max(30, Number((SETTINGS || {}).slot_minutes) || 60);
+      var sm = (+start.slice(0,2))*60 + (+start.slice(3,5));
+      var em = (sm + step) % 1440;
+      end = String(Math.floor(em/60)).padStart(2,'0') + ':' + String(em%60).padStart(2,'0');
+    }
+    return humanTime(start) + ' – ' + humanTime(end);
+  }
   function stamp(iso) { var d = new Date(iso); return d.toLocaleString(); }
   function money(v) { return (SETTINGS.currency || '') + ' ' + Number(v || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
   var STATUS_LABEL = {
@@ -2565,7 +2584,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
             /* Same terminology everywhere: AVAILABLE / BOOKED - Regular /
                BOOKED - Open Play / BOOKED - Tournament. */
             var text = s.status_label + (s.event ? ' · ' + s.event.title : '');
-            return '<div class="court-preview-row"><span class="num">' + humanTime(s.start) + '</span>' +
+            return '<div class="court-preview-row"><span class="num">' + slotRangeLabel(s.start, s.end) + '</span>' +
               '<span class="st st-' + s.status + (s.booked ? ' is-booked' : '') + '">' + ico + '<span>' + esc(text) + '</span></span></div>';
           }).join('') + '</div>' + slotEditor(c) + '</div>';
       }).join('');
@@ -2586,7 +2605,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
       '<div class="slot-panel hidden" data-slot-panel="add" style="margin-top:8px">' +
         '<div class="row wrap" style="gap:6px;align-items:center">' +
           '<span class="tiny muted">Add time slot</span>' +
-          '<input class="input" type="time" step="900" data-slot-add-input="' + c.id + '" style="max-width:130px" />' +
+          '<input class="input" type="time" step="' + (Math.max(30, Number((SETTINGS || {}).slot_minutes) || 60) * 60) + '" data-slot-add-input="' + c.id + '" style="max-width:130px" />' +
           '<button class="btn btn-primary btn-sm" data-slot-add="' + c.id + '">Add</button>' +
         '</div></div>' +
       '<div class="slot-panel hidden" data-slot-panel="remove" style="margin-top:8px">' +
@@ -2594,7 +2613,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
           '<span class="tiny muted">Remove time slot</span>' +
           '<select class="select" data-slot-remove-input="' + c.id + '" style="max-width:150px">' +
             (times.length
-              ? times.map(function (t) { return '<option value="' + t + '">' + humanTime(t) + '</option>'; }).join('')
+              ? times.map(function (t) { return '<option value="' + t + '">' + slotRangeLabel(t) + '</option>'; }).join('')
               : '<option value="">No slots configured</option>') +
           '</select>' +
           '<button class="btn btn-outline btn-sm" data-slot-remove="' + c.id + '"' + (times.length ? '' : ' disabled') + '>Remove</button>' +
@@ -2766,9 +2785,10 @@ body.admin-app.role-ready #view-app{visibility:visible}
   function loadCourts() {
     return api('/api/courts').then(function (rows) {
       COURTS = rows;
+      var rateLabels = rateWindowLabels();
       $('#courts-grid').innerHTML = rows.length ? rows.map(function (c) {
         return '<div class="list-row"><div class="list-main"><div class="list-title">' + esc(c.name) + '</div>' +
-          '<div class="list-sub">' + esc(c.surface || 'Surface not set') + ' · ' + money(c.day_hourly_rate==null?c.hourly_rate:c.day_hourly_rate) + '/hr before 4PM · ' + money(c.evening_hourly_rate==null?c.hourly_rate:c.evening_hourly_rate) + '/hr 4PM onward' + (c.description ? ' · ' + esc(c.description) : '') + '</div></div>' +
+          '<div class="list-sub">' + esc(c.surface || 'Surface not set') + ' · ' + money(c.day_hourly_rate==null?c.hourly_rate:c.day_hourly_rate) + '/hr · ' + esc(rateLabels.day) + ' · ' + money(c.evening_hourly_rate==null?c.hourly_rate:c.evening_hourly_rate) + '/hr · ' + esc(rateLabels.evening) + (c.description ? ' · ' + esc(c.description) : '') + '</div></div>' +
           '<div class="list-end">' + badge(c.status) + '<button class="btn btn-outline btn-sm" data-edit-court="' + c.id + '">Edit</button>' +
           '<button class="btn btn-outline btn-sm" data-court-promo="' + esc(c.id) + '">Promotional image</button>' +
           '<button class="btn btn-outline btn-sm" data-court-status="' + c.id + '" data-to="' + (c.status === 'active' ? 'inactive' : 'active') + '">' +
@@ -2799,10 +2819,11 @@ body.admin-app.role-ready #view-app{visibility:visible}
 
   function courtForm(c) {
     c = c || {};
+    var rateLabels = rateWindowLabels();
     return '<div class="field"><label class="label" for="ct-name">Name</label><input class="input" id="ct-name" value="' + esc(c.name || '') + '" /></div>' +
       '<div class="field"><label class="label" for="ct-desc">Description</label><input class="input" id="ct-desc" value="' + esc(c.description || '') + '" /></div>' +
       '<div class="field"><label class="label" for="ct-surface">Surface</label><input class="input" id="ct-surface" value="' + esc(c.surface || '') + '" /></div>' +
-      '<div class="grid cols-2"><div class="field"><label class="label" for="ct-day-rate">6AM–4PM Hourly Rate</label><input class="input" id="ct-day-rate" type="number" min="0" step="0.01" value="' + Number(c.day_hourly_rate==null?c.hourly_rate||0:c.day_hourly_rate) + '" /></div><div class="field"><label class="label" for="ct-evening-rate">4PM Onward Hourly Rate</label><input class="input" id="ct-evening-rate" type="number" min="0" step="0.01" value="' + Number(c.evening_hourly_rate==null?c.hourly_rate||0:c.evening_hourly_rate) + '" /></div></div>' +
+      '<div class="grid cols-2"><div class="field"><label class="label" for="ct-day-rate">Day Rate · ' + esc(rateLabels.day) + '</label><input class="input" id="ct-day-rate" type="number" min="0" step="0.01" value="' + Number(c.day_hourly_rate==null?c.hourly_rate||0:c.day_hourly_rate) + '" /></div><div class="field"><label class="label" for="ct-evening-rate">Evening Rate · ' + esc(rateLabels.evening) + '</label><input class="input" id="ct-evening-rate" type="number" min="0" step="0.01" value="' + Number(c.evening_hourly_rate==null?c.hourly_rate||0:c.evening_hourly_rate) + '" /></div></div>' +
       '<div class="field"><label class="label" for="ct-status">Status</label><select class="select" id="ct-status">' +
       ['active', 'maintenance', 'inactive'].map(function (s) {
         return '<option value="' + s + '"' + (c.status === s ? ' selected' : '') + '>' + s.charAt(0).toUpperCase() + s.slice(1) + '</option>';
@@ -3556,7 +3577,12 @@ body.admin-app.role-ready #view-app{visibility:visible}
       });
       api('/api/admin/settings', { method: 'PUT', body: body }).then(function (saved) {
         SETTINGS = saved; toast('Settings saved.', 'success'); signalPublicRefresh();
-        return api('/api/branding').then(applyBranding).then(loadSettings);
+        return api('/api/branding').then(applyBranding).then(loadSettings).then(function () {
+          if (form.id === 'set-booking') {
+            if ($('#courts-grid')) loadCourts();
+            if ($('#cal-date')) loadCalendar();
+          }
+        });
       }).catch(function (err) { toast(err.message, 'error'); })
         .finally(function () { busy(btn, false); });
     });
@@ -3594,7 +3620,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
   };
 
   /* ---------- In-Charge PWA push ---------- */
-  var ADMIN_SW_VERSION='36-settings-eventnav';
+  var ADMIN_SW_VERSION='37-booking-rules-midnight';
   var PUSH_PREP={reg:null,publicKey:null,serverStatus:null,ready:false,error:null,promise:null};
   function b64ToUint8(s){s=String(s||'').replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';var raw=atob(s),a=new Uint8Array(raw.length);for(var i=0;i<raw.length;i++)a[i]=raw.charCodeAt(i);return a;}
   function bytesEqual(a,b){if(!a||!b)return false;var x=new Uint8Array(a),y=new Uint8Array(b);if(x.length!==y.length)return false;for(var i=0;i<x.length;i++)if(x[i]!==y[i])return false;return true;}
@@ -4271,7 +4297,13 @@ body.admin-app.role-ready #view-app{visibility:visible}
         if(payload && Object.prototype.hasOwnProperty.call(payload,'unread')) updateInChargeAlertUi(payload.unread);
         loadInChargeAlerts();
       },
-      'settings:updated': function () { run('settings', function () { loadSettings(); api('/api/branding').then(applyBranding).catch(function () {}); }); },
+      'settings:updated': function () { run('settings', function () {
+        loadSettings().then(function () {
+          if (onPage('courts')) loadCourts();
+          if (onPage('calendar')) loadCalendar();
+        }).catch(function () {});
+        api('/api/branding').then(applyBranding).catch(function () {});
+      }); },
       'branding:updated': function () { run('branding', function () { api('/api/branding').then(applyBranding).catch(function () {}); }); },
       'system:data-reset': function () { run('operational-reset', refreshAllOperationalData); },
       'system:data-restored': function () { run('operational-restore', refreshAllOperationalData); }
@@ -4335,7 +4367,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
     $('#admin-account').title = USER.email || '';
     $('#admin-avatar').textContent = (USER.full_name || USER.email || 'A').trim().split(/\s+/).slice(0, 2).map(function (n) { return n.charAt(0); }).join('').toUpperCase();
     applyRoleUI();
-    if(isAdmin())loadCourts();
+    if(isAdmin())loadSettings().then(loadCourts).catch(function () { loadCourts(); });
     var pushParams=new URLSearchParams(location.search),pushPage=pushParams.get('push_page');
     var landing=(pushPage&&LOADERS[pushPage]&&roleAllows(pushPage))?pushPage:roleHomePage();
     goto(landing);
@@ -4362,7 +4394,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
 
 <script>
 /* PIKOL_PWA_INSTALL_RUNTIME */
-(function(){'use strict';var btn=document.getElementById('pwa-install-admin'),deferredPrompt=null,KEY='pikol_admin_installed_v3';function ios(){return /iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);}function standalone(){return window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true;}function marked(){return localStorage.getItem(KEY)==='1';}function setMarked(v){if(v)localStorage.setItem(KEY,'1');else localStorage.removeItem(KEY);}function showIosGuide(){var g=document.getElementById('ios-pwa-guide');if(g)g.hidden=false;if(typeof toast==='function')toast('iPhone: Safari → Share → Add to Home Screen. Then open PIKOL Admin from the Home Screen icon.','error');}function sync(){if(!btn)return;if(standalone()){setMarked(true);btn.hidden=true;return;}if(ios()){btn.hidden=false;btn.textContent='Install Admin App on iPhone';return;}btn.textContent='Install Admin App';btn.hidden=!deferredPrompt||marked();}window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();deferredPrompt=e;if(!standalone())setMarked(false);sync();});window.addEventListener('appinstalled',function(){setMarked(true);deferredPrompt=null;sync();});window.addEventListener('pageshow',sync);document.addEventListener('visibilitychange',function(){if(!document.hidden)sync();});if(btn)btn.addEventListener('click',async function(){if(ios()){showIosGuide();return;}if(!deferredPrompt)return;btn.disabled=true;try{await deferredPrompt.prompt();var c=await deferredPrompt.userChoice;if(c&&c.outcome==='accepted')setMarked(true);}catch(_){}deferredPrompt=null;btn.disabled=false;sync();});if('serviceWorker' in navigator)window.addEventListener('load',function(){var reloading=false;navigator.serviceWorker.addEventListener('controllerchange',function(){if(reloading)return;reloading=true;location.reload();});navigator.serviceWorker.register('service-worker.js?v=36-settings-eventnav',{scope:'./',updateViaCache:'none'}).then(function(reg){return reg.update();}).catch(function(){});});sync();})();
+(function(){'use strict';var btn=document.getElementById('pwa-install-admin'),deferredPrompt=null,KEY='pikol_admin_installed_v3';function ios(){return /iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);}function standalone(){return window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true;}function marked(){return localStorage.getItem(KEY)==='1';}function setMarked(v){if(v)localStorage.setItem(KEY,'1');else localStorage.removeItem(KEY);}function showIosGuide(){var g=document.getElementById('ios-pwa-guide');if(g)g.hidden=false;if(typeof toast==='function')toast('iPhone: Safari → Share → Add to Home Screen. Then open PIKOL Admin from the Home Screen icon.','error');}function sync(){if(!btn)return;if(standalone()){setMarked(true);btn.hidden=true;return;}if(ios()){btn.hidden=false;btn.textContent='Install Admin App on iPhone';return;}btn.textContent='Install Admin App';btn.hidden=!deferredPrompt||marked();}window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();deferredPrompt=e;if(!standalone())setMarked(false);sync();});window.addEventListener('appinstalled',function(){setMarked(true);deferredPrompt=null;sync();});window.addEventListener('pageshow',sync);document.addEventListener('visibilitychange',function(){if(!document.hidden)sync();});if(btn)btn.addEventListener('click',async function(){if(ios()){showIosGuide();return;}if(!deferredPrompt)return;btn.disabled=true;try{await deferredPrompt.prompt();var c=await deferredPrompt.userChoice;if(c&&c.outcome==='accepted')setMarked(true);}catch(_){}deferredPrompt=null;btn.disabled=false;sync();});if('serviceWorker' in navigator)window.addEventListener('load',function(){var reloading=false;navigator.serviceWorker.addEventListener('controllerchange',function(){if(reloading)return;reloading=true;location.reload();});navigator.serviceWorker.register('service-worker.js?v=37-booking-rules-midnight',{scope:'./',updateViaCache:'none'}).then(function(reg){return reg.update();}).catch(function(){});});sync();})();
 </script>
 
 </body>
