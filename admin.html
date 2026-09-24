@@ -150,7 +150,7 @@
               <input class="input" id="bk-q" aria-label="Search bookings" placeholder="Search name, email, reference" style="min-width:220px" />
               <select class="select" id="bk-status" aria-label="Booking status" style="min-width:150px">
                 <option value="all">All statuses</option>
-                <option value="confirmed">Confirmed</option><option value="completed">Completed</option>
+                <option value="checkout_hold">Checkout hold</option><option value="payment_submitted">Payment under review</option><option value="pending_approval">Pending approval</option><option value="confirmed">Confirmed</option><option value="expired">Hold expired</option><option value="pending_payment">Payment required</option><option value="completed">Completed</option>
                 <option value="cancelled">Cancelled</option>
               </select>
               <input class="input" id="bk-date" aria-label="Booking date" type="date" style="min-width:160px" />
@@ -594,6 +594,8 @@
               <select class="select" id="s-slot_minutes" data-key="slot_minutes"><option>30</option><option>60</option><option>90</option><option>120</option></select></div>
           </div>
           <div class="grid cols-3"><div class="field"><label class="label" for="s-currency">Currency label</label><input class="input" id="s-currency" data-key="currency" maxlength="6" /></div><div class="field"><label class="label" for="s-facility_timezone">Facility time zone</label><select class="select" id="s-facility_timezone" data-key="facility_timezone"><option value="Asia/Manila">Asia/Manila (UTC+08:00)</option></select></div><div class="field"><label class="label" for="s-evening_rate_start">Evening rate starts</label><input class="input" id="s-evening_rate_start" data-key="evening_rate_start" type="time" step="900" /></div></div>
+
+          <div class="grid cols-3"><div class="field"><label class="label" for="s-checkout_hold_minutes">Payment processing hold (minutes)</label><input class="input" id="s-checkout_hold_minutes" data-key="checkout_hold_minutes" type="number" min="3" max="30" step="1" /><span class="field-hint">Visible countdown while a client completes payment. Unpaid holds release automatically.</span></div></div>
           <div><button class="btn btn-primary" type="submit" data-loading="Saving...">Save booking rules</button></div>
         </form>
 
@@ -1007,6 +1009,7 @@
   function money(v) { return (SETTINGS.currency || '') + ' ' + Number(v || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
   var STATUS_LABEL = {
     confirmed: 'Confirmed', cancelled: 'Cancelled', completed: 'Completed', no_show: 'No-show',
+    checkout_hold: 'Checkout hold', pending_payment: 'Awaiting payment', payment_submitted: 'Payment under review', payment_verified: 'Payment verified', pending_approval: 'Pending approval', expired: 'Hold expired',
     pending: 'Pending', rejected: 'Rejected',
     submitted: 'Submitted', verified: 'Verified', none: 'Not paid'
   };
@@ -3440,7 +3443,7 @@
     });
   }
   saveSettings($('#set-branding'), ['facility_name','short_name','tagline','description','address','contact_number','contact_email','website','social_facebook','social_instagram','brand_primary','brand_secondary','brand_accent','booking_prefix']);
-  saveSettings($('#set-booking'), ['open_time','close_time','slot_minutes','currency','facility_timezone','evening_rate_start']);
+  saveSettings($('#set-booking'), ['open_time','close_time','slot_minutes','currency','facility_timezone','evening_rate_start','checkout_hold_minutes']);
   saveSettings($('#set-membership'), ['membership_enabled','membership_sms_enabled','membership_expiry_reminder_days','nonmember_advance_days','nonmember_max_active_bookings']);
   saveSettings($('#set-payments'), ['payment_note','gcash_enabled','gcash_account_name','gcash_number','gcash_instructions','maya_enabled','maya_account_name','maya_number','maya_instructions','gotyme_enabled','gotyme_account_name','gotyme_number','gotyme_qr_url','gotyme_instructions','other_enabled','other_label','other_instructions']);
   saveSettings($('#set-tournament'), ['tournament_default_format','tournament_default_seeding','tournament_match_duration_minutes','tournament_rest_minutes','tournament_group_size','tournament_group_qualifiers','tournament_scoring_best_of','tournament_scoring_points_to_win','tournament_scoring_win_by','tournament_third_place','tournament_double_reset_final']);

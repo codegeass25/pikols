@@ -16,6 +16,10 @@
 <link rel="stylesheet" href="styles.css" />
 <link rel="stylesheet" href="booking-premium.css" />
 <link rel="preload" as="image" href="assets/booking/hero-court.jpg" fetchpriority="high" />
+
+<style id="checkout-hold-style">
+.checkout-hold-banner{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:14px 16px;border:1px solid rgba(132,204,22,.45);background:linear-gradient(135deg,rgba(236,252,203,.92),rgba(255,255,255,.96));border-radius:16px;margin:0 0 16px;color:#17310c}.checkout-hold-banner strong{display:block}.checkout-hold-copy{display:grid;gap:3px}.checkout-hold-count{font-variant-numeric:tabular-nums;font-size:1.5rem;font-weight:900;letter-spacing:.02em;white-space:nowrap}.checkout-hold-banner.is-expired{border-color:rgba(220,38,38,.35);background:#fff1f2;color:#881337}.slot.state-held,.slot.state-pending{opacity:.78}.slot.state-held .slot-state{font-weight:800}.payment-dialog .modal-foot .btn-primary[disabled]{opacity:.55;cursor:not-allowed}
+</style>
 </head>
 <body class="player-app">
 
@@ -701,6 +705,8 @@
   var myBookings = [];
   var PAYCFG = null, CURRENT_MEMBERSHIP = null, membershipRequest = 0;
   var STATUS_LABEL = {
+    checkout_hold: 'Time temporarily held',
+    expired: 'Payment window expired',
     pending_payment: 'Payment required',
     payment_submitted: 'Payment submitted',
     payment_verification: 'Verifying payment',
@@ -714,7 +720,7 @@
   var STATUS_ICON = {
     pending: '⏳', confirmed: '✓', rejected: '✕', cancelled: '✕', completed: '★'
   };
-  var ACTIVE_STATUSES = ['confirmed'];
+  var ACTIVE_STATUSES = ['checkout_hold','payment_submitted','payment_verified','pending_approval','confirmed'];
   function memberPrice(value,pct){var n=Math.max(0,Number(value)||0),p=Math.min(100,Math.max(0,Number(pct)||0));return Math.round(n*(1-p/100)*100)/100;}
   function statusBadge(s) {
     var cls = s === 'confirmed' || s === 'payment_verified' ? 'confirmed'
@@ -885,7 +891,17 @@
 
   function ensureBooking() { updateBookingPresentation(); if(!PAYCFG)loadPayCfg().catch(function(){$('#booking-fee-status').classList.remove('hidden');}); loadAvailability(); }
 
-  var availabilityRequest = 0;
+  var availabilityRequest = 0, availabilityExpiryTimer = null;
+  function scheduleHeldAvailabilityRefresh(data) {
+    if (availabilityExpiryTimer) { clearTimeout(availabilityExpiryTimer); availabilityExpiryTimer = null; }
+    var serverNow = Date.parse(data && data.server_now || '');
+    var offset = isFinite(serverNow) ? serverNow - Date.now() : 0;
+    var expiries = [];
+    (data && data.courts || []).forEach(function(c){ (c.slots||[]).forEach(function(sl){ if(sl.status==='held' && sl.hold_expires_at){ var x=Date.parse(sl.hold_expires_at); if(isFinite(x))expiries.push(x); } }); });
+    if(!expiries.length)return;
+    var wait=Math.max(250,Math.min.apply(null,expiries)-(Date.now()+offset)+500);
+    availabilityExpiryTimer=setTimeout(function(){ availabilityExpiryTimer=null; if(!$('#tab-book').classList.contains('hidden'))loadAvailability(); },wait);
+  }
   function loadAvailability() {
     var request = ++availabilityRequest, date = sel.date;
     AVAIL = null;
@@ -899,6 +915,7 @@
     return api('/api/availability?date=' + date).then(function (data) {
       if (request !== availabilityRequest || date !== sel.date) return;
       AVAIL = data;
+      scheduleHeldAvailabilityRefresh(data);
       var bookable = data.courts.filter(function (c) { return c.status === 'active' && c.slots.some(function (slot) { return slot.status === 'available'; }); });
       var requestedCourt=sel.court;
       if (sel.court && !bookable.some(function (c) { return c.id === sel.court; })) { sel.court = null; sel.start = null; sel.end = null; sel.end = null; }
@@ -1095,7 +1112,7 @@
             players: Number($('#bk-players').value), notes: $('#bk-notes').value
           }
         }).then(function (b) {
-          toast('Booking request created. Please pay the full court fee for review.', 'success');
+          toast('Time temporarily held for '+Number(b.checkout_hold_minutes||PAYCFG&&PAYCFG.checkout_hold_minutes||10)+' minutes. Complete payment before the timer expires.', 'success');
           $('#bk-notes').value = '';
           sel.start = null; sel.end = null;
           return loadAvailability().then(function () {
@@ -1143,30 +1160,51 @@
   }
   function paymentDialog(bookingId,sourceBtn) {
     if(sourceBtn&&sourceBtn.dataset.paymentDialogOpen==='1') return;
-    if(sourceBtn){sourceBtn.dataset.paymentDialogOpen='1';sourceBtn.disabled=true;sourceBtn.dataset.originalText=sourceBtn.textContent;sourceBtn.textContent='Payment pending…';}
-    var submitted=false;
-    function release(){if(!sourceBtn||submitted)return;delete sourceBtn.dataset.paymentDialogOpen;sourceBtn.disabled=false;sourceBtn.textContent=sourceBtn.dataset.originalText||'Pay';delete sourceBtn.dataset.originalText;}
-    var b = myBookings.filter(function (x) { return x.id === Number(bookingId); })[0]; if (!b){release();return;}
-    (PAYCFG ? Promise.resolve(PAYCFG) : loadPayCfg()).then(function () {
+    if(sourceBtn){sourceBtn.dataset.paymentDialogOpen='1';sourceBtn.disabled=true;sourceBtn.dataset.originalText=sourceBtn.textContent;sourceBtn.textContent='Securing time…';}
+    var submitted=false,holdTicker=null,holdExpired=false;
+    function stopTicker(){if(holdTicker){clearInterval(holdTicker);holdTicker=null;}}
+    function release(){stopTicker();if(!sourceBtn||submitted)return;delete sourceBtn.dataset.paymentDialogOpen;sourceBtn.disabled=false;sourceBtn.textContent=sourceBtn.dataset.originalText||'Pay';delete sourceBtn.dataset.originalText;}
+    var localBooking = myBookings.filter(function (x) { return x.id === Number(bookingId); })[0]; if (!localBooking){release();return;}
+    Promise.all([(PAYCFG ? Promise.resolve(PAYCFG) : loadPayCfg()),api('/api/bookings/'+bookingId+'/hold',{method:'POST'})]).then(function (parts) {
+      var b=parts[1];
+      for(var k in b)localBooking[k]=b[k];
       var fee = Number(b.amount || 0);
       if(!fee){release();toast('No booking fee is due for this booking.','info');return;}
+      if(['payment_submitted','payment_verified','pending_approval','confirmed'].indexOf(b.status)>=0){release();toast('This booking is already in payment/approval processing.','info');loadBookings();return;}
+      var expiry=Date.parse(b.hold_expires_at||''), serverNow=Date.parse(b.server_now||''), offset=isFinite(serverNow)?serverNow-Date.now():0;
+      if(!isFinite(expiry)){release();toast('The payment hold could not be started. Please choose the time again.','error');return;}
       var options = (PAYCFG.methods || []).map(function (m) { return '<option value="' + esc(m.key) + '"'+(m.available===false?' disabled':'')+'>' + esc(m.label) + (m.available===false?' · setup incomplete':'') + '</option>'; }).join('');
       var dlg = modal({ title:'Full booking payment', locked:true, wide:true,onClose:release,
-        body:'<div class="payment-checkout"><div class="payment-summary-card"><span class="eyebrow">BOOKING</span><strong class="num">'+esc(b.reference)+'</strong><div>'+esc(b.court_name)+' · '+humanDate(b.booking_date)+' · '+humanTime(b.start_time)+'</div><div class="payment-total"><span>Full court fee</span><strong>'+esc(money(fee))+'</strong></div></div>'+
+        body:'<div class="checkout-hold-banner" id="pm-hold-banner"><div class="checkout-hold-copy"><strong>Time slot temporarily held</strong><span class="tiny">'+esc(b.court_name)+' · '+humanDate(b.booking_date)+' · '+humanTime(b.start_time)+'–'+humanTime(b.end_time)+'</span></div><span class="checkout-hold-count" id="pm-hold-count">--:--</span></div><div class="payment-checkout"><div class="payment-summary-card"><span class="eyebrow">BOOKING</span><strong class="num">'+esc(b.reference)+'</strong><div>'+esc(b.court_name)+' · '+humanDate(b.booking_date)+' · '+humanTime(b.start_time)+'–'+humanTime(b.end_time)+'</div><div class="payment-total"><span>Full court fee</span><strong>'+esc(money(fee))+'</strong></div></div>'+ 
           '<div class="field"><label class="label" for="pm-method">Payment method</label><select class="select" id="pm-method">'+options+'</select></div><div id="pm-details"></div></div>',
         confirmText:'Submit payment', cancelText:'Later',
         onConfirm:function(h){
+          if(holdExpired)return Promise.reject(new Error('Payment timer expired. Please secure the time slot again.'));
           var method=$('#pm-method',h).value; var info=methodInfo(method); if(!info) return Promise.reject(new Error('Select a payment method.'));
           var ref=($('#pm-reference',h)||{}).value||''; var provider=method==='other'?(($('#pm-other-provider',h)||{}).value||''):''; var file=($('#pm-receipt',h)||{}).files&&$('#pm-receipt',h).files[0];
           if(ref.trim().length<4) return Promise.reject(new Error('Enter the payment reference number.'));
           if(method==='other'&&provider.trim().length<2) return Promise.reject(new Error('Specify the payment provider.'));
-          return filePayload(file).then(function(receipt){return api('/api/bookings/'+b.id+'/payment',{method:'POST',body:{payment_method:method,reference_number:ref.trim(),other_provider:provider.trim(),receipt:receipt}});}).then(function(r){submitted=true;toast(r.reused?'Payment is already pending.':(r.duplicate_warning?'Payment submitted with a duplicate warning for Admin review.':'Payment submitted for verification.'),'success');loadBookings();loadDashboard();});
+          return filePayload(file).then(function(receipt){return api('/api/bookings/'+b.id+'/payment',{method:'POST',body:{payment_method:method,reference_number:ref.trim(),other_provider:provider.trim(),receipt:receipt}});}).then(function(r){submitted=true;stopTicker();toast(r.reused?'Payment is already pending.':(r.duplicate_warning?'Payment submitted with a duplicate warning for Admin review.':'Payment submitted. Your time is protected while staff reviews it.'),'success');loadBookings();loadDashboard();loadAvailability();}).catch(function(err){
+            if(/time range|time slot|timer expired|already processing|already secured/i.test(err.message||'')){toast(err.message||'Someone is already processing this time. Please select another time slot.','warning');loadAvailability();}
+            throw err;
+          });
         }
       });
-      var host=dlg.host||dlg, sel=$('#pm-method',host);
+      var host=dlg.host||dlg, sel=$('#pm-method',host), count=$('#pm-hold-count',host), banner=$('#pm-hold-banner',host);
+      function tick(){
+        var remaining=expiry-(Date.now()+offset);
+        if(remaining<=0){
+          remaining=0;holdExpired=true;stopTicker();if(count)count.textContent='EXPIRED';if(banner)banner.classList.add('is-expired');
+          var submit=$('.modal-foot .btn-primary',host);if(submit)submit.disabled=true;
+          api('/api/bookings/'+b.id+'/release-hold',{method:'POST'}).catch(function(){}).finally(function(){loadAvailability();loadBookings();});
+          toast('Payment timer expired. The time range is available again. Please select another time slot.','warning');return;
+        }
+        var secs=Math.ceil(remaining/1000),min=Math.floor(secs/60),sec=secs%60;if(count)count.textContent=String(min).padStart(2,'0')+':'+String(sec).padStart(2,'0');
+      }
+      tick();holdTicker=setInterval(tick,250);
       function sync(){ var info=methodInfo(sel.value); $('#pm-details',host).innerHTML=manualMethodPanel(info); var f=$('#pm-receipt',host); if(f)f.onchange=function(){var file=this.files&&this.files[0],box=$('#pm-receipt-preview',host);if(!file||!box)return;var rr=new FileReader();rr.onload=function(){box.classList.remove('hidden');box.innerHTML='<img src="'+rr.result+'" alt="Receipt preview" /><span>'+esc(file.name)+'</span>';};rr.readAsDataURL(file);}; }
       sel.onchange=sync; sync();
-    }).catch(function(e){release();toast(e.message,'error');});
+    }).catch(function(e){release();toast(e.message,'warning');if(/time range|time slot|processing|secured|expired/i.test(e.message||''))loadAvailability();});
   }
   document.addEventListener('click', function (e) {
     var copy=e.target.closest('[data-copy-number]'); if(copy){navigator.clipboard&&navigator.clipboard.writeText(copy.dataset.copyNumber);toast('Payment number copied.','success');return;}
@@ -2299,8 +2337,8 @@
   function bookingCourt(b){return PUBLIC_COURTS.filter(function(c){return Number(c.id)===Number(b.court_id);})[0]||{id:b.court_id||b.id,name:b.court_name};}
   function bookingActions(b){
     var today=ymd(new Date()),out='';
-    if(['pending_payment','payment_submitted','payment_verified','pending_approval'].indexOf(b.status)>-1&&['due','payment_due','rejected','pending'].indexOf(String(b.payment_status||'').toLowerCase())>=0&&b.booking_date>=today)out+='<button class="btn btn-primary" data-pay="'+b.id+'">'+(b.payment_status==='rejected'?'Resubmit payment':'Pay full court fee')+'</button>';
-    if(ACTIVE_STATUSES.indexOf(b.status)>-1&&b.booking_date>=today)out+='<button class="btn btn-outline btn-cancel" data-cancel="'+b.id+'">Cancel Booking</button>';
+    if(['checkout_hold','pending_payment','expired'].indexOf(b.status)>-1&&['due','payment_due','rejected','pending','expired'].indexOf(String(b.payment_status||'').toLowerCase())>=0&&b.booking_date>=today)out+='<button class="btn btn-primary" data-pay="'+b.id+'">'+(b.payment_status==='rejected'?'Secure time & resubmit':'Complete payment')+'</button>';
+    if(b.status==='confirmed'&&b.booking_date>=today)out+='<button class="btn btn-outline btn-cancel" data-cancel="'+b.id+'">Cancel Booking</button>';
     return out;
   }
   function renderBookingDetail(b){
