@@ -1,4 +1,4 @@
-const CACHE = 'pikol-v32-checkout-hold-combined';
+const CACHE = 'pikol-v33-final-ui-polish';
 const SHELL = [
   './index.html','./admin.html','./scoring.html','./styles.css','./cards.js','./tournament-view.js','./config.js','./qr-lite.js',
   './admin-premium.css?v=28','./admin-premium.css','./admin-charts.js','./admin-charts.js?v=28-admin-reference','./booking-premium.css','./assets/booking/hero-court.jpg','./assets/booking/court-01.jpg','./assets/booking/court-02.jpg','./assets/booking/court-03.jpg',
@@ -12,25 +12,60 @@ self.addEventListener('install', event => {
   self.skipWaiting();
 });
 self.addEventListener('activate', event => {
-  event.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k => k !== CACHE && (k.startsWith('pikol-') || k.startsWith('pikol-admin-shell-'))).map(k => caches.delete(k)))));
-  self.clients.claim();
+  event.waitUntil((async () => {
+    const keys = await caches.keys();
+    await Promise.all(keys.filter(k => k !== CACHE && (k.startsWith('pikol-') || k.startsWith('pikol-admin-shell-'))).map(k => caches.delete(k)));
+    await self.clients.claim();
+    // Existing tabs may still be displaying HTML served by the previous cache-first worker.
+    // Navigate them once after this new worker takes control; the fetch path above is network-first.
+    const windows = await self.clients.matchAll({type:'window', includeUncontrolled:true});
+    for (const client of windows) {
+      try { if ('navigate' in client) await client.navigate(client.url); } catch (_) {}
+    }
+  })());
 });
 self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET') return;
   const url = new URL(event.request.url);
   if (url.origin !== self.location.origin) return;
-  // Availability, private records, and uploaded artwork must stay current.
+  // API/private/realtime data must never be served from a PWA cache.
   if (/^\/(?:api|branding|socket\.io)(?:\/|$)/.test(url.pathname)) return;
-  event.respondWith(caches.match(event.request).then(hit => hit || fetch(event.request).then(res => {
-    const copy = res.clone();
-    caches.open(CACHE).then(cache => cache.put(event.request, copy)).catch(()=>{});
-    return res;
-  }).catch(() => {
-    if (event.request.mode === 'navigate' && /\/admin\.html$/i.test(url.pathname)) return caches.match('./admin.html');
-    if (event.request.mode === 'navigate' && /\/scoring\.html$/i.test(url.pathname)) return caches.match('./scoring.html');
-    if (event.request.mode === 'navigate') return caches.match('./index.html');
-    return Response.error();
-  })));
+
+  const isHtml = event.request.mode === 'navigate' || /\/(?:index|admin|scoring)\.html$/i.test(url.pathname);
+  if (isHtml) {
+    // Network-first prevents an old admin/booking interface from appearing first.
+    event.respondWith((async () => {
+      try {
+        const fresh = await fetch(event.request, { cache: 'no-store' });
+        if (fresh && fresh.ok) {
+          const cache = await caches.open(CACHE);
+          await cache.put(event.request, fresh.clone()).catch(()=>{});
+        }
+        return fresh;
+      } catch (_) {
+        const hit = await caches.match(event.request);
+        if (hit) return hit;
+        if (/\/admin\.html$/i.test(url.pathname)) return (await caches.match('./admin.html')) || Response.error();
+        if (/\/scoring\.html$/i.test(url.pathname)) return (await caches.match('./scoring.html')) || Response.error();
+        return (await caches.match('./index.html')) || Response.error();
+      }
+    })());
+    return;
+  }
+
+  // Static assets can paint quickly, then refresh in the background.
+  event.respondWith((async () => {
+    const hit = await caches.match(event.request);
+    const network = fetch(event.request).then(async res => {
+      if (res && res.ok) {
+        const cache = await caches.open(CACHE);
+        await cache.put(event.request, res.clone()).catch(()=>{});
+      }
+      return res;
+    }).catch(() => null);
+    if (hit) { event.waitUntil(network); return hit; }
+    return (await network) || Response.error();
+  })());
 });
 self.addEventListener('message', event => {
   if (!event.data) return;

@@ -32,6 +32,13 @@
 @media(max-width:620px){.admin-app .asset-card.booking-hero-asset{grid-template-columns:minmax(0,1fr)}.admin-app .booking-hero-asset .asset-preview{grid-column:1;grid-row:auto}.admin-app .booking-hero-asset .card-title,.admin-app .booking-hero-asset>p,.admin-app .booking-hero-asset>.input,.admin-app .booking-hero-asset>.row,.admin-app .booking-hero-asset .promo-preview-note{grid-column:1}.admin-app .court-promo-preview{max-height:250px}}
 </style>
 <link rel="stylesheet" href="admin-premium.css?v=28" />
+
+<style id="pikol-role-ui-v33">
+.role-hidden{display:none !important}
+/* The app shell never paints until the authenticated role is resolved. */
+body.admin-app:not(.role-ready) #view-app{visibility:hidden !important}
+body.admin-app.role-ready #view-app{visibility:visible}
+</style>
 </head>
 <body class="admin-app">
 
@@ -89,7 +96,7 @@
     </div>
     <nav class="nav" id="nav">
       <button class="nav-item is-active" data-page="dashboard" data-group="dashboard"><span class="ico" aria-hidden="true"><svg class="admin-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1Z"/></svg></span>Dashboard</button>
-      <button class="nav-item" data-page="calendar" data-group="schedule"><span class="ico" aria-hidden="true"><svg class="admin-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 11h18M8 15h2M14 15h2M8 18h2"/></svg></span>Bookings &amp; Schedule<span class="pill hidden" id="nav-pending"></span></button>
+      <button class="nav-item" data-page="calendar" data-default-page="calendar" data-group="schedule"><span class="ico" aria-hidden="true"><svg class="admin-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 11h18M8 15h2M14 15h2M8 18h2"/></svg></span><span class="nav-label" data-default-label="Bookings &amp; Schedule">Bookings &amp; Schedule</span><span class="pill hidden" id="nav-pending"></span></button>
       <button class="nav-item" data-page="payments" data-group="transactions"><span class="ico" aria-hidden="true"><svg class="admin-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="3"/><path d="M2 9h20M6 15h4"/></svg></span>Payments<span class="pill hidden" id="nav-payments"></span></button>
       <button class="nav-item" data-page="players" data-group="players"><span class="ico" aria-hidden="true"><svg class="admin-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="7" r="3"/><path d="M2 21v-3a7 7 0 0 1 14 0v3ZM16 4a3 3 0 0 1 0 6M19 14a5 5 0 0 1 3 4v3"/></svg></span>Players &amp; Membership</button>
       <button class="nav-item" data-page="events" data-group="events"><span class="ico" aria-hidden="true"><svg class="admin-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3h8v6a4 4 0 0 1-8 0ZM8 5H4v3a4 4 0 0 0 4 4M16 5h4v3a4 4 0 0 1-4 4M12 13v5M8 21h8M9 18h6"/></svg></span>Events<span class="pill hidden" id="nav-events"></span></button>
@@ -1128,7 +1135,7 @@
     if (b.status === 'pending_approval' && String(b.payment_status || '').toLowerCase() === 'paid') {
       act.push('<button class="btn btn-success btn-sm" data-booking-approve="' + b.id + '">Approve booking</button>');
     }
-    if (b.status === 'confirmed') {
+    if (b.status === 'confirmed' && isAdmin()) {
       act.push('<button class="btn btn-ghost btn-sm" data-status="completed" data-id="' + b.id + '">Complete</button>');
       act.push('<button class="btn btn-ghost btn-sm" data-status="no_show" data-id="' + b.id + '">No-show</button>');
       act.push('<button class="btn btn-outline btn-sm" data-status="cancelled" data-id="' + b.id + '">Cancel</button>');
@@ -1314,7 +1321,12 @@
   function signOutLocal() {
     TOKEN = ''; USER = null; localStorage.removeItem('pb_admin_token');
     if (RT) RT.disconnect();
+    COURTS=[]; PLAYERS=[]; BOOKINGS=[]; SETTINGS={};
+    var mr=$('#modal-root');if(mr)mr.innerHTML='';
+    resetRoleUiState();
+    PAGES.forEach(function(p){var el=$('#page-'+p);if(el)el.classList.toggle('hidden',p!=='dashboard');});
     $('#view-app').classList.add('hidden'); $('#view-auth').classList.remove('hidden');
+    $('#li-pass').value='';
   }
   $('#btn-logout').onclick = function () {
     api('/api/auth/logout', { method: 'POST' }).catch(function () {}).finally(function () { signOutLocal(); toast('Signed out.', 'info'); });
@@ -1431,7 +1443,9 @@
     var g = GROUPS[GROUP_OF[page]];
     if (!g) { host.hidden = true; host.innerHTML = ''; return; }
     host.hidden = false;
-    host.innerHTML = g.tabs.map(function (t) {
+    var tabs=g.tabs.filter(function(t){return roleAllows(t[0]);});
+    if(!tabs.length){host.hidden=true;host.innerHTML='';return;}
+    host.innerHTML = tabs.map(function (t) {
       return '<button class="subnav-item' + (t[0] === page ? ' is-active' : '') + '" data-goto-page="' + t[0] + '" aria-current="' + (t[0] === page ? 'page' : 'false') + '">' + adminIcon(({bookings:'list',courts:'court',blocks:'blocked',memberships:'players',ratings:'star',tournaments:'events',openplay:'players'})[t[0]] || t[0]) + '<span>' + t[1] + '</span></button>';
     }).join('');
   }
@@ -1507,40 +1521,84 @@
   function allowedStaffPages(){
     if(isAdmin()) return null;
     if(staffRole()==='booking_manager') return ['dashboard','bookings','payments','settings'];
-    if(staffRole()==='event_manager') return ['dashboard','events','tournaments','openplay','settings'];
-    return ['dashboard'];
+    /* Event Managers stay entirely inside event operations + password settings. */
+    if(staffRole()==='event_manager') return ['events','tournaments','openplay','settings'];
+    return [];
+  }
+  function roleHomePage(){
+    if(staffRole()==='event_manager') return 'events';
+    return 'dashboard';
+  }
+  function roleAllows(page){var allowed=allowedStaffPages();return !allowed||allowed.indexOf(page)>=0;}
+  function roleHide(el,yes){if(el)el.classList.toggle('role-hidden',!!yes);}
+  function resetRoleUiState(){
+    $$('.role-hidden').forEach(function(x){x.classList.remove('role-hidden');});
+    $$('#nav .nav-item').forEach(function(b){if(b.dataset.defaultPage)b.dataset.page=b.dataset.defaultPage;});
+    var sched=$('#nav [data-default-page="calendar"] .nav-label');if(sched)sched.innerHTML=sched.dataset.defaultLabel||'Bookings &amp; Schedule';
+    $$('[data-settab]').forEach(function(t){t.classList.remove('hidden');t.classList.remove('role-hidden');});
+    var sec=$('#set-security');if(sec){sec.querySelectorAll('.role-password-title').forEach(function(x){x.remove();});Array.from(sec.children).forEach(function(x){x.classList.remove('role-hidden');});}
+    document.body.classList.remove('role-ready');
+  }
+  function applyRoleVisibility(root){
+    root=root||document;
+    if(isAdmin())return;
+    function targetAllowed(el,attr){var p=el.getAttribute(attr);return !p||roleAllows(p);}
+    root.querySelectorAll && root.querySelectorAll('[data-goto-page]').forEach(function(el){roleHide(el,!targetAllowed(el,'data-goto-page'));});
+    root.querySelectorAll && root.querySelectorAll('[data-more-page]').forEach(function(el){roleHide(el,!targetAllowed(el,'data-more-page'));});
+    root.querySelectorAll && root.querySelectorAll('[data-mobile-page]').forEach(function(el){var p=el.dataset.mobilePage;if(p==='more')return; if(p==='calendar'&&staffRole()==='booking_manager')p='bookings';roleHide(el,!roleAllows(p));});
+    /* Admin-only mutating controls never remain visible to delegated staff. */
+    root.querySelectorAll && root.querySelectorAll('.admin-only-panel,[data-edit-court],[data-slot-add-open],[data-slot-remove-open]').forEach(function(el){roleHide(el,true);});
   }
   function applyRoleUI() {
+    resetRoleUiState();
     var allowed=allowedStaffPages();
     $$('#nav .nav-item').forEach(function (b) {
-      var p=b.dataset.page;
-      if(staffRole()==='booking_manager'&&p==='calendar'){b.dataset.page='bookings';p='bookings';}
-      b.classList.toggle('hidden', !!allowed && allowed.indexOf(p)<0);
+      var original=b.dataset.defaultPage||b.dataset.page;
+      b.dataset.page=original;
+      var p=original;
+      if(staffRole()==='booking_manager'&&original==='calendar'){
+        b.dataset.page='bookings';p='bookings';
+        var label=b.querySelector('.nav-label');if(label)label.textContent='Bookings';
+      }
+      roleHide(b,!!allowed&&allowed.indexOf(p)<0);
     });
-    $('#btn-new-booking').classList.toggle('hidden', !isAdmin());
+    roleHide($('#btn-new-booking'),!isAdmin());
+    var mobSchedule=$('#admin-mobile-nav [data-mobile-page="calendar"]');if(mobSchedule){var spans=mobSchedule.querySelectorAll('span');if(spans.length>1)spans[1].textContent=staffRole()==='booking_manager'?'Bookings':'Schedule';}
     $('#admin-role-label').textContent = isAdmin()?'ADMIN':(staffRole()==='booking_manager'?'BOOKING MANAGER':'EVENT MANAGER');
-    $$('.admin-only-panel').forEach(function(x){x.classList.toggle('hidden',!isAdmin());});
+    $$('.admin-only-panel').forEach(function(x){roleHide(x,!isAdmin());});
+    /* Booking Manager reviews booking payments only; unrelated transaction categories disappear. */
+    var tx=$('#tx-type');if(tx){Array.from(tx.options).forEach(function(o){var keep=isAdmin()||staffRole()!=='booking_manager'||o.value==='booking';o.hidden=!keep;o.disabled=!keep;});if(staffRole()==='booking_manager'){tx.value='booking';roleHide(tx,true);}else roleHide(tx,false);}
+    applyRoleVisibility(document);
+    document.body.classList.add('role-ready');
   }
   function applyAdminOperationalSettingsUI() {
-    if(isAdmin()) return;
-    $$('[data-settab]').forEach(function(t){t.classList.add('hidden');});
-    var sys=$('[data-settab="system"]');if(sys){sys.classList.remove('hidden');sys.click();}
-    $$('.settings-section').forEach(function(x){x.classList.add('hidden');});
-    $('#set-security').classList.remove('hidden');
-    $('#set-security').querySelectorAll('#btn-backup,#btn-restore-operational,#btn-reset-system-data,.admin-only-panel').forEach(function(x){x.classList.add('hidden');});
+    var sec=$('#set-security');if(!sec)return;
+    if(isAdmin()){
+      $$('[data-settab]').forEach(function(t){t.classList.remove('role-hidden');});
+      showSettingsGroup('general');
+      var club=$('[data-settab="general"]');if(club){$$('[data-settab]').forEach(function(x){x.setAttribute('aria-selected',String(x===club));});}
+      return;
+    }
+    /* Delegated roles get exactly one Settings capability: change password. */
+    $$('[data-settab]').forEach(function(t){roleHide(t,true);});
+    $$('.settings-section').forEach(function(x){roleHide(x,x!==sec);});
+    Array.from(sec.children).forEach(function(x){roleHide(x,x.id!=='form-adminpw');});
+    var title=document.createElement('h2');title.className='section-title role-password-title';title.style.marginBottom='16px';title.textContent='Change password';sec.insertBefore(title,sec.firstChild);
+    sec.classList.remove('hidden','role-hidden');
+    roleHide($('#form-adminpw'),false);
   }
   function goto(page) {
     /* Registration payments were merged into the Payments. */
     if (page === 'evpayments') page = 'payments';
-    if (!LOADERS[page]) page = 'dashboard';
-    var allowed=allowedStaffPages(); if(allowed && allowed.indexOf(page)<0) page='dashboard';
+    if (!LOADERS[page]) page = roleHomePage();
+    var allowed=allowedStaffPages(); if(allowed && allowed.indexOf(page)<0) page=roleHomePage();
     current = page;
     PAGES.forEach(function (p) { $('#page-' + p).classList.toggle('hidden', p !== page); });
     var groupFor = GROUP_OF[page] || page;
     $$('#nav .nav-item').forEach(function (b) { b.classList.toggle('is-active', b.dataset.group === groupFor); });
     renderSubnav(page);
     var mobileMore = ['players','memberships','ratings','notifications','reports','settings'].indexOf(page) >= 0;
-    $$('#admin-mobile-nav [data-mobile-page]').forEach(function(b){b.classList.toggle('is-active',b.dataset.mobilePage===page||(b.dataset.mobilePage==='calendar'&&GROUP_OF[page]==='schedule')||(b.dataset.mobilePage==='events'&&GROUP_OF[page]==='events')||(b.dataset.mobilePage==='more'&&mobileMore));});
+    $$('#admin-mobile-nav [data-mobile-page]').forEach(function(b){var mp=b.dataset.mobilePage;if(mp==='calendar'&&staffRole()==='booking_manager')mp='bookings';b.classList.toggle('is-active',mp===page||(b.dataset.mobilePage==='calendar'&&GROUP_OF[page]==='schedule')||(b.dataset.mobilePage==='events'&&GROUP_OF[page]==='events')||(b.dataset.mobilePage==='more'&&mobileMore));});
     $('#page-title').textContent = page === 'settings' ? 'Settings' : (PAGE_TITLES[page] || (page.charAt(0).toUpperCase() + page.slice(1))); 
     var description = {dashboard:'Manage bookings, players, payments and more — all in one place.',calendar:'Plan. Play. Belong. Manage court availability and the daily schedule.',bookings:'Manage bookings, payments and availability — keep your club running smoothly.',courts:'Your courts, ready for the next game. Manage rates, status and promotional images.',blocks:'Plan maintenance and reserved periods without missing a beat.',payments:'Track and manage your court, event and membership collections.',players:'Build a stronger community, one player at a time.',memberships:'Memberships that bring your community closer.',ratings:'Follow player progress and review verified tournament ratings.',events:'Create memorable experiences. Build a stronger community.',tournaments:'Build community through competition, play and connection.',openplay:'More games. More connections. Bring your players together.',notifications:'Connect. Engage. Build a stronger community.',reports:'Track growth, engagement and performance — all in one place.',settings:'Configure your club, payments, communications and more.'};
     $('#admin-hero-description').textContent = description[page] || '';
@@ -1549,7 +1607,8 @@
     $('#drawer-open').setAttribute('aria-expanded','false');
     window.scrollTo({ top: 0, behavior: 'smooth' });
     if(page==='settings' && !isAdmin()){ applyAdminOperationalSettingsUI(); return; }
-    LOADERS[page]();
+    var loaded=LOADERS[page]();
+    Promise.resolve(loaded).finally(function(){applyRoleVisibility($('#page-'+page));if(page==='settings')applyAdminOperationalSettingsUI();});
     if (page === 'settings') applyAdminOperationalSettingsUI();
   }
   $('#nav').addEventListener('click', function (e) {
@@ -2220,13 +2279,18 @@
   function loadDashboard() {
     return api('/api/admin/dashboard').then(function (d) {
       var s = d.stats || {};
-      $('#stat-grid').innerHTML = [
+      var dashboardMetrics = isAdmin() ? [
         ["Today's bookings", s.today_bookings || 0, 'calendar', 'bookings', 'Confirmed & completed'],
         ['Registered players', s.total_players || 0, 'people', 'players', 'Your club community'],
         ['Revenue collected', money(s.total_revenue), 'money', 'reports', 'Verified payments · all time'],
         ['Active courts', s.available_courts || 0, 'court', 'courts', 'Courts enabled for booking'],
         ['Payment reviews', s.pending_payments || 0, 'clock', 'payments', 'Submissions needing review']
-      ].map(adminMetric).join('');
+      ] : [
+        ["Today's bookings", s.today_bookings || 0, 'calendar', 'bookings', 'Confirmed & completed'],
+        ['Payment reviews', s.pending_payments || 0, 'clock', 'payments', 'Submissions needing review'],
+        ['Pending approvals', s.pending_bookings || 0, 'clock', 'bookings', 'Bookings waiting for approval']
+      ];
+      $('#stat-grid').innerHTML = dashboardMetrics.map(adminMetric).join('');
       loadAttention(s);
       $('#nav-pending').textContent = s.pending_bookings || 0;
       $('#nav-pending').classList.toggle('hidden', !s.pending_bookings);
@@ -2242,6 +2306,7 @@
       $('#upcoming-list').innerHTML = (d.upcoming || []).map(function (b) {
         return '<div class="list-row admin-schedule-row"><span class="admin-schedule-dot" aria-hidden="true"></span><div class="admin-schedule-time"><strong class="num">' + humanTime(b.start_time) + ' – ' + humanTime(b.end_time) + '</strong><span class="tiny muted">' + humanDate(b.booking_date) + '</span></div><span class="badge admin-court-badge">' + esc(b.court_name) + '</span><div class="list-main"><span class="list-title">' + esc(b.player_name) + '</span><span class="list-sub">' + esc(b.reference) + '</span></div><span class="badge badge-confirmed">' + esc(b.players || '—') + ' players</span></div>';
       }).join('') || '<div class="empty"><strong>All clear</strong>No upcoming bookings scheduled.</div>';
+      applyRoleVisibility($('#page-dashboard'));
     }).catch(function (e) { toast(e.message, 'error'); });
   }
 
@@ -2266,7 +2331,8 @@
   function loadAttention(s) {
     var host = $('#attention-grid');
     if (!host) return Promise.resolve();
-    return api('/api/admin/transactions?status=pending&type=all')
+    var attentionType=staffRole()==='booking_manager'?'booking':'all';
+    return api('/api/admin/transactions?status=pending&type='+encodeURIComponent(attentionType))
       .then(function (d) {
         var items = (d.transactions || []).slice(0, 9).map(function (t) {
           var dup = t.validation && ((t.validation.warnings || []).length || t.validation.matched_transaction_id);
@@ -2281,7 +2347,7 @@
             actionLabel: 'Review payment'
           });
         });
-        if (s && s.failed_notifications) {
+        if (isAdmin() && s && s.failed_notifications) {
           items.push(attentionCard({
             kind: 'Notifications', tone: 'is-danger', badge: '',
             title: s.failed_notifications + ' message' + (s.failed_notifications > 1 ? 's' : '') + ' failed to send',
@@ -2329,7 +2395,7 @@
       BOOKINGS = rows;
       $('#bookings-body').innerHTML = rows.length ? rows.map(function (b) {
         var act = bookingActions(b);
-        if (b.status === 'confirmed') {
+        if (b.status === 'confirmed' && isAdmin()) {
           act.push('<button class="btn btn-outline btn-sm" data-resched="' + b.id + '">Reschedule</button>');
         }
         act.push('<button class="btn btn-ghost btn-sm" data-detail="' + b.id + '">Details</button>');
@@ -3364,7 +3430,7 @@
 
   /* ---------- settings ---------- */
   var SETTAB_GROUPS = {
-    general: ['#set-branding', '#set-branding-assets'],
+    general: ['#set-branding', '#promo-qr-panel', '#set-branding-assets'],
     bookingpayments: ['#set-booking', '#set-payments', '#set-tournament'],
     membership: ['#set-membership'],
     communications: ['#set-email', '#set-sms', '#set-notify'],
@@ -3375,6 +3441,7 @@
     Object.keys(SETTAB_GROUPS).forEach(function (k) { all = all.concat(SETTAB_GROUPS[k]); });
     all.forEach(function (selector) { var el = $(selector); if (el) el.classList.add('hidden'); });
     (SETTAB_GROUPS[sel] || []).forEach(function (selector) { var el = $(selector); if (el) el.classList.remove('hidden'); });
+    if(!isAdmin())applyAdminOperationalSettingsUI();
   }
   $$('[data-settab]').forEach(function (t) {
     t.onclick = function () {
@@ -3475,7 +3542,7 @@
   };
 
   /* ---------- In-Charge PWA push ---------- */
-  var ADMIN_SW_VERSION='31-ui-sync-qr-fix';
+  var ADMIN_SW_VERSION='33-final-ui-polish';
   var PUSH_PREP={reg:null,publicKey:null,serverStatus:null,ready:false,error:null,promise:null};
   function b64ToUint8(s){s=String(s||'').replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';var raw=atob(s),a=new Uint8Array(raw.length);for(var i=0;i<raw.length;i++)a[i]=raw.charCodeAt(i);return a;}
   function bytesEqual(a,b){if(!a||!b)return false;var x=new Uint8Array(a),y=new Uint8Array(b);if(x.length!==y.length)return false;for(var i=0;i<x.length;i++)if(x[i]!==y[i])return false;return true;}
@@ -4205,7 +4272,7 @@
   window.addEventListener('online',resyncInChargeBadge);
 
   /* ---------- mobile-first admin navigation ---------- */
-  $('#admin-mobile-nav').addEventListener('click',function(e){var b=e.target.closest('[data-mobile-page]');if(!b)return;var page=b.dataset.mobilePage;if(page==='more'){modal({title:'More',cancelText:'Close',body:'<div class="list"><button class="list-row is-clickable" data-more-page="players"><span class="list-main"><span class="list-title">Players & Membership</span></span><span class="list-chevron">›</span></button><button class="list-row is-clickable" data-more-page="notifications"><span class="list-main"><span class="list-title">Communications</span></span><span class="list-chevron">›</span></button><button class="list-row is-clickable" data-more-page="reports"><span class="list-main"><span class="list-title">Reports</span></span><span class="list-chevron">›</span></button><button class="list-row is-clickable" data-more-page="settings"><span class="list-main"><span class="list-title">Settings</span></span><span class="list-chevron">›</span></button><button class="list-row is-clickable" data-mobile-action="theme"><span class="list-main"><span class="list-title">Toggle theme</span></span></button><button class="list-row is-clickable" data-mobile-action="logout"><span class="list-main"><span class="list-title">Logout</span></span></button></div>'});return;}goto(page);});
+  $('#admin-mobile-nav').addEventListener('click',function(e){var b=e.target.closest('[data-mobile-page]');if(!b)return;var page=b.dataset.mobilePage;if(page==='calendar'&&staffRole()==='booking_manager')page='bookings';if(page==='more'){var rows=[];[['players','Players & Membership'],['notifications','Communications'],['reports','Reports'],['settings',isAdmin()?'Settings':'Change Password']].forEach(function(x){if(roleAllows(x[0]))rows.push('<button class="list-row is-clickable" data-more-page="'+x[0]+'"><span class="list-main"><span class="list-title">'+x[1]+'</span></span><span class="list-chevron">›</span></button>');});rows.push('<button class="list-row is-clickable" data-mobile-action="theme"><span class="list-main"><span class="list-title">Toggle theme</span></span></button><button class="list-row is-clickable" data-mobile-action="logout"><span class="list-main"><span class="list-title">Logout</span></span></button>');modal({title:'More',cancelText:'Close',body:'<div class="list">'+rows.join('')+'</div>'});return;}if(!roleAllows(page))return;goto(page);});
   document.addEventListener('click',function(e){var b=e.target.closest('[data-more-page]');if(b){var root=b.closest('.modal-host');if(root)root.remove();goto(b.dataset.morePage);return;}var a=e.target.closest('[data-mobile-action]');if(!a)return;var root2=a.closest('.modal-host');if(root2)root2.remove();if(a.dataset.mobileAction==='logout'){$('#btn-logout').click();return;}if(a.dataset.mobileAction==='theme'){var t=document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark';applyTheme(t);}});
 
   /* ---------- boot ---------- */
@@ -4216,9 +4283,10 @@
     $('#admin-account').title = USER.email || '';
     $('#admin-avatar').textContent = (USER.full_name || USER.email || 'A').trim().split(/\s+/).slice(0, 2).map(function (n) { return n.charAt(0); }).join('').toUpperCase();
     applyRoleUI();
-    loadCourts();
+    if(isAdmin())loadCourts();
     var pushParams=new URLSearchParams(location.search),pushPage=pushParams.get('push_page');
-    goto((pushPage&&LOADERS[pushPage])?pushPage:'dashboard');
+    var landing=(pushPage&&LOADERS[pushPage]&&roleAllows(pushPage))?pushPage:roleHomePage();
+    goto(landing);
     var pushRef=pushParams.get('push_ref_id'),pushType=pushParams.get('push_ref_type');
     if(pushRef&&pushType==='booking')setTimeout(function(){var x=document.querySelector('[data-detail="'+CSS.escape(String(pushRef))+'"]');if(x)x.click();},900);
     applyAdminOperationalSettingsUI();
@@ -4242,7 +4310,7 @@
 
 <script>
 /* PIKOL_PWA_INSTALL_RUNTIME */
-(function(){'use strict';var btn=document.getElementById('pwa-install-admin'),deferredPrompt=null,KEY='pikol_admin_installed_v3';function ios(){return /iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);}function standalone(){return window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true;}function marked(){return localStorage.getItem(KEY)==='1';}function setMarked(v){if(v)localStorage.setItem(KEY,'1');else localStorage.removeItem(KEY);}function showIosGuide(){var g=document.getElementById('ios-pwa-guide');if(g)g.hidden=false;if(typeof toast==='function')toast('iPhone: Safari → Share → Add to Home Screen. Then open PIKOL Admin from the Home Screen icon.','error');}function sync(){if(!btn)return;if(standalone()){setMarked(true);btn.hidden=true;return;}if(ios()){btn.hidden=false;btn.textContent='Install Admin App on iPhone';return;}btn.textContent='Install Admin App';btn.hidden=!deferredPrompt||marked();}window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();deferredPrompt=e;if(!standalone())setMarked(false);sync();});window.addEventListener('appinstalled',function(){setMarked(true);deferredPrompt=null;sync();});window.addEventListener('pageshow',sync);document.addEventListener('visibilitychange',function(){if(!document.hidden)sync();});if(btn)btn.addEventListener('click',async function(){if(ios()){showIosGuide();return;}if(!deferredPrompt)return;btn.disabled=true;try{await deferredPrompt.prompt();var c=await deferredPrompt.userChoice;if(c&&c.outcome==='accepted')setMarked(true);}catch(_){}deferredPrompt=null;btn.disabled=false;sync();});if('serviceWorker' in navigator)window.addEventListener('load',function(){navigator.serviceWorker.register('service-worker.js?v=31-ui-sync-qr-fix',{scope:'./',updateViaCache:'none'}).catch(function(){});});sync();})();
+(function(){'use strict';var btn=document.getElementById('pwa-install-admin'),deferredPrompt=null,KEY='pikol_admin_installed_v3';function ios(){return /iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);}function standalone(){return window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true;}function marked(){return localStorage.getItem(KEY)==='1';}function setMarked(v){if(v)localStorage.setItem(KEY,'1');else localStorage.removeItem(KEY);}function showIosGuide(){var g=document.getElementById('ios-pwa-guide');if(g)g.hidden=false;if(typeof toast==='function')toast('iPhone: Safari → Share → Add to Home Screen. Then open PIKOL Admin from the Home Screen icon.','error');}function sync(){if(!btn)return;if(standalone()){setMarked(true);btn.hidden=true;return;}if(ios()){btn.hidden=false;btn.textContent='Install Admin App on iPhone';return;}btn.textContent='Install Admin App';btn.hidden=!deferredPrompt||marked();}window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();deferredPrompt=e;if(!standalone())setMarked(false);sync();});window.addEventListener('appinstalled',function(){setMarked(true);deferredPrompt=null;sync();});window.addEventListener('pageshow',sync);document.addEventListener('visibilitychange',function(){if(!document.hidden)sync();});if(btn)btn.addEventListener('click',async function(){if(ios()){showIosGuide();return;}if(!deferredPrompt)return;btn.disabled=true;try{await deferredPrompt.prompt();var c=await deferredPrompt.userChoice;if(c&&c.outcome==='accepted')setMarked(true);}catch(_){}deferredPrompt=null;btn.disabled=false;sync();});if('serviceWorker' in navigator)window.addEventListener('load',function(){var reloading=false;navigator.serviceWorker.addEventListener('controllerchange',function(){if(reloading)return;reloading=true;location.reload();});navigator.serviceWorker.register('service-worker.js?v=33-final-ui-polish',{scope:'./',updateViaCache:'none'}).then(function(reg){return reg.update();}).catch(function(){});});sync();})();
 </script>
 
 </body>

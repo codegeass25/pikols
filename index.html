@@ -20,6 +20,49 @@
 <style id="checkout-hold-style">
 .checkout-hold-banner{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:14px 16px;border:1px solid rgba(132,204,22,.45);background:linear-gradient(135deg,rgba(236,252,203,.92),rgba(255,255,255,.96));border-radius:16px;margin:0 0 16px;color:#17310c}.checkout-hold-banner strong{display:block}.checkout-hold-copy{display:grid;gap:3px}.checkout-hold-count{font-variant-numeric:tabular-nums;font-size:1.5rem;font-weight:900;letter-spacing:.02em;white-space:nowrap}.checkout-hold-banner.is-expired{border-color:rgba(220,38,38,.35);background:#fff1f2;color:#881337}.slot.state-held,.slot.state-pending{opacity:.78}.slot.state-held .slot-state{font-weight:800}.payment-dialog .modal-foot .btn-primary[disabled]{opacity:.55;cursor:not-allowed}
 </style>
+
+<style id="pikol-court-swipe-v33">
+/* Mobile/tablet court exploration: horizontal swipe instead of long stacked cards. */
+@media (max-width: 1024px){
+  #today-courts.court-gallery,
+  #book-courts.pick-grid{
+    display:flex !important;
+    grid-template-columns:none !important;
+    gap:14px !important;
+    overflow-x:auto !important;
+    overflow-y:hidden !important;
+    scroll-snap-type:x mandatory;
+    scroll-padding-inline:4px;
+    -webkit-overflow-scrolling:touch;
+    overscroll-behavior-inline:contain;
+    padding:4px 4px 12px !important;
+    scrollbar-width:none;
+    touch-action:pan-x pan-y;
+  }
+  #today-courts.court-gallery::-webkit-scrollbar,
+  #book-courts.pick-grid::-webkit-scrollbar{display:none}
+  #today-courts.court-gallery > .promo-court,
+  #book-courts.pick-grid > .court-pick{
+    flex:0 0 clamp(280px,78vw,430px) !important;
+    width:clamp(280px,78vw,430px) !important;
+    max-width:none !important;
+    scroll-snap-align:start;
+    scroll-snap-stop:always;
+  }
+  #today-courts.court-gallery > .empty,
+  #today-courts.court-gallery > .skeleton,
+  #book-courts.pick-grid > .empty,
+  #book-courts.pick-grid > .skeleton{flex:0 0 min(86vw,430px);scroll-snap-align:start}
+}
+@media (min-width: 700px) and (max-width: 1024px){
+  #today-courts.court-gallery > .promo-court,
+  #book-courts.pick-grid > .court-pick{flex-basis:min(47vw,430px) !important;width:min(47vw,430px) !important}
+}
+@media (max-width: 520px){
+  #today-courts.court-gallery > .promo-court,
+  #book-courts.pick-grid > .court-pick{flex-basis:calc(100vw - 58px) !important;width:calc(100vw - 58px) !important}
+}
+</style>
 </head>
 <body class="player-app">
 
@@ -2595,7 +2638,7 @@
   window.addEventListener('appinstalled',function(){setMarked(true);deferredPrompt=null;sync();});
   window.addEventListener('pageshow',sync);document.addEventListener('visibilitychange',function(){if(!document.hidden)sync();});
   if(btn)btn.addEventListener('click',async function(){if(!deferredPrompt)return;btn.disabled=true;try{await deferredPrompt.prompt();var c=await deferredPrompt.userChoice;if(c&&c.outcome==='accepted')setMarked(true);}catch(_){}deferredPrompt=null;btn.disabled=false;sync();});
-  if('serviceWorker' in navigator)window.addEventListener('load',function(){navigator.serviceWorker.register('service-worker.js?v=31-ui-sync-qr-fix',{scope:'./',updateViaCache:'none'}).catch(function(){});});
+  if('serviceWorker' in navigator)window.addEventListener('load',function(){var reloading=false;navigator.serviceWorker.addEventListener('controllerchange',function(){if(reloading)return;reloading=true;location.reload();});navigator.serviceWorker.register('service-worker.js?v=33-final-ui-polish',{scope:'./',updateViaCache:'none'}).then(function(reg){return reg.update();}).catch(function(){});});
   sync();
 })();
 </script>
