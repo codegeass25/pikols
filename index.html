@@ -12,6 +12,7 @@
 <link rel="manifest" href="manifest.json" />
 <meta name="theme-color" content="#0f3d32" />
 <script src="config.js"></script>
+<script src="tournament-view.js"></script>
 <link rel="stylesheet" href="styles.css" />
 <link rel="stylesheet" href="booking-premium.css" />
 <link rel="preload" as="image" href="assets/booking/hero-court.jpg" fetchpriority="high" />
@@ -1427,7 +1428,10 @@
     var to = t.end_date && t.end_date !== t.tournament_date ? ' – ' + humanDate(t.end_date) : '';
     return humanDate(t.tournament_date) + to + (t.start_time ? ' · ' + humanTime(t.start_time) : '');
   }
+  var TN_OPEN = null, TN_REQUEST = 0;
+  function refreshTournamentView() { return TN_OPEN && !$('#tn-detail-view').classList.contains('hidden') ? openTournament(TN_OPEN, true) : loadTournaments(); }
   function loadTournaments() {
+    TN_OPEN = null; ++TN_REQUEST;
     $('#tn-detail-view').classList.add('hidden');
     $('#tn-list-view').classList.remove('hidden');
     api('/api/tournaments').then(function (rows) {
@@ -1564,7 +1568,7 @@
         return toast('The ' + myDivision + ' division of this tournament is already full.', 'error');
       }
       var partner = null;   /* verified same-division partner (registered player) */
-      var partnerTimer = null;
+      var partnerTimer = null, partnerQuery = 0;
       var m = modal({
         title: 'Register — ' + tournamentName,
         confirmText: 'Submit registration',
@@ -1610,10 +1614,10 @@
             body: {
               division_id: sel.value,
               team_name: $('#tr-team', host).value,
-              partner_name: partner ? partner.full_name : $('#tr-partner-name', host).value,
-              partner_email: partner ? partner.email : '',
-              partner_mobile: partner ? partner.mobile : '',
-              partner_user_id: partner ? partner.id : null,
+              partner_name: Number(opt.dataset.size) > 1 && partner ? partner.full_name : '',
+              partner_email: Number(opt.dataset.size) > 1 && partner ? partner.email : '',
+              partner_mobile: Number(opt.dataset.size) > 1 && partner ? partner.mobile : '',
+              partner_user_id: Number(opt.dataset.size) > 1 && partner ? partner.id : null,
               notes: $('#tr-notes', host).value
             }
           }).then(function (r) {
@@ -1654,6 +1658,7 @@
       }
       /* ---- same-division partner autosuggest (server-side filtered) ---- */
       function clearPartner() {
+        ++partnerQuery;
         partner = null;
         var sel = $('#tr-partner-selected', m.host);
         sel.classList.add('hidden');
@@ -1694,9 +1699,11 @@
         if (partnerTimer) clearTimeout(partnerTimer);
         if (q.length < 2) { box.classList.add('hidden'); box.innerHTML = ''; return; }
         partnerTimer = setTimeout(function () {
+          if (!m.host.isConnected) return;
+          var query = partnerQuery;
           api('/api/tournaments/' + tournamentId + '/eligible-partners?q=' + encodeURIComponent(q))
-            .then(function (r) { renderPartnerResults(r.players || []); })
-            .catch(function () { renderPartnerResults([]); });
+            .then(function (r) { if (query === partnerQuery && m.host.isConnected) renderPartnerResults(r.players || []); })
+            .catch(function () { if (query === partnerQuery && m.host.isConnected) renderPartnerResults([]); });
         }, 220);
       });
 
@@ -1860,7 +1867,11 @@
 
   /* Near real-time updates while the Events tab is open. */
   EV_TIMER = setInterval(function () {
-    if (!TOKEN || document.hidden) return;
+    if (document.hidden || $('#site-overlay').classList.contains('hidden')) return;
+    if ($('#tab-tournaments').classList.contains('hidden')) return;
+    /* Match broadcasts are restricted to admins, so public standings also poll. */
+    if (EV_SUB === 'tournaments') { refreshTournamentView(); return; }
+    if (!TOKEN) return;
     /* Socket.IO is the primary channel; this poll only covers offline gaps. */
     if (RT && RT.connected()) return;
     if ($('#tab-tournaments').classList.contains('hidden')) return;
@@ -1881,9 +1892,11 @@
     openTournament(Number(b.dataset.tn));
   });
 
-  function openTournament(id) {
+  function openTournament(id, silent) {
     if($('#site-overlay').classList.contains('hidden'))goto('tournaments');
-    api('/api/tournaments/' + id).then(function (d) {
+    TN_OPEN = Number(id); var request = ++TN_REQUEST;
+    return api('/api/tournaments/' + id).then(function (d) {
+      if (request !== TN_REQUEST || TN_OPEN !== Number(id)) return;
       var t = d.tournament, divisions = d.divisions || [];
       var html = '<div><button class="btn btn-ghost btn-sm" id="tn-back">← All tournaments</button></div>' +
         '<section class="event-detail-surface stack" style="gap:8px">' +
@@ -1901,12 +1914,7 @@
 
       html += (divisions.length ? divisions.map(function (dv) {
         var dTeams = dv.teams || [], dPrizes = dv.prizes || [], dMatches = dv.matches || [];
-        var rounds = {}, order = [];
-        dMatches.forEach(function (m) {
-          var key = m.round || ('Round ' + m.round_order);
-          if (!rounds[key]) { rounds[key] = []; order.push(key); }
-          rounds[key].push(m);
-        });
+        var rounds = window.PikolTournamentUI.roundGroups(dMatches);
         return '<section class="event-detail-section stack" style="gap:12px">' +
           '<div class="spread"><h2 class="section-title">' + esc(dv.name) + '</h2>' +
           '<span class="badge badge-pending">' + esc(String(dv.match_type || 'singles').replace('_', ' ')) + '</span></div>' +
@@ -1916,11 +1924,12 @@
           }).join('') + '</ul></div>' : '') +
           '<div><div class="s"><strong>Participants (' + dTeams.length + ')</strong></div><div class="s muted">' +
           (dTeams.length ? dTeams.map(function (x) { return esc(x.name); }).join(' · ') : 'No participants registered yet.') + '</div></div>' +
-          (order.length ? '<div><div class="s"><strong>Live bracket</strong></div><div class="bracket-board player-bracket">' + order.map(function (r) {
-            return '<section class="bracket-column"><div class="bracket-column-head"><strong>' + esc(String(r).replace(/_/g, ' ').replace(/^./, function (ch) { return ch.toUpperCase(); })) + '</strong></div>' +
-              rounds[r].map(function (m) {
+          window.PikolTournamentUI.renderStandings(dv) +
+          (rounds.length ? '<div><div class="s"><strong>Live bracket</strong></div><div class="bracket-board player-bracket">' + rounds.map(function (r) {
+            return '<section class="bracket-column"><div class="bracket-column-head"><strong>' + esc(r.label) + '</strong></div>' +
+              r.matches.map(function (m) {
                 var done = m.status === 'completed';
-                return '<article class="bracket-match '+(done?'is-done':'')+'"><div><span>'+esc(m.team_a_name||'TBD')+'</span><b class="num">'+(done?m.score_a:'—')+'</b></div><div><span>'+esc(m.team_b_name||'TBD')+'</span><b class="num">'+(done?m.score_b:'—')+'</b></div><small>'+(m.scheduled_date?humanDate(m.scheduled_date)+(m.scheduled_time?' · '+humanTime(m.scheduled_time):''):'Schedule TBA')+(m.court_name?' · '+esc(m.court_name):'')+'</small></article>';
+                return '<article class="bracket-match '+(done?'is-done':'')+'"><div><span>'+esc(m.team_a_name||'TBD')+'</span><b class="num">'+window.PikolTournamentUI.scoreText(m,'a')+'</b></div><div><span>'+esc(m.team_b_name||'TBD')+'</span><b class="num">'+window.PikolTournamentUI.scoreText(m,'b')+'</b></div><small>'+esc(String(m.status||'scheduled').replace(/_/g,' '))+' · '+(m.scheduled_date?humanDate(m.scheduled_date)+(m.scheduled_time?' · '+humanTime(m.scheduled_time):''):'Schedule TBA')+(m.court_name?' · '+esc(m.court_name):'')+'</small></article>';
               }).join('') + '</section>';
           }).join('') + '</div></div>' : '<div class="s muted">Bracket not generated yet.</div>') +
           '</section>';
@@ -1930,8 +1939,8 @@
       $('#tn-detail-view').classList.remove('hidden');
       $('#tn-list-view').classList.add('hidden');
       $('#tn-back').onclick = function () { loadTournaments(); };
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }).catch(function (e) { toast(e.message, 'error'); });
+      if (!silent) window.scrollTo({ top: 0, behavior: 'smooth' });
+    }).catch(function (e) { if (!silent) toast(e.message, 'error'); });
   }
 
   /* ================== NOTIFICATIONS (information -> LIST) ==================
@@ -2366,7 +2375,7 @@
     function refreshEvents() {
       if (!visible('tournaments')) return;
       if (EV_SUB === 'openplay') run('openplay', loadOpenPlay);
-      else if (EV_SUB === 'tournaments') run('tournaments', loadTournaments);
+      else if (EV_SUB === 'tournaments') run('tournaments', refreshTournamentView);
       else if (EV_SUB === 'myregs') run('myregs', loadMyRegistrations);
     }
     function refreshNotifications() {
@@ -2418,13 +2427,13 @@
       'openplay:registration_created': function () { if (!visible('tournaments')) return; run('openplay', loadOpenPlay); if (TOKEN) run('myregs', loadMyRegistrations); },
       'openplay:registration_updated': function () { if (!visible('tournaments')) return; run('openplay', loadOpenPlay); if (TOKEN) run('myregs', loadMyRegistrations); },
       'openplay:payment_updated': function () { if (TOKEN && visible('tournaments')) run('myregs', loadMyRegistrations); },
-      'tournament:created': function () { if (visible('tournaments')) run('tournaments', loadTournaments); },
-      'tournament:updated': function () { if (visible('tournaments')) run('tournaments', loadTournaments); },
-      'tournament:status_changed': function () { if (visible('tournaments')) run('tournaments', loadTournaments); },
-      'tournament:deleted': function () { if (visible('tournaments')) run('tournaments', loadTournaments); },
-      'tournament:match_updated': function () { if (visible('tournaments')) run('tournaments', loadTournaments); },
-      'tournament:registration_created': function () { if (!visible('tournaments')) return; run('tournaments', loadTournaments); if (TOKEN) run('myregs', loadMyRegistrations); },
-      'tournament:registration_updated': function () { if (!visible('tournaments')) return; run('tournaments', loadTournaments); if (TOKEN) run('myregs', loadMyRegistrations); },
+      'tournament:created': function () { if (visible('tournaments')) run('tournaments', refreshTournamentView); },
+      'tournament:updated': function () { if (visible('tournaments')) run('tournaments', refreshTournamentView); },
+      'tournament:status_changed': function () { if (visible('tournaments')) run('tournaments', refreshTournamentView); },
+      'tournament:deleted': function () { if (visible('tournaments')) run('tournaments', refreshTournamentView); },
+      'tournament:match_updated': function () { if (visible('tournaments')) run('tournaments', refreshTournamentView); },
+      'tournament:registration_created': function () { if (!visible('tournaments')) return; run('tournaments', refreshTournamentView); if (TOKEN) run('myregs', loadMyRegistrations); },
+      'tournament:registration_updated': function () { if (!visible('tournaments')) return; run('tournaments', refreshTournamentView); if (TOKEN) run('myregs', loadMyRegistrations); },
       'tournament:payment_updated': function () { if (TOKEN && visible('tournaments')) run('myregs', loadMyRegistrations); },
       'settings:updated': function () { run('branding', function () { api('/api/branding').then(applyBranding).catch(function () {}); loadPayCfg().catch(function () {}); }); },
       'branding:updated': function () { run('branding', function () { api('/api/branding').then(applyBranding).catch(function () {}); }); },
@@ -2504,7 +2513,7 @@
   window.addEventListener('appinstalled',function(){setMarked(true);deferredPrompt=null;sync();});
   window.addEventListener('pageshow',sync);document.addEventListener('visibilitychange',function(){if(!document.hidden)sync();});
   if(btn)btn.addEventListener('click',async function(){if(!deferredPrompt)return;btn.disabled=true;try{await deferredPrompt.prompt();var c=await deferredPrompt.userChoice;if(c&&c.outcome==='accepted')setMarked(true);}catch(_){}deferredPrompt=null;btn.disabled=false;sync();});
-  if('serviceWorker' in navigator)window.addEventListener('load',function(){navigator.serviceWorker.register('service-worker.js?v=27-reference-booking',{scope:'./',updateViaCache:'none'}).catch(function(){});});
+  if('serviceWorker' in navigator)window.addEventListener('load',function(){navigator.serviceWorker.register('service-worker.js?v=29-tournament-tested',{scope:'./',updateViaCache:'none'}).catch(function(){});});
   sync();
 })();
 </script>

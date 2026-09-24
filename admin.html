@@ -17,6 +17,7 @@
 <meta name="apple-mobile-web-app-title" content="PIKOL Admin" />
 <link rel="apple-touch-icon" href="icons/icon-192.png" />
 <script src="config.js"></script>
+<script src="tournament-view.js"></script>
 <link rel="stylesheet" href="styles.css" />
 <style>
 /* Booking photographs are wide previews, independent of logo sizing. */
@@ -1600,7 +1601,7 @@
   }
 
   $('#btn-new-tournament').onclick = function () {
-    if (!COURTS.length) { return loadCourts().then(function () { $('#btn-new-tournament').onclick(); }); }
+    if (!COURTS.length) { return api('/api/courts').then(function (rows) { COURTS = rows || []; if (!COURTS.length) { toast('Add a court before creating a tournament.', 'error'); goto('courts'); return; } $('#btn-new-tournament').onclick(); }).catch(function (e) { toast(e.message, 'error'); }); }
     modal({
       title: 'New tournament', wide: true, confirmText: 'Create tournament', body: tournamentForm(),
       onConfirm: function (h) {
@@ -1628,8 +1629,9 @@
 
   function openTournament(id) {
     TRN_OPEN = id;
-    return Promise.all([api('/api/admin/tournaments/' + id), api('/api/admin/scorers').catch(function(){ return []; })]).then(function (r) {
-      var d = r[0]; SCORERS = r[1] || [];
+    return Promise.all([api('/api/admin/tournaments/' + id), api('/api/admin/scorers').catch(function(){ return []; }), api('/api/courts')]).then(function (r) {
+      if (String(TRN_OPEN) !== String(id)) return;
+      var d = r[0]; SCORERS = r[1] || []; COURTS = r[2] || [];
       $('#trn-list-view').classList.add('hidden');
       var host = $('#trn-detail-view');
       host.classList.remove('hidden');
@@ -1651,7 +1653,7 @@
   }
 
   function renderMatchRow(m, teams) {
-    var isDone = m.status === 'completed';
+    var isDone = m.status === 'completed' || m.status === 'cancelled';
     return '<tr data-match-row="' + m.id + '">' +
       '<td>' + esc(roundLabel(m.round)) + '<div class="tiny muted">Match ' + m.match_number + '</div></td>' +
       '<td><select class="select tiny-select" data-mfield="team_a_id" data-mid="' + m.id + '">' + teamOptions(teams, m.team_a_id) + '</select>' +
@@ -1671,7 +1673,7 @@
       '<button class="btn btn-primary btn-sm" data-score-open="' + m.id + '">Scoring</button>' +
       '<button class="btn btn-outline btn-sm" data-msave="' + m.id + '">Save</button>' +
       (isDone ? '' :
-        '<button class="btn btn-ghost btn-sm" data-maction="start" data-mid="' + m.id + '">Start</button>' +
+        (['scheduled','ready','postponed'].indexOf(m.status)>=0?'<button class="btn btn-ghost btn-sm" data-maction="start" data-mid="' + m.id + '">Start</button>':'') +
         '<button class="btn btn-ghost btn-sm" data-maction="score" data-mid="' + m.id + '">Update score</button>' +
         '<button class="btn btn-success btn-sm" data-maction="complete" data-mid="' + m.id + '">Complete</button>') +
       '<button class="btn btn-outline btn-sm" data-mdel="' + m.id + '">Delete</button>' +
@@ -1684,12 +1686,9 @@
   }
 
   function renderBracketBoard(div) {
-    var matches=(div.matches||[]).filter(function(m){return m.stage!=='group';});
-    if(!matches.length) return '';
-    var cols={},order=[];
-    matches.forEach(function(m){var key=(m.bracket_side||'winners')+'|'+String(m.round_order||0)+'|'+String(m.round||'round');if(!cols[key]){cols[key]=[];order.push(key);}cols[key].push(m);});
-    order.sort(function(a,b){var aa=a.split('|'),bb=b.split('|');var side={winners:1,losers:2,finals:3,knockout:1};return (side[aa[0]]||4)-(side[bb[0]]||4)||Number(aa[1])-Number(bb[1]);});
-    return '<div class="bracket-board" aria-label="Tournament bracket">'+order.map(function(k){var p=k.split('|'),list=cols[k];return '<section class="bracket-column"><div class="bracket-column-head"><span>'+esc(String(p[0]).replace(/_/g,' '))+'</span><strong>'+esc(roundLabel(p[2]))+'</strong></div>'+list.map(function(m){return '<article class="bracket-match '+(m.status==='completed'?'is-done':'')+'"><div><span>'+esc(m.team_a_name||'TBA')+'</span><b class="num">'+(m.score_a==null?'—':m.score_a)+'</b></div><div><span>'+esc(m.team_b_name||'TBA')+'</span><b class="num">'+(m.score_b==null?'—':m.score_b)+'</b></div><small>'+(m.court_name?esc(m.court_name)+' · ':'')+esc(m.scheduled_time||'TBA')+'</small></article>';}).join('')+'</section>';}).join('')+'</div>';
+    var rounds=window.PikolTournamentUI.roundGroups(div.matches||[]);
+    if(!rounds.length) return '';
+    return '<div class="bracket-board" aria-label="Tournament bracket">'+rounds.map(function(round){return '<section class="bracket-column"><div class="bracket-column-head"><strong>'+esc(round.label)+'</strong></div>'+round.matches.map(function(m){return '<article class="bracket-match '+(m.status==='completed'?'is-done':'')+'"><div><span>'+esc(m.team_a_name||'TBA')+'</span><b class="num">'+window.PikolTournamentUI.scoreText(m,'a')+'</b></div><div><span>'+esc(m.team_b_name||'TBA')+'</span><b class="num">'+window.PikolTournamentUI.scoreText(m,'b')+'</b></div><small>'+esc(m.status||'scheduled')+' · '+(m.court_name?esc(m.court_name)+' · ':'')+esc(m.scheduled_date||'Date TBA')+' · '+esc(m.scheduled_time||'Time TBA')+'</small></article>';}).join('')+'</section>';}).join('')+'</div>';
   }
 
   function renderDivision(div) {
@@ -1705,6 +1704,7 @@
       '<button class="btn btn-outline btn-sm" data-div-prizes="' + div.id + '">Prizes</button>' +
       '<button class="btn btn-outline btn-sm" data-div-bracket="' + div.id + '">Generate bracket</button>' +
       '<button class="btn btn-outline btn-sm" data-div-schedule="' + div.id + '">Auto schedule</button>' +
+      ((div.matches || []).length ? '<button class="btn btn-outline btn-sm" data-div-reset="' + div.id + '">Reset bracket</button>' : '') +
       '<button class="btn btn-outline btn-sm" data-div-match="' + div.id + '">＋ Match</button>' +
       '<button class="btn btn-outline btn-sm" data-div-winners="' + div.id + '">Set winners</button>' +
       '<button class="btn btn-outline btn-sm" data-div-edit="' + div.id + '">Edit</button>' +
@@ -1725,7 +1725,7 @@
         return '<tr><td class="num">' + pz.place + '</td><td>' + esc(pz.label) + '</td><td class="num">' + esc(money(pz.amount)) +
           '</td><td>' + (w ? '🏆 ' + esc(w.name) : '<span class="muted tiny">Not set</span>') + '</td></tr>';
       }).join('') + '</tbody></table></div></div></div>' +
-      '<h4 class="label mt-5">Matches & bracket</h4>' + renderBracketBoard(div) +
+      window.PikolTournamentUI.renderStandings(div) + '<h4 class="label mt-5">Matches & bracket</h4>' + renderBracketBoard(div) +
       ((div.matches || []).length
         ? '<details class="mt-4"><summary class="btn btn-ghost btn-sm">Match operations table</summary><div class="table-wrap mt-3"><table class="data"><thead><tr><th>Round</th><th>Matchup</th><th>Schedule</th><th>Court</th><th>Scorer</th><th>Score</th><th>Status</th><th>Actions</th></tr></thead><tbody>' +
           div.matches.map(function (m) { return renderMatchRow(m, teams); }).join('') + '</tbody></table></div></details>'
@@ -1822,7 +1822,7 @@
       [['single_elimination','Single Elimination'],['double_elimination','Double Elimination'],['round_robin','Round Robin'],['group_knockout','Group Stage + Knockout']].map(function(x){return '<option value="'+x[0]+'"'+((d.competition_format||'single_elimination')===x[0]?' selected':'')+'>'+x[1]+'</option>';}).join('') + '</select></div>' +
       '<div class="field"><label class="label" for="dv-seeding">Seeding</label><select class="select" id="dv-seeding">' +
       [['rating','Rating-based'],['registration_order','Registration order'],['random','Random'],['manual','Manual / existing seeds']].map(function(x){return '<option value="'+x[0]+'"'+((d.seeding_method||'rating')===x[0]?' selected':'')+'>'+x[1]+'</option>';}).join('') + '</select></div></div>' +
-      '<div class="grid cols-4"><div class="field"><label class="label">Match minutes</label><input class="input" id="dv-match-min" type="number" min="10" value="'+Number(d.match_duration_minutes||30)+'"></div><div class="field"><label class="label">Rest minutes</label><input class="input" id="dv-rest-min" type="number" min="0" value="'+Number(d.rest_minutes||15)+'"></div><div class="field"><label class="label">Groups</label><input class="input" id="dv-group-count" type="number" min="2" value="'+Number(d.group_count||2)+'"></div><div class="field"><label class="label">Qualifiers / group</label><input class="input" id="dv-group-qualifiers" type="number" min="1" value="'+Number(d.group_qualifiers||2)+'"></div></div>' +
+      '<div class="grid cols-4"><div class="field"><label class="label">Match minutes</label><input class="input" id="dv-match-min" type="number" min="10" value="'+Number(d.match_duration_minutes||30)+'"></div><div class="field"><label class="label">Rest minutes</label><input class="input" id="dv-rest-min" type="number" min="0" value="'+Number(d.rest_minutes==null?15:d.rest_minutes)+'"></div><div class="field"><label class="label">Groups</label><input class="input" id="dv-group-count" type="number" min="2" value="'+Number(d.group_count||2)+'"></div><div class="field"><label class="label">Qualifiers / group</label><input class="input" id="dv-group-qualifiers" type="number" min="1" value="'+Number(d.group_qualifiers||2)+'"></div></div>' +
       '<div class="grid cols-2"><label class="switch"><input type="checkbox" id="dv-third"'+(Number(d.third_place||0)?' checked':'')+'><span class="track"></span><span>Third-place match</span></label><label class="switch"><input type="checkbox" id="dv-reset"'+(Number(d.reset_final==null?1:d.reset_final)?' checked':'')+'><span class="track"></span><span>Reset final if required</span></label></div>' +
       '<div class="field"><label class="label" for="dv-fee">Entry fee</label>' +
       '<input class="input" id="dv-fee" type="number" min="0" step="0.01" value="' + Number(d.entry_fee || 0).toFixed(2) + '" />' +
@@ -1913,6 +1913,11 @@
 
     if ((el = e.target.closest('[data-div-prizes]'))) { editPrizes(el.dataset.divPrizes); return; }
     if ((el = e.target.closest('[data-div-winners]'))) { setWinners(el.dataset.divWinners); return; }
+    if ((el = e.target.closest('[data-div-reset]'))) {
+      var resetId=el.dataset.divReset;
+      modal({title:'Reset this bracket?',confirmText:'Reset bracket',body:'<p>This removes all division matches, scores and assigned winners. Official participants and registrations are kept. Generate a new bracket after editing participants or rules.</p>',onConfirm:function(){return api('/api/admin/divisions/'+resetId+'/bracket',{method:'DELETE'}).then(function(){toast('Bracket reset. Participants retained.','success');openTournament(TRN_OPEN);});}});
+      return;
+    }
     if ((el = e.target.closest('[data-div-bracket]'))) {
       var bid=el.dataset.divBracket;
       api('/api/admin/tournaments/'+TRN_OPEN).then(function(detail){var div=divisionById(detail,bid)||{};modal({title:'Generate tournament structure',wide:true,confirmText:'Generate',body:'<div class="alert alert-info"><strong>Registration-driven:</strong> official approved teams are used automatically. Existing matches are replaced.</div><fieldset class="admin-form-section"><legend>Select bracket format</legend><div class="bracket-format-grid"><label class="bracket-format-option"><input type="radio" name="bracket-format" value="single_elimination" checked><span><strong>Single Elimination</strong><small>Simple bracket. Fast and exciting.</small></span></label><label class="bracket-format-option"><input type="radio" name="bracket-format" value="double_elimination"><span><strong>Double Elimination</strong><small>A second chance in the lower bracket.</small></span></label><label class="bracket-format-option"><input type="radio" name="bracket-format" value="round_robin"><span><strong>Round Robin</strong><small>Every participant plays every other participant.</small></span></label><label class="bracket-format-option"><input type="radio" name="bracket-format" value="group_knockout"><span><strong>Group Stage + Knockout</strong><small>Group matches followed by a knockout bracket.</small></span></label></div><select class="select hidden" id="bg-format" aria-label="Competition format"><option value="single_elimination">Single Elimination</option><option value="double_elimination">Double Elimination</option><option value="round_robin">Round Robin</option><option value="group_knockout">Group Stage + Knockout</option></select></fieldset><label class="switch"><input type="checkbox" id="bg-lock" checked><span class="track"></span><span>Lock bracket after generation</span></label>',onOpen:function(){},onConfirm:function(h){return api('/api/admin/divisions/'+bid+'/bracket',{method:'POST',body:{replace:true,force_unlock:true,format:$('#bg-format',h).value,lock:$('#bg-lock',h).checked}}).then(function(){toast('Tournament structure generated.','success');openTournament(TRN_OPEN);});}});setTimeout(function(){var f=document.getElementById('bg-format');if(f){f.value=div.competition_format||'single_elimination';var h=f.closest('.modal-host');$$('[name="bracket-format"]',h).forEach(function(r){r.checked=r.value===f.value;r.onchange=function(){if(r.checked)f.value=r.value;};});}},0);}).catch(function(err){toast(err.message,'error');});
@@ -2093,19 +2098,26 @@
       .then(function () { toast('Match updated. Scheduled players are notified automatically.', 'success'); openTournament(TRN_OPEN); })
       .catch(function (e) { toast(e.message, 'error'); });
   }
+  var MATCH_ACTION_BUSY = {};
   function matchAction(id, action) {
+    if (MATCH_ACTION_BUSY[id]) return;
     var row = $('[data-match-row="' + id + '"]');
     var body = { action: action };
     if (action === 'score' || action === 'complete') {
-      body.score_a = Number($('[data-score="a"][data-mid="' + id + '"]', row).value) || 0;
-      body.score_b = Number($('[data-score="b"][data-mid="' + id + '"]', row).value) || 0;
+      var a = $('[data-score="a"][data-mid="' + id + '"]', row).value;
+      var b = $('[data-score="b"][data-mid="' + id + '"]', row).value;
+      body.score_a = a === '' ? NaN : Number(a); body.score_b = b === '' ? NaN : Number(b);
+      if (![body.score_a,body.score_b].every(function(n){return Number.isInteger(n)&&n>=0&&n<=999;})) { toast('Scores must be whole numbers from 0 to 999.', 'error'); return; }
+      if (action === 'complete' && body.score_a === body.score_b) { toast('A completed match cannot end in a tie.', 'error'); return; }
     }
-    api('/api/admin/matches/' + id + '/action', { method: 'POST', body: body })
+    MATCH_ACTION_BUSY[id] = true;
+    return api('/api/admin/matches/' + id + '/action', { method: 'POST', body: body })
       .then(function () {
         toast(action === 'complete' ? 'Result saved. The winner advances in the bracket.' : 'Match updated.', 'success');
         openTournament(TRN_OPEN);
       })
-      .catch(function (e) { toast(e.message, 'error'); });
+      .catch(function (e) { toast(e.message, 'error'); })
+      .finally(function () { delete MATCH_ACTION_BUSY[id]; });
   }
 
   /* ---------- dashboard ---------- */
@@ -3393,7 +3405,7 @@
   };
 
   /* ---------- In-Charge PWA push ---------- */
-  var ADMIN_SW_VERSION='28-admin-reference';
+  var ADMIN_SW_VERSION='29-tournament-tested';
   var PUSH_PREP={reg:null,publicKey:null,serverStatus:null,ready:false,error:null,promise:null};
   function b64ToUint8(s){s=String(s||'').replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';var raw=atob(s),a=new Uint8Array(raw.length);for(var i=0;i<raw.length;i++)a[i]=raw.charCodeAt(i);return a;}
   function bytesEqual(a,b){if(!a||!b)return false;var x=new Uint8Array(a),y=new Uint8Array(b);if(x.length!==y.length)return false;for(var i=0;i<x.length;i++)if(x[i]!==y[i])return false;return true;}
@@ -4089,7 +4101,7 @@
 
 <script>
 /* PIKOL_PWA_INSTALL_RUNTIME */
-(function(){'use strict';var btn=document.getElementById('pwa-install-admin'),deferredPrompt=null,KEY='pikol_admin_installed_v3';function ios(){return /iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);}function standalone(){return window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true;}function marked(){return localStorage.getItem(KEY)==='1';}function setMarked(v){if(v)localStorage.setItem(KEY,'1');else localStorage.removeItem(KEY);}function showIosGuide(){var g=document.getElementById('ios-pwa-guide');if(g)g.hidden=false;if(typeof toast==='function')toast('iPhone: Safari → Share → Add to Home Screen. Then open PIKOL Admin from the Home Screen icon.','error');}function sync(){if(!btn)return;if(standalone()){setMarked(true);btn.hidden=true;return;}if(ios()){btn.hidden=false;btn.textContent='Install Admin App on iPhone';return;}btn.textContent='Install Admin App';btn.hidden=!deferredPrompt||marked();}window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();deferredPrompt=e;if(!standalone())setMarked(false);sync();});window.addEventListener('appinstalled',function(){setMarked(true);deferredPrompt=null;sync();});window.addEventListener('pageshow',sync);document.addEventListener('visibilitychange',function(){if(!document.hidden)sync();});if(btn)btn.addEventListener('click',async function(){if(ios()){showIosGuide();return;}if(!deferredPrompt)return;btn.disabled=true;try{await deferredPrompt.prompt();var c=await deferredPrompt.userChoice;if(c&&c.outcome==='accepted')setMarked(true);}catch(_){}deferredPrompt=null;btn.disabled=false;sync();});if('serviceWorker' in navigator)window.addEventListener('load',function(){navigator.serviceWorker.register('service-worker.js?v=28-admin-reference',{scope:'./',updateViaCache:'none'}).catch(function(){});});sync();})();
+(function(){'use strict';var btn=document.getElementById('pwa-install-admin'),deferredPrompt=null,KEY='pikol_admin_installed_v3';function ios(){return /iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);}function standalone(){return window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true;}function marked(){return localStorage.getItem(KEY)==='1';}function setMarked(v){if(v)localStorage.setItem(KEY,'1');else localStorage.removeItem(KEY);}function showIosGuide(){var g=document.getElementById('ios-pwa-guide');if(g)g.hidden=false;if(typeof toast==='function')toast('iPhone: Safari → Share → Add to Home Screen. Then open PIKOL Admin from the Home Screen icon.','error');}function sync(){if(!btn)return;if(standalone()){setMarked(true);btn.hidden=true;return;}if(ios()){btn.hidden=false;btn.textContent='Install Admin App on iPhone';return;}btn.textContent='Install Admin App';btn.hidden=!deferredPrompt||marked();}window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();deferredPrompt=e;if(!standalone())setMarked(false);sync();});window.addEventListener('appinstalled',function(){setMarked(true);deferredPrompt=null;sync();});window.addEventListener('pageshow',sync);document.addEventListener('visibilitychange',function(){if(!document.hidden)sync();});if(btn)btn.addEventListener('click',async function(){if(ios()){showIosGuide();return;}if(!deferredPrompt)return;btn.disabled=true;try{await deferredPrompt.prompt();var c=await deferredPrompt.userChoice;if(c&&c.outcome==='accepted')setMarked(true);}catch(_){}deferredPrompt=null;btn.disabled=false;sync();});if('serviceWorker' in navigator)window.addEventListener('load',function(){navigator.serviceWorker.register('service-worker.js?v=29-tournament-tested',{scope:'./',updateViaCache:'none'}).catch(function(){});});sync();})();
 </script>
 
 </body>

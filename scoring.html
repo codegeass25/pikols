@@ -67,6 +67,7 @@
         <article class="competitor"><div class="team-name" id="team-b">TBA</div><div class="seed" id="seed-b"></div><div class="score-num" id="score-b">0</div><button class="point-btn" id="point-b">＋ POINT</button></article>
       </section>
       <div class="score-actions">
+        <button class="btn btn-primary hidden" id="reconnect">Resume scoring session</button>
         <button class="btn btn-primary" id="start">Start match</button>
         <button class="btn btn-outline" id="undo">↶ Undo</button>
         <button class="btn btn-outline" id="pause">Pause</button>
@@ -86,24 +87,28 @@
   <form id="scorer-login"><div class="scorer-login-grid"><div><label class="label">Email</label><input class="input" id="login-email" type="email" autocomplete="username" required></div><div><label class="label">Password</label><input class="input" id="login-password" type="password" autocomplete="current-password" required></div></div><button class="btn btn-primary" style="width:100%;margin-top:14px" type="submit">Sign in</button></form>
 </div>
 <div id="assigned-panel" class="scorer-panel hidden"><div class="row wrap" style="justify-content:space-between;align-items:center"><div><div class="score-kicker">Court-side console</div><h2 style="margin:6px 0 2px">Assigned matches</h2><div id="assigned-user" style="color:#94a79f"></div></div><button class="btn btn-outline btn-sm" id="scorer-signout">Sign out</button></div><div id="assigned-list" class="assigned-list"></div></div>
-<div id="error" class="auth-error hidden"><h2>Scoring console unavailable</h2><p class="muted" id="error-text"></p><button class="btn btn-primary" id="error-back">Back to assigned matches</button></div>
+<div id="error" class="auth-error hidden"><h2>Scoring console unavailable</h2><p class="muted" id="error-text"></p><button class="btn btn-primary" id="error-back">Back to assigned matches</button> <button class="btn btn-outline" id="error-login">Sign in again</button></div>
 <div class="score-toast" id="toast"></div>
 <script>
 (function(){'use strict';
   var API=(window.PIKOL_API_BASE||'').replace(/\/+$/,'');
-  var TOKEN=localStorage.getItem('pb_admin_token')||localStorage.getItem('pb_scoring_token')||'';
+  var TOKEN_KEY=localStorage.getItem('pb_admin_token')?'pb_admin_token':'pb_scoring_token';
+  var TOKEN=localStorage.getItem(TOKEN_KEY)||'';
   var params=new URLSearchParams(location.search), MATCH_ID=params.get('match');
-  var data=null,busy=false,pollTimer=null,heartbeatTimer=null,LOCK_TOKEN='',ME=null;
+  var data=null,busy=false,pollTimer=null,heartbeatTimer=null,LOCK_TOKEN='',ME=null,connected=false,loadVersion=0;
   function $(q){return document.querySelector(q)}
   function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]})}
   function toast(t){var e=$('#toast');e.textContent=t;e.classList.add('show');setTimeout(function(){e.classList.remove('show')},1800)}
   function hidePanels(){['#app','#login-panel','#assigned-panel','#error'].forEach(function(q){$(q).classList.add('hidden')})}
-  async function api(path,opt){opt=opt||{};var headers=Object.assign({'Content-Type':'application/json'},opt.headers||{});if(TOKEN)headers.Authorization='Bearer '+TOKEN;if(LOCK_TOKEN)headers['X-Scoring-Session']=LOCK_TOKEN;var r=await fetch(API+path,{method:opt.method||'GET',headers:headers,body:opt.body?JSON.stringify(opt.body):undefined,keepalive:!!opt.keepalive});var d=await r.json().catch(function(){return{}});if(!r.ok)throw new Error(d.error||d.message||('HTTP '+r.status));return d}
+  async function api(path,opt){opt=opt||{};var headers=Object.assign({'Content-Type':'application/json'},opt.headers||{});if(TOKEN)headers.Authorization='Bearer '+TOKEN;if(LOCK_TOKEN)headers['X-Scoring-Session']=LOCK_TOKEN;var r=await fetch(API+path,{method:opt.method||'GET',headers:headers,body:opt.body?JSON.stringify(opt.body):undefined,keepalive:!!opt.keepalive});var d=await r.json().catch(function(){return{}});if(!r.ok){var error=new Error(d.error||d.message||('HTTP '+r.status));error.status=r.status;throw error}return d}
   function fail(msg){hidePanels();$('#error-text').textContent=msg;$('#error').classList.remove('hidden')}
   function label(v){return String(v||'').replace(/_/g,' ').replace(/\b\w/g,function(c){return c.toUpperCase()})}
   function fmtDate(v){if(!v)return'TBA';var d=new Date(v+'T00:00:00');return d.toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'})}
   function fmtTime(v){if(!v)return'TBA';var p=String(v).split(':'),h=Number(p[0]),ap=h>=12?'PM':'AM';return((h%12)||12)+':'+p[1]+' '+ap}
-  function render(){if(!data)return;var m=data.match,d=data.division;
+  function stopTimers(){clearInterval(pollTimer);clearInterval(heartbeatTimer);pollTimer=null;heartbeatTimer=null;}
+  function showLogin(message){stopTimers();LOCK_TOKEN='';connected=false;hidePanels();$('#login-panel').classList.remove('hidden');if(message)toast(message);}
+  function expireSession(){if(localStorage.getItem(TOKEN_KEY)===TOKEN)localStorage.removeItem(TOKEN_KEY);TOKEN='';ME=null;showLogin('Your session expired. Sign in to continue.');}
+  function render(){if(!data)return;var m=data.match,d=data.division||{};
     $('#tournament').textContent=m.tournament_name||'Tournament';
     $('#match-title').textContent=(m.division_name||d.name||'Division')+' · '+label(m.round)+' · Match '+(m.match_number||m.id);
     $('#team-a').textContent=m.team_a_name||'TBA';$('#team-b').textContent=m.team_b_name||'TBA';
@@ -111,20 +116,29 @@
     $('#score-a').textContent=Number(m.score_a||0);$('#score-b').textContent=Number(m.score_b||0);
     $('#status').textContent=label(m.status);$('#status').className='badge '+(m.status==='completed'?'badge-completed':m.status==='live'?'badge-approved':'badge-pending');
     $('#meta').innerHTML=['Format: '+label(d.competition_format),'Stage: '+label(m.stage||m.bracket_side),'Court: '+(m.court_name||'TBA'),'Date: '+fmtDate(m.scheduled_date),'Time: '+fmtTime(m.scheduled_time),m.scorer_name?'Scorer: '+m.scorer_name:''].filter(Boolean).map(function(x){return'<span class="meta-chip">'+esc(x)+'</span>'}).join('');
-    var active=m.status!=='completed'&&m.status!=='cancelled',canScore=active&&m.team_a_id&&m.team_b_id&&!!LOCK_TOKEN;
-    $('#point-a').disabled=!canScore;$('#point-b').disabled=!canScore;$('#undo').disabled=!canScore;$('#finish').disabled=!canScore;$('#pause').disabled=!canScore;$('#resume').disabled=!canScore;$('#start').disabled=!canScore;
-    $('#start').classList.toggle('hidden',m.status==='live'||m.status==='completed');$('#pause').classList.toggle('hidden',m.status!=='live');$('#resume').classList.toggle('hidden',m.status!=='ready');
+    var active=['scheduled','ready','live','postponed'].includes(m.status),hasTeams=m.team_a_id&&m.team_b_id&&Number(m.team_a_id)!==Number(m.team_b_id);
+    var canControl=active&&hasTeams&&!!LOCK_TOKEN&&connected&&!busy,canScore=canControl&&m.status==='live';
+    $('#point-a').disabled=!canScore||Number(m.score_a||0)>=999;$('#point-b').disabled=!canScore||Number(m.score_b||0)>=999;
+    $('#undo').disabled=!canScore;$('#finish').disabled=!canScore;$('#pause').disabled=!canScore;$('#resume').disabled=!canControl||m.status!=='ready';$('#start').disabled=!canControl||!['scheduled','postponed'].includes(m.status);
+    $('#start').classList.toggle('hidden',!['scheduled','postponed'].includes(m.status));$('#pause').classList.toggle('hidden',m.status!=='live');$('#resume').classList.toggle('hidden',m.status!=='ready');
+    $('#reconnect').classList.toggle('hidden',!active||!!LOCK_TOKEN);$('#reconnect').disabled=busy||!connected;
+    $('#back').textContent=ME&&ME.role==='admin'?'Admin':'Assigned matches';
+    $('#conn-text').textContent=!connected?'RECONNECTING':LOCK_TOKEN?'LIVE':'VIEW ONLY';$('#conn-dot').style.background=connected&&LOCK_TOKEN?'#59d49e':'#e6bb63';
     $('#history').innerHTML=(data.history||[]).map(function(h){return'<div class="hist"><strong>'+esc(label(h.action))+' · '+Number(h.score_a||0)+' : '+Number(h.score_b||0)+'</strong><small>'+esc(h.details||'')+'</small><small>'+new Date(h.created_at).toLocaleString()+' · '+esc(label(h.actor_role||''))+'</small></div>'}).join('')||'<div class="muted tiny">No scoring actions yet.</div>';
   }
-  async function load(silent){try{data=await api('/api/scoring/matches/'+MATCH_ID);render();hidePanels();$('#app').classList.remove('hidden');$('#conn-text').textContent=LOCK_TOKEN?'LIVE':'VIEW ONLY';$('#conn-dot').style.background=LOCK_TOKEN?'#59d49e':'#e6bb63'}catch(e){$('#conn-text').textContent='RECONNECTING';$('#conn-dot').style.background='#e6bb63';if(!silent)fail(e.message)}}
+  async function load(silent){var version=++loadVersion;try{var next=await api('/api/scoring/matches/'+MATCH_ID);if(version!==loadVersion)return false;data=next;connected=true;render();hidePanels();$('#app').classList.remove('hidden');return true}catch(e){if(version!==loadVersion)return false;connected=false;render();if(e.status===401){expireSession();return false}if(!silent)fail(e.message);return false}}
   async function acquire(){var r=await api('/api/scoring/matches/'+MATCH_ID+'/acquire',{method:'POST',body:{}});LOCK_TOKEN=r.session_token||'';}
-  async function action(a,body){if(busy||!LOCK_TOKEN)return;busy=true;try{var m=data.match,payload=Object.assign({action:a,score_a:Number(m.score_a||0),score_b:Number(m.score_b||0)},body||{});await api('/api/scoring/matches/'+MATCH_ID+'/action',{method:'POST',body:payload});await load(true);toast(label(a)+' saved')}catch(e){toast(e.message)}finally{busy=false}}
+  async function action(a,body){if(busy||!LOCK_TOKEN||!connected||!data)return;busy=true;++loadVersion;render();try{var m=data.match,payload=Object.assign({action:a,score_a:Number(m.score_a||0),score_b:Number(m.score_b||0)},body||{});await api('/api/scoring/matches/'+MATCH_ID+'/action',{method:'POST',body:payload});if(a==='complete'){await api('/api/scoring/matches/'+MATCH_ID+'/release',{method:'POST',body:{}}).catch(function(){});LOCK_TOKEN=''}await load(true);toast(label(a)+' saved')}catch(e){if(e.status===401)expireSession();else if(e.status===409){LOCK_TOKEN='';await load(true)}else if(!e.status){connected=false}toast(e.message)}finally{busy=false;render()}}
   async function showAssigned(){try{var rows=await api('/api/scoring/assigned');hidePanels();$('#assigned-user').textContent=(ME&&ME.full_name?ME.full_name+' · ':'')+label(ME&&ME.role);$('#assigned-list').innerHTML=rows.length?rows.map(function(m){return'<div class="assigned-match"><div><strong>'+esc(m.tournament_name)+' · '+esc(m.division_name)+'</strong><small>'+esc(label(m.round))+' · Match '+(m.match_number||m.id)+' · '+esc(m.team_a_name||'TBA')+' vs '+esc(m.team_b_name||'TBA')+'</small><small>'+esc(fmtDate(m.scheduled_date))+' · '+esc(fmtTime(m.scheduled_time))+' · '+esc(m.court_name||'Court TBA')+' · '+esc(label(m.status))+'</small></div><button class="btn btn-primary btn-sm" data-open-match="'+m.id+'">Open scoring</button></div>'}).join(''):'<div class="auth-error" style="margin:0;width:100%"><strong>No assigned matches</strong><p class="muted">Assigned matches will appear here after the administrator selects your scorer account.</p></div>';$('#assigned-panel').classList.remove('hidden')}catch(e){fail(e.message)}}
-  async function boot(){if(!TOKEN){hidePanels();$('#login-panel').classList.remove('hidden');return}try{var me=await api('/api/auth/me');ME=me.user;if(!['admin','scorer'].includes(ME.role))throw new Error('This account does not have scoring access.');if(!MATCH_ID)return showAssigned();await load(false);if(data&&data.match&&!['completed','cancelled'].includes(data.match.status)){try{await acquire();await load(true)}catch(e){toast(e.message);LOCK_TOKEN='';await load(true)}}heartbeatTimer=setInterval(function(){if(LOCK_TOKEN)api('/api/scoring/matches/'+MATCH_ID+'/heartbeat',{method:'POST',body:{}}).catch(function(){LOCK_TOKEN='';render();$('#conn-text').textContent='RECONNECTING'})},15000);pollTimer=setInterval(function(){if(!busy)load(true)},3500)}catch(e){localStorage.removeItem('pb_scoring_token');if(!localStorage.getItem('pb_admin_token'))TOKEN='';fail(e.message)}}
-  $('#scorer-login').onsubmit=function(e){e.preventDefault();api('/api/auth/login',{method:'POST',body:{email:$('#login-email').value.trim(),password:$('#login-password').value}}).then(function(r){if(!['admin','scorer'].includes(r.user.role))throw new Error('This account does not have scoring access.');TOKEN=r.token;ME=r.user;localStorage.setItem('pb_scoring_token',TOKEN);showAssigned()}).catch(function(err){toast(err.message)})};
+  async function heartbeat(){if(!LOCK_TOKEN||busy)return;try{await api('/api/scoring/matches/'+MATCH_ID+'/heartbeat',{method:'POST',body:{}});connected=true}catch(e){if(e.status===401){expireSession();return}if(e.status===409||e.status===403)LOCK_TOKEN='';connected=false}render()}
+  function startTimers(){stopTimers();heartbeatTimer=setInterval(heartbeat,15000);pollTimer=setInterval(function(){if(!busy)load(true)},3500)}
+  async function boot(){stopTimers();if(!TOKEN){showLogin();return}try{var me=await api('/api/auth/me');ME=me.user;if(!['admin','scorer'].includes(ME.role)){showLogin('This account does not have scoring access.');return}if(!MATCH_ID)return showAssigned();if(!await load(false))return;if(data&&data.match&&!['completed','cancelled'].includes(data.match.status)){try{await acquire();await load(true)}catch(e){toast(e.message);LOCK_TOKEN='';if(e.status===401){expireSession();return}await load(true)}}if(TOKEN)startTimers()}catch(e){if(e.status===401)expireSession();else fail(e.message)}}
+  $('#scorer-login').onsubmit=async function(e){e.preventDefault();if(busy)return;busy=true;try{var r=await api('/api/auth/login',{method:'POST',body:{email:$('#login-email').value.trim(),password:$('#login-password').value}});if(!['admin','scorer'].includes(r.user.role))throw new Error('This account does not have scoring access.');TOKEN=r.token;TOKEN_KEY='pb_scoring_token';ME=r.user;localStorage.setItem(TOKEN_KEY,TOKEN);$('#login-password').value='';await boot()}catch(err){toast(err.message)}finally{busy=false;render()}};
   $('#assigned-list').onclick=function(e){var b=e.target.closest('[data-open-match]');if(b)location.href='scoring.html?match='+encodeURIComponent(b.dataset.openMatch)};
-  $('#scorer-signout').onclick=function(){if(TOKEN)api('/api/auth/logout',{method:'POST',body:{}}).catch(function(){});localStorage.removeItem('pb_scoring_token');if(ME&&ME.role==='admin')localStorage.removeItem('pb_admin_token');TOKEN='';ME=null;location.href='scoring.html'};
+  $('#scorer-signout').onclick=function(){if(TOKEN)api('/api/auth/logout',{method:'POST',body:{}}).catch(function(){});['pb_scoring_token','pb_admin_token'].forEach(function(key){if(localStorage.getItem(key)===TOKEN)localStorage.removeItem(key)});TOKEN='';ME=null;location.href='scoring.html'};
   $('#error-back').onclick=function(){location.href='scoring.html'};
+  $('#error-login').onclick=function(){showLogin()};
+  $('#reconnect').onclick=async function(){if(busy||!connected)return;busy=true;render();try{await acquire();await load(true)}catch(e){if(e.status===401)expireSession();toast(e.message)}finally{busy=false;render()}};
   $('#point-a').onclick=function(){action('score',{score_a:Number(data.match.score_a||0)+1})};$('#point-b').onclick=function(){action('score',{score_b:Number(data.match.score_b||0)+1})};
   $('#undo').onclick=function(){action('undo')};$('#start').onclick=function(){action('start')};$('#pause').onclick=function(){action('pause')};$('#resume').onclick=function(){action('resume')};
   $('#finish').onclick=function(){if(!data)return;var m=data.match;if(Number(m.score_a||0)===Number(m.score_b||0))return toast('Final score cannot be tied.');if(confirm('Confirm final result '+m.score_a+'–'+m.score_b+'? This will advance the tournament bracket/standings.'))action('complete')};
