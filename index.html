@@ -21,46 +21,88 @@
 .checkout-hold-banner{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:14px 16px;border:1px solid rgba(132,204,22,.45);background:linear-gradient(135deg,rgba(236,252,203,.92),rgba(255,255,255,.96));border-radius:16px;margin:0 0 16px;color:#17310c}.checkout-hold-banner strong{display:block}.checkout-hold-copy{display:grid;gap:3px}.checkout-hold-count{font-variant-numeric:tabular-nums;font-size:1.5rem;font-weight:900;letter-spacing:.02em;white-space:nowrap}.checkout-hold-banner.is-expired{border-color:rgba(220,38,38,.35);background:#fff1f2;color:#881337}.slot.state-held,.slot.state-pending{opacity:.78}.slot.state-held .slot-state{font-weight:800}.payment-dialog .modal-foot .btn-primary[disabled]{opacity:.55;cursor:not-allowed}
 </style>
 
-<style id="pikol-court-swipe-v33">
-/* Mobile/tablet court exploration: horizontal swipe instead of long stacked cards. */
-@media (max-width: 1024px){
+<style id="pikol-court-carousel-v34">
+/* V34: true court carousel on phones/tablets. The page itself never scrolls sideways. */
+html,body{max-width:100%;overflow-x:hidden}
+.player-app,#view-app,.app-main,.booking-main,.container,.booking-gallery{min-width:0;max-width:100%}
+.player-app img,.player-app video,.player-app canvas{max-width:100%}
+@media (max-width:1024px){
   #today-courts.court-gallery,
   #book-courts.pick-grid{
-    display:flex !important;
+    display:block !important;
     grid-template-columns:none !important;
-    gap:14px !important;
-    overflow-x:auto !important;
-    overflow-y:hidden !important;
-    scroll-snap-type:x mandatory;
-    scroll-padding-inline:4px;
-    -webkit-overflow-scrolling:touch;
-    overscroll-behavior-inline:contain;
-    padding:4px 4px 12px !important;
-    scrollbar-width:none;
-    touch-action:pan-x pan-y;
+    position:relative;
+    width:100%;
+    max-width:100%;
+    min-width:0;
+    overflow:hidden !important;
+    padding:4px 0 0 !important;
+    touch-action:pan-y;
+    overscroll-behavior-x:none;
   }
-  #today-courts.court-gallery::-webkit-scrollbar,
-  #book-courts.pick-grid::-webkit-scrollbar{display:none}
-  #today-courts.court-gallery > .promo-court,
-  #book-courts.pick-grid > .court-pick{
-    flex:0 0 clamp(280px,78vw,430px) !important;
-    width:clamp(280px,78vw,430px) !important;
-    max-width:none !important;
-    scroll-snap-align:start;
-    scroll-snap-stop:always;
+  #today-courts .pikol-carousel-track,
+  #book-courts .pikol-carousel-track{
+    display:flex;
+    width:100%;
+    max-width:100%;
+    gap:0;
+    align-items:stretch;
+    transform:translate3d(0,0,0);
+    transition:transform 420ms cubic-bezier(.22,.61,.36,1);
+    will-change:transform;
+    touch-action:pan-y;
+    user-select:none;
+    -webkit-user-select:none;
   }
-  #today-courts.court-gallery > .empty,
-  #today-courts.court-gallery > .skeleton,
-  #book-courts.pick-grid > .empty,
-  #book-courts.pick-grid > .skeleton{flex:0 0 min(86vw,430px);scroll-snap-align:start}
+  #today-courts .pikol-carousel-track.is-dragging,
+  #book-courts .pikol-carousel-track.is-dragging{transition:none}
+  #today-courts .pikol-carousel-track > .promo-court,
+  #today-courts .pikol-carousel-track > .empty,
+  #today-courts .pikol-carousel-track > .skeleton,
+  #book-courts .pikol-carousel-track > .court-pick,
+  #book-courts .pikol-carousel-track > .empty,
+  #book-courts .pikol-carousel-track > .skeleton{
+    flex:0 0 100% !important;
+    width:100% !important;
+    min-width:0 !important;
+    max-width:100% !important;
+    box-sizing:border-box;
+    margin:0 !important;
+  }
+  #today-courts .pikol-carousel-track > .promo-court,
+  #book-courts .pikol-carousel-track > .court-pick{height:auto}
+  .pikol-carousel-controls{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+    width:100%;
+    max-width:100%;
+    padding:12px 4px 2px;
+  }
+  .pikol-carousel-arrow{
+    width:36px;height:36px;min-width:36px;border-radius:999px;
+    border:1px solid var(--border,#dfe5e2);background:var(--surface,#fff);color:var(--text,#14251f);
+    display:grid;place-items:center;font:800 22px/1 inherit;cursor:pointer;
+    box-shadow:0 5px 14px rgba(15,61,50,.08);
+  }
+  .pikol-carousel-arrow:disabled{opacity:.28;cursor:default}
+  .pikol-carousel-dots{display:flex;align-items:center;justify-content:center;gap:7px;min-width:72px}
+  .pikol-carousel-dot{
+    width:7px;height:7px;min-width:7px;padding:0;border:0;border-radius:99px;
+    background:color-mix(in srgb,var(--text,#14251f) 22%,transparent);cursor:pointer;
+    transition:width 220ms ease,background 220ms ease,transform 220ms ease;
+  }
+  .pikol-carousel-dot.is-active{width:22px;background:var(--primary,#0f3d32);transform:scaleY(1.08)}
 }
-@media (min-width: 700px) and (max-width: 1024px){
-  #today-courts.court-gallery > .promo-court,
-  #book-courts.pick-grid > .court-pick{flex-basis:min(47vw,430px) !important;width:min(47vw,430px) !important}
+@media (min-width:1025px){
+  #today-courts .pikol-carousel-track,
+  #book-courts .pikol-carousel-track{display:contents !important;transform:none !important}
+  .pikol-carousel-controls{display:none !important}
 }
-@media (max-width: 520px){
-  #today-courts.court-gallery > .promo-court,
-  #book-courts.pick-grid > .court-pick{flex-basis:calc(100vw - 58px) !important;width:calc(100vw - 58px) !important}
+@media (prefers-reduced-motion:reduce){
+  #today-courts .pikol-carousel-track,
+  #book-courts .pikol-carousel-track{transition-duration:1ms !important}
 }
 </style>
 </head>
@@ -827,6 +869,111 @@
       '<span class="list-end">' + statusBadge(b.status) + settleBadge(b) + (actions || '') + '</span></div>';
   }
 
+  var COURT_CAROUSEL_MQ = window.matchMedia ? window.matchMedia('(max-width: 1024px)') : {matches:false};
+  function initCourtCarousel(host, opts) {
+    if (!host) return;
+    opts = opts || {};
+    if (host._pikolCarouselCleanup) { try { host._pikolCarouselCleanup(); } catch (_) {} host._pikolCarouselCleanup = null; }
+    var slides = Array.prototype.slice.call(host.children).filter(function(el){
+      return el.matches && el.matches('.promo-court,.court-pick,.empty,.skeleton');
+    });
+    if (!slides.length) return;
+
+    var track = document.createElement('div');
+    track.className = 'pikol-carousel-track';
+    track.setAttribute('aria-live','polite');
+    slides.forEach(function(slide){ track.appendChild(slide); });
+    host.appendChild(track);
+
+    var selected = slides.findIndex(function(slide){ return slide.getAttribute('aria-pressed') === 'true' || slide.classList.contains('is-selected'); });
+    var index = selected >= 0 ? selected : Math.max(0, Math.min(Number(opts.index)||0, slides.length-1));
+    var controls = document.createElement('div');
+    controls.className = 'pikol-carousel-controls';
+    controls.innerHTML = '<button type="button" class="pikol-carousel-arrow" data-carousel-prev aria-label="Previous court">‹</button>' +
+      '<div class="pikol-carousel-dots" role="group" aria-label="Court slides"></div>' +
+      '<button type="button" class="pikol-carousel-arrow" data-carousel-next aria-label="Next court">›</button>';
+    host.appendChild(controls);
+    var prev = controls.querySelector('[data-carousel-prev]');
+    var next = controls.querySelector('[data-carousel-next]');
+    var dots = controls.querySelector('.pikol-carousel-dots');
+    slides.forEach(function(_, i){
+      var d=document.createElement('button'); d.type='button'; d.className='pikol-carousel-dot';
+      d.setAttribute('aria-label','Show court '+(i+1)+' of '+slides.length); d.dataset.carouselIndex=String(i); dots.appendChild(d);
+    });
+    if (slides.length <= 1) controls.hidden = true;
+
+    var dragging=false, axis=null, startX=0, startY=0, dx=0, suppressUntil=0;
+    function clamp(v){ return Math.max(0,Math.min(slides.length-1,v)); }
+    function setTransform(extraPx){
+      if (!COURT_CAROUSEL_MQ.matches) { track.style.transform=''; return; }
+      extraPx=Number(extraPx)||0;
+      track.style.transform='translate3d(calc('+(-index*100)+'% + '+extraPx+'px),0,0)';
+    }
+    function paint(animate){
+      if (!animate) track.classList.add('is-dragging'); else track.classList.remove('is-dragging');
+      setTransform(0);
+      Array.prototype.forEach.call(dots.children,function(d,i){
+        var active=i===index; d.classList.toggle('is-active',active); d.setAttribute('aria-current',active?'true':'false');
+      });
+      prev.disabled=index===0; next.disabled=index===slides.length-1;
+      slides.forEach(function(slide,i){ slide.setAttribute('aria-hidden', COURT_CAROUSEL_MQ.matches && i!==index ? 'true':'false'); });
+      requestAnimationFrame(function(){ if(animate) track.classList.remove('is-dragging'); });
+    }
+    function go(nextIndex){ index=clamp(nextIndex); paint(true); }
+    function pointerDown(e){
+      if(!COURT_CAROUSEL_MQ.matches || slides.length<2 || (e.pointerType==='mouse' && e.button!==0))return;
+      dragging=true; axis=null; dx=0; startX=e.clientX; startY=e.clientY;
+      track.classList.add('is-dragging');
+      try{track.setPointerCapture(e.pointerId);}catch(_){}
+    }
+    function pointerMove(e){
+      if(!dragging)return;
+      var mx=e.clientX-startX, my=e.clientY-startY;
+      if(axis===null && (Math.abs(mx)>7 || Math.abs(my)>7)) axis=Math.abs(mx)>Math.abs(my)?'x':'y';
+      if(axis!=='x')return;
+      dx=mx;
+      if((index===0 && dx>0)||(index===slides.length-1 && dx<0))dx*=.28;
+      setTransform(dx);
+      if(e.cancelable)e.preventDefault();
+    }
+    function pointerEnd(e){
+      if(!dragging)return;
+      dragging=false;
+      try{track.releasePointerCapture(e.pointerId);}catch(_){}
+      if(axis==='x'){
+        var threshold=Math.min(88,Math.max(46,host.clientWidth*.16));
+        if(dx<=-threshold && index<slides.length-1)index++;
+        else if(dx>=threshold && index>0)index--;
+        if(Math.abs(dx)>8)suppressUntil=Date.now()+420;
+      }
+      dx=0; axis=null; paint(true);
+    }
+    function suppressDraggedClick(e){ if(Date.now()<suppressUntil){e.preventDefault();e.stopPropagation();} }
+    function onControl(e){
+      var p=e.target.closest('[data-carousel-prev]'), n=e.target.closest('[data-carousel-next]'), d=e.target.closest('[data-carousel-index]');
+      if(p){go(index-1);return;} if(n){go(index+1);return;} if(d)go(Number(d.dataset.carouselIndex));
+    }
+    function syncMode(){
+      track.classList.remove('is-dragging');
+      controls.hidden=!COURT_CAROUSEL_MQ.matches || slides.length<=1;
+      paint(true);
+    }
+    track.addEventListener('pointerdown',pointerDown);
+    track.addEventListener('pointermove',pointerMove,{passive:false});
+    track.addEventListener('pointerup',pointerEnd);
+    track.addEventListener('pointercancel',pointerEnd);
+    host.addEventListener('click',suppressDraggedClick,true);
+    controls.addEventListener('click',onControl);
+    if(COURT_CAROUSEL_MQ.addEventListener)COURT_CAROUSEL_MQ.addEventListener('change',syncMode);
+    else if(COURT_CAROUSEL_MQ.addListener)COURT_CAROUSEL_MQ.addListener(syncMode);
+    host._pikolCarouselCleanup=function(){
+      host.removeEventListener('click',suppressDraggedClick,true);
+      if(COURT_CAROUSEL_MQ.removeEventListener)COURT_CAROUSEL_MQ.removeEventListener('change',syncMode);
+      else if(COURT_CAROUSEL_MQ.removeListener)COURT_CAROUSEL_MQ.removeListener(syncMode);
+    };
+    syncMode();
+  }
+
   function loadDashboard() {
     var today=ymd(new Date());
     $('#today-label').textContent='Live availability · '+humanDate(today);
@@ -840,6 +987,7 @@
         var label=state==='available'?'AVAILABLE':state==='booked'?'FULLY BOOKED':String(state).toUpperCase();
         return '<article class="promo-court"><div class="court-visual">'+courtPhoto(c)+'<span class="court-type">'+esc(c.surface||'Pickleball')+'</span><span class="badge badge-'+esc(state)+'">'+esc(label)+'</span></div><div class="court-info"><h3>'+esc(c.name)+'</h3><p class="court-surface">'+esc(c.description||c.surface||'Your next great game starts here.')+'</p><div class="court-meta"><span>♟ 2–6 players</span><span>◷ '+(c.status==='active'?free+' open slots':esc(label))+'</span></div><div class="court-rate" style="display:grid;gap:3px"><span><strong>'+money(c.day_hourly_rate==null?c.hourly_rate:c.day_hourly_rate)+'</strong><small>/hr · '+humanTime(data.open_time||'06:00')+'–'+humanTime(c.evening_rate_start||data.evening_rate_start||'16:00')+'</small></span><span><strong>'+money(c.evening_hourly_rate==null?c.hourly_rate:c.evening_hourly_rate)+'</strong><small>/hr · '+humanTime(c.evening_rate_start||data.evening_rate_start||'16:00')+' onward</small></span></div><div class="court-card-footer"><button class="btn btn-outline" data-court-details="'+c.id+'">View Details</button><button class="btn btn-primary" data-book-court="'+c.id+'">Book Now</button></div></div></article>';
       }).join(''):'<div class="empty"><strong>No courts yet</strong>Courts appear here once the facility adds them.</div>';
+      initCourtCarousel($('#today-courts'), {kind:'home'});
     }).catch(function(e){$('#today-courts').innerHTML='<div class="empty"><strong>Courts could not load</strong><span>'+esc(e.message)+'</span><button class="btn btn-outline" data-goto="dashboard">Try again</button></div>';});
   }
 
@@ -1024,6 +1172,7 @@
           esc(c.exclusive_tournament.title) + '</span>' : '') +
         '<span class="court-pick-action">' + (bookable ? (sel.court === c.id ? 'Selected ✓' : 'Select court ↗') : (st === 'booked' ? 'Fully booked' : 'Unavailable')) + '</span></span></button>';
     }).join('') || '<div class="empty"><strong>No courts available</strong>Try another date or check back later.</div>';
+    initCourtCarousel($('#book-courts'), {kind:'booking'});
 
     var court = AVAIL.courts.filter(function (c) { return c.id === sel.court; })[0];
     if (!court) {

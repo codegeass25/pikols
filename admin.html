@@ -39,6 +39,53 @@
 body.admin-app:not(.role-ready) #view-app{visibility:hidden !important}
 body.admin-app.role-ready #view-app{visibility:visible}
 </style>
+
+<style id="pikol-settings-adaptive-v34">
+/* V34: the existing Admin mobile layout is preserved; only Settings is hardened for small screens. */
+#page-settings,#page-settings *{box-sizing:border-box}
+#page-settings{width:100%;max-width:100%;min-width:0;overflow-x:hidden}
+#page-settings .settings-nav,#page-settings .settings-section,#page-settings form,#page-settings section,#page-settings .grid,#page-settings .row,#page-settings .field,#page-settings .asset-card{min-width:0;max-width:100%}
+#page-settings img,#page-settings video,#page-settings canvas,#page-settings svg{max-width:100%}
+#page-settings .input,#page-settings .select,#page-settings .textarea{max-width:100%;min-width:0}
+#page-settings .page-subtitle,#page-settings .tiny,#page-settings .field-hint,#page-settings .card-title,#page-settings p,#page-settings label{overflow-wrap:anywhere}
+#page-settings #promo-qr-canvas{height:auto !important;max-width:100% !important}
+@media(max-width:1024px){
+  #page-settings .settings-nav-premium{width:100%;max-width:100%;overflow:hidden;margin-inline:0}
+  #page-settings .settings-nav-premium .tabs{
+    display:grid !important;
+    grid-template-columns:repeat(auto-fit,minmax(145px,1fr));
+    width:100%;max-width:100%;gap:8px;overflow:visible !important;padding:0 !important;
+  }
+  #page-settings .settings-nav-premium .tab{
+    width:100%;min-width:0;max-width:100%;white-space:normal;text-align:center;line-height:1.2;
+    padding:10px 8px;margin:0;
+  }
+  #page-settings .settings-section{width:100%;max-width:100%;margin-left:0;margin-right:0}
+  #page-settings .row{max-width:100%;flex-wrap:wrap}
+  #page-settings .spread{max-width:100%;gap:10px;flex-wrap:wrap}
+  #page-settings .asset-preview{max-width:100%;overflow:hidden}
+  #page-settings .asset-card{overflow:hidden}
+}
+@media(max-width:720px){
+  #page-settings .grid.cols-2,#page-settings .grid.cols-3,#page-settings .grid.cols-4{
+    grid-template-columns:minmax(0,1fr) !important;
+  }
+  #page-settings .settings-nav-premium .tabs{grid-template-columns:repeat(2,minmax(0,1fr))}
+  #page-settings .settings-nav-premium .tab:last-child:nth-child(odd){grid-column:1/-1}
+  #page-settings .color-field{grid-template-columns:48px minmax(0,1fr) !important;width:100%}
+  #page-settings .color-field input[type="color"]{max-width:48px}
+  #page-settings .row > .btn,#page-settings .spread > .btn{max-width:100%}
+  #page-settings #staff-users-panel .spread{display:grid;grid-template-columns:minmax(0,1fr);align-items:start}
+  #page-settings #staff-users-panel .spread .btn{width:100%}
+  #page-settings .booking-hero-asset{grid-template-columns:minmax(0,1fr) !important}
+  #page-settings .booking-hero-asset .asset-preview{grid-column:1 !important;grid-row:auto !important}
+}
+@media(max-width:390px){
+  #page-settings .settings-nav-premium .tabs{grid-template-columns:minmax(0,1fr)}
+  #page-settings .settings-nav-premium .tab:last-child:nth-child(odd){grid-column:auto}
+  #page-settings .row > .btn{width:100%;justify-content:center}
+}
+</style>
 </head>
 <body class="admin-app">
 
