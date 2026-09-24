@@ -40,76 +40,27 @@ body.admin-app:not(.role-ready) #view-app{visibility:hidden !important}
 body.admin-app.role-ready #view-app{visibility:visible}
 </style>
 
-<style id="pikol-settings-adaptive-v35">
-/* V35 FINAL: Settings is the only Admin area changed here.
-   On phone/tablet, Settings uses one vertical, event-hub-like navigation and
-   one visible content group at a time. No horizontal settings navigation. */
+<style id="pikol-settings-eventnav-v36">
+/* V36: Settings now uses the SAME shared sub-navigation / route-switch behavior
+   as Events. This block only keeps Settings content viewport-safe; it does not
+   create a second tab system. */
 #page-settings,#page-settings *{box-sizing:border-box}
-#page-settings{width:100%;max-width:100%;min-width:0;overflow-x:hidden}
-#page-settings .settings-nav,#page-settings .settings-section,#page-settings form,#page-settings section,#page-settings .grid,#page-settings .row,#page-settings .field,#page-settings .asset-card{min-width:0;max-width:100%}
+#page-settings{width:100%;max-width:100%;min-width:0;overflow-x:clip}
+#page-settings .settings-section,#page-settings form,#page-settings section,#page-settings .grid,#page-settings .row,#page-settings .spread,#page-settings .field,#page-settings .asset-card{min-width:0;max-width:100%}
 #page-settings img,#page-settings video,#page-settings canvas,#page-settings svg{max-width:100%}
-#page-settings .input,#page-settings .select,#page-settings .textarea{max-width:100%;min-width:0}
+#page-settings .input,#page-settings .select,#page-settings .textarea{width:100%;max-width:100%;min-width:0}
 #page-settings .page-subtitle,#page-settings .tiny,#page-settings .field-hint,#page-settings .card-title,#page-settings p,#page-settings label{overflow-wrap:anywhere}
 #page-settings #promo-qr-canvas{height:auto !important;max-width:100% !important}
-#page-settings .settings-panel-enter{opacity:0;transform:translateY(8px)}
-#page-settings .settings-panel-enter.is-visible{opacity:1;transform:translateY(0);transition:opacity 240ms ease,transform 280ms cubic-bezier(.22,.72,.25,1)}
-
-@media (max-width:1024px){
-  #page-settings .settings-nav-premium{
-    width:100%;max-width:100%;overflow:visible;margin:0 0 14px;padding:0;background:transparent;border:0;box-shadow:none;
-  }
-  #page-settings .settings-nav-premium .tabs{
-    display:flex !important;
-    flex-direction:column !important;
-    gap:8px !important;
-    width:100%;
-    max-width:100%;
-    overflow:visible !important;
-    padding:0 !important;
-    margin:0 !important;
-  }
-  #page-settings .settings-nav-premium .tab{
-    position:relative;
-    display:flex !important;
-    align-items:center;
-    justify-content:flex-start;
-    width:100% !important;
-    max-width:100% !important;
-    min-width:0 !important;
-    min-height:48px;
-    margin:0 !important;
-    padding:11px 42px 11px 14px !important;
-    border:1px solid var(--border);
-    border-radius:10px !important;
-    background:var(--surface);
-    color:var(--text-primary);
-    text-align:left;
-    white-space:normal !important;
-    overflow:visible !important;
-    font-size:.78rem;
-    font-weight:700;
-    line-height:1.25;
-    box-shadow:0 2px 8px rgba(15,61,50,.035);
-    transition:background 180ms ease,border-color 180ms ease,transform 180ms ease,box-shadow 180ms ease,color 180ms ease;
-  }
-  #page-settings .settings-nav-premium .tab::after{
-    content:'›';position:absolute;right:15px;top:50%;transform:translateY(-50%);font-size:21px;line-height:1;color:var(--text-secondary);transition:transform 180ms ease,color 180ms ease;
-  }
-  #page-settings .settings-nav-premium .tab:active{transform:scale(.992)}
-  #page-settings .settings-nav-premium .tab[aria-selected="true"]{
-    background:color-mix(in srgb,var(--admin-green,#075e54) 8%,var(--surface,#fff));
-    border-color:color-mix(in srgb,var(--admin-green,#075e54) 42%,var(--border,#d8e1dd));
-    color:var(--admin-green,#075e54);
-    box-shadow:0 4px 14px rgba(7,94,84,.08);
-  }
-  #page-settings .settings-nav-premium .tab[aria-selected="true"]::after{color:var(--admin-green,#075e54);transform:translateY(-50%) translateX(2px)}
-  #page-settings .settings-section{width:100%;max-width:100%;margin-left:0;margin-right:0;overflow-x:hidden}
+#page-settings .settings-panel-enter{opacity:0;transform:translateY(10px)}
+#page-settings .settings-panel-enter.is-visible{opacity:1;transform:translateY(0);transition:opacity 220ms ease,transform 300ms cubic-bezier(.22,.72,.25,1)}
+@media(max-width:1024px){
+  #page-settings .settings-section{width:100%;max-width:100%;margin-left:0;margin-right:0;overflow-x:clip}
   #page-settings .row,#page-settings .spread{max-width:100%;gap:10px;flex-wrap:wrap}
   #page-settings .asset-preview,#page-settings .asset-card{max-width:100%;overflow:hidden}
   #page-settings .booking-hero-asset{grid-template-columns:minmax(0,1fr) !important}
   #page-settings .booking-hero-asset .asset-preview{grid-column:1 !important;grid-row:auto !important}
 }
-@media (max-width:767px){
+@media(max-width:767px){
   #page-settings{padding-inline:0 !important}
   #page-settings .grid.cols-2,#page-settings .grid.cols-3,#page-settings .grid.cols-4{grid-template-columns:minmax(0,1fr) !important}
   #page-settings .color-field{grid-template-columns:48px minmax(0,1fr) !important;width:100%}
@@ -117,14 +68,13 @@ body.admin-app.role-ready #view-app{visibility:visible}
   #page-settings .row > .btn,#page-settings .spread > .btn{max-width:100%}
   #page-settings #staff-users-panel .spread{display:grid;grid-template-columns:minmax(0,1fr);align-items:start}
   #page-settings #staff-users-panel .spread .btn{width:100%}
-  #page-settings .settings-nav-premium .tab{min-height:46px;padding:10px 40px 10px 12px !important;font-size:.74rem}
 }
-@media (max-width:420px){
+@media(max-width:420px){
   #page-settings .row > .btn{width:100%;justify-content:center}
   #page-settings .settings-section{padding-left:12px !important;padding-right:12px !important}
 }
-@media (prefers-reduced-motion:reduce){
-  #page-settings .settings-panel-enter.is-visible,#page-settings .settings-nav-premium .tab{transition-duration:1ms !important}
+@media(prefers-reduced-motion:reduce){
+  #page-settings .settings-panel-enter.is-visible{transition-duration:1ms !important}
 }
 </style>
 </head>
@@ -568,17 +518,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
 
       <!-- SETTINGS -->
       <section id="page-settings" class="hidden">
-        <div class="settings-nav settings-nav-premium">
-          <div class="tabs" role="tablist" aria-label="System settings">
-            <button class="tab" role="tab" data-settab="general" aria-selected="true">Club</button>
-            <button class="tab" role="tab" data-settab="bookingpayments" aria-selected="false">Booking &amp; Payments</button>
-            <button class="tab" role="tab" data-settab="membership" aria-selected="false">Membership</button>
-            <button class="tab" role="tab" data-settab="communications" aria-selected="false">Communications</button>
-            <button class="tab" role="tab" data-settab="system" aria-selected="false">System &amp; Security</button>
-          </div>
-        </div>
-
-        <form class="settings-section" id="set-branding">
+<form class="settings-section" id="set-branding">
           <h2 class="section-title" style="margin-bottom:16px">White-label branding</h2>
           <div class="grid cols-2" style="gap:0 18px">
             <div class="field"><label class="label" for="s-facility_name">Facility name</label><input class="input" id="s-facility_name" data-key="facility_name" /></div>
@@ -1509,7 +1449,15 @@ body.admin-app.role-ready #view-app{visibility:visible}
     dashboard: loadDashboard, bookings: loadBookings, payments: loadPayments, calendar: loadCalendar, courts: loadCourts,
     players: loadPlayers, ratings: loadRatings, memberships: loadMembershipAdmin, blocks: loadBlocks, notifications: loadCommunicationsView, reports: runReport,
     tournaments: loadTournaments, events: loadEventsHub, openplay: loadOpenPlay,
-    settings: loadSettings
+    settings: loadSettings, settingsbooking: loadSettings, settingsmembership: loadSettings,
+    settingscommunications: loadSettings, settingssystem: loadSettings
+  };
+  var SETTINGS_ROUTES = {
+    settings: 'general',
+    settingsbooking: 'bookingpayments',
+    settingsmembership: 'membership',
+    settingscommunications: 'communications',
+    settingssystem: 'system'
   };
   var ADMIN_ICON_PATHS = {"dashboard": "<path d=\"m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1Z\"/>", "calendar": "<rect x=\"3\" y=\"5\" width=\"18\" height=\"16\" rx=\"2\"/><path d=\"M16 3v4M8 3v4M3 11h18M8 15h2M14 15h2M8 18h2\"/>", "payments": "<rect x=\"2\" y=\"4\" width=\"20\" height=\"16\" rx=\"3\"/><path d=\"M2 9h20M6 15h4\"/>", "players": "<circle cx=\"9\" cy=\"7\" r=\"3\"/><path d=\"M2 21v-3a7 7 0 0 1 14 0v3ZM16 4a3 3 0 0 1 0 6M19 14a5 5 0 0 1 3 4v3\"/>", "events": "<path d=\"M8 3h8v6a4 4 0 0 1-8 0ZM8 5H4v3a4 4 0 0 0 4 4M16 5h4v3a4 4 0 0 1-4 4M12 13v5M8 21h8M9 18h6\"/>", "notifications": "<rect x=\"2\" y=\"4\" width=\"20\" height=\"16\" rx=\"2\"/><path d=\"m2 6 10 7L22 6\"/>", "reports": "<path d=\"M4 21V11M10 21V3M16 21V8M22 21V15\"/>", "settings": "<path d=\"m9 3-.6 2.3-2 .9L4 5.6l-2 3.5 1.8 1.8v2.2L2 14.9l2 3.5 2.4-.6 2 .9L9 21h6l.6-2.3 2-.9 2.4.6 2-3.5-1.8-1.8v-2.2L22 9.1l-2-3.5-2.4.6-2-.9L15 3Z\"/><circle cx=\"12\" cy=\"12\" r=\"3\"/>", "theme": "<circle cx=\"12\" cy=\"12\" r=\"4\"/><path d=\"M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5 19 19M5 19l1.5-1.5M17.5 6.5 19 5\"/>", "logout": "<path d=\"M9 3H4v18h5M14 7l5 5-5 5M8 12h11\"/>", "bell": "<path d=\"M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4\"/>", "refresh": "<path d=\"M20 7v5h-5M4 17v-5h5M6 6a8 8 0 0 1 14 6M4 12a8 8 0 0 0 14 6\"/>", "plus": "<path d=\"M12 4v16M4 12h16\"/>", "menu": "<path d=\"M4 6h16M4 12h16M4 18h16\"/>", "court": "<rect x=\"3\" y=\"3\" width=\"18\" height=\"18\" rx=\"2\"/><path d=\"M12 3v18M3 9h18M3 15h18M7 9v6M17 9v6\"/>", "user": "<circle cx=\"12\" cy=\"8\" r=\"4\"/><path d=\"M4 22v-2a8 8 0 0 1 16 0v2\"/>", "check": "<path d=\"m5 12 4 4L19 6\"/>", "clock": "<circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M12 7v5l3 2\"/>", "list": "<path d=\"M9 6h12M9 12h12M9 18h12M3 6h1M3 12h1M3 18h1\"/>", "blocked": "<circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"m6 6 12 12\"/>", "star": "<path d=\"m12 2 3 6 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1Z\"/>"};
   function adminIcon(name) { return '<svg class="admin-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (ADMIN_ICON_PATHS[name] || ADMIN_ICON_PATHS.calendar) + '</svg>'; }
@@ -1522,12 +1470,14 @@ body.admin-app.role-ready #view-app{visibility:visible}
   var GROUPS = {
     schedule: { label: 'Schedule', tabs: [['calendar','Calendar'],['bookings','Bookings'],['blocks','Blocked'],['courts','Courts']] },
     players: { label: 'Players & Membership', tabs: [['players','Players'],['memberships','Membership'],['ratings','Ratings']] },
-    events: { label: 'Events', tabs: [['events','Overview'],['tournaments','Tournaments'],['openplay','Open Play']] }
+    events: { label: 'Events', tabs: [['events','Overview'],['tournaments','Tournaments'],['openplay','Open Play']] },
+    settings: { label: 'Settings', tabs: [['settings','Club'],['settingsbooking','Booking & Payments'],['settingsmembership','Membership'],['settingscommunications','Communications'],['settingssystem','System & Security']] }
   };
   var GROUP_OF = { dashboard: 'dashboard', payments: 'transactions', notifications: 'communications', reports: 'reports', settings: 'settings' };
   Object.keys(GROUPS).forEach(function (g) { GROUPS[g].tabs.forEach(function (t) { GROUP_OF[t[0]] = g; }); });
   function renderSubnav(page) {
     var host = $('#subnav'); if (!host) return;
+    if (GROUP_OF[page] === 'settings' && !isAdmin()) { host.hidden = true; host.innerHTML = ''; return; }
     var g = GROUPS[GROUP_OF[page]];
     if (!g) { host.hidden = true; host.innerHTML = ''; return; }
     host.hidden = false;
@@ -1623,7 +1573,6 @@ body.admin-app.role-ready #view-app{visibility:visible}
     $$('.role-hidden').forEach(function(x){x.classList.remove('role-hidden');});
     $$('#nav .nav-item').forEach(function(b){if(b.dataset.defaultPage)b.dataset.page=b.dataset.defaultPage;});
     var sched=$('#nav [data-default-page="calendar"] .nav-label');if(sched)sched.innerHTML=sched.dataset.defaultLabel||'Bookings &amp; Schedule';
-    $$('[data-settab]').forEach(function(t){t.classList.remove('hidden');t.classList.remove('role-hidden');});
     var sec=$('#set-security');if(sec){sec.querySelectorAll('.role-password-title').forEach(function(x){x.remove();});Array.from(sec.children).forEach(function(x){x.classList.remove('role-hidden');});}
     document.body.classList.remove('role-ready');
   }
@@ -1662,42 +1611,46 @@ body.admin-app.role-ready #view-app{visibility:visible}
   function applyAdminOperationalSettingsUI() {
     var sec=$('#set-security');if(!sec)return;
     if(isAdmin()){
-      $$('[data-settab]').forEach(function(t){t.classList.remove('role-hidden');});
-      showSettingsGroup('general');
-      var club=$('[data-settab="general"]');if(club){$$('[data-settab]').forEach(function(x){x.setAttribute('aria-selected',String(x===club));});}
+      showSettingsGroup(SETTINGS_ROUTES[current] || 'general');
       return;
     }
     /* Delegated roles get exactly one Settings capability: change password. */
-    $$('[data-settab]').forEach(function(t){roleHide(t,true);});
     $$('.settings-section').forEach(function(x){roleHide(x,x!==sec);});
     Array.from(sec.children).forEach(function(x){roleHide(x,x.id!=='form-adminpw');});
-    var title=document.createElement('h2');title.className='section-title role-password-title';title.style.marginBottom='16px';title.textContent='Change password';sec.insertBefore(title,sec.firstChild);
+    if(!sec.querySelector('.role-password-title')){
+      var title=document.createElement('h2');title.className='section-title role-password-title';title.style.marginBottom='16px';title.textContent='Change password';sec.insertBefore(title,sec.firstChild);
+    }
     sec.classList.remove('hidden','role-hidden');
     roleHide($('#form-adminpw'),false);
   }
   function goto(page) {
     /* Registration payments were merged into the Payments. */
     if (page === 'evpayments') page = 'payments';
-    if (!LOADERS[page]) page = roleHomePage();
-    var allowed=allowedStaffPages(); if(allowed && allowed.indexOf(page)<0) page=roleHomePage();
+    var settingsGroup = SETTINGS_ROUTES[page] || null;
+    var physicalPage = settingsGroup ? 'settings' : page;
+    if (!LOADERS[page]) { page = roleHomePage(); settingsGroup = SETTINGS_ROUTES[page] || null; physicalPage = settingsGroup ? 'settings' : page; }
+    var allowed=allowedStaffPages(); if(allowed && allowed.indexOf(physicalPage)<0) { page=roleHomePage(); settingsGroup=SETTINGS_ROUTES[page]||null; physicalPage=settingsGroup?'settings':page; }
     current = page;
-    PAGES.forEach(function (p) { $('#page-' + p).classList.toggle('hidden', p !== page); });
-    var groupFor = GROUP_OF[page] || page;
+    PAGES.forEach(function (p) { var el=$('#page-' + p); if(el) el.classList.toggle('hidden', p !== physicalPage); });
+    var groupFor = GROUP_OF[page] || GROUP_OF[physicalPage] || physicalPage;
     $$('#nav .nav-item').forEach(function (b) { b.classList.toggle('is-active', b.dataset.group === groupFor); });
     renderSubnav(page);
-    var mobileMore = ['players','memberships','ratings','notifications','reports','settings'].indexOf(page) >= 0;
-    $$('#admin-mobile-nav [data-mobile-page]').forEach(function(b){var mp=b.dataset.mobilePage;if(mp==='calendar'&&staffRole()==='booking_manager')mp='bookings';b.classList.toggle('is-active',mp===page||(b.dataset.mobilePage==='calendar'&&GROUP_OF[page]==='schedule')||(b.dataset.mobilePage==='events'&&GROUP_OF[page]==='events')||(b.dataset.mobilePage==='more'&&mobileMore));});
-    $('#page-title').textContent = page === 'settings' ? 'Settings' : (PAGE_TITLES[page] || (page.charAt(0).toUpperCase() + page.slice(1))); 
+    var mobileMore = ['players','memberships','ratings','notifications','reports','settings'].indexOf(physicalPage) >= 0;
+    $$('#admin-mobile-nav [data-mobile-page]').forEach(function(b){var mp=b.dataset.mobilePage;if(mp==='calendar'&&staffRole()==='booking_manager')mp='bookings';b.classList.toggle('is-active',mp===physicalPage||(b.dataset.mobilePage==='calendar'&&GROUP_OF[page]==='schedule')||(b.dataset.mobilePage==='events'&&GROUP_OF[page]==='events')||(b.dataset.mobilePage==='more'&&mobileMore));});
+    $('#page-title').textContent = physicalPage === 'settings' ? 'Settings' : (PAGE_TITLES[page] || PAGE_TITLES[physicalPage] || (physicalPage.charAt(0).toUpperCase() + physicalPage.slice(1)));
     var description = {dashboard:'Manage bookings, players, payments and more — all in one place.',calendar:'Plan. Play. Belong. Manage court availability and the daily schedule.',bookings:'Manage bookings, payments and availability — keep your club running smoothly.',courts:'Your courts, ready for the next game. Manage rates, status and promotional images.',blocks:'Plan maintenance and reserved periods without missing a beat.',payments:'Track and manage your court, event and membership collections.',players:'Build a stronger community, one player at a time.',memberships:'Memberships that bring your community closer.',ratings:'Follow player progress and review verified tournament ratings.',events:'Create memorable experiences. Build a stronger community.',tournaments:'Build community through competition, play and connection.',openplay:'More games. More connections. Bring your players together.',notifications:'Connect. Engage. Build a stronger community.',reports:'Track growth, engagement and performance — all in one place.',settings:'Configure your club, payments, communications and more.'};
-    $('#admin-hero-description').textContent = description[page] || '';
+    $('#admin-hero-description').textContent = physicalPage==='settings' ? description.settings : (description[page] || description[physicalPage] || '');
     $('#view-app').dataset.page = page;
     $('#view-app').classList.remove('drawer-open');
     $('#drawer-open').setAttribute('aria-expanded','false');
     window.scrollTo({ top: 0, behavior: 'smooth' });
-    if(page==='settings' && !isAdmin()){ applyAdminOperationalSettingsUI(); return; }
+    if(physicalPage==='settings' && !isAdmin()){ applyAdminOperationalSettingsUI(); return; }
     var loaded=LOADERS[page]();
-    Promise.resolve(loaded).finally(function(){applyRoleVisibility($('#page-'+page));if(page==='settings')applyAdminOperationalSettingsUI();});
-    if (page === 'settings') applyAdminOperationalSettingsUI();
+    Promise.resolve(loaded).finally(function(){
+      applyRoleVisibility($('#page-'+physicalPage));
+      if(physicalPage==='settings') showSettingsGroup(settingsGroup || 'general');
+    });
+    if (physicalPage === 'settings') showSettingsGroup(settingsGroup || 'general');
   }
   $('#nav').addEventListener('click', function (e) {
     var b = e.target.closest('[data-page]'); if (b) goto(b.dataset.page);
@@ -3549,13 +3502,6 @@ body.admin-app.role-ready #view-app{visibility:visible}
     }
     if(!isAdmin())applyAdminOperationalSettingsUI();
   }
-  $$('[data-settab]').forEach(function (t) {
-    t.onclick = function () {
-      $$('[data-settab]').forEach(function (x) { x.setAttribute('aria-selected', String(x === t)); });
-      showSettingsGroup(t.dataset.settab);
-    };
-  });
-  showSettingsGroup('general');
 
   function renderSmsGatewayStatus(g) {
     var host = $('#sms-gw-status'); if (!host) return;
@@ -3648,7 +3594,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
   };
 
   /* ---------- In-Charge PWA push ---------- */
-  var ADMIN_SW_VERSION='35-compact-carousel-settings';
+  var ADMIN_SW_VERSION='36-settings-eventnav';
   var PUSH_PREP={reg:null,publicKey:null,serverStatus:null,ready:false,error:null,promise:null};
   function b64ToUint8(s){s=String(s||'').replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';var raw=atob(s),a=new Uint8Array(raw.length);for(var i=0;i<raw.length;i++)a[i]=raw.charCodeAt(i);return a;}
   function bytesEqual(a,b){if(!a||!b)return false;var x=new Uint8Array(a),y=new Uint8Array(b);if(x.length!==y.length)return false;for(var i=0;i<x.length;i++)if(x[i]!==y[i])return false;return true;}
@@ -4416,7 +4362,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
 
 <script>
 /* PIKOL_PWA_INSTALL_RUNTIME */
-(function(){'use strict';var btn=document.getElementById('pwa-install-admin'),deferredPrompt=null,KEY='pikol_admin_installed_v3';function ios(){return /iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);}function standalone(){return window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true;}function marked(){return localStorage.getItem(KEY)==='1';}function setMarked(v){if(v)localStorage.setItem(KEY,'1');else localStorage.removeItem(KEY);}function showIosGuide(){var g=document.getElementById('ios-pwa-guide');if(g)g.hidden=false;if(typeof toast==='function')toast('iPhone: Safari → Share → Add to Home Screen. Then open PIKOL Admin from the Home Screen icon.','error');}function sync(){if(!btn)return;if(standalone()){setMarked(true);btn.hidden=true;return;}if(ios()){btn.hidden=false;btn.textContent='Install Admin App on iPhone';return;}btn.textContent='Install Admin App';btn.hidden=!deferredPrompt||marked();}window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();deferredPrompt=e;if(!standalone())setMarked(false);sync();});window.addEventListener('appinstalled',function(){setMarked(true);deferredPrompt=null;sync();});window.addEventListener('pageshow',sync);document.addEventListener('visibilitychange',function(){if(!document.hidden)sync();});if(btn)btn.addEventListener('click',async function(){if(ios()){showIosGuide();return;}if(!deferredPrompt)return;btn.disabled=true;try{await deferredPrompt.prompt();var c=await deferredPrompt.userChoice;if(c&&c.outcome==='accepted')setMarked(true);}catch(_){}deferredPrompt=null;btn.disabled=false;sync();});if('serviceWorker' in navigator)window.addEventListener('load',function(){var reloading=false;navigator.serviceWorker.addEventListener('controllerchange',function(){if(reloading)return;reloading=true;location.reload();});navigator.serviceWorker.register('service-worker.js?v=35-compact-carousel-settings',{scope:'./',updateViaCache:'none'}).then(function(reg){return reg.update();}).catch(function(){});});sync();})();
+(function(){'use strict';var btn=document.getElementById('pwa-install-admin'),deferredPrompt=null,KEY='pikol_admin_installed_v3';function ios(){return /iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);}function standalone(){return window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true;}function marked(){return localStorage.getItem(KEY)==='1';}function setMarked(v){if(v)localStorage.setItem(KEY,'1');else localStorage.removeItem(KEY);}function showIosGuide(){var g=document.getElementById('ios-pwa-guide');if(g)g.hidden=false;if(typeof toast==='function')toast('iPhone: Safari → Share → Add to Home Screen. Then open PIKOL Admin from the Home Screen icon.','error');}function sync(){if(!btn)return;if(standalone()){setMarked(true);btn.hidden=true;return;}if(ios()){btn.hidden=false;btn.textContent='Install Admin App on iPhone';return;}btn.textContent='Install Admin App';btn.hidden=!deferredPrompt||marked();}window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();deferredPrompt=e;if(!standalone())setMarked(false);sync();});window.addEventListener('appinstalled',function(){setMarked(true);deferredPrompt=null;sync();});window.addEventListener('pageshow',sync);document.addEventListener('visibilitychange',function(){if(!document.hidden)sync();});if(btn)btn.addEventListener('click',async function(){if(ios()){showIosGuide();return;}if(!deferredPrompt)return;btn.disabled=true;try{await deferredPrompt.prompt();var c=await deferredPrompt.userChoice;if(c&&c.outcome==='accepted')setMarked(true);}catch(_){}deferredPrompt=null;btn.disabled=false;sync();});if('serviceWorker' in navigator)window.addEventListener('load',function(){var reloading=false;navigator.serviceWorker.addEventListener('controllerchange',function(){if(reloading)return;reloading=true;location.reload();});navigator.serviceWorker.register('service-worker.js?v=36-settings-eventnav',{scope:'./',updateViaCache:'none'}).then(function(reg){return reg.update();}).catch(function(){});});sync();})();
 </script>
 
 </body>
