@@ -421,7 +421,6 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
           <div class="list-head"><h2 class="section-title">Open Play sessions</h2></div>
           <div class="events-browser"><div class="list" id="op-events"></div><aside class="event-spotlight" id="openplay-spotlight"></aside></div>
         </div>
-        <section class="section-shell hidden" id="op-pair-invites"><div class="list-head"><h2 class="section-title">Partner Invitations</h2></div><div class="list" id="op-pair-invite-list"></div></section>
       </div>
 
       <div id="ev-view-myregs" class="hidden stack" style="gap:20px">
@@ -468,7 +467,6 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
             <span class="list-sub">View and update your name and mobile number</span></span>
           <span class="list-end"><span class="list-chevron">›</span></span>
         </button>
-        <button type="button" class="list-row is-clickable" data-panel="panel-player-qr"><span class="list-lead" aria-hidden="true">▦</span><span class="list-main"><span class="list-title">My Player QR</span><span class="list-sub">Venue check-in for Open Play</span></span><span class="list-end">›</span></button>
         <button type="button" class="list-row is-clickable" data-goto="bookings"><span class="list-lead" aria-hidden="true">▦</span><span class="list-main"><span class="list-title">My Bookings</span></span><span class="list-end">›</span></button>
         <button type="button" class="list-row is-clickable" data-my-matches><span class="list-lead" aria-hidden="true">♟</span><span class="list-main"><span class="list-title">My Matches</span></span><span class="list-end">›</span></button>
         <button type="button" class="list-row is-clickable" data-panel="panel-rating">
@@ -504,7 +502,6 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
       </div>
 
       </aside><div class="stack" id="profile-panels" style="gap:16px">
-        <section class="section-shell hidden" data-panelbox="panel-player-qr" id="player-qr-panel"><h2 class="section-title">My Player QR</h2><p class="page-subtitle">Show this QR at the venue. It identifies your registered PIKOL account; the Live Manager still validates your event registration and payment.</p><div id="player-qr-code" style="display:grid;place-items:center;min-height:260px"></div><div class="center"><strong id="player-qr-name"></strong><p class="tiny muted">Personal account QR · do not share publicly</p></div></section>
         <div class="stack hidden" data-panelbox="panel-rating" style="gap:16px">
           <div class="card summary-card" id="rating-summary-card"><div class="skeleton" style="height:120px"></div></div>
           <section class="section-shell" id="rating-pending-card" style="display:none"></section>
@@ -2105,15 +2102,10 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
 
   /* --------------------------------- open play --------------------------------- */
   function loadOpenPlay() {
-    var events=api('/api/open-play').then(function (rows) { PUBLIC_OPENPLAY=rows;renderPublicEvents('openplay'); });
-    var invites=TOKEN?api('/api/my/open-play-pair-invites').then(function(rows){
-      var sec=$('#op-pair-invites'),box=$('#op-pair-invite-list'); if(!sec||!box)return;
-      sec.classList.toggle('hidden',!rows.length);
-      box.innerHTML=rows.map(function(x){return '<div class="list-row"><div class="list-main"><span class="list-title">'+esc(x.inviter_name)+' invited you as a fixed partner</span><span class="list-sub">'+esc(x.title)+' · '+esc(whenText(x.event_date,x.start_time,''))+' · '+esc(x.inviter_division||'')+'</span></div><div class="list-end"><button class="btn btn-primary btn-sm" data-pair-respond="'+x.id+':accept">Accept</button><button class="btn btn-ghost btn-sm" data-pair-respond="'+x.id+':decline">Decline</button></div></div>';}).join('');
-    }).catch(function(){}):Promise.resolve();
-    return Promise.all([events,invites]).catch(function(e){toast(e.message,'error');});
+    return api('/api/open-play').then(function (rows) {
+      PUBLIC_OPENPLAY=rows;renderPublicEvents('openplay');
+    }).catch(function (e) { toast(e.message, 'error'); });
   }
-  document.addEventListener('click',function(ev){var b=ev.target.closest('[data-pair-respond]');if(!b)return;var p=b.dataset.pairRespond.split(':');api('/api/open-play/pair-invites/'+p[0]+'/respond',{method:'POST',body:{action:p[1],accept:p[1]==='accept'}}).then(function(){toast(p[1]==='accept'?'Partner confirmed.':'Invitation declined.','success');loadOpenPlay();loadMyRegistrations();}).catch(function(e){toast(e.message,'error');});});
 
   document.addEventListener('click', function (ev) {
     var join = ev.target.closest('[data-op-join]');
@@ -2122,33 +2114,33 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
     var id = join.dataset.opJoin;
     api('/api/open-play/' + id).then(function (e) {
       if (eventEnded(e)) return toast('This Open Play event has already ended', 'error');
-      var partner=null, timer=null;
-      var pairUi=e.registration_type==='pair'?'<div class="field"><label class="label" for="op-partner-search">Fixed Partner *</label><input class="input" id="op-partner-search" autocomplete="off" placeholder="Search registered player name or email"><div class="stack hidden" id="op-partner-results" style="gap:6px;margin-top:6px"></div><div class="tiny muted">Your partner receives an invitation and must accept using their own PIKOL account.'+(e.matchmaking_mode==='star_based'?' Star-Based pairs must be in the same official division.':'')+'</div><div class="s hidden" id="op-partner-selected" style="font-weight:800;margin-top:6px"></div></div>':'';
-      var m=modal({
+      modal({
         title: 'Join ' + e.title,
-        confirmText: e.registration_type==='pair'?'Register & Invite Partner':'Confirm registration',
-        body: '<div class="stack" style="gap:10px"><div><span class="badge">'+esc((e.matchmaking_mode==='star_based'?'STAR-BASED':'OPEN MIX')+' · '+(e.registration_type==='pair'?'PAIR':'INDIVIDUAL'))+'</span></div>' +
+        confirmText: 'Confirm registration',
+        body: '<div class="stack" style="gap:10px">' +
           '<div class="s">' + esc(whenText(e.event_date, e.start_time, e.end_time)) + (e.location ? ' · ' + esc(e.location) : '') + '</div>' +
           '<div class="s">Entrance fee: <strong>' + money(e.entrance_fee) + '</strong></div>' +
-          (e.capacity ? '<div class="s muted">' + e.slots_left + ' slot(s) left</div>' : '') + pairUi +
-          '<div class="field"><label class="label" for="op-notes">Notes (optional)</label><textarea class="textarea" id="op-notes" maxlength="300"></textarea></div></div>',
+          (e.capacity ? '<div class="s muted">' + e.slots_left + ' slot(s) left</div>' : '') +
+          '<div class="field"><label class="label" for="op-notes">Notes (optional)</label><textarea class="textarea" id="op-notes" maxlength="300"></textarea></div>' +
+          '</div>',
         onConfirm: function (host) {
-          if(e.registration_type==='pair'&&!partner){toast('Select your fixed partner first.','error');return false;}
           return api('/api/open-play/' + e.id + '/register', { method: 'POST', body: { notes: $('#op-notes', host).value } })
             .then(function (r) {
-              var pairCall=e.registration_type==='pair'?api('/api/open-play/'+e.id+'/pair-invite',{method:'POST',body:{partner_user_id:partner.id}}):Promise.resolve();
-              return pairCall.then(function(){
-                toast(e.registration_type==='pair'?'Registered. Partner invitation sent.':(r.payment_retry?'Your previous payment attempt was not completed. Choose a payment method to keep your slot.':r.payment_required?'Registered. Please complete your payment.':'Your slot is confirmed.'),r.payment_retry?'info':'success');
-                loadOpenPlay(); loadMyRegistrations();
-                if (r.payment_required) openPaymentFlow({eventType:'open_play',registrationId:r.registration.id,amountDue:r.amount_due,eventName:e.title,subtitle:whenText(e.event_date,e.start_time,e.end_time),onDone:loadOpenPlay});
-              });
+              toast(r.payment_retry
+                ? 'Your previous payment attempt was not completed. Choose a payment method to keep your slot.'
+                : r.payment_required ? 'Registered. Please complete your payment.' : 'Your slot is confirmed.',
+                r.payment_retry ? 'info' : 'success');
+              loadOpenPlay(); loadMyRegistrations();
+              if (r.payment_required) {
+                openPaymentFlow({
+                  eventType: 'open_play', registrationId: r.registration.id, amountDue: r.amount_due,
+                  eventName: e.title, subtitle: whenText(e.event_date, e.start_time, e.end_time),
+                  onDone: loadOpenPlay
+                });
+              }
             });
         }
       });
-      if(e.registration_type==='pair'){
-        var input=$('#op-partner-search',m.host),box=$('#op-partner-results',m.host);
-        input.addEventListener('input',function(){partner=null;$('#op-partner-selected',m.host).classList.add('hidden');var q=this.value.trim();clearTimeout(timer);if(q.length<2){box.classList.add('hidden');box.innerHTML='';return;}timer=setTimeout(function(){api('/api/open-play/'+e.id+'/partner-search?q='+encodeURIComponent(q)).then(function(r){box.classList.remove('hidden');box.innerHTML=(r.players||[]).length?(r.players||[]).map(function(p){return '<button type="button" class="btn btn-outline btn-sm" data-op-partner="'+p.id+'">'+esc(p.full_name)+' · '+esc(p.player_division)+'</button>';}).join(''):'<div class="tiny muted">No eligible registered player found.</div>';$$('[data-op-partner]',box).forEach(function(b){b.onclick=function(){partner=(r.players||[]).filter(function(p){return String(p.id)===String(b.dataset.opPartner);})[0];if(!partner)return;input.value=partner.full_name;box.classList.add('hidden');var sel=$('#op-partner-selected',m.host);sel.textContent='Fixed partner: '+partner.full_name+' · '+partner.player_division;sel.classList.remove('hidden');};});}).catch(function(){});},220);});
-      }
     }).catch(function (err) { toast(err.message, 'error'); });
   });
 
@@ -2211,7 +2203,6 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
           '<span class="list-end">' +
           '<span class="badge badge-' + (r.status === 'confirmed' ? 'confirmed' : r.status === 'rejected' ? 'rejected' : 'pending') + '">' +
           esc(OPREG_LABEL_C[r.status] || r.status) + '</span>' +
-          '<button class="btn btn-outline btn-sm" data-op-live-status="'+r.event_id+'">Live Status</button>' +
           payActions('open_play', r, r.title, whenText(r.event_date, r.start_time, r.end_time)) +
           '</span></div>';
       }).join('') : '<div class="empty"><strong>No Open Play registrations</strong>Join a session from the Open Play tab.</div>';
@@ -2225,20 +2216,6 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
       pill.textContent = action; pill.classList.toggle('hidden', !action);
     }).catch(function (e) { toast(e.message, 'error'); });
   }
-
-  var PLAYER_OP_LIVE_ID=null, PLAYER_OP_LIVE_MODAL=null;
-  function renderPlayerOpenPlayLive(r){
-    if(!PLAYER_OP_LIVE_MODAL||!PLAYER_OP_LIVE_MODAL.host||!PLAYER_OP_LIVE_MODAL.host.isConnected)return;
-    var state=r.game?(r.game.status==='playing'?'PLAYING NOW · '+r.game.court_name:'YOU\'RE NEXT · '+r.game.court_name):(r.checkin?(r.checkin.status==='break'?'ON BREAK':(r.queue&&r.queue.status==='waiting'?'WAITING · Queue #'+(r.queue_position||'—'):'CHECKED IN')):'NOT CHECKED IN');
-    var body=$('.modal-body',PLAYER_OP_LIVE_MODAL.host); if(!body)return;
-    body.innerHTML='<div class="stack" style="gap:14px"><div class="center"><span class="badge">'+esc((r.event.matchmaking_mode==='star_based'?'STAR-BASED':'OPEN MIX')+' · '+(r.event.registration_type==='pair'?'PAIR':'INDIVIDUAL'))+'</span><h2 style="margin:12px 0 4px">'+esc(state)+'</h2><p class="muted">Live updates · no refresh needed</p></div>'+(r.pair?'<div class="alert alert-info">Fixed pair: '+esc(r.pair.inviter_name)+' + '+esc(r.pair.partner_name)+'</div>':'')+(r.checkin?'<button class="btn btn-outline" data-op-break-toggle="'+r.event.id+'" data-is-break="'+(r.checkin.status==='break'?'1':'0')+'">'+(r.checkin.status==='break'?'I\'m Ready Again':'Take a Break')+'</button>':'<p class="muted center">Show your My Player QR at the venue to check in.</p>')+'</div>';
-  }
-  function refreshPlayerOpenPlayLive(){
-    if(!PLAYER_OP_LIVE_ID||!PLAYER_OP_LIVE_MODAL||!PLAYER_OP_LIVE_MODAL.host.isConnected)return Promise.resolve();
-    return api('/api/my/open-play/'+PLAYER_OP_LIVE_ID+'/live-status').then(renderPlayerOpenPlayLive).catch(function(e){toast(e.message,'error');});
-  }
-  document.addEventListener('click',function(ev){var b=ev.target.closest('[data-op-live-status]');if(!b)return;var id=Number(b.dataset.opLiveStatus);PLAYER_OP_LIVE_ID=id;api('/api/my/open-play/'+id+'/live-status').then(function(r){PLAYER_OP_LIVE_MODAL=modal({title:r.event.title+' · Live Status',confirmText:'',cancelText:'Close',body:'<div class="center muted">Loading live status…</div>',onClose:function(){PLAYER_OP_LIVE_ID=null;PLAYER_OP_LIVE_MODAL=null;}});renderPlayerOpenPlayLive(r);}).catch(function(e){toast(e.message,'error');});});
-  document.addEventListener('click',function(ev){var b=ev.target.closest('[data-op-break-toggle]');if(!b)return;api('/api/my/open-play/'+b.dataset.opBreakToggle+'/break',{method:'POST',body:{break:b.dataset.isBreak!=='1'}}).then(function(){toast(b.dataset.isBreak==='1'?'Returned to queue.':'Break activated.','success');return refreshPlayerOpenPlayLive();}).catch(function(e){toast(e.message,'error');});});
 
   document.addEventListener('click', function (ev) {
     var cancel = ev.target.closest('[data-cancel-registration]');
@@ -2527,16 +2504,6 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
     });
     var open = $('#profile-panels [data-panelbox="' + id + '"]');
     if (open) open.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    if (id === 'panel-player-qr') loadPlayerQr();
-  }
-  function loadPlayerQr(){
-    if(!TOKEN)return;
-    var box=$('#player-qr-code'); if(!box)return;
-    box.innerHTML='<div class="skeleton" style="width:230px;height:230px"></div>';
-    api('/api/my/player-qr').then(function(r){
-      $('#player-qr-name').textContent=r.player&&r.player.full_name||USER&&USER.full_name||'Player';
-      box.innerHTML=window.PIKOL_QR?window.PIKOL_QR.svg(r.payload,250):'<div class="empty"><strong>QR unavailable</strong>Please reload the page.</div>';
-    }).catch(function(e){box.innerHTML='<div class="empty"><strong>QR unavailable</strong>'+esc(e.message)+'</div>';});
   }
   document.addEventListener('click', function (e) {
     var row = e.target.closest('[data-panel]');
@@ -2702,14 +2669,12 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
   document.addEventListener('click',function(e){var b=e.target.closest('[data-select-booking]');if(b){selectedBookingId=Number(b.dataset.selectBooking);renderBookings();}});
   function eventListCard(e,type,selected){
     var isTournament=type==='tournament',open=isTournament?e.registration_open:e.status==='published'&&!e.full&&!eventEnded(e);
-    var opMode=!isTournament?((e.matchmaking_mode==='star_based'?'STAR-BASED':'OPEN MIX')+' · '+(e.registration_type==='pair'?'PAIR':'INDIVIDUAL')):'';
-    return '<article class="event-list-card'+(selected?' is-selected':'')+'">'+eventArtwork(e,type)+'<div class="event-list-info"><span class="badge">'+(isTournament?'TOURNAMENT':opMode)+'</span><h3>'+esc(e.name||e.title)+'</h3><p>'+esc(isTournament?tnWhen(e):whenText(e.event_date,e.start_time,e.end_time))+'</p><p>'+esc(e.venue||e.location||BRAND.facility_name||'')+'</p><span class="tiny muted">'+(isTournament?Number(e.division_count||0)+' divisions · '+Number(e.team_count||0)+' participants':Number(e.registered||0)+' registered'+(e.capacity?' / '+Number(e.capacity)+' slots':''))+'</span><div class="event-card-actions"><button class="btn btn-outline btn-sm" data-select-event="'+type+':'+e.id+'">View Details</button>'+(open?'<button class="btn btn-lime btn-sm" '+(isTournament?'data-tn-register="'+e.id+'" data-tn-name="'+esc(e.name)+'"':'data-op-join="'+e.id+'"')+'>Register →</button>':'<span class="badge">'+esc(isTournament?(TN_STATUS[e.status]||'Registration closed'):(e.full?'Full':eventEnded(e)?'Ended':e.status))+'</span>')+'</div></div></article>';
+    return '<article class="event-list-card'+(selected?' is-selected':'')+'">'+eventArtwork(e,type)+'<div class="event-list-info"><span class="badge">'+(isTournament?'TOURNAMENT':'OPEN PLAY')+'</span><h3>'+esc(e.name||e.title)+'</h3><p>'+esc(isTournament?tnWhen(e):whenText(e.event_date,e.start_time,e.end_time))+'</p><p>'+esc(e.venue||e.location||BRAND.facility_name||'')+'</p><span class="tiny muted">'+(isTournament?Number(e.division_count||0)+' divisions · '+Number(e.team_count||0)+' participants':Number(e.registered||0)+' registered'+(e.capacity?' / '+Number(e.capacity)+' slots':''))+'</span><div class="event-card-actions"><button class="btn btn-outline btn-sm" data-select-event="'+type+':'+e.id+'">View Details</button>'+(open?'<button class="btn btn-lime btn-sm" '+(isTournament?'data-tn-register="'+e.id+'" data-tn-name="'+esc(e.name)+'"':'data-op-join="'+e.id+'"')+'>Register →</button>':'<span class="badge">'+esc(isTournament?(TN_STATUS[e.status]||'Registration closed'):(e.full?'Full':eventEnded(e)?'Ended':e.status))+'</span>')+'</div></div></article>';
   }
   function renderEventSpotlight(e,type){
     var host=$(type==='tournament'?'#event-spotlight':'#openplay-spotlight');if(!e){host.innerHTML='';return;}
     var tournament=type==='tournament',open=tournament?e.registration_open:e.status==='published'&&!e.full&&!eventEnded(e);
-    var modeLine=tournament?'':('<p><span class="badge">'+esc((e.matchmaking_mode==='star_based'?'STAR-BASED':'OPEN MIX')+' · '+(e.registration_type==='pair'?'PAIR':'INDIVIDUAL')+(e.registration_type==='individual'?' · '+String(e.pairing_method||'random').toUpperCase()+' PAIRING':''))+'</span></p>');
-    host.innerHTML=eventArtwork(e,type)+'<h2>'+esc(e.name||e.title)+'</h2><p class="event-detail-meta">'+esc(tournament?tnWhen(e):whenText(e.event_date,e.start_time,e.end_time))+'</p>'+modeLine+'<p class="muted">'+esc(e.venue||e.location||BRAND.facility_name||'')+'</p><p>'+esc(e.description||'Come for the game. Stay for the community.')+'</p><div class="event-fee"><span>'+(tournament?'Registration fee from':'Entry fee')+'</span><strong>'+money(tournament?e.registration_fee:e.entrance_fee)+'</strong></div><div class="event-card-actions">'+(open?'<button class="btn btn-primary" '+(tournament?'data-tn-register="'+e.id+'" data-tn-name="'+esc(e.name)+'"':'data-op-join="'+e.id+'"')+'>Register Now →</button>':'<span class="muted">Registration is currently closed.</span>')+(tournament?'<button class="btn btn-outline" data-tn="'+e.id+'">View Full Details</button>':'')+'</div><div class="membership-note">Play. Compete. Belong.<span>Same passion. Bigger community.</span></div>';
+    host.innerHTML=eventArtwork(e,type)+'<h2>'+esc(e.name||e.title)+'</h2><p class="event-detail-meta">'+esc(tournament?tnWhen(e):whenText(e.event_date,e.start_time,e.end_time))+'</p><p class="muted">'+esc(e.venue||e.location||BRAND.facility_name||'')+'</p><p>'+esc(e.description||'Come for the game. Stay for the community.')+'</p><div class="event-fee"><span>'+(tournament?'Registration fee from':'Entry fee')+'</span><strong>'+money(tournament?e.registration_fee:e.entrance_fee)+'</strong></div><div class="event-card-actions">'+(open?'<button class="btn btn-primary" '+(tournament?'data-tn-register="'+e.id+'" data-tn-name="'+esc(e.name)+'"':'data-op-join="'+e.id+'"')+'>Register Now →</button>':'<span class="muted">Registration is currently closed.</span>')+(tournament?'<button class="btn btn-outline" data-tn="'+e.id+'">View Full Details</button>':'')+'</div><div class="membership-note">Play. Compete. Belong.<span>Same passion. Bigger community.</span></div>';
   }
   function renderPublicEvents(type){
     var isTournament=type==='tournament',rows=isTournament?PUBLIC_EVENTS:PUBLIC_OPENPLAY,id=isTournament?selectedEventId:selectedOpenPlayId;
@@ -2852,7 +2817,6 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
       'openplay:registration_created': function () { if (!visible('tournaments')) return; run('openplay', loadOpenPlay); if (TOKEN) run('myregs', loadMyRegistrations); },
       'openplay:registration_updated': function () { if (!visible('tournaments')) return; run('openplay', loadOpenPlay); if (TOKEN) run('myregs', loadMyRegistrations); },
       'openplay:payment_updated': function () { if (TOKEN && visible('tournaments')) run('myregs', loadMyRegistrations); },
-      'openplay:live_updated': function () { if (visible('tournaments')) { run('openplay', loadOpenPlay); if (TOKEN) run('myregs', loadMyRegistrations); } if (PLAYER_OP_LIVE_ID) refreshPlayerOpenPlayLive(); },
       'tournament:created': function () { if (visible('tournaments')) run('tournaments', refreshTournamentView); },
       'tournament:updated': function () { if (visible('tournaments')) run('tournaments', refreshTournamentView); },
       'tournament:status_changed': function () { if (visible('tournaments')) run('tournaments', refreshTournamentView); },
