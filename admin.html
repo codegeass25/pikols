@@ -507,7 +507,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
             <button class="btn btn-primary btn-sm" id="btn-new-openplay">＋ New Open Play</button>
           </div>
           <div class="table-wrap"><table class="data" data-mobile-cards="true">
-            <thead><tr><th>Event</th><th>Date</th><th>Time</th><th>Entrance fee</th><th>Location</th><th>Registered</th><th>Collected</th><th>Status</th><th>Visibility</th><th>Actions</th></tr></thead>
+            <thead><tr><th>Event</th><th>Mode</th><th>Date</th><th>Time</th><th>Entrance fee</th><th>Courts</th><th>Registered</th><th>Collected</th><th>Status</th><th>Visibility</th><th>Actions</th></tr></thead>
             <tbody id="openplay-body"></tbody>
           </table></div>
         </section>
@@ -3260,6 +3260,13 @@ body.admin-app.role-ready #view-app{visibility:visible}
   /* --------------------------------- open play -------------------------------- */
   function openPlayForm(e) {
     e = e || {};
+    var selectedCourts = (e.court_ids && e.court_ids.length ? e.court_ids : (e.court_id ? [e.court_id] : [])).map(String);
+    var activeCourts = (COURTS || []).filter(function (c) { return c.status === 'active' || selectedCourts.indexOf(String(c.id)) >= 0; });
+    var courtChecks = activeCourts.map(function (c) {
+      var checked = selectedCourts.indexOf(String(c.id)) >= 0;
+      return '<label class="switch" style="margin:0"><input type="checkbox" data-op-court-id="' + c.id + '"' + (checked ? ' checked' : '') + '><span class="track"></span><span>' + esc(c.name) + '</span></label>';
+    }).join('') || '<span class="tiny muted">No active courts available.</span>';
+    var previewOptions = activeCourts.map(function(c){return '<option value="'+c.id+'"'+(selectedCourts[0]===String(c.id)?' selected':'')+'>'+esc(c.name)+'</option>';}).join('');
     return '<div class="grid cols-2" style="gap:0 18px">' +
       '<div class="field"><label class="label" for="op-title">Event title</label><input class="input" id="op-title" maxlength="140" value="' + esc(e.title || '') + '" /></div>' +
       '<div class="field"><label class="label" for="op-fee">Entrance fee</label><input class="input" id="op-fee" inputmode="decimal" value="' + esc(String(e.entrance_fee == null ? '' : e.entrance_fee)) + '" /></div>' +
@@ -3268,23 +3275,34 @@ body.admin-app.role-ready #view-app{visibility:visible}
       '<div class="field"><label class="label" for="op-start">Start time</label><input class="input" id="op-start" type="time" value="' + esc(e.start_time || '') + '" /></div>' +
       '<div class="field"><label class="label" for="op-end">End time</label><input class="input" id="op-end" type="time" value="' + esc(e.end_time || '') + '" /></div>' +
       '</div>' +
-      courtField('op-court', e.court_id) +
+      '<fieldset class="admin-form-section"><legend>Open Play Rules</legend><div class="grid cols-2" style="gap:0 18px">' +
+      '<div class="field"><label class="label" for="op-matchmaking">Open Play Type *</label><select class="select" id="op-matchmaking"><option value="open_mix"'+((e.matchmaking_mode||'open_mix')==='open_mix'?' selected':'')+'>Open Mix</option><option value="star_based"'+(e.matchmaking_mode==='star_based'?' selected':'')+'>Star-Based</option></select><span class="tiny muted">Open Mix ignores ratings. Star-Based uses the existing official PIKOL division/rating.</span></div>' +
+      '<div class="field"><label class="label" for="op-regtype">Registration Type *</label><select class="select" id="op-regtype"><option value="individual"'+((e.registration_type||'individual')==='individual'?' selected':'')+'>Individual</option><option value="pair"'+(e.registration_type==='pair'?' selected':'')+'>Pair / Fixed Partner</option></select></div>' +
+      '<div class="field" id="op-pairing-wrap"><label class="label" for="op-pairing">Individual Pairing</label><select class="select" id="op-pairing"><option value="random"'+((e.pairing_method||'random')==='random'?' selected':'')+'>Random pairing within next four</option><option value="sequential"'+(e.pairing_method==='sequential'?' selected':'')+'>Sequential pairing</option></select></div>' +
+      '<div class="field"><label class="label" for="op-game-minutes">Automatic game duration (minutes)</label><input class="input" id="op-game-minutes" type="number" min="5" max="120" value="'+Number(e.game_duration_minutes||15)+'"></div>' +
+      '<div class="field"><label class="label" for="op-start-delay">Next-Up to auto-start delay (seconds)</label><input class="input" id="op-start-delay" type="number" min="0" max="900" value="'+Number(e.auto_start_delay_seconds==null?120:e.auto_start_delay_seconds)+'"></div>' +
+      '</div><div class="grid cols-2">' +
+      '<label class="switch"><input type="checkbox" id="op-auto-queue"'+(e.auto_queue===0?'':' checked')+'><span class="track"></span><span>Automatic FCFS queue</span></label>' +
+      '<label class="switch"><input type="checkbox" id="op-auto-court"'+(e.auto_court_assignment===0?'':' checked')+'><span class="track"></span><span>Automatic court assignment</span></label>' +
+      '<label class="switch"><input type="checkbox" id="op-auto-rotation"'+(e.auto_rotation===0?'':' checked')+'><span class="track"></span><span>Automatic Four-On / Four-Off rotation</span></label>' +
+      '<label class="switch"><input type="checkbox" id="op-next-notify"'+(e.next_up_notifications===0?'':' checked')+'><span class="track"></span><span>Next-Up PWA / SMS notification</span></label>' +
+      '<label class="switch"><input type="checkbox" id="op-reminders"'+(e.reminders_enabled===0?'':' checked')+'><span class="track"></span><span>Automatic 24-hour and 3-hour reminders</span></label>' +
+      '</div></fieldset>' +
+      '<fieldset class="admin-form-section"><legend>Open Play Courts *</legend><div class="grid cols-2" id="op-court-checks" style="gap:12px">'+courtChecks+'</div><span class="tiny muted">All selected courts are reserved in the Booking Calendar for the event window.</span></fieldset>' +
+      '<div class="field"><label class="label" for="op-preview-court">Schedule preview court</label><select class="select" id="op-preview-court">'+previewOptions+'</select></div>' +
       '<div class="field"><label class="label" for="op-description">Description</label><textarea class="textarea" id="op-description" maxlength="2000">' + esc(e.description || '') + '</textarea></div>' +
       '<div class="field"><label class="label" for="op-poster">Poster image URL</label>' +
       '<input class="input" id="op-poster" maxlength="400" value="' + esc(e.poster_url || '') + '" />' +
       '<button class="btn btn-outline btn-sm mt-4" type="button" id="op-poster-upload">Upload poster</button>' +
       '<input type="file" id="op-poster-file" accept="image/png,image/jpeg,image/webp" class="hidden" /></div>' +
-      /* SCHEDULE-AWARE PICKER: Open Play is a SINGLE-DAY event, so the admin
-         sees the live court schedule for the chosen date and court before
-         picking a time. Booked slots are shown but not selectable. */
       '<div class="field"><span class="label">Court schedule for the selected date</span>' +
-      '<div id="op-availability" class="slot-availability"><span class="tiny muted">Choose a date and a court to load the schedule.</span></div></div>';
+      '<div id="op-availability" class="slot-availability"><span class="tiny muted">Choose a date and court to load the schedule.</span></div></div>';
   }
 
   /* Renders the availability of the selected court/date inside the Open Play
      form and lets the admin click an AVAILABLE slot to fill the times. */
   function wireOpenPlayAvailability(host, currentId) {
-    var dateEl = $('#op-date', host), courtEl = $('#op-court', host), box = $('#op-availability', host);
+    var dateEl = $('#op-date', host), courtEl = $('#op-preview-court', host), box = $('#op-availability', host);
     function render() {
       var date = dateEl.value, courtId = courtEl.value;
       if (!date || !courtId) {
@@ -3316,16 +3334,33 @@ body.admin-app.role-ready #view-app{visibility:visible}
       $('#op-start', host).value = chip.dataset.slotStart;
       if (!$('#op-end', host).value) $('#op-end', host).value = chip.dataset.slotEnd;
     });
+    $('#op-court-checks', host).addEventListener('change', function () {
+      var checked = $$('[data-op-court-id]:checked', host);
+      var current = courtEl.value;
+      courtEl.innerHTML = checked.map(function(x){var c=(COURTS||[]).filter(function(k){return String(k.id)===String(x.dataset.opCourtId);})[0];return '<option value="'+x.dataset.opCourtId+'">'+esc(c?c.name:'Court')+'</option>';}).join('');
+      if (checked.some(function(x){return String(x.dataset.opCourtId)===String(current);})) courtEl.value=current;
+      render();
+    });
+    $('#op-regtype',host).addEventListener('change',function(){ $('#op-pairing-wrap',host).classList.toggle('hidden',this.value==='pair'); });
+    $('#op-pairing-wrap',host).classList.toggle('hidden',$('#op-regtype',host).value==='pair');
     render();
   }
   function readOpenPlayForm(host) {
+    var courtIds = $$('[data-op-court-id]:checked', host).map(function (x) { return Number(x.dataset.opCourtId); });
+    if (!courtIds.length) throw new Error('Select at least one Open Play court.');
     return {
       title: $('#op-title', host).value, entrance_fee: $('#op-fee', host).value || 0,
       event_date: $('#op-date', host).value, start_time: $('#op-start', host).value, end_time: $('#op-end', host).value,
-      capacity: $('#op-capacity', host).value, court_id: $('#op-court', host).value || null,
+      capacity: $('#op-capacity', host).value, court_id: courtIds[0], court_ids: courtIds,
+      matchmaking_mode: $('#op-matchmaking',host).value, registration_type: $('#op-regtype',host).value,
+      pairing_method: $('#op-pairing',host).value, game_duration_minutes: Number($('#op-game-minutes',host).value||15),
+      auto_start_delay_seconds: Number($('#op-start-delay',host).value||120), auto_queue: $('#op-auto-queue',host).checked,
+      auto_court_assignment: $('#op-auto-court',host).checked, auto_rotation: $('#op-auto-rotation',host).checked,
+      next_up_notifications: $('#op-next-notify',host).checked, reminders_enabled: $('#op-reminders',host).checked,
       description: $('#op-description', host).value, poster_url: $('#op-poster', host).value
     };
   }
+
   function wirePosterUpload(host) {
     var btn = $('#op-poster-upload', host), file = $('#op-poster-file', host);
     btn.onclick = function () { file.click(); };
@@ -3347,24 +3382,29 @@ body.admin-app.role-ready #view-app{visibility:visible}
     return api('/api/admin/open-play').then(function (rows) {
       $('#openplay-body').innerHTML = rows.map(function (e) {
         var vis = e.published ? badge('Published', 'badge-approved') : badge('Hidden', 'badge-pending');
+        var mode=(e.matchmaking_mode==='star_based'?'STAR-BASED':'OPEN MIX')+' · '+(e.registration_type==='pair'?'PAIR':'INDIVIDUAL');
+        var courts=(e.court_names&&e.court_names.length?e.court_names.join(', '):(e.court_name||e.location||'—'));
         return '<tr><td>' + esc(e.title) + (e.capacity ? '<div class="tiny muted">Capacity ' + e.capacity + '</div>' : '') + '</td>' +
+          '<td><span class="badge">'+esc(mode)+'</span><div class="tiny muted">'+esc((e.session_status||'not_started').replace('_',' '))+'</div></td>' +
           '<td>' + dateCell(e.event_date) + '</td><td>' + timeCell(e.start_time, e.end_time, e.event_date) + '</td>' +
-          '<td class="num">' + esc(money(e.entrance_fee)) + '</td><td>' + esc(e.court_name || e.location || '—') + '</td>' +
+          '<td class="num">' + esc(money(e.entrance_fee)) + '</td><td>' + esc(courts) + '</td>' +
           '<td class="num">' + (e.registered || 0) + (e.capacity ? ' / ' + e.capacity : '') + '</td>' +
           '<td class="num">' + esc(money(e.collected)) + '</td>' +
           '<td>' + badge(e.status.replace('_', ' '), e.status === 'published' ? 'badge-approved' : e.status === 'cancelled' ? 'badge-rejected' : 'badge-pending') + '</td>' +
           '<td>' + vis + '</td>' +
           '<td class="row-actions">' +
+          '<button class="btn btn-primary btn-sm" data-op-live="' + e.id + '">Live Manager</button> ' +
           '<button class="btn btn-ghost btn-sm" data-op-regs="' + e.id + '">Attendees</button> ' +
           '<button class="btn btn-ghost btn-sm" data-op-edit="' + e.id + '">Edit</button> ' +
           '<button class="btn btn-ghost btn-sm" data-op-status="' + e.id + '">Status</button> ' +
           '<button class="btn btn-ghost btn-sm" data-op-delete="' + e.id + '">Delete</button>' +
           '</td></tr>';
-      }).join('') || '<tr><td colspan="10" class="muted">No Open Play events yet</td></tr>';
+      }).join('') || '<tr><td colspan="11" class="muted">No Open Play events yet</td></tr>';
       OP_CACHE = rows;
     }).catch(function (e) { toast(e.message, 'error'); });
   }
   var OP_CACHE = [];
+  var OP_LIVE_OPEN = null, OP_LIVE_REFRESH = null;
 
   $('#btn-new-openplay').onclick = function () {
     var host = modal({
@@ -3378,12 +3418,59 @@ body.admin-app.role-ready #view-app{visibility:visible}
     wireOpenPlayAvailability(host, null);
   };
 
+
+  function openOpenPlayLive(id) {
+    OP_LIVE_OPEN = Number(id);
+    var scanner = { stream:null, active:false, last:'', lastAt:0 };
+    var host = modal({
+      title: 'Open Play Live Manager', wide: true, confirmText: '', cancelText: 'Close',
+      body: '<div class="stack" style="gap:16px">' +
+        '<div class="spread wrap"><div><span class="eyebrow">AUTOMATION-FIRST SESSION</span><h2 class="section-title" id="opl-title">Loading…</h2><p class="tiny muted" id="opl-mode"></p></div><div class="row wrap"><button class="btn btn-primary btn-sm" type="button" id="opl-start">Start / Resume Automation</button><button class="btn btn-outline btn-sm" type="button" id="opl-pause">Pause</button><button class="btn btn-ghost btn-sm" type="button" id="opl-complete">Complete Session</button></div></div>' +
+        '<div class="grid cols-4" id="opl-stats"></div>' +
+        '<div class="grid cols-2" style="align-items:start;gap:16px"><section class="section-shell"><div class="card-header"><h3 class="section-title">QR Check-In</h3><span class="badge" id="opl-scan-state">Ready</span></div><div style="border-radius:16px;overflow:hidden;background:#111;min-height:220px;display:grid;place-items:center"><video id="opl-video" playsinline muted style="width:100%;max-height:320px;object-fit:cover"></video></div><p class="tiny muted" id="opl-scan-help">Camera QR is the default. Manual check-in remains available as fallback.</p><div class="row wrap"><button class="btn btn-primary btn-sm" type="button" id="opl-camera">Start QR Scanner</button><input class="input" id="opl-qr-text" placeholder="Paste QR payload if camera scanning is unavailable" style="flex:1;min-width:200px"><button class="btn btn-outline btn-sm" type="button" id="opl-qr-submit">Check In</button></div><div id="opl-last-scan" class="alert alert-info mt-3" hidden></div><div class="field mt-3"><label class="label" for="opl-manual-player">Manual fallback</label><select class="select" id="opl-manual-player"><option value="">Load registered players…</option></select></div><button class="btn btn-outline btn-sm" id="opl-manual-checkin" type="button">Manual Check-In</button></section>' +
+        '<section class="section-shell"><div class="card-header"><h3 class="section-title">Live Courts</h3><span class="tiny muted">Auto dispatch + Four-On/Four-Off</span></div><div id="opl-courts" class="stack" style="gap:10px"></div></section></div>' +
+        '<section class="section-shell"><div class="card-header"><h3 class="section-title">Waiting Queue</h3><span class="tiny muted">FCFS by check-in / pair-ready time</span></div><div id="opl-queue"></div></section>' +
+        '<section class="section-shell"><div class="card-header"><h3 class="section-title">Checked-In Players</h3><span class="tiny muted">Exception controls only</span></div><div id="opl-checkins"></div></section>' +
+      '</div>'
+    });
+    function stopCamera(){scanner.active=false;if(scanner.stream){scanner.stream.getTracks().forEach(function(t){t.stop();});scanner.stream=null;}}
+    function modeLabel(e){return (e.matchmaking_mode==='star_based'?'STAR-BASED':'OPEN MIX')+' · '+(e.registration_type==='pair'?'PAIR':'INDIVIDUAL')+(e.registration_type==='individual'?' · '+String(e.pairing_method||'random').toUpperCase()+' PAIRING':'');}
+    function playersHtml(g){var ps=g.players||[];var a=ps.filter(function(x){return x.team==='A';}).map(function(x){return esc(x.name||('Player '+x.user_id));}).join(' + ');var b=ps.filter(function(x){return x.team==='B';}).map(function(x){return esc(x.name||('Player '+x.user_id));}).join(' + ');return '<strong>'+a+'</strong><div class="tiny muted">vs</div><strong>'+b+'</strong>';}
+    function render(d){
+      if(!host.isConnected)return stopCamera();
+      var e=d.event||{},st=d.stats||{};$('#opl-title',host).textContent=e.title||'Open Play';$('#opl-mode',host).textContent=modeLabel(e)+' · Session: '+String(e.session_status||'not_started').replace('_',' ');
+      $('#opl-stats',host).innerHTML=[['Registered',st.registered||0],['Checked In',st.checked_in||0],['Playing',st.playing||0],['Waiting',st.waiting||0],['Courts',String(st.courts_active||0)+' / '+String(st.courts_total||0)],['Games Completed',st.games_completed||0]].map(function(x){return '<div class="stat"><span>'+esc(x[0])+'</span><strong class="num">'+esc(String(x[1]))+'</strong></div>';}).join('');
+      var active={};(d.games||[]).forEach(function(g){if(g.status==='playing'||g.status==='next_up')active[String(g.court_id)]=g;});
+      $('#opl-courts',host).innerHTML=(d.courts||[]).map(function(c){var g=active[String(c.court_id)];if(!g)return '<div class="list-row"><div class="list-main"><span class="list-title">'+esc(c.name)+'</span><span class="list-sub">AVAILABLE · waiting for automatic dispatch</span></div><span class="badge badge-approved">AVAILABLE</span></div>';return '<div class="list-row"><div class="list-main"><span class="list-title">'+esc(c.name)+' · '+esc(g.status==='playing'?'PLAYING':'NEXT UP')+'</span><span class="list-sub">'+playersHtml(g)+'</span></div><div class="list-end">'+(g.status==='next_up'?'<button class="btn btn-outline btn-sm" data-opl-start-game="'+g.id+'">Start now</button>':'<button class="btn btn-primary btn-sm" data-opl-end-game="'+g.id+'">End game</button>')+'</div></div>';}).join('')||'<div class="empty"><strong>No courts configured</strong>Edit the Open Play and select at least one court.</div>';
+      var waiting=(d.queue||[]).filter(function(q){return q.status==='waiting'||q.status==='next_up';});$('#opl-queue',host).innerHTML=waiting.length?'<div class="table-wrap"><table class="data"><thead><tr><th>#</th><th>Player / Pair</th><th>Division</th><th>Status</th><th>Ready since</th></tr></thead><tbody>'+waiting.map(function(q,i){var name=q.queue_kind==='pair'?(q.inviter_name+' + '+q.partner_name):q.user_name;return '<tr><td class="num">'+(i+1)+'</td><td>'+esc(name||'—')+'</td><td>'+esc(q.division||'—')+'</td><td>'+badge(q.status,q.status==='next_up'?'badge-approved':'badge-pending')+'</td><td class="tiny">'+esc(q.queued_at?new Date(q.queued_at).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}):'—')+'</td></tr>';}).join('')+'</tbody></table></div>':'<div class="empty"><strong>Queue is clear</strong>Checked-in players will appear automatically.</div>';
+      $('#opl-checkins',host).innerHTML=(d.checkins||[]).length?'<div class="table-wrap"><table class="data"><thead><tr><th>Player</th><th>Division</th><th>Check-In</th><th>Status</th><th>Action</th></tr></thead><tbody>'+(d.checkins||[]).map(function(x){return '<tr><td>'+esc(x.full_name)+'</td><td>'+esc(x.player_division||'—')+'</td><td class="tiny">'+esc(new Date(x.checked_in_at).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}))+'</td><td>'+badge(x.status,x.status==='checked_in'?'badge-approved':'badge-pending')+'</td><td>'+(x.status==='checked_in'?'<button class="btn btn-ghost btn-sm" data-opl-state="break" data-user="'+x.user_id+'">Break</button> <button class="btn btn-ghost btn-sm" data-opl-state="checked_out" data-user="'+x.user_id+'">Check Out</button>':'<button class="btn btn-outline btn-sm" data-opl-state="ready" data-user="'+x.user_id+'">Ready Again</button>')+'</td></tr>';}).join('')+'</tbody></table></div>':'<div class="empty"><strong>No one checked in yet</strong>Scan Player QR codes when attendees arrive.</div>';
+    }
+    function refresh(){return api('/api/admin/open-play/'+id+'/live').then(render).catch(function(e){toast(e.message,'error');});}
+    OP_LIVE_REFRESH=refresh;refresh();
+    api('/api/admin/open-play/'+id+'/registrations?view=active').then(function(rows){var sel=$('#opl-manual-player',host);if(!host.isConnected)return;sel.innerHTML='<option value="">Select confirmed player</option>'+rows.filter(function(r){return r.status==='confirmed'&&(Number(r.amount_due||0)<=0||r.payment_status==='verified');}).map(function(r){return '<option value="'+r.user_id+'">'+esc(r.client_name)+'</option>';}).join('');}).catch(function(){});
+    function scanPayload(payload){payload=String(payload||'').trim();if(!payload)return;var now=Date.now();if(payload===scanner.last&&now-scanner.lastAt<2500)return;scanner.last=payload;scanner.lastAt=now;$('#opl-scan-state',host).textContent='Checking…';api('/api/admin/open-play/'+id+'/check-in/scan',{method:'POST',body:{payload:payload}}).then(function(r){$('#opl-scan-state',host).textContent='Ready';var box=$('#opl-last-scan',host);box.hidden=false;box.className='alert alert-success mt-3';box.textContent=r.message||'Check-in successful';render(r.snapshot);}).catch(function(e){$('#opl-scan-state',host).textContent='Ready';var box=$('#opl-last-scan',host);box.hidden=false;box.className='alert alert-warning mt-3';box.textContent=e.message;});}
+    $('#opl-qr-submit',host).onclick=function(){scanPayload($('#opl-qr-text',host).value);$('#opl-qr-text',host).value='';};
+    $('#opl-manual-checkin',host).onclick=function(){var uid=$('#opl-manual-player',host).value;if(!uid)return toast('Select a player.','error');api('/api/admin/open-play/'+id+'/check-in/manual',{method:'POST',body:{user_id:Number(uid)}}).then(render).catch(function(e){toast(e.message,'error');});};
+    $('#opl-start',host).onclick=function(){api('/api/admin/open-play/'+id+'/live/start',{method:'POST',body:{}}).then(render).catch(function(e){toast(e.message,'error');});};
+    $('#opl-pause',host).onclick=function(){api('/api/admin/open-play/'+id+'/live/pause',{method:'POST',body:{}}).then(render).catch(function(e){toast(e.message,'error');});};
+    $('#opl-complete',host).onclick=function(){api('/api/admin/open-play/'+id+'/live/complete',{method:'POST',body:{}}).then(render).catch(function(e){toast(e.message,'error');});};
+    $('#opl-camera',host).onclick=function(){
+      if(scanner.active){stopCamera();this.textContent='Start QR Scanner';return;}var btn=this;
+      if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia)return toast('Camera access is not available. Use the manual QR field or player fallback.','error');
+      navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'}},audio:false}).then(function(stream){scanner.stream=stream;scanner.active=true;var v=$('#opl-video',host);v.srcObject=stream;v.play();btn.textContent='Stop QR Scanner';if(!('BarcodeDetector' in window)){toast('This browser cannot decode QR directly. Camera preview is available; use manual fallback or a browser with BarcodeDetector support.','info');return;}var det=new BarcodeDetector({formats:['qr_code']});var lastDetect=0;function loop(ts){if(!scanner.active||!host.isConnected)return stopCamera();requestAnimationFrame(loop);if(ts-lastDetect<250)return;lastDetect=ts;det.detect(v).then(function(codes){if(codes&&codes[0]&&codes[0].rawValue)scanPayload(codes[0].rawValue);}).catch(function(){});}requestAnimationFrame(loop);}).catch(function(e){toast('Camera could not start: '+e.message,'error');});
+    };
+    host.addEventListener('click',function(ev){var st=ev.target.closest('[data-opl-start-game]'),en=ev.target.closest('[data-opl-end-game]'),ps=ev.target.closest('[data-opl-state]');if(st)api('/api/admin/open-play/'+id+'/games/'+st.dataset.oplStartGame+'/start',{method:'POST',body:{}}).then(render).catch(function(e){toast(e.message,'error');});if(en)api('/api/admin/open-play/'+id+'/games/'+en.dataset.oplEndGame+'/end',{method:'POST',body:{}}).then(render).catch(function(e){toast(e.message,'error');});if(ps)api('/api/admin/open-play/'+id+'/players/'+ps.dataset.user+'/state',{method:'POST',body:{state:ps.dataset.oplState}}).then(render).catch(function(e){toast(e.message,'error');});});
+    var life=setInterval(function(){if(!host.isConnected){clearInterval(life);stopCamera();if(OP_LIVE_OPEN===Number(id)){OP_LIVE_OPEN=null;OP_LIVE_REFRESH=null;}}},1000);
+  }
+
   $('#openplay-body').addEventListener('click', function (ev) {
     var edit = ev.target.closest('[data-op-edit]');
     var st = ev.target.closest('[data-op-status]');
     var del = ev.target.closest('[data-op-delete]');
     var regs = ev.target.closest('[data-op-regs]');
+    var liveBtn = ev.target.closest('[data-op-live]');
     function find(id) { return OP_CACHE.filter(function (x) { return String(x.id) === String(id); })[0] || {}; }
+    if (liveBtn) return openOpenPlayLive(liveBtn.dataset.opLive);
     if (edit) {
       var e = find(edit.dataset.opEdit);
       var host = modal({
@@ -4275,6 +4362,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
       'openplay:registration_created': function () { if (onPage('openplay')) run('openplay', loadOpenPlay); if (OP_REGS_OPEN) run('opregs', function () { loadOpenPlayRegistrations(OP_REGS_OPEN); }); if (onPage('events')) run('hub', loadEventsHub); if (onPage('payments')) run('payments', loadPayments); run('badges', refreshEventBadges); },
       'openplay:registration_cancelled': function () { if (onPage('openplay')) run('openplay', loadOpenPlay); if (OP_REGS_OPEN) run('opregs', function () { loadOpenPlayRegistrations(OP_REGS_OPEN); }); if (onPage('events')) run('hub', loadEventsHub); if (onPage('payments')) run('payments', loadPayments); run('badges', refreshEventBadges); },
       'openplay:payment_updated': function () { if (OP_REGS_OPEN) run('opregs', function () { loadOpenPlayRegistrations(OP_REGS_OPEN); }); run('badges', refreshEventBadges); },
+      'openplay:live_updated': function () { if (OP_LIVE_REFRESH) OP_LIVE_REFRESH(); if (onPage('openplay')) run('openplay', loadOpenPlay); },
       'tournament:created': function () { if (onPage('tournaments')) run('tournaments', loadTournaments); if (onPage('events')) run('hub', loadEventsHub); },
       'tournament:updated': function () { if (onPage('tournaments')) run('tournaments', loadTournaments); if (onPage('events')) run('hub', loadEventsHub); },
       'tournament:status_changed': function () { if (onPage('tournaments')) run('tournaments', loadTournaments); },
