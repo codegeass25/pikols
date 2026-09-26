@@ -158,7 +158,6 @@ body.admin-app.role-ready #view-app{visibility:visible}
         <div class="row admin-toolbar-actions">
           <button class="btn btn-ghost btn-icon admin-alert-bell" id="btn-incharge-alerts" title="In-Charge alerts" aria-label="In-Charge alerts"><svg class="admin-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg><span class="admin-alert-count hidden" id="admin-alert-count"></span></button>
           <button class="btn btn-ghost btn-icon" id="btn-refresh" title="Refresh" aria-label="Refresh"><svg class="admin-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 7v5h-5M4 17v-5h5M6 6a8 8 0 0 1 14 6M4 12a8 8 0 0 0 14 6"/></svg></button>
-          <button class="btn btn-primary btn-sm" id="btn-new-booking"><svg class="admin-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v16M4 12h16"/></svg><span>Booking</span></button>
           <div id="admin-account" class="admin-account"><span class="admin-avatar" id="admin-avatar" aria-hidden="true">A</span><span><strong id="admin-role-label">Admin</strong><span id="admin-email"></span></span></div>
         </div>
       </div>
@@ -1618,7 +1617,6 @@ body.admin-app.role-ready #view-app{visibility:visible}
       }
       roleHide(b,!!allowed&&allowed.indexOf(p)<0);
     });
-    roleHide($('#btn-new-booking'),!isAdmin());
     var mobSchedule=$('#admin-mobile-nav [data-mobile-page="calendar"]');if(mobSchedule){var spans=mobSchedule.querySelectorAll('span');if(spans.length>1)spans[1].textContent=staffRole()==='booking_manager'?'Bookings':'Schedule';}
     $('#admin-role-label').textContent = isAdmin()?'ADMIN':(staffRole()==='booking_manager'?'BOOKING MANAGER':'EVENT MANAGER');
     $$('.admin-only-panel').forEach(function(x){roleHide(x,!isAdmin());});
@@ -2523,34 +2521,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
     }
   });
 
-  /* new booking (admin) */
-  $('#btn-new-booking').onclick = function () {
-    Promise.all([
-      COURTS.length ? Promise.resolve(COURTS) : api('/api/courts'),
-      PLAYERS.length ? Promise.resolve(PLAYERS) : api('/api/admin/players')
-    ]).then(function (r) {
-      COURTS = r[0]; PLAYERS = r[1];
-      modal({
-        title: 'Create booking for a player', locked: true,
-        body: '<div class="field"><label class="label" for="nb-player">Player</label><select class="select" id="nb-player">' +
-          PLAYERS.map(function (p) { return '<option value="' + p.id + '">' + esc(p.full_name) + ' — ' + esc(p.email) + '</option>'; }).join('') +
-          '</select></div><div class="field"><label class="label" for="nb-court">Court</label><select class="select" id="nb-court">' +
-          COURTS.filter(function (c) { return c.status === 'active'; }).map(function (c) { return '<option value="' + c.id + '">' + esc(c.name) + '</option>'; }).join('') +
-          '</select></div><div class="field"><label class="label" for="nb-date">Date</label><input class="input" id="nb-date" type="date" value="' + ymd(new Date()) + '" /></div>' +
-          '<div class="field"><label class="label" for="nb-time">Start time</label><input class="input" id="nb-time" type="time" step="900" value="' + (SETTINGS.open_time || '08:00') + '" /></div>' +
-          '<div class="field"><label class="label" for="nb-notes">Notes</label><input class="input" id="nb-notes" maxlength="200" /></div>',
-        confirmText: 'Create booking',
-        onConfirm: function (host) {
-          if (!PLAYERS.length) throw new Error('No players registered yet');
-          return api('/api/admin/bookings', {
-            method: 'POST',
-            body: { user_id: Number($('#nb-player', host).value), court_id: Number($('#nb-court', host).value),
-              date: $('#nb-date', host).value, start_time: $('#nb-time', host).value, notes: $('#nb-notes', host).value }
-          }).then(function (b) { toast('Booking ' + b.reference + ' created.', 'success'); loadBookings(); loadDashboard(); });
-        }
-      });
-    }).catch(function (e) { toast(e.message, 'error'); });
-  };
+  /* Manual Admin booking removed: all court bookings originate from the online Booking Site. */
 
   /* ---------- calendar ---------- */
   $('#cal-date').value = ymd(new Date());
@@ -4143,7 +4114,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
         '<div class="action-panel danger-callout" style="margin:0 0 14px">' +
           '<strong style="display:block;margin-bottom:8px">Current operational records will be replaced.</strong>' +
           '<p class="muted tiny" style="margin:0 0 10px">This restores players, bookings, payments/receipts, memberships, tournaments/scoring, Open Play, notifications and operational history from <strong>' + esc(file.name) + '</strong>.</p>' +
-          '<p class="tiny" style="margin:0"><strong>Preserved:</strong> Admin/scorer accounts, Settings/branding, courts and time-slots, membership-plan definitions and deployment configuration.</p>' +
+          '<p class="tiny" style="margin:0"><strong>Preserved:</strong> Admin/Booking Manager/Event Manager/scorer access accounts, Settings/branding configuration and deployment configuration. Courts, court time-slots, membership-plan definitions and all other operational records are replaced by the selected backup.</p>' +
         '</div>' +
         '<label class="label" for="restore-confirm-text">Type <code>RESTORE</code> to continue</label>' +
         '<input class="input" id="restore-confirm-text" autocomplete="off" spellcheck="false" placeholder="RESTORE" />',
