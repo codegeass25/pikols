@@ -209,20 +209,29 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
 /* Additive player onboarding/help UI. Existing booking layouts are untouched. */
 #btn-help{font-weight:900;font-size:1rem;line-height:1}
 .terms-modal-host .modal,.guide-modal-host .modal{width:min(880px,calc(100vw - 24px));max-height:min(86vh,820px);display:flex;flex-direction:column;overflow:hidden}
+/* Help needs a definite viewport-relative height so its active tab becomes the scroll viewport instead of being clipped by an auto-sized parent. */
+.guide-modal-host .modal{height:min(820px,86vh);height:min(820px,86dvh);max-height:86vh;max-height:86dvh}
 .terms-modal-host .modal-head,.guide-modal-host .modal-head{flex:0 0 auto}
-.terms-modal-host .modal-body,.guide-modal-host .modal-body{flex:1 1 auto;min-height:0;overflow:hidden;padding:0;display:flex}
-.terms-shell,.guide-shell{display:flex;flex:1 1 auto;flex-direction:column;min-height:0;height:100%;width:100%;overflow:hidden}
+.terms-modal-host .modal-body{flex:1 1 auto;min-height:0;overflow:hidden;padding:0;display:flex}
+.guide-modal-host .modal-body{flex:1 1 0;min-height:0;overflow:hidden;padding:0;display:flex}
+.terms-shell{display:flex;flex:1 1 auto;flex-direction:column;min-height:0;height:100%;width:100%;overflow:hidden}
+.guide-shell{display:grid;grid-template-rows:auto minmax(0,1fr);flex:1 1 0;min-height:0;height:100%;width:100%;overflow:hidden}
 .terms-tabs,.guide-tabs{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:7px;padding:12px 16px;border-bottom:1px solid var(--border,#dde5e1);background:var(--surface,#fff);flex:0 0 auto}
 .guide-tabs{grid-template-columns:repeat(3,minmax(0,1fr))}
 .terms-tab,.guide-tab{border:1px solid var(--border,#dce5e0);background:color-mix(in srgb,var(--surface,#fff) 92%,var(--brand-primary,#0f3d32) 8%);color:var(--text,#17231f);border-radius:10px;padding:9px 8px;font:800 .76rem/1.25 inherit;cursor:pointer;min-height:44px}
 .terms-tab.is-active,.guide-tab.is-active{background:var(--brand-primary,#0f3d32);border-color:var(--brand-primary,#0f3d32);color:#fff}
 .terms-panels{overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;padding:18px 20px 24px;min-height:0;flex:1 1 auto;-webkit-overflow-scrolling:touch;scrollbar-gutter:stable}
-.guide-panels{position:relative;overflow:hidden;padding:0;min-height:0;flex:1 1 auto}
+.guide-panels{position:relative;overflow:hidden;padding:0;min-height:0;height:100%}
 .terms-panel,.guide-panel{display:none}
 .terms-panel.is-active{display:block}
-.guide-panel{box-sizing:border-box;height:100%;min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;touch-action:pan-y;-webkit-overflow-scrolling:touch;scrollbar-gutter:stable;scrollbar-width:thin;padding:18px 20px 24px}
-.guide-panel::-webkit-scrollbar{width:9px}.guide-panel::-webkit-scrollbar-thumb{background:color-mix(in srgb,var(--muted,#52615c) 45%,transparent);border:2px solid transparent;background-clip:padding-box;border-radius:999px}.guide-panel::-webkit-scrollbar-track{background:transparent}
+/* Each Help tab is an independent, bounded scroll viewport. Native bars are hidden because mobile Safari/Chrome may auto-hide them; the synced rail below stays visible. */
+.guide-panel{box-sizing:border-box;position:absolute;inset:0;height:auto;min-height:0;overflow-y:scroll;overflow-x:hidden;overscroll-behavior:contain;touch-action:pan-y;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding:18px 34px 24px 20px}
+.guide-panel::-webkit-scrollbar{width:0;height:0}
 .guide-panel.is-active{display:block}
+.guide-scrollbar{position:absolute;z-index:4;right:9px;top:14px;bottom:14px;width:10px;border-radius:999px;background:color-mix(in srgb,var(--muted,#52615c) 14%,transparent);opacity:1;transition:opacity .15s ease;touch-action:none;cursor:pointer}
+.guide-scrollbar.is-hidden{opacity:0;pointer-events:none}
+.guide-scrollbar-thumb{position:absolute;left:1px;right:1px;top:0;min-height:34px;border-radius:999px;background:color-mix(in srgb,var(--muted,#52615c) 66%,var(--brand-primary,#0f3d32) 34%);box-shadow:0 1px 4px rgba(0,0,0,.16);cursor:grab;touch-action:none}
+.guide-scrollbar-thumb:active{cursor:grabbing}
 .terms-panel h3,.guide-panel h3{margin:0 0 10px;font-size:1.05rem}
 .terms-panel h4,.guide-panel h4{margin:18px 0 7px;font-size:.9rem}
 .terms-panel p,.guide-panel p{margin:0 0 10px;line-height:1.55;color:var(--muted,#52615c)}
@@ -245,14 +254,17 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
 .guide-meta{font-size:.75rem;color:var(--muted,#52615c);margin-top:8px}
 .guide-panel .terms-shell{height:auto;min-height:0;overflow:visible;display:block}.guide-panel .terms-panels{overflow:visible;padding:14px 0 0}.guide-panel .terms-tabs{padding:10px 0;background:transparent}
 @media(max-width:1024px){
-  .terms-modal-host .modal,.guide-modal-host .modal{max-height:90vh;max-height:90dvh}
+  .terms-modal-host .modal{max-height:90vh;max-height:90dvh}
+  .guide-modal-host .modal{height:90vh;height:90dvh;max-height:90vh;max-height:90dvh}
 }
 @media(max-width:720px){
-  .terms-modal-host .modal,.guide-modal-host .modal{width:calc(100vw - 12px);max-height:94vh;max-height:94dvh;border-radius:14px}
+  .terms-modal-host .modal{width:calc(100vw - 12px);max-height:94vh;max-height:94dvh;border-radius:14px}
+  .guide-modal-host .modal{width:calc(100vw - 12px);height:94vh;height:94dvh;max-height:94vh;max-height:94dvh;border-radius:14px}
   .terms-tabs,.guide-tabs{grid-template-columns:repeat(2,minmax(0,1fr));padding:10px;gap:6px}
   .terms-tab:last-child{grid-column:1/-1}
   .terms-panels{padding:14px 14px 20px}
-  .guide-panel{padding:14px 14px 20px}
+  .guide-panel{padding:14px 30px 20px 14px}
+  .guide-scrollbar{right:7px;top:10px;bottom:10px;width:9px}
   .terms-accept-bar{grid-template-columns:1fr 1fr;padding:10px}
   .terms-check{grid-column:1/-1}
   .guide-status-grid{grid-template-columns:1fr}
@@ -880,13 +892,45 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
 
   function showHelpGuide(initialTab) {
     if(!USER || !TOKEN)return openAuth(function(){showHelpGuide(initialTab);});
-    var html='<div class="guide-shell"><div class="guide-tabs" role="tablist" aria-label="User Guide sections">'+GUIDE_SECTIONS.map(function(x,i){return '<button type="button" class="guide-tab'+((initialTab?x.id===initialTab:i===0)?' is-active':'')+'" data-guide-tab="'+esc(x.id)+'" role="tab">'+esc(x.label)+'</button>';}).join('')+'</div><div class="guide-panels">'+GUIDE_SECTIONS.map(function(x,i){var on=initialTab?x.id===initialTab:i===0;return '<section class="guide-panel'+(on?' is-active':'')+'" data-guide-panel="'+esc(x.id)+'">'+x.html+'</section>';}).join('')+'</div></div>';
+    var html='<div class="guide-shell"><div class="guide-tabs" role="tablist" aria-label="User Guide sections">'+GUIDE_SECTIONS.map(function(x,i){return '<button type="button" class="guide-tab'+((initialTab?x.id===initialTab:i===0)?' is-active':'')+'" data-guide-tab="'+esc(x.id)+'" role="tab">'+esc(x.label)+'</button>';}).join('')+'</div><div class="guide-panels">'+GUIDE_SECTIONS.map(function(x,i){var on=initialTab?x.id===initialTab:i===0;return '<section class="guide-panel'+(on?' is-active':'')+'" data-guide-panel="'+esc(x.id)+'">'+x.html+'</section>';}).join('')+'<div class="guide-scrollbar is-hidden" data-guide-scrollbar aria-hidden="true"><div class="guide-scrollbar-thumb" data-guide-scrollbar-thumb></div></div></div></div>';
     var dlg=modal({title:'Help & User Guide',wide:true,body:html,cancelText:'Close'});dlg.host.classList.add('guide-modal-host');
     var termsHolder=$('#guide-terms-holder',dlg.host);if(termsHolder){termsHolder.innerHTML=tabbedTermsHtml('reference');bindTermsTabs(termsHolder,'reference');}
     var meta=$('#guide-terms-meta',dlg.host);if(meta){meta.textContent=USER&&USER.terms_accepted_at?'Accepted on '+new Date(USER.terms_accepted_at).toLocaleString()+' · Version '+(USER.terms_version||USER.current_terms_version||BOOKING_TERMS_VERSION):'Current version: '+((USER&&USER.current_terms_version)||BOOKING_TERMS_VERSION);}
+
+    /* Always-visible, adaptive Help scrollbar. It mirrors the active tab while the tab itself remains the real scroll container for wheel, keyboard and touch scrolling. */
+    var guideRail=$('[data-guide-scrollbar]',dlg.host),guideThumb=$('[data-guide-scrollbar-thumb]',dlg.host),guidePanels=$$('[data-guide-panel]',dlg.host);
+    function activeGuidePanel(){return $('.guide-panel.is-active',dlg.host);}
+    function syncGuideScrollbar(){
+      var panel=activeGuidePanel();if(!panel||!guideRail||!guideThumb)return;
+      var sh=panel.scrollHeight,ch=panel.clientHeight,rh=guideRail.clientHeight;
+      var scrollable=sh>ch+2&&rh>0;guideRail.classList.toggle('is-hidden',!scrollable);
+      if(!scrollable){guideThumb.style.height='0px';guideThumb.style.transform='translateY(0)';return;}
+      var th=Math.max(34,Math.min(rh,rh*(ch/sh))),travel=Math.max(0,rh-th),maxScroll=Math.max(1,sh-ch),top=travel*(panel.scrollTop/maxScroll);
+      guideThumb.style.height=th+'px';guideThumb.style.transform='translateY('+top+'px)';
+    }
+    guidePanels.forEach(function(panel){panel.addEventListener('scroll',syncGuideScrollbar,{passive:true});});
+    if(guideRail&&guideThumb){
+      guideRail.addEventListener('pointerdown',function(e){
+        if(e.target===guideThumb)return;var panel=activeGuidePanel();if(!panel)return;
+        var rr=guideRail.getBoundingClientRect(),tr=guideThumb.getBoundingClientRect(),usable=Math.max(1,rr.height-tr.height);
+        var pos=Math.max(0,Math.min(usable,e.clientY-rr.top-tr.height/2));panel.scrollTop=(pos/usable)*Math.max(0,panel.scrollHeight-panel.clientHeight);syncGuideScrollbar();
+      });
+      var dragging=false,startY=0,startScroll=0,dragPanel=null;
+      guideThumb.addEventListener('pointerdown',function(e){dragPanel=activeGuidePanel();if(!dragPanel)return;dragging=true;startY=e.clientY;startScroll=dragPanel.scrollTop;guideThumb.setPointerCapture&&guideThumb.setPointerCapture(e.pointerId);e.preventDefault();e.stopPropagation();});
+      guideThumb.addEventListener('pointermove',function(e){if(!dragging||!dragPanel)return;var rr=guideRail.getBoundingClientRect(),tr=guideThumb.getBoundingClientRect(),travel=Math.max(1,rr.height-tr.height),maxScroll=Math.max(0,dragPanel.scrollHeight-dragPanel.clientHeight);dragPanel.scrollTop=startScroll+((e.clientY-startY)/travel)*maxScroll;e.preventDefault();});
+      function endGuideDrag(e){if(!dragging)return;dragging=false;try{guideThumb.releasePointerCapture&&guideThumb.releasePointerCapture(e.pointerId);}catch(_){ }dragPanel=null;}
+      guideThumb.addEventListener('pointerup',endGuideDrag);guideThumb.addEventListener('pointercancel',endGuideDrag);
+    }
+    var guideResizeObserver=typeof ResizeObserver!=='undefined'?new ResizeObserver(function(){syncGuideScrollbar();}):null;
+    if(guideResizeObserver){guideResizeObserver.observe($('.guide-panels',dlg.host));guidePanels.forEach(function(p){guideResizeObserver.observe(p);});}
+    var guideRemovalObserver=new MutationObserver(function(){if(!dlg.host.isConnected){if(guideResizeObserver)guideResizeObserver.disconnect();guideRemovalObserver.disconnect();}});
+    guideRemovalObserver.observe($('#modal-root'),{childList:true});
+    requestAnimationFrame(syncGuideScrollbar);
+
     dlg.host.addEventListener('click',function(e){
-      var tab=e.target.closest('[data-guide-tab]');if(tab){var id=tab.dataset.guideTab;$$('[data-guide-tab]',dlg.host).forEach(function(x){var on=x.dataset.guideTab===id;x.classList.toggle('is-active',on);x.setAttribute('aria-selected',String(on));});$$('[data-guide-panel]',dlg.host).forEach(function(x){var on=x.dataset.guidePanel===id;x.classList.toggle('is-active',on);if(on)x.scrollTop=0;});return;}
+      var tab=e.target.closest('[data-guide-tab]');if(tab){var id=tab.dataset.guideTab;$$('[data-guide-tab]',dlg.host).forEach(function(x){var on=x.dataset.guideTab===id;x.classList.toggle('is-active',on);x.setAttribute('aria-selected',String(on));});$$('[data-guide-panel]',dlg.host).forEach(function(x){var on=x.dataset.guidePanel===id;x.classList.toggle('is-active',on);if(on)x.scrollTop=0;});requestAnimationFrame(syncGuideScrollbar);return;}
       var go=e.target.closest('[data-help-goto]');if(go){var target=go.dataset.helpGoto,panel=go.dataset.helpPanel;dlg.close();goto(target);if(panel&&target==='profile')setTimeout(function(){openPanel(panel);},80);}
+      requestAnimationFrame(syncGuideScrollbar);
     });
     return dlg;
   }
