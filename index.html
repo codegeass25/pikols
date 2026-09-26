@@ -205,20 +205,24 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
 }
 </style>
 
-<style id="pikol-terms-help-v1">
+<style id="pikol-terms-help-v2">
 /* Additive player onboarding/help UI. Existing booking layouts are untouched. */
 #btn-help{font-weight:900;font-size:1rem;line-height:1}
 .terms-modal-host .modal,.guide-modal-host .modal{width:min(880px,calc(100vw - 24px));max-height:min(86vh,820px);display:flex;flex-direction:column;overflow:hidden}
 .terms-modal-host .modal-head,.guide-modal-host .modal-head{flex:0 0 auto}
-.terms-modal-host .modal-body,.guide-modal-host .modal-body{min-height:0;overflow:hidden;padding:0}
-.terms-shell,.guide-shell{display:flex;flex-direction:column;min-height:0;height:100%}
+.terms-modal-host .modal-body,.guide-modal-host .modal-body{flex:1 1 auto;min-height:0;overflow:hidden;padding:0;display:flex}
+.terms-shell,.guide-shell{display:flex;flex:1 1 auto;flex-direction:column;min-height:0;height:100%;width:100%;overflow:hidden}
 .terms-tabs,.guide-tabs{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:7px;padding:12px 16px;border-bottom:1px solid var(--border,#dde5e1);background:var(--surface,#fff);flex:0 0 auto}
 .guide-tabs{grid-template-columns:repeat(3,minmax(0,1fr))}
 .terms-tab,.guide-tab{border:1px solid var(--border,#dce5e0);background:color-mix(in srgb,var(--surface,#fff) 92%,var(--brand-primary,#0f3d32) 8%);color:var(--text,#17231f);border-radius:10px;padding:9px 8px;font:800 .76rem/1.25 inherit;cursor:pointer;min-height:44px}
 .terms-tab.is-active,.guide-tab.is-active{background:var(--brand-primary,#0f3d32);border-color:var(--brand-primary,#0f3d32);color:#fff}
-.terms-panels,.guide-panels{overflow:auto;overscroll-behavior:contain;padding:18px 20px 24px;min-height:0;flex:1}
+.terms-panels{overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;padding:18px 20px 24px;min-height:0;flex:1 1 auto;-webkit-overflow-scrolling:touch;scrollbar-gutter:stable}
+.guide-panels{position:relative;overflow:hidden;padding:0;min-height:0;flex:1 1 auto}
 .terms-panel,.guide-panel{display:none}
-.terms-panel.is-active,.guide-panel.is-active{display:block}
+.terms-panel.is-active{display:block}
+.guide-panel{box-sizing:border-box;height:100%;min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;touch-action:pan-y;-webkit-overflow-scrolling:touch;scrollbar-gutter:stable;scrollbar-width:thin;padding:18px 20px 24px}
+.guide-panel::-webkit-scrollbar{width:9px}.guide-panel::-webkit-scrollbar-thumb{background:color-mix(in srgb,var(--muted,#52615c) 45%,transparent);border:2px solid transparent;background-clip:padding-box;border-radius:999px}.guide-panel::-webkit-scrollbar-track{background:transparent}
+.guide-panel.is-active{display:block}
 .terms-panel h3,.guide-panel h3{margin:0 0 10px;font-size:1.05rem}
 .terms-panel h4,.guide-panel h4{margin:18px 0 7px;font-size:.9rem}
 .terms-panel p,.guide-panel p{margin:0 0 10px;line-height:1.55;color:var(--muted,#52615c)}
@@ -239,12 +243,16 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
 .guide-status{border:1px solid var(--border,#dde5e1);border-radius:10px;padding:10px;background:var(--surface,#fff)}
 .guide-status strong{display:block;margin-bottom:3px}
 .guide-meta{font-size:.75rem;color:var(--muted,#52615c);margin-top:8px}
-.guide-panel .terms-shell{height:auto}.guide-panel .terms-panels{overflow:visible;padding:14px 0 0}.guide-panel .terms-tabs{padding:10px 0;background:transparent}
+.guide-panel .terms-shell{height:auto;min-height:0;overflow:visible;display:block}.guide-panel .terms-panels{overflow:visible;padding:14px 0 0}.guide-panel .terms-tabs{padding:10px 0;background:transparent}
+@media(max-width:1024px){
+  .terms-modal-host .modal,.guide-modal-host .modal{max-height:90vh;max-height:90dvh}
+}
 @media(max-width:720px){
-  .terms-modal-host .modal,.guide-modal-host .modal{width:calc(100vw - 12px);max-height:92vh;border-radius:14px}
+  .terms-modal-host .modal,.guide-modal-host .modal{width:calc(100vw - 12px);max-height:94vh;max-height:94dvh;border-radius:14px}
   .terms-tabs,.guide-tabs{grid-template-columns:repeat(2,minmax(0,1fr));padding:10px;gap:6px}
   .terms-tab:last-child{grid-column:1/-1}
-  .terms-panels,.guide-panels{padding:14px 14px 20px}
+  .terms-panels{padding:14px 14px 20px}
+  .guide-panel{padding:14px 14px 20px}
   .terms-accept-bar{grid-template-columns:1fr 1fr;padding:10px}
   .terms-check{grid-column:1/-1}
   .guide-status-grid{grid-template-columns:1fr}
@@ -877,7 +885,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
     var termsHolder=$('#guide-terms-holder',dlg.host);if(termsHolder){termsHolder.innerHTML=tabbedTermsHtml('reference');bindTermsTabs(termsHolder,'reference');}
     var meta=$('#guide-terms-meta',dlg.host);if(meta){meta.textContent=USER&&USER.terms_accepted_at?'Accepted on '+new Date(USER.terms_accepted_at).toLocaleString()+' · Version '+(USER.terms_version||USER.current_terms_version||BOOKING_TERMS_VERSION):'Current version: '+((USER&&USER.current_terms_version)||BOOKING_TERMS_VERSION);}
     dlg.host.addEventListener('click',function(e){
-      var tab=e.target.closest('[data-guide-tab]');if(tab){var id=tab.dataset.guideTab;$$('[data-guide-tab]',dlg.host).forEach(function(x){x.classList.toggle('is-active',x.dataset.guideTab===id);});$$('[data-guide-panel]',dlg.host).forEach(function(x){x.classList.toggle('is-active',x.dataset.guidePanel===id);});return;}
+      var tab=e.target.closest('[data-guide-tab]');if(tab){var id=tab.dataset.guideTab;$$('[data-guide-tab]',dlg.host).forEach(function(x){var on=x.dataset.guideTab===id;x.classList.toggle('is-active',on);x.setAttribute('aria-selected',String(on));});$$('[data-guide-panel]',dlg.host).forEach(function(x){var on=x.dataset.guidePanel===id;x.classList.toggle('is-active',on);if(on)x.scrollTop=0;});return;}
       var go=e.target.closest('[data-help-goto]');if(go){var target=go.dataset.helpGoto,panel=go.dataset.helpPanel;dlg.close();goto(target);if(panel&&target==='profile')setTimeout(function(){openPanel(panel);},80);}
     });
     return dlg;
@@ -3087,7 +3095,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
   window.addEventListener('appinstalled',function(){setMarked(true);deferredPrompt=null;sync();});
   window.addEventListener('pageshow',sync);document.addEventListener('visibilitychange',function(){if(!document.hidden)sync();});
   if(btn)btn.addEventListener('click',async function(){if(!deferredPrompt)return;btn.disabled=true;try{await deferredPrompt.prompt();var c=await deferredPrompt.userChoice;if(c&&c.outcome==='accepted')setMarked(true);}catch(_){}deferredPrompt=null;btn.disabled=false;sync();});
-  if('serviceWorker' in navigator)window.addEventListener('load',function(){var reloading=false;navigator.serviceWorker.addEventListener('controllerchange',function(){if(reloading)return;reloading=true;location.reload();});navigator.serviceWorker.register('service-worker.js?v=39-terms-help-v1',{scope:'./',updateViaCache:'none'}).then(function(reg){return reg.update();}).catch(function(){});});
+  if('serviceWorker' in navigator)window.addEventListener('load',function(){var reloading=false;navigator.serviceWorker.addEventListener('controllerchange',function(){if(reloading)return;reloading=true;location.reload();});navigator.serviceWorker.register('service-worker.js?v=40-help-scroll-v2',{scope:'./',updateViaCache:'none'}).then(function(reg){return reg.update();}).catch(function(){});});
   sync();
 })();
 </script>
