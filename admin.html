@@ -1157,10 +1157,10 @@ body.admin-app.role-ready #view-app{visibility:visible}
   document.addEventListener('click', function (e) {
     var ap = e.target.closest('[data-booking-approve]');
     if (!ap) return;
-    if (!confirm('Approve this paid booking request?')) return;
+    if (!confirm('Finalize this legacy paid booking? New payment verifications are confirmed automatically.')) return;
     busy(ap, true);
     api('/api/admin/bookings/' + encodeURIComponent(ap.dataset.bookingApprove) + '/approve', {method:'POST'})
-      .then(function(){ toast('Booking approved.', 'success'); return loadBookings(); })
+      .then(function(){ toast('Legacy booking finalized.', 'success'); return loadBookings(); })
       .catch(function(err){ toast(err.message, 'error'); })
       .finally(function(){ busy(ap, false); });
   });
@@ -1179,7 +1179,8 @@ body.admin-app.role-ready #view-app{visibility:visible}
       act.push('<button class="btn btn-outline btn-sm" data-payment="' + b.payment_id + '" data-bid="' + b.id + '">Payment details</button>');
     }
     if (b.status === 'pending_approval' && String(b.payment_status || '').toLowerCase() === 'paid') {
-      act.push('<button class="btn btn-success btn-sm" data-booking-approve="' + b.id + '">Approve booking</button>');
+      /* Recovery only for records verified before the auto-confirm update. */
+      act.push('<button class="btn btn-outline btn-sm" data-booking-approve="' + b.id + '" title="Legacy paid booking created before automatic confirmation">Finalize legacy booking</button>');
     }
     if (b.status === 'confirmed' && isAdmin()) {
       act.push('<button class="btn btn-ghost btn-sm" data-status="completed" data-id="' + b.id + '">Complete</button>');
@@ -1275,7 +1276,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
       else $('#tx-receipt',host).innerHTML='<span class="muted tiny">No receipt stored.</span>';
       function done(msg){toast(msg,'success');host.remove();loadPayments();refreshEventBadges();loadDashboard();if(after)after();}
       host.addEventListener('click',function(ev){
-        var vf=ev.target.closest('[data-tx-verify]'); if(vf){busy(vf,true);api('/api/admin/transactions/'+encodeURIComponent(t.transaction_key)+'/verify',{method:'POST',body:{verification_notes:($('#tx-review-notes',host)||{}).value||''}}).then(function(){done(isCash?'Cash received and recorded.':'Payment marked paid.');}).catch(function(e){toast(e.message,'error');}).finally(function(){busy(vf,false);});return;}
+        var vf=ev.target.closest('[data-tx-verify]'); if(vf){busy(vf,true);api('/api/admin/transactions/'+encodeURIComponent(t.transaction_key)+'/verify',{method:'POST',body:{verification_notes:($('#tx-review-notes',host)||{}).value||''}}).then(function(){if(t.transaction_type==='booking'){loadBookings();done('Payment verified. Booking confirmed automatically.');}else{done(isCash?'Cash received and recorded.':'Payment marked paid.');}}).catch(function(e){toast(e.message,'error');}).finally(function(){busy(vf,false);});return;}
         var rj=ev.target.closest('[data-tx-reject]'); if(rj){var reason=prompt('Reason for rejection:','Reference/receipt could not be verified');if(!reason)return;busy(rj,true);api('/api/admin/transactions/'+encodeURIComponent(t.transaction_key)+'/reject',{method:'POST',body:{reason:reason,rejection_reason:reason}}).then(function(){done('Payment rejected.');}).catch(function(e){toast(e.message,'error');}).finally(function(){busy(rj,false);});}
       });
     }).catch(function(e){toast(e.message,'error');});
@@ -1296,7 +1297,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
       if(['submitted','under_review'].indexOf(String(pmt.status||'').toLowerCase())>=0) body+='<div class="field mt-3"><label class="label">Verification notes</label><textarea class="textarea" id="pv-notes"></textarea></div><button class="btn btn-success" id="pv-verify">'+(isCash?'Mark cash paid':'Mark paid')+'</button>';
       var host=modal({title:'Payment details — '+(r.booking?r.booking.reference:'#'+pmt.id),locked:true,body:body,cancelText:'Close'});
       if(isCash) $('#pv-receipt',host).innerHTML='<div class="cash-receipt-placeholder"><span>₱</span><strong>Cash</strong><small>No receipt required</small></div>'; else if(pmt.has_proof) fetch(API+'/api/payments/'+pmt.id+'/proof',{headers:{Authorization:'Bearer '+TOKEN}}).then(function(x){if(!x.ok)throw new Error('Receipt unavailable');return x.blob();}).then(function(blob){var u=URL.createObjectURL(blob);$('#pv-receipt',host).innerHTML='<img src="'+u+'" alt="Receipt" />';}).catch(function(e){$('#pv-receipt',host).innerHTML='<span class="muted tiny">'+esc(e.message)+'</span>';});
-      var vb=$('#pv-verify',host);if(vb)vb.onclick=function(){busy(vb,true);api('/api/payments/'+pmt.id+'/verify',{method:'POST',body:{verification_notes:($('#pv-notes',host)||{}).value||''}}).then(function(){toast('Payment marked paid. Reservation remains confirmed.','success');host.remove();refreshWorkflow();}).catch(function(e){toast(e.message,'error');}).finally(function(){busy(vb,false);});};
+      var vb=$('#pv-verify',host);if(vb)vb.onclick=function(){busy(vb,true);api('/api/payments/'+pmt.id+'/verify',{method:'POST',body:{verification_notes:($('#pv-notes',host)||{}).value||''}}).then(function(){toast('Payment verified. Booking confirmed automatically.','success');host.remove();refreshWorkflow();}).catch(function(e){toast(e.message,'error');}).finally(function(){busy(vb,false);});};
     }).catch(function(e){toast(e.message,'error');});
   }
 
