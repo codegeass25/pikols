@@ -204,6 +204,57 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
   #book-courts .pikol-carousel-track{transition-duration:1ms !important}
 }
 </style>
+
+<style id="pikol-terms-help-v1">
+/* Additive player onboarding/help UI. Existing booking layouts are untouched. */
+#btn-help{font-weight:900;font-size:1rem;line-height:1}
+.terms-modal-host .modal,.guide-modal-host .modal{width:min(880px,calc(100vw - 24px));max-height:min(86vh,820px);display:flex;flex-direction:column;overflow:hidden}
+.terms-modal-host .modal-head,.guide-modal-host .modal-head{flex:0 0 auto}
+.terms-modal-host .modal-body,.guide-modal-host .modal-body{min-height:0;overflow:hidden;padding:0}
+.terms-shell,.guide-shell{display:flex;flex-direction:column;min-height:0;height:100%}
+.terms-tabs,.guide-tabs{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:7px;padding:12px 16px;border-bottom:1px solid var(--border,#dde5e1);background:var(--surface,#fff);flex:0 0 auto}
+.guide-tabs{grid-template-columns:repeat(3,minmax(0,1fr))}
+.terms-tab,.guide-tab{border:1px solid var(--border,#dce5e0);background:color-mix(in srgb,var(--surface,#fff) 92%,var(--brand-primary,#0f3d32) 8%);color:var(--text,#17231f);border-radius:10px;padding:9px 8px;font:800 .76rem/1.25 inherit;cursor:pointer;min-height:44px}
+.terms-tab.is-active,.guide-tab.is-active{background:var(--brand-primary,#0f3d32);border-color:var(--brand-primary,#0f3d32);color:#fff}
+.terms-panels,.guide-panels{overflow:auto;overscroll-behavior:contain;padding:18px 20px 24px;min-height:0;flex:1}
+.terms-panel,.guide-panel{display:none}
+.terms-panel.is-active,.guide-panel.is-active{display:block}
+.terms-panel h3,.guide-panel h3{margin:0 0 10px;font-size:1.05rem}
+.terms-panel h4,.guide-panel h4{margin:18px 0 7px;font-size:.9rem}
+.terms-panel p,.guide-panel p{margin:0 0 10px;line-height:1.55;color:var(--muted,#52615c)}
+.terms-panel ul,.guide-panel ul{margin:8px 0 14px;padding-left:20px;display:grid;gap:7px;color:var(--muted,#52615c);line-height:1.5}
+.terms-callout,.guide-callout{border:1px solid rgba(194,65,12,.25);background:#fff7ed;color:#7c2d12;padding:12px 14px;border-radius:12px;margin:10px 0 14px;line-height:1.5}
+.terms-callout strong,.guide-callout strong{color:inherit}
+.terms-accept-bar{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:12px;align-items:center;padding:12px 16px;border-top:1px solid var(--border,#dde5e1);background:var(--surface,#fff);flex:0 0 auto}
+.terms-check{display:flex;align-items:flex-start;gap:10px;font-size:.82rem;line-height:1.4;cursor:pointer}
+.terms-check input{width:18px;height:18px;margin-top:1px;accent-color:var(--brand-primary,#0f3d32)}
+.terms-accept-bar .btn-primary[disabled]{opacity:.42;cursor:not-allowed;filter:grayscale(.15)}
+.guide-kicker{display:inline-flex;align-items:center;gap:6px;font-size:.72rem;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:var(--brand-primary,#0f3d32);margin-bottom:8px}
+.guide-steps{counter-reset:step;display:grid;gap:10px;margin:10px 0 16px}
+.guide-step{display:grid;grid-template-columns:30px 1fr;gap:10px;align-items:start}
+.guide-step:before{counter-increment:step;content:counter(step);display:grid;place-items:center;width:28px;height:28px;border-radius:999px;background:var(--brand-primary,#0f3d32);color:#fff;font-weight:900;font-size:.75rem}
+.guide-step strong{display:block;margin-bottom:2px}
+.guide-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.guide-status-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:10px 0}
+.guide-status{border:1px solid var(--border,#dde5e1);border-radius:10px;padding:10px;background:var(--surface,#fff)}
+.guide-status strong{display:block;margin-bottom:3px}
+.guide-meta{font-size:.75rem;color:var(--muted,#52615c);margin-top:8px}
+.guide-panel .terms-shell{height:auto}.guide-panel .terms-panels{overflow:visible;padding:14px 0 0}.guide-panel .terms-tabs{padding:10px 0;background:transparent}
+@media(max-width:720px){
+  .terms-modal-host .modal,.guide-modal-host .modal{width:calc(100vw - 12px);max-height:92vh;border-radius:14px}
+  .terms-tabs,.guide-tabs{grid-template-columns:repeat(2,minmax(0,1fr));padding:10px;gap:6px}
+  .terms-tab:last-child{grid-column:1/-1}
+  .terms-panels,.guide-panels{padding:14px 14px 20px}
+  .terms-accept-bar{grid-template-columns:1fr 1fr;padding:10px}
+  .terms-check{grid-column:1/-1}
+  .guide-status-grid{grid-template-columns:1fr}
+}
+@media(max-width:420px){
+  .terms-tab,.guide-tab{font-size:.7rem;padding:8px 6px;min-height:42px}
+  .terms-accept-bar .btn{padding-inline:10px;font-size:.74rem}
+}
+</style>
+
 </head>
 <body class="player-app">
 
@@ -322,6 +373,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
       </nav>
       <div class="site-actions">
         <span id="rt-status" class="hidden"><span id="rt-dot"></span><span id="rt-text"></span></span>
+        <button class="btn btn-ghost btn-icon hidden" id="btn-help" type="button" aria-label="Help & User Guide" title="Help & User Guide">?</button>
         <button class="btn btn-ghost btn-icon bell" id="btn-bell" aria-label="Notifications" data-goto="notifications"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg><span class="bell-count hidden" id="bell-count"></span></button>
         <button class="btn btn-ghost" id="site-account" data-goto="profile">Sign In</button>
         <button class="btn btn-lime" data-goto="book"><span aria-hidden="true">▦</span> Book Now</button>
@@ -531,6 +583,16 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
               <span class="list-main"><span class="list-title">Appearance</span>
                 <span class="list-sub">Switch between light and dark theme</span></span>
               <span class="list-end"><span class="list-chevron">›</span></span></button>
+            <button type="button" class="list-row is-clickable is-compact" id="pf-help-guide">
+              <span class="list-lead is-plain">?</span>
+              <span class="list-main"><span class="list-title">Help &amp; User Guide</span>
+                <span class="list-sub">Learn how to use the Booking Site and player rating</span></span>
+              <span class="list-end"><span class="list-chevron">›</span></span></button>
+            <button type="button" class="list-row is-clickable is-compact" id="pf-terms-rules">
+              <span class="list-lead is-plain">✓</span>
+              <span class="list-main"><span class="list-title">Terms &amp; Venue Rules</span>
+                <span class="list-sub">Review booking, cancellation and court rules</span></span>
+              <span class="list-end"><span class="list-chevron">›</span></span></button>
             <button type="button" class="list-row is-clickable is-compact" id="pf-logout">
               <span class="list-lead is-plain">⏻</span>
               <span class="list-main"><span class="list-title">Sign out</span>
@@ -711,11 +773,114 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
         if (requestToken && requestToken !== TOKEN) throw new Error('Your session changed. Please try again.');
         if (!res.ok) {
           if (res.status === 401 && requestToken && requestToken === TOKEN) { signOutLocal(); }
+          if (res.status === 403 && USER && /accept the Booking Terms/i.test(String(data.error||''))) { USER.terms_required=true; setTimeout(function(){showTermsGate();},0); }
           throw new Error(data.error || ('Request failed (' + res.status + ')'));
         }
         return data;
       });
     }, function () { throw new Error('Cannot reach the booking server. Please try again later.'); });
+  }
+
+
+  /* ---------- player Terms & Help (additive, server-backed) ---------- */
+  var BOOKING_TERMS_VERSION = 'booking-terms-v1';
+
+  var TERMS_SECTIONS = [
+    { id:'booking', label:'Booking & Payment', html:
+      '<h3>Booking &amp; Payment</h3>'+
+      '<p>Use <strong>Book a Court</strong> to choose your <strong>Select Date</strong>, court, <strong>Start Time</strong> and <strong>End Time</strong>. Review the <strong>Booking Summary</strong> before you continue.</p>'+
+      '<ul><li>Choose only the court and time that you intend to use.</li><li>The full court fee shown by the Booking Site is paid online before staff approval.</li><li>When you reach <strong>Complete Your Payment</strong>, your selected schedule is temporarily held. Finish the payment steps before the countdown expires.</li><li>Enter the correct payment reference and upload a clear receipt or screenshot when requested.</li><li>A payment marked <strong>under review</strong> is waiting for staff verification. Your booking becomes secured according to the status shown in <strong>My Bookings</strong>.</li><li>Arriving late does not extend the reserved ending time. Extra playing time needs another available booking.</li></ul>' },
+    { id:'refund', label:'Cancellation & No Refund', html:
+      '<h3>Cancellation &amp; No-Refund Policy</h3>'+
+      '<div class="terms-callout"><strong>Player-initiated cancellations and no-shows are non-refundable.</strong> If you cancel a confirmed reservation or do not appear for your booked schedule, payments already made will not be refunded.</div>'+
+      '<ul><li>Please check the date, court and time carefully before completing payment.</li><li>When you cancel, the schedule may be released for another player to book.</li><li>If the venue itself cannot honor the reservation because of a facility closure, emergency or another management-controlled reason, Management may arrange a reschedule or booking credit based on the situation.</li></ul>' },
+    { id:'dos', label:"Venue Do's", html:
+      '<h3>Venue Do\'s</h3><ul><li>Arrive before your booked schedule and be ready to play on time.</li><li>Wear proper sports attire and suitable court shoes.</li><li>Use appropriate pickleball paddles, balls and equipment.</li><li>Respect other players, venue staff and nearby games.</li><li>Keep the court and surrounding areas clean.</li><li>Follow your confirmed court and schedule, and leave the court when your reserved time ends.</li><li>Report unsafe court conditions or damaged equipment to venue staff.</li></ul>' },
+    { id:'donts', label:"Venue Don'ts", html:
+      '<h3>Venue Don\'ts</h3><ul><li>No smoking or vaping in the playing area.</li><li>No alcohol or prohibited substances in the playing area.</li><li>No fighting, harassment, abusive language or behavior that disrupts other players.</li><li>Do not intentionally damage courts, nets, equipment, furniture or venue property.</li><li>Do not enter or use another reserved court without permission.</li><li>Do not continue playing past your booked time unless another reservation is confirmed.</li><li>Do not submit false, altered or misleading payment information.</li></ul>' },
+    { id:'safety', label:'Safety & Agreement', html:
+      '<h3>Safety &amp; Responsible Play</h3><ul><li>Warm up and play within your normal ability.</li><li>Keep bags, bottles and loose items away from the playing area.</li><li>Stop play and inform staff if the court or equipment appears unsafe.</li><li>Follow reasonable safety and venue instructions from authorized staff.</li><li>Management may stop a session when conduct or court conditions become unsafe or seriously disruptive.</li></ul><p>By accepting, you confirm that you have read and understood these Booking Terms, the Cancellation &amp; No-Refund Policy, and the Venue Rules.</p>' }
+  ];
+
+  function tabbedTermsHtml(prefix) {
+    prefix = prefix || 'terms';
+    return '<div class="terms-shell">'+
+      '<div class="terms-tabs" role="tablist" aria-label="Terms sections">'+TERMS_SECTIONS.map(function(x,i){return '<button type="button" class="terms-tab'+(i===0?' is-active':'')+'" data-terms-tab="'+esc(prefix+':'+x.id)+'" role="tab" aria-selected="'+String(i===0)+'">'+esc(x.label)+'</button>';}).join('')+'</div>'+
+      '<div class="terms-panels">'+TERMS_SECTIONS.map(function(x,i){return '<section class="terms-panel'+(i===0?' is-active':'')+'" data-terms-panel="'+esc(prefix+':'+x.id)+'">'+x.html+'</section>';}).join('')+'</div></div>';
+  }
+
+  function bindTermsTabs(host,prefix) {
+    prefix = prefix || 'terms';
+    host.addEventListener('click',function(e){
+      var b=e.target.closest('[data-terms-tab]'); if(!b || b.dataset.termsTab.indexOf(prefix+':')!==0)return;
+      var key=b.dataset.termsTab;
+      $$('[data-terms-tab]',host).forEach(function(x){var on=x.dataset.termsTab===key;x.classList.toggle('is-active',on);x.setAttribute('aria-selected',String(on));});
+      $$('[data-terms-panel]',host).forEach(function(x){x.classList.toggle('is-active',x.dataset.termsPanel===key);});
+    });
+  }
+
+  function showTermsGate(afterAccept) {
+    if(!USER || !TOKEN || !USER.terms_required)return false;
+    var existing=$('#terms-gate'); if(existing)return true;
+    var host=document.createElement('div');host.className='modal-host terms-modal-host';host.id='terms-gate';
+    host.innerHTML='<div class="modal" role="dialog" aria-modal="true" aria-labelledby="terms-gate-title">'+
+      '<div class="modal-head"><div><h2 class="section-title" id="terms-gate-title">Court Booking Terms &amp; Venue Rules</h2><p class="field-hint">Please review each section before continuing.</p></div></div>'+
+      '<div class="modal-body">'+tabbedTermsHtml('gate')+'</div>'+
+      '<div class="terms-accept-bar"><label class="terms-check"><input type="checkbox" id="terms-agree"/><span>I have read, understood, and agree to the Booking Terms, Cancellation &amp; No-Refund Policy, and Venue Rules.</span></label><button class="btn btn-outline" type="button" id="terms-signout">Sign Out</button><button class="btn btn-primary" type="button" id="terms-accept" disabled data-loading="Saving...">Accept &amp; Continue</button></div></div>';
+    $('#modal-root').appendChild(host);bindTermsTabs(host,'gate');syncLayers();
+    var agree=$('#terms-agree',host),accept=$('#terms-accept',host),signout=$('#terms-signout',host);
+    agree.onchange=function(){accept.disabled=!agree.checked;};
+    signout.onclick=function(){
+      api('/api/auth/logout',{method:'POST'}).catch(function(){}).finally(function(){host.remove();syncLayers();signOutLocal();});
+    };
+    accept.onclick=function(){
+      if(!agree.checked)return;
+      busy(accept,true);
+      api('/api/auth/terms/accept',{method:'POST',body:{version:(USER&&USER.current_terms_version)||BOOKING_TERMS_VERSION}}).then(function(d){
+        USER=d.user;host.remove();syncLayers();updateAccountPresentation();toast('Terms accepted. You can now book a court.','success');
+        if(typeof afterAccept==='function')afterAccept();
+      }).catch(function(err){toast(err.message,'error');}).finally(function(){if(accept.isConnected)busy(accept,false);});
+    };
+    setTimeout(function(){if(agree&&agree.isConnected)agree.focus();},40);
+    return true;
+  }
+
+  var GUIDE_SECTIONS = [
+    {id:'start',label:'Start Here',html:
+      '<span class="guide-kicker">Booking Site User Guide</span><h3>Know your main screens</h3>'+
+      '<div class="guide-status-grid"><div class="guide-status"><strong>Home</strong><span>See club information, featured courts and upcoming activities.</span></div><div class="guide-status"><strong>Courts</strong><span>Review court details and choose <strong>Book Now</strong> when you are ready.</span></div><div class="guide-status"><strong>Book Now / Book a Court</strong><span>Create an online court reservation.</span></div><div class="guide-status"><strong>My Games / My Bookings</strong><span>Check Upcoming reservations, History and Payments.</span></div><div class="guide-status"><strong>Events</strong><span>Open <strong>Tournaments</strong>, <strong>Open Play</strong> and <strong>My registrations</strong>.</span></div><div class="guide-status"><strong>Account</strong><span>Open your profile, rating, membership, password, notifications and settings.</span></div></div>'+
+      '<p>The <strong>?</strong> button opens this guide any time you are signed in.</p>' },
+    {id:'booking',label:'Book a Court',html:
+      '<span class="guide-kicker">Online Court Reservation</span><h3>How to book</h3><div class="guide-steps"><div class="guide-step"><div><strong>Date</strong>Choose <strong>Select Date</strong> or use <strong>Browse calendar</strong>.</div></div><div class="guide-step"><div><strong>Court</strong>Select a court. Use <strong>View Details</strong> if you want to review the court first.</div></div><div class="guide-step"><div><strong>Time</strong>Choose <strong>Start Time</strong> and <strong>End Time</strong>. The schedule must be a continuous available range.</div></div><div class="guide-step"><div><strong>Confirm</strong>Set the <strong>Number of Players</strong>, add <strong>Additional Notes (Optional)</strong>, check the <strong>Booking Summary</strong>, then choose <strong>Continue to Confirmation</strong>.</div></div></div>'+
+      '<h4>Temporary payment hold</h4><p>When <strong>Complete Your Payment</strong> opens, your selected court and time are temporarily held for you. Finish the payment steps before the countdown reaches zero. If the hold expires, that schedule can become available to other players again.</p>'+
+      '<h4>Payment</h4><p>Select the available Payment method, follow the instructions, enter the correct Reference number and upload the requested Receipt / screenshot. A payment marked <strong>under review</strong> is waiting for staff verification.</p>'+
+      '<div class="guide-callout"><strong>Cancellation reminder:</strong> player-initiated cancellations and no-shows are non-refundable.</div><div class="guide-actions"><button class="btn btn-primary btn-sm" type="button" data-help-goto="book">Open Book a Court</button></div>' },
+    {id:'games',label:'My Games',html:
+      '<span class="guide-kicker">My Games / My Bookings</span><h3>Track your reservations</h3><p>On mobile, the navigation says <strong>My Games</strong>. Inside the page, the title is <strong>My Bookings</strong>.</p><ul><li><strong>Upcoming</strong> shows active or future reservations.</li><li><strong>History</strong> shows previous, completed or cancelled bookings.</li><li><strong>Payments</strong> helps you review payment-related booking information.</li><li>Open a booking to review its court, schedule, booking reference and current status.</li><li>If the site shows <strong>Complete payment</strong>, follow the payment screen before the temporary hold expires.</li><li>Use <strong>Cancel Booking</strong> only when you really want to release the reservation. The No-Refund Policy still applies to player-initiated cancellations.</li></ul><div class="guide-actions"><button class="btn btn-primary btn-sm" type="button" data-help-goto="bookings">Open My Bookings</button></div>' },
+    {id:'events',label:'Events & Rating',html:
+      '<span class="guide-kicker">Tournaments, Open Play &amp; Stars</span><h3>Events &amp; Registrations</h3><p>Use <strong>Events</strong> to browse <strong>Tournaments</strong>, <strong>Open Play</strong> and <strong>My registrations</strong>. Tournament pages also show <strong>My matches</strong> when you have scheduled matches.</p>'+
+      '<h4>Star-Based Tournament Rating</h4><p>Your star rating comes only from <strong>completed Tournament matches</strong>. Normal court bookings and Open Play do not add stars to your Tournament Rating.</p><ul><li>After a completed Tournament match, you may rate opponents you actually played against from <strong>1 ★ to 5 ★</strong>.</li><li>You cannot rate yourself, and in Doubles you rate the opposing players—not your teammate.</li><li>Each opponent can be rated only once for that match.</li><li>The rating opportunity stays available for <strong>30 days</strong> after the match is completed.</li><li>Valid submitted ratings become <strong>Verified ratings</strong>.</li></ul>'+
+      '<h4>How your rating builds up</h4><p><strong>Tournament expertise</strong> is the average of the verified ratings you have received. The system also checks how many verified ratings you have compared with the number required for your current <strong>Official Division</strong>.</p><p>The requirement is about 30% of the active players in your current division, with a minimum of <strong>5</strong> and a maximum of <strong>30</strong> verified ratings.</p>'+
+      '<p>The Official Division ladder is <strong>Beginner → Novice Low → Novice High → Intermediate → Expert</strong>.</p>'+
+      '<div class="guide-status-grid"><div class="guide-status"><strong>Not Enough Evidence</strong><span>No verified rating evidence yet.</span></div><div class="guide-status"><strong>Collecting Ratings</strong><span>You have verified ratings but still need more.</span></div><div class="guide-status"><strong>Promotion Pending</strong><span>You have enough evidence and an average of 4.20 or higher, where a higher division exists.</span></div><div class="guide-status"><strong>Demotion Pending</strong><span>You have enough evidence and an average below 2.50, where a lower division exists.</span></div><div class="guide-status"><strong>Eligible for Evaluation</strong><span>You have enough evidence for Management review.</span></div></div>'+
+      '<p><strong>Your division does not change automatically.</strong> Management reviews the rating evidence and confirms the final division update.</p><p><strong>Pending Tournament Ratings</strong> shows opponents you still need to rate. <strong>My Tournament Rating History</strong> shows the ratings you submitted and their Verified status.</p><div class="guide-actions"><button class="btn btn-primary btn-sm" type="button" data-help-goto="profile" data-help-panel="panel-rating">Open My rating</button><button class="btn btn-outline btn-sm" type="button" data-help-goto="tournaments">Open Events</button></div>' },
+    {id:'account',label:'Membership & Account',html:
+      '<span class="guide-kicker">Membership, Notifications &amp; Account</span><h3>Membership</h3><ul><li><strong>Available Plans</strong> shows plans currently offered by the club.</li><li><strong>Current Membership</strong> shows your current plan and status.</li><li><strong>Benefits</strong> explains the benefits configured for the selected plan.</li></ul><h3>Notifications</h3><p>The bell opens <strong>Notifications</strong>, where you can review Booking, Payment, Event, Tournament, Membership and Player Rating updates. Some updates may also be sent through the club\'s configured email, SMS or app notifications.</p><h3>My Profile</h3><ul><li><strong>Personal information</strong> — name and mobile number.</li><li><strong>My Bookings</strong> — your court reservations.</li><li><strong>My Matches</strong> — your Tournament match area.</li><li><strong>My rating</strong> — Tournament expertise, Verified ratings, Official Division and rating history.</li><li><strong>Password &amp; security</strong> — update your password.</li><li><strong>Account settings</strong> — appearance, Help &amp; User Guide, Terms &amp; Venue Rules, and Sign out.</li></ul><h4>Install Booking App</h4><p>If <strong>Install Booking App</strong> appears on your device, you may install the Booking Site on your Home Screen or desktop for quicker access.</p><div class="guide-actions"><button class="btn btn-primary btn-sm" type="button" data-help-goto="membership">Open Membership</button><button class="btn btn-outline btn-sm" type="button" data-help-goto="notifications">Open Notifications</button></div>' },
+    {id:'terms',label:'Terms & Rules',html:
+      '<span class="guide-kicker">Booking Terms &amp; Venue Rules</span><h3>Review the rules any time</h3><p>You can revisit the same booking, cancellation, no-refund and venue rules here even after you have accepted them.</p><div id="guide-terms-holder"></div><div class="guide-meta" id="guide-terms-meta"></div>' }
+  ];
+
+  function showHelpGuide(initialTab) {
+    if(!USER || !TOKEN)return openAuth(function(){showHelpGuide(initialTab);});
+    var html='<div class="guide-shell"><div class="guide-tabs" role="tablist" aria-label="User Guide sections">'+GUIDE_SECTIONS.map(function(x,i){return '<button type="button" class="guide-tab'+((initialTab?x.id===initialTab:i===0)?' is-active':'')+'" data-guide-tab="'+esc(x.id)+'" role="tab">'+esc(x.label)+'</button>';}).join('')+'</div><div class="guide-panels">'+GUIDE_SECTIONS.map(function(x,i){var on=initialTab?x.id===initialTab:i===0;return '<section class="guide-panel'+(on?' is-active':'')+'" data-guide-panel="'+esc(x.id)+'">'+x.html+'</section>';}).join('')+'</div></div>';
+    var dlg=modal({title:'Help & User Guide',wide:true,body:html,cancelText:'Close'});dlg.host.classList.add('guide-modal-host');
+    var termsHolder=$('#guide-terms-holder',dlg.host);if(termsHolder){termsHolder.innerHTML=tabbedTermsHtml('reference');bindTermsTabs(termsHolder,'reference');}
+    var meta=$('#guide-terms-meta',dlg.host);if(meta){meta.textContent=USER&&USER.terms_accepted_at?'Accepted on '+new Date(USER.terms_accepted_at).toLocaleString()+' · Version '+(USER.terms_version||USER.current_terms_version||BOOKING_TERMS_VERSION):'Current version: '+((USER&&USER.current_terms_version)||BOOKING_TERMS_VERSION);}
+    dlg.host.addEventListener('click',function(e){
+      var tab=e.target.closest('[data-guide-tab]');if(tab){var id=tab.dataset.guideTab;$$('[data-guide-tab]',dlg.host).forEach(function(x){x.classList.toggle('is-active',x.dataset.guideTab===id);});$$('[data-guide-panel]',dlg.host).forEach(function(x){x.classList.toggle('is-active',x.dataset.guidePanel===id);});return;}
+      var go=e.target.closest('[data-help-goto]');if(go){var target=go.dataset.helpGoto,panel=go.dataset.helpPanel;dlg.close();goto(target);if(panel&&target==='profile')setTimeout(function(){openPanel(panel);},80);}
+    });
+    return dlg;
   }
 
   /* ---------- theme ---------- */
@@ -1419,6 +1584,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
         '<div class="summary-row"><dt>Duration</dt><dd>' + esc((rangePricing(court,sel.start,sel.end).duration/60) + ' hour(s)') + '</dd></div>' +
         '<div class="summary-row"><dt>Full court fee</dt><dd><strong>' + esc(money(rangePricing(court,sel.start,sel.end).total)) + '</strong></dd></div></dl>' +
         (CURRENT_MEMBERSHIP?'<div class="alert alert-success mt-3"><strong>Member court discount applied</strong></div>':'') +
+        '<div class="terms-callout mt-3"><strong>Cancellation reminder:</strong> Player-initiated cancellations and no-shows are non-refundable.</div>' +
         '<p class="field-hint mt-4">After submitting the request, pay the full court fee online and upload your proof. Staff confirms the booking after payment review.</p>',
       confirmText: 'Confirm booking',
       cancelText: 'Go back',
@@ -2513,6 +2679,9 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
   });
   /* Server address configuration is not exposed to players. */
   var pfOut = $('#pf-logout'); if (pfOut) pfOut.onclick = function () { $('#btn-logout').click(); };
+  var helpBtn=$('#btn-help');if(helpBtn)helpBtn.onclick=function(){showHelpGuide('start');};
+  var pfHelp=$('#pf-help-guide');if(pfHelp)pfHelp.onclick=function(){showHelpGuide('start');};
+  var pfTerms=$('#pf-terms-rules');if(pfTerms)pfTerms.onclick=function(){showHelpGuide('terms');};
 
   /* Reference presentation: public home, focused dialogs, live club data. */
   var PUBLIC_COURTS = [], PUBLIC_EVENTS = [], PUBLIC_OPENPLAY = [];
@@ -2600,6 +2769,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
   function updateAccountPresentation(){
     $('#site-account').textContent=USER ? (USER.full_name||'My Account').split(' ')[0] : 'Sign In';
     $('#btn-bell').classList.toggle('hidden',!USER);
+    var help=$('#btn-help');if(help)help.classList.toggle('hidden',!(USER&&USER.role==='player'));
     $('#profile-avatar').textContent=USER ? USER.full_name.trim().split(/\s+/).slice(0,2).map(function(x){return x.charAt(0);}).join('') : 'P';
     $('#profile-display-name').textContent=USER?USER.full_name:'Player';
   }
@@ -2724,8 +2894,10 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
     $('#view-auth').classList.add('hidden');$('#view-app').classList.remove('hidden');
     $('#pf-name').value=USER.full_name;$('#pf-email').value=USER.email;$('#pf-mobile').value=USER.mobile||'';
     updateAccountPresentation();openPanel('panel-profile');syncLayers();
+    var gated=!!(USER&&USER.role==='player'&&USER.terms_required);
+    if(gated)showTermsGate(function(){if(resume&&TOKEN===authToken&&USER)resume();});
     loadNotifications({preview:true});
-    Promise.all([loadMembership(),loadPayCfg().catch(function(){})]).then(function(){if(resume&&TOKEN===authToken&&USER)resume();});
+    Promise.all([loadMembership(),loadPayCfg().catch(function(){})]).then(function(){if(!gated&&resume&&TOKEN===authToken&&USER)resume();});
     loadDashboard();RT.connect();
   }
 
@@ -2915,7 +3087,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
   window.addEventListener('appinstalled',function(){setMarked(true);deferredPrompt=null;sync();});
   window.addEventListener('pageshow',sync);document.addEventListener('visibilitychange',function(){if(!document.hidden)sync();});
   if(btn)btn.addEventListener('click',async function(){if(!deferredPrompt)return;btn.disabled=true;try{await deferredPrompt.prompt();var c=await deferredPrompt.userChoice;if(c&&c.outcome==='accepted')setMarked(true);}catch(_){}deferredPrompt=null;btn.disabled=false;sync();});
-  if('serviceWorker' in navigator)window.addEventListener('load',function(){var reloading=false;navigator.serviceWorker.addEventListener('controllerchange',function(){if(reloading)return;reloading=true;location.reload();});navigator.serviceWorker.register('service-worker.js?v=37-booking-rules-midnight',{scope:'./',updateViaCache:'none'}).then(function(reg){return reg.update();}).catch(function(){});});
+  if('serviceWorker' in navigator)window.addEventListener('load',function(){var reloading=false;navigator.serviceWorker.addEventListener('controllerchange',function(){if(reloading)return;reloading=true;location.reload();});navigator.serviceWorker.register('service-worker.js?v=39-terms-help-v1',{scope:'./',updateViaCache:'none'}).then(function(reg){return reg.update();}).catch(function(){});});
   sync();
 })();
 </script>
