@@ -697,25 +697,29 @@ body.admin-app.role-ready #view-app{visibility:visible}
         </form>
 
         <form class="settings-section hidden mt-5" id="set-email">
-          <h2 class="section-title" style="margin-bottom:6px">Email (SMTP)</h2>
-          <p class="page-subtitle" style="margin-bottom:16px">Credentials stay on the backend PC and are never sent to the browser.</p>
+          <h2 class="section-title" style="margin-bottom:6px">Email · Gmail API</h2>
+          <p class="page-subtitle" style="margin-bottom:16px">Sends through Google Gmail API over HTTPS (port 443). SMTP ports 25/465/587 are not used. Connect one Gmail account once, then PIKOL can send queued notifications automatically.</p>
           <label class="switch" style="margin-bottom:20px">
             <input type="checkbox" id="s-email_enabled" data-key="email_enabled" /><span class="track"></span><span>Email notifications enabled</span></label>
           <div class="grid cols-2" style="gap:0 18px">
-            <div class="field"><label class="label" for="s-smtp_host">SMTP host</label><input class="input" id="s-smtp_host" data-key="smtp_host" /></div>
-            <div class="field"><label class="label" for="s-smtp_port">SMTP port</label><input class="input" id="s-smtp_port" data-key="smtp_port" inputmode="numeric" /></div>
-            <div class="field"><label class="label" for="s-smtp_user">SMTP username</label><input class="input" id="s-smtp_user" data-key="smtp_user" autocomplete="off" /></div>
-            <div class="field"><label class="label" for="s-smtp_pass">SMTP password</label><input class="input" id="s-smtp_pass" data-key="smtp_pass" type="password" autocomplete="new-password" />
-              <span class="field-hint">Leave unchanged to keep the stored password.</span></div>
+            <div class="field"><label class="label" for="s-gmail_sender_email">Gmail account</label><input class="input" id="s-gmail_sender_email" data-key="gmail_sender_email" type="email" placeholder="youraccount@gmail.com" />
+              <span class="field-hint">This is used as the Google login hint. After connection, PIKOL stores the actual connected Google account.</span></div>
+            <div class="field"><label class="label">Connection status</label><input class="input" id="gmail-connection-status" value="Not connected" readonly tabindex="-1" />
+              <span class="field-hint" id="gmail-connection-hint">Save the OAuth credentials below, then press Connect Gmail.</span></div>
+            <div class="field"><label class="label" for="s-gmail_client_id">Google OAuth Client ID</label><input class="input" id="s-gmail_client_id" data-key="gmail_client_id" autocomplete="off" placeholder="...apps.googleusercontent.com" />
+              <span class="field-hint">Create a Web application OAuth client in Google Cloud with Gmail API enabled.</span></div>
+            <div class="field"><label class="label" for="s-gmail_client_secret">Google OAuth Client Secret</label><input class="input" id="s-gmail_client_secret" data-key="gmail_client_secret" type="password" autocomplete="new-password" placeholder="Leave blank after saving to keep the stored secret" />
+              <span class="field-hint">Stored only by the backend and returned to this page as a mask.</span></div>
+            <div class="field"><label class="label">Authorized redirect URI</label><input class="input" id="gmail-redirect-uri" readonly tabindex="-1" value="" />
+              <span class="field-hint">Add this exact URI to the OAuth Client's Authorized redirect URIs in Google Cloud.</span></div>
             <div class="field"><label class="label" for="s-smtp_from_name">Sender name</label>
               <input class="input" id="s-smtp_from_name" readonly tabindex="-1" />
               <span class="field-hint">Automatically generated from White-Label Configuration (Facility name).</span></div>
-            <div class="field"><label class="label" for="s-smtp_from_email">Sender email</label><input class="input" id="s-smtp_from_email" data-key="smtp_from_email" /></div>
           </div>
-          <label class="switch" style="margin-bottom:20px">
-            <input type="checkbox" id="s-smtp_secure" data-key="smtp_secure" /><span class="track"></span><span>Use implicit TLS (port 465)</span></label>
           <div class="row wrap">
             <button class="btn btn-primary" type="submit" data-loading="Saving...">Save email settings</button>
+            <button class="btn btn-outline" type="button" id="btn-connect-gmail">Connect Gmail</button>
+            <button class="btn btn-outline" type="button" id="btn-disconnect-gmail">Disconnect</button>
             <button class="btn btn-outline" type="button" id="btn-test-email">Send test email</button>
           </div>
         </form>
@@ -3520,6 +3524,8 @@ body.admin-app.role-ready #view-app{visibility:visible}
       });
       $$('[data-mirror]').forEach(function (el) { el.value = s[el.dataset.mirror] || ''; });
       var sender = $('#s-smtp_from_name'); if (sender) sender.value = s.facility_name || '';
+      var redirectField=$('#gmail-redirect-uri'); if(redirectField)redirectField.value=API.replace(/\/+$/,'')+'/api/admin/email/google/callback';
+      updateGmailConnectionUi(s);
       renderSmsGatewayStatus(s.sms_gateway);
       renderAssetPreviews();
       renderAutoPaymentQr();
@@ -3564,8 +3570,17 @@ body.admin-app.role-ready #view-app{visibility:visible}
   saveSettings($('#set-membership'), ['membership_enabled','membership_sms_enabled','membership_expiry_reminder_days','nonmember_advance_days','nonmember_max_active_bookings']);
   saveSettings($('#set-payments'), ['payment_note','gcash_enabled','gcash_account_name','gcash_number','gcash_instructions','maya_enabled','maya_account_name','maya_number','maya_instructions','gotyme_enabled','gotyme_account_name','gotyme_number','gotyme_qr_url','gotyme_instructions','other_enabled','other_label','other_instructions']);
   saveSettings($('#set-tournament'), ['tournament_default_format','tournament_default_seeding','tournament_match_duration_minutes','tournament_rest_minutes','tournament_group_size','tournament_group_qualifiers','tournament_scoring_best_of','tournament_scoring_points_to_win','tournament_scoring_win_by','tournament_third_place','tournament_double_reset_final']);
-  /* smtp_from_name is derived from the white-label facility name. */
-  saveSettings($('#set-email'), ['email_enabled','smtp_host','smtp_port','smtp_secure','smtp_user','smtp_pass','smtp_from_email']);
+  function updateGmailConnectionUi(s){
+    s=s||SETTINGS||{};
+    var status=$('#gmail-connection-status'), hint=$('#gmail-connection-hint');
+    var connected=String(s.gmail_connected||'0')==='1';
+    var account=$('#s-gmail_sender_email'); if(account)account.readOnly=connected;
+    if(status)status.value=connected?('Connected · '+(s.gmail_sender_email||'Gmail')):'Not connected';
+    if(hint)hint.textContent=connected?'Gmail API is authorized for automatic email notifications.':'Save OAuth credentials, add the redirect URI in Google Cloud, then press Connect Gmail.';
+    var dis=$('#btn-disconnect-gmail'); if(dis)dis.disabled=!connected;
+  }
+  /* Sender name is derived from the white-label facility name. */
+  saveSettings($('#set-email'), ['email_enabled','gmail_sender_email','gmail_client_id','gmail_client_secret']);
   saveSettings($('#set-sms'), ['sms_enabled','sms_gateway_transport_enabled','sms_gateway_url','sms_gateway_username','sms_gateway_password','sms_gateway_sender_mobile','sms_gateway_sim','sms_gateway_default_country','sms_gateway_timeout_ms']);
   var INCHARGE_SETTING_KEYS=['incharge_notifications_enabled','incharge_name','incharge_mobile','incharge_email','incharge_sms_enabled','incharge_email_enabled','incharge_push_enabled','incharge_notify_bookings','incharge_notify_payments','incharge_notify_memberships','incharge_notify_events'];
   saveSettings($('#set-notify'), ['notify_enabled','notify_welcome','notify_bookings','notify_payments','notify_events','notify_announcements','notify_reminders','notify_reminder_hours','notify_event_reminder_hours','notify_quiet_hours','notify_tournament_registration','notify_tournament_payment','notify_tournament_approval','notify_match_schedule','notify_match_reminders','notify_ratings','notify_open_play_registration','notify_open_play_payment','notify_event_updates'].concat(INCHARGE_SETTING_KEYS));
@@ -3967,6 +3982,57 @@ body.admin-app.role-ready #view-app{visibility:visible}
       };
       fr.readAsDataURL(f);
     };
+  });
+
+  function emailSettingsBody(){
+    var body={};
+    ['email_enabled','gmail_sender_email','gmail_client_id','gmail_client_secret'].forEach(function(k){
+      var el=$('#s-'+k); if(!el)return;
+      if(el.type==='password'&&!el.value.trim())return;
+      body[k]=el.type==='checkbox'?(el.checked?'1':'0'):el.value.trim();
+    });
+    return body;
+  }
+  var connectGmailBtn=$('#btn-connect-gmail');
+  if(connectGmailBtn)connectGmailBtn.onclick=async function(){
+    var popup=window.open('about:blank','pikolGmailOAuth','width=560,height=720,resizable=yes,scrollbars=yes');
+    if(!popup){toast('Allow pop-ups for this page, then press Connect Gmail again.','error');return;}
+    try{
+      busy(connectGmailBtn,true);
+      var saved=await api('/api/admin/settings',{method:'PUT',body:emailSettingsBody()});
+      SETTINGS=saved; updateGmailConnectionUi(saved);
+      var r=await api('/api/admin/email/google/auth-url',{method:'POST'});
+      var redirectField=$('#gmail-redirect-uri'); if(redirectField&&r.redirect_uri)redirectField.value=r.redirect_uri;
+      popup.location.href=r.url;
+      popup.focus();
+    }catch(e){
+      try{popup.close();}catch(_){}
+      toast(e.message,'error');
+    }finally{busy(connectGmailBtn,false);}
+  };
+  var disconnectGmailBtn=$('#btn-disconnect-gmail');
+  if(disconnectGmailBtn)disconnectGmailBtn.onclick=function(){
+    modal({title:'Disconnect Gmail',
+      body:'<p>This stops Gmail API email delivery until a Gmail account is connected again. Existing notification records are kept.</p>',
+      confirmText:'Disconnect',
+      onConfirm:function(){
+        return api('/api/admin/email/google/disconnect',{method:'POST'}).then(function(){
+          toast('Gmail disconnected.','success'); return loadSettings();
+        });
+      }});
+  };
+  window.addEventListener('message',function(e){
+    var apiOrigin='';
+    try{apiOrigin=new URL(API).origin;}catch(_){}
+    if(apiOrigin&&e.origin!==apiOrigin)return;
+    var d=e.data||{};
+    if(d.type!=='pikol:gmail-oauth')return;
+    if(d.ok){
+      toast(d.message||'Gmail connected.','success');
+      loadSettings();
+    }else{
+      toast(d.message||'Gmail connection failed.','error');
+    }
   });
 
   $('#btn-test-email').onclick = function () {
