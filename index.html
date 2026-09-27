@@ -1178,7 +1178,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
   }
   function settlementOf(b) {
     var fee = Number(b.amount || 0);
-    var paid = Number(b.reservation_paid || 0) + Number(b.game_paid || 0) + Number(b.credit_used || 0);
+    var paid = (String(b.payment_record_status || '') === 'verified' ? Number(b.payment_amount || 0) : 0) + Number(b.game_paid || 0) + Number(b.credit_used || 0);
     var balance = Math.max(0, fee - paid);
     return {
       game_fee: fee, total_paid: paid, balance: balance,
@@ -1225,8 +1225,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
       (b.payment_status === 'rejected' && b.payment_rejection_reason && b.status !== 'rejected'
         ? '<span class="list-sub is-danger">Payment rejected: ' + esc(b.payment_rejection_reason) + '</span>' : '') +
       '</span>' +
-      '<span class="list-col">' + money(b.amount) +
-      (Number(b.reservation_fee) > 0 ? '<br>fee ' + money(b.reservation_fee) : '') + '</span>' +
+      '<span class="list-col">' + money(b.amount) + '</span>' +
       '<span class="list-col">' + settlementText(b) + '</span>' +
       '<span class="list-end">' + statusBadge(b.status) + settleBadge(b) + (actions || '') + '</span></div>';
   }
@@ -1379,12 +1378,12 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
   }
   function renderBookings() {
     var today=ymd(new Date());
-    var rows=myBookings.filter(function(b){var upcoming=ACTIVE_STATUSES.indexOf(b.status)>-1&&b.booking_date>=today;if(bookingFilter==='payments')return Number(b.reservation_fee||0)>0||Number(b.amount||0)>0;return bookingFilter==='upcoming'?upcoming:!upcoming;});
+    var rows=myBookings.filter(function(b){var upcoming=ACTIVE_STATUSES.indexOf(b.status)>-1&&b.booking_date>=today;if(bookingFilter==='payments')return Number(b.amount||0)>0;return bookingFilter==='upcoming'?upcoming:!upcoming;});
     var selected=rows.filter(function(b){return Number(b.id)===selectedBookingId;})[0]||rows[0];
     if(selected)selectedBookingId=Number(selected.id);
     $('#bookings-list').innerHTML=rows.length?rows.map(function(b){return '<button type="button" class="booking-list-card'+(b===selected?' is-selected':'')+'" data-select-booking="'+b.id+'" aria-pressed="'+String(b===selected)+'"><span class="court-visual">'+courtPhoto(bookingCourt(b))+'</span><span class="booking-list-main"><strong>'+esc(b.court_name)+'</strong><span>▦ '+humanDate(b.booking_date)+'</span><span>◷ '+humanTime(b.start_time)+' – '+humanTime(b.end_time)+'</span><span>♟ '+esc(b.players||'—')+' players</span></span><span class="booking-list-end"><strong>'+money(b.amount)+'</strong>'+statusBadge(b.status)+(bookingFilter==='payments'?settleBadge(b):'')+'</span><span aria-hidden="true">›</span></button>';}).join(''):'<div class="empty"><strong>No '+(bookingFilter==='upcoming'?'upcoming bookings':bookingFilter==='payments'?'payments':'booking history')+' yet</strong>Your reservations will appear here.</div>';
     renderBookingDetail(selected);
-    $$('[data-filter]').forEach(function(el){var filter=el.dataset.filter,count=myBookings.filter(function(b){var upcoming=ACTIVE_STATUSES.indexOf(b.status)>-1&&b.booking_date>=today;return filter==='upcoming'?upcoming:filter==='history'?!upcoming:Number(b.reservation_fee||0)>0||Number(b.amount||0)>0;}).length;el.textContent=(filter==='upcoming'?'Upcoming':filter==='history'?'History':'Payments')+' ('+count+')';});
+    $$('[data-filter]').forEach(function(el){var filter=el.dataset.filter,count=myBookings.filter(function(b){var upcoming=ACTIVE_STATUSES.indexOf(b.status)>-1&&b.booking_date>=today;return filter==='upcoming'?upcoming:filter==='history'?!upcoming:Number(b.amount||0)>0;}).length;el.textContent=(filter==='upcoming'?'Upcoming':filter==='history'?'History':'Payments')+' ('+count+')';});
   }
   document.addEventListener('click', function (e) {
     var b = e.target.closest('[data-cancel]');
@@ -1781,7 +1780,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
 
   /* ---------- membership ---------- */
   function membershipStatusLabel(s){return ({active:'Active',pending_payment:'Awaiting payment',payment_review:'For review',expired:'Expired',cancelled:'Cancelled'})[s]||String(s||'').replace(/_/g,' ');}
-  function membershipBenefits(p){return '<div class="benefit-grid tiny"><span>'+Number(p.court_discount_percent||0)+'% court discount</span><span>'+Number(p.reservation_discount_percent||0)+'% reservation-fee discount</span><span>'+Number(p.tournament_discount_percent||0)+'% tournament discount</span><span>'+Number(p.open_play_discount_percent||0)+'% Open Play discount</span><span>'+Number(p.advance_booking_days||0)+' days advance booking</span><span>Up to '+Number(p.max_active_bookings||0)+' active bookings</span></div>';}
+  function membershipBenefits(p){return '<div class="benefit-grid tiny"><span>'+Number(p.court_discount_percent||0)+'% court discount</span><span>'+Number(p.tournament_discount_percent||0)+'% tournament discount</span><span>'+Number(p.open_play_discount_percent||0)+'% Open Play discount</span><span>'+Number(p.advance_booking_days||0)+' days advance booking</span><span>Up to '+Number(p.max_active_bookings||0)+' active bookings</span></div>';}
   function membershipPaymentDialog(membershipId,plan,methods,sourceBtn){
     if(sourceBtn&&sourceBtn.dataset.paymentDialogOpen==='1') return;
     if(sourceBtn){sourceBtn.dataset.paymentDialogOpen='1';sourceBtn.disabled=true;sourceBtn.dataset.originalText=sourceBtn.textContent;sourceBtn.textContent='Payment pending…';}
@@ -3201,7 +3200,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
   window.addEventListener('appinstalled',function(){setMarked(true);deferredPrompt=null;sync();});
   window.addEventListener('pageshow',sync);document.addEventListener('visibilitychange',function(){if(!document.hidden)sync();});
   if(btn)btn.addEventListener('click',async function(){if(!deferredPrompt)return;btn.disabled=true;try{await deferredPrompt.prompt();var c=await deferredPrompt.userChoice;if(c&&c.outcome==='accepted')setMarked(true);}catch(_){}deferredPrompt=null;btn.disabled=false;sync();});
-  if('serviceWorker' in navigator)window.addEventListener('load',function(){var reloading=false;navigator.serviceWorker.addEventListener('controllerchange',function(){if(reloading)return;reloading=true;location.reload();});navigator.serviceWorker.register('service-worker.js?v=45-realtime-hardening-v1',{scope:'./',updateViaCache:'none'}).then(function(reg){return reg.update();}).catch(function(){});});
+  if('serviceWorker' in navigator)window.addEventListener('load',function(){var reloading=false;navigator.serviceWorker.addEventListener('controllerchange',function(){if(reloading)return;reloading=true;location.reload();});navigator.serviceWorker.register('service-worker.js?v=47-membership-cleanup-v1',{scope:'./',updateViaCache:'none'}).then(function(reg){return reg.update();}).catch(function(){});});
   sync();
 })();
 </script>
