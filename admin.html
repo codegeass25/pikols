@@ -1089,7 +1089,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
   var SETTLE_LABEL = { paid: 'Fully paid', partially_paid: 'Partially paid', unpaid: 'Unpaid' };
   function settleOf(b) {
     var fee = Number(b.amount || 0);
-    var paid = Number(b.reservation_paid || 0) + Number(b.game_paid || 0);
+    var paid = Number(b.reservation_paid || 0) + Number(b.game_paid || 0) + Number(b.credit_used || 0);
     var balance = Math.max(0, fee - paid);
     return { fee: fee, paid: paid, balance: balance,
       status: paid <= 0 ? 'unpaid' : balance > 0.009 ? 'partially_paid' : 'paid' };
@@ -1126,9 +1126,10 @@ body.admin-app.role-ready #view-app{visibility:visible}
           '<div class="summary-row"><dt>Total game fee</dt><dd>' + esc(money(st.game_fee)) + '</dd></div>' +
           '<div class="summary-row"><dt>Reservation fee already paid</dt><dd>' + esc(money(st.reservation_paid)) + '</dd></div>' +
           '<div class="summary-row"><dt>Game payments recorded</dt><dd>' + esc(money(st.game_paid)) + '</dd></div>' +
-          '<div class="summary-row"><dt>Total paid</dt><dd>' + esc(money(st.total_paid)) + '</dd></div>' +
+          '<div class="summary-row"><dt>PIKOL Credit used</dt><dd>' + esc(money(st.credit_used || 0)) + '</dd></div>' +
+          '<div class="summary-row"><dt>Total funded</dt><dd>' + esc(money(st.total_paid)) + '</dd></div>' +
           '<div class="summary-row"><dt><strong>Remaining balance</strong></dt><dd><strong>' + esc(money(st.balance)) + '</strong></dd></div></dl>' +
-          '<p class="muted tiny mt-2">The reservation fee is deducted automatically and is never charged twice.</p>' +
+          '<p class="muted tiny mt-2">The reservation fee and any PIKOL Credit already used are deducted automatically and are never charged twice.</p>' +
           '<div class="table-wrap mt-3"><table class="data"><thead><tr><th>Type</th><th>Method</th><th>Amount</th><th>Provider</th><th>Status</th></tr></thead><tbody>' + ledger + '</tbody></table></div>' +
           (st.balance > 0.009
             ? '<div class="grid cols-2 mt-3" style="gap:0 12px">' +
@@ -1189,7 +1190,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
     if (b.status === 'confirmed' && isAdmin()) {
       act.push('<button class="btn btn-ghost btn-sm" data-status="completed" data-id="' + b.id + '">Complete</button>');
       act.push('<button class="btn btn-ghost btn-sm" data-status="no_show" data-id="' + b.id + '">No-show</button>');
-      act.push('<button class="btn btn-outline btn-sm" data-status="cancelled" data-id="' + b.id + '">Cancel</button>');
+      act.push('<button class="btn btn-outline btn-sm" data-venue-cancel="' + b.id + '">Venue Cancel / Resolve</button>');
     }
     return act;
   }
@@ -1274,7 +1275,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
         actions='<div class="action-panel review-actions"><strong>'+(isCash?'Cash collection':'Payment review')+'</strong><p class="tiny muted mt-2">'+(isCash?'Record only after cash is physically received.':'Compare the uploaded receipt with the manually entered reference before verifying.')+'</p><div class="field"><label class="label">Verification notes</label><textarea class="textarea" id="tx-review-notes" maxlength="400"></textarea></div><div class="row wrap"><button class="btn btn-success" data-tx-verify>'+(isCash?'Mark cash paid':'Mark paid')+'</button><button class="btn btn-danger" data-tx-reject>Reject</button></div></div>';
       } else actions='<p class="tiny muted">Current status: '+esc(TX_STATUS_LABEL[t.unified_status]||t.unified_status)+'</p>';
       var history=(t.client_history||[]).slice(0,8).map(function(h){return '<tr><td>'+esc(h.transaction_key)+'</td><td>'+esc(TX_TYPE_LABEL[h.transaction_type]||h.transaction_type)+'</td><td class="num">'+esc(money(h.amount))+'</td><td>'+esc(h.status)+'</td><td class="tiny">'+esc(txStamp(h.created_at))+'</td></tr>';}).join('');
-      var host=modal({title:'Payment review · '+(TX_TYPE_LABEL[t.transaction_type]||t.transaction_type)+' '+t.transaction_key,wide:true,cancelText:'Close',body:'<div class="grid cols-2 payment-review-grid"><div><div class="receipt-frame" id="tx-receipt"></div></div><div class="stack" style="gap:12px"><table class="data"><tbody><tr><td class="muted">Client</td><td>'+esc(t.client_name||'—')+'<div class="tiny muted">'+esc(t.client_email||'')+'</div></td></tr><tr><td class="muted">Item</td><td>'+esc(t.item_name||'—')+(t.division_name?' · '+esc(t.division_name):'')+'</td></tr><tr><td class="muted">Amount</td><td><strong>'+esc(money(t.amount_due))+'</strong></td></tr><tr><td class="muted">Method</td><td>'+esc(String(t.payment_method||'').toUpperCase())+'</td></tr><tr><td class="muted">Reference</td><td class="num">'+esc(t.reference_number||(isCash?'Cash collection':'—'))+'</td></tr><tr><td class="muted">Submitted</td><td>'+esc(txStamp(t.created_at))+'</td></tr><tr><td class="muted">Status</td><td>'+txBadge(TX_STATUS_LABEL[t.unified_status]||t.unified_status,TX_STATUS_CLASS[t.unified_status]||'badge-pending')+'</td></tr></tbody></table>'+txValidationBlock(t)+(history?'<details><summary class="tiny muted">Client payment history</summary><table class="data mt-2"><tbody>'+history+'</tbody></table></details>':'')+actions+'</div></div>'});
+      var host=modal({title:'Payment review · '+(TX_TYPE_LABEL[t.transaction_type]||t.transaction_type)+' '+t.transaction_key,wide:true,cancelText:'Close',body:'<div class="grid cols-2 payment-review-grid"><div><div class="receipt-frame" id="tx-receipt"></div></div><div class="stack" style="gap:12px"><table class="data"><tbody><tr><td class="muted">Client</td><td>'+esc(t.client_name||'—')+'<div class="tiny muted">'+esc(t.client_email||'')+'</div></td></tr><tr><td class="muted">Item</td><td>'+esc(t.item_name||'—')+(t.division_name?' · '+esc(t.division_name):'')+'</td></tr><tr><td class="muted">Amount</td><td><strong>'+esc(money(t.amount_due))+'</strong></td></tr><tr><td class="muted">Method</td><td>'+esc(String(t.payment_method||'').toUpperCase())+'</td></tr><tr><td class="muted">Reference</td><td class="num">'+esc(t.reference_number||(isCash?'Cash collection':'—'))+'</td></tr><tr><td class="muted">Submitted</td><td>'+esc(txStamp(t.created_at))+'</td></tr><tr><td class="muted">Status</td><td>'+txBadge(TX_STATUS_LABEL[t.unified_status]||t.unified_status,TX_STATUS_CLASS[t.unified_status]||'badge-pending')+'</td></tr>'+(t.cancellation_source?'<tr><td class="muted">Related service</td><td>Cancelled by '+esc(t.cancellation_source==='venue'?'Management / Venue':'Player')+(t.cancellation_resolution?'<div class="tiny muted">Resolution: '+esc(t.cancellation_resolution==='credit'?'PIKOL Credit issued':t.cancellation_resolution)+'</div>':'')+(t.cancellation_reason?'<div class="tiny muted">'+esc(t.cancellation_reason)+'</div>':'')+'</td></tr>':'')+'</tbody></table>'+txValidationBlock(t)+(history?'<details><summary class="tiny muted">Client payment history</summary><table class="data mt-2"><tbody>'+history+'</tbody></table></details>':'')+actions+'</div></div>'});
       if(isCash) $('#tx-receipt',host).innerHTML='<div class="cash-receipt-placeholder"><span>₱</span><strong>Cash</strong><small>No receipt upload required</small></div>';
       else if(t.has_receipt) txReceiptUrl(t.transaction_key).then(function(url){$('#tx-receipt',host).innerHTML='<a href="'+assetUrl(url)+'" target="_blank" rel="noopener"><img src="'+assetUrl(url)+'" alt="Payment receipt" /></a>';}).catch(function(e){$('#tx-receipt',host).innerHTML='<span class="muted tiny">'+esc(e.message)+'</span>';});
       else $('#tx-receipt',host).innerHTML='<span class="muted tiny">No receipt stored.</span>';
@@ -1958,9 +1959,23 @@ body.admin-app.role-ready #view-app{visibility:visible}
     var host = $('#trn-detail-view');
     $('#trn-back', host).onclick = function () { TRN_OPEN = null; loadTournaments(); };
     $('#trn-status', host).onchange = function () {
-      api('/api/admin/tournaments/' + t.id + '/status', { method: 'PUT', body: { status: this.value } })
+      var select=this,next=this.value;
+      if(next==='cancelled' && t.status!=='cancelled'){
+        return api('/api/admin/tournaments/'+t.id+'/cancellation-preview').then(function(preview){
+          var pending=Number(preview.pending_payment_reviews||0);
+          var body='<div class="alert alert-warning"><strong>No cash refunds.</strong> Funded active registrations will receive equivalent PIKOL Credit.</div>'+ 
+            '<dl class="summary-list"><div class="summary-row"><dt>Affected active registrations</dt><dd>'+Number(preview.affected||0)+'</dd></div>'+ 
+            '<div class="summary-row"><dt>Funded players to credit</dt><dd>'+Number(preview.funded_players||0)+'</dd></div>'+ 
+            '<div class="summary-row"><dt>PIKOL Credit to issue</dt><dd><strong>'+money(preview.credit_to_issue||0)+'</strong></dd></div>'+ 
+            '<div class="summary-row"><dt>Unpaid credit reservations to release</dt><dd>'+Number(preview.reserved_to_release||0)+'</dd></div></dl>'+ 
+            (pending?'<div class="alert alert-danger"><strong>Review payments first.</strong> '+pending+' payment submission(s) are still awaiting verification/rejection. Cancellation is blocked until these are resolved.</div>':'')+
+            '<div class="field"><label class="label" for="trn-cancel-reason">Cancellation reason</label><textarea class="textarea" id="trn-cancel-reason" maxlength="500" placeholder="Explain the unforeseen event"></textarea></div>';
+          return modal({title:'Cancel Tournament',locked:true,danger:true,confirmText:'Cancel & issue PIKOL Credit',body:body,onClose:function(){select.value=t.status;},onConfirm:function(h){var reason=$('#trn-cancel-reason',h).value.trim();if(reason.length<3)return Promise.reject(new Error('Cancellation reason is required.'));if(pending)return Promise.reject(new Error('Review or reject all pending Tournament payments before cancelling.'));return api('/api/admin/tournaments/'+t.id+'/status',{method:'PUT',body:{status:'cancelled',published:false,cancellation_reason:reason}}).then(function(out){var cr=out.cancellation_result||{};toast('Tournament cancelled. '+money(cr.credit_issued||0)+' PIKOL Credit issued to '+Number(cr.credited_players||0)+' player(s).','success');openTournament(t.id);loadDashboard();if(!$('#page-payments').classList.contains('hidden'))loadPayments();});}});
+        }).catch(function(err){select.value=t.status;toast(err.message,'error');});
+      }
+      api('/api/admin/tournaments/' + t.id + '/status', { method: 'PUT', body: { status: next } })
         .then(function () { toast('Tournament status updated.', 'success'); openTournament(t.id); })
-        .catch(function (e) { toast(e.message, 'error'); });
+        .catch(function (e) { select.value=t.status;toast(e.message, 'error'); });
     };
     $('#trn-publish', host).onclick = function () {
       api('/api/admin/tournaments/' + t.id + '/status', { method: 'PUT', body: { published: !t.published } })
@@ -2346,6 +2361,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
         ["Today's bookings", s.today_bookings || 0, 'calendar', 'bookings', 'Confirmed & completed'],
         ['Registered players', s.total_players || 0, 'people', 'players', 'Your club community'],
         ['Revenue collected', money(s.total_revenue), 'money', 'reports', 'Verified payments · all time'],
+        ['PIKOL Credit outstanding', money(s.pikol_credit_outstanding||0), 'money', 'reports', 'Unused player credit · not a cash refund'],
         ['Active courts', s.available_courts || 0, 'court', 'courts', 'Courts enabled for booking'],
         ['Payment reviews', s.pending_payments || 0, 'clock', 'payments', 'Submissions needing review']
       ] : [
@@ -2442,11 +2458,11 @@ body.admin-app.role-ready #view-app{visibility:visible}
     function rows(items) { return '<dl class="summary-list">' + items.map(function (item) { return '<div class="summary-row"><dt>' + esc(item[0]) + '</dt><dd>' + esc(item[1] == null ? '—' : item[1]) + '</dd></div>'; }).join('') + '</dl>'; }
     function section(icon, title, content) { return '<section class="detail-card"><h3 class="detail-card-head">' + adminIcon(icon) + esc(title) + '</h3>' + content + '</section>'; }
     return '<div class="booking-detail-intro"><span>Reference <strong>' + esc(b.reference) + '</strong></span>' + badge(b.status) + '</div><div class="booking-detail-grid">' +
-      section('court', 'Booking summary', rows([['Court',b.court_name],['Court amount',money(b.amount)],['Payment required',money(b.amount)]])) +
+      section('court', 'Booking summary', rows([['Court',b.court_name],['Court amount',money(b.amount)],['PIKOL Credit used',Number(b.credit_used||0)>0?money(b.credit_used):'—'],['Cash payment required',money(Math.max(0,Number(b.amount||0)-Number(b.credit_used||0)))]])) +
       section('user', 'Player information', rows([['Player',b.player_name],['Email',b.player_email],['Mobile',b.player_mobile || '—'],['Players',b.players]])) +
       section('calendar', 'Schedule details', rows([['Date',humanDate(b.booking_date)],['Time',humanTime(b.start_time) + ' – ' + humanTime(b.end_time)]])) +
       section('payments', 'Payment information', rows([['Method',String(b.payment_method || '—').toUpperCase()],['Payment status',String(b.payment_record_status || b.payment_status || 'none').replace(/_/g,' ')],['Payment amount',b.payment_amount == null ? '—' : money(b.payment_amount)]])) +
-      section('list', 'Booking notes', rows([['Created by',b.created_by || '—'],['Notes',b.notes || 'No additional notes.']])) + '</div>';
+      section('list', 'Booking notes', rows([['Created by',b.created_by || '—'],['Cancelled by',b.cancellation_source==='venue'?'Management / Venue':b.cancellation_source==='player'?'Player':'—'],['Cancellation reason',b.cancellation_reason||'—'],['Resolution',b.cancellation_resolution==='credit'?'PIKOL Credit issued':b.cancellation_resolution==='rebooked'?'Rebooked':b.cancellation_resolution||'—'],['Notes',b.notes || 'No additional notes.']])) + '</div>';
   }
 
   function loadBookings() {
@@ -2474,6 +2490,19 @@ body.admin-app.role-ready #view-app{visibility:visible}
   }
 
   document.addEventListener('click', function (e) {
+    var vc = e.target.closest('[data-venue-cancel]');
+    if (vc) {
+      var bk = BOOKINGS.filter(function(x){return x.id===Number(vc.dataset.venueCancel);})[0]; if(!bk)return;
+      var host=modal({title:'Venue Cancellation — '+bk.reference,locked:true,danger:true,confirmText:'Apply resolution',body:
+        '<div class="alert alert-warning"><strong>No cash refund.</strong> Choose how Management will make the affected player whole.</div>'+ 
+        '<div class="field"><label class="label" for="vc-reason">Reason</label><textarea class="textarea" id="vc-reason" maxlength="300" placeholder="e.g. unsafe court condition, maintenance, emergency closure"></textarea></div>'+ 
+        '<div class="field"><label class="label" for="vc-resolution">Resolution</label><select class="select" id="vc-resolution"><option value="rebook">Rebook Player</option><option value="credit">Issue PIKOL Credit</option></select></div>'+ 
+        '<div id="vc-rebook"><div class="field"><label class="label" for="vc-court">New court</label><select class="select" id="vc-court">'+COURTS.filter(function(c){return c.status==='active';}).map(function(c){return '<option value="'+c.id+'"'+(c.id===bk.court_id?' selected':'')+'>'+esc(c.name)+'</option>';}).join('')+'</select></div>'+ 
+        '<div class="grid cols-2"><div class="field"><label class="label" for="vc-date">New date</label><input class="input" id="vc-date" type="date" value="'+esc(bk.booking_date)+'"></div><div class="field"><label class="label" for="vc-time">New start time</label><input class="input" id="vc-time" type="time" step="900" value="'+esc(bk.start_time)+'"></div></div><p class="tiny muted">The original booking duration is preserved and the new schedule is clash-checked.</p></div>',
+        onConfirm:function(h){var reason=$('#vc-reason',h).value.trim(),resolution=$('#vc-resolution',h).value;if(reason.length<3)return Promise.reject(new Error('Enter the venue cancellation reason.'));var body={reason:reason,resolution:resolution};if(resolution==='rebook'){body.court_id=Number($('#vc-court',h).value);body.date=$('#vc-date',h).value;body.start_time=$('#vc-time',h).value;}return api('/api/admin/bookings/'+bk.id+'/venue-cancel',{method:'POST',body:body}).then(function(out){toast(resolution==='credit'?('Venue cancellation saved. '+money(out.credit_issued||0)+' PIKOL Credit issued.'):'Player rebooked successfully.','success');loadBookings();loadDashboard();if(!$('#page-payments').classList.contains('hidden'))loadPayments();});}});
+      function syncVc(){var credit=$('#vc-resolution',host).value==='credit';$('#vc-rebook',host).classList.toggle('hidden',credit);}
+      $('#vc-resolution',host).onchange=syncVc;syncVc();return;
+    }
     var st = e.target.closest('[data-status]');
     if (st) {
       var status = st.dataset.status, id = st.dataset.id;
@@ -2514,12 +2543,13 @@ body.admin-app.role-ready #view-app{visibility:visible}
           '</select></div><div class="field"><label class="label" for="rs-date">Date</label>' +
           '<input class="input" id="rs-date" type="date" value="' + esc(bk.booking_date) + '" /></div>' +
           '<div class="field"><label class="label" for="rs-time">Start time</label>' +
-          '<input class="input" id="rs-time" type="time" step="900" value="' + esc(bk.start_time) + '" /></div>',
+          '<input class="input" id="rs-time" type="time" step="900" value="' + esc(bk.start_time) + '" /></div>'+ 
+          '<div class="field"><label class="label" for="rs-reason">Reason for Management rebooking</label><textarea class="textarea" id="rs-reason" maxlength="300">Schedule changed by Management</textarea></div>',
         confirmText: 'Reschedule',
         onConfirm: function (host) {
           return api('/api/admin/bookings/' + bk.id + '/reschedule', {
             method: 'PUT',
-            body: { court_id: Number($('#rs-court', host).value), date: $('#rs-date', host).value, start_time: $('#rs-time', host).value }
+            body: { court_id: Number($('#rs-court', host).value), date: $('#rs-date', host).value, start_time: $('#rs-time', host).value, reason: $('#rs-reason',host).value.trim() }
           }).then(function () { toast('Booking rescheduled.', 'success'); loadBookings(); });
         }
       });
@@ -3047,12 +3077,14 @@ body.admin-app.role-ready #view-app{visibility:visible}
         ['Revenue collected', money(f.total_revenue), 'money', '', 'Verified within this period'],
         ['Active members', m.active || 0, 'people', '', 'Current active memberships'],
         ['Outstanding balance', money(f.outstanding_balance), 'clock', '', 'Bookings in this period'],
+        ['PIKOL Credit outstanding', money(f.pikol_credit_outstanding||0), 'money', '', 'Unused player credit · current balance'],
         ['Booked value', money(s.revenue), 'court', '', 'Confirmed & completed']
       ].map(adminMetric).join('');
       var details = $('#rp-breakdown');
       if (details) details.innerHTML = '<details class="admin-report-details"><summary>Financial &amp; booking breakdown</summary><dl class="admin-report-breakdown">' + [
         ['Booking fees collected', money(f.reservation_revenue)], ['Game payments collected', money(f.game_revenue)],
         ['Event fees collected', money(f.event_revenue)], ['Membership fees collected', money(f.membership_revenue)],
+        ['PIKOL Credit issued', money(f.pikol_credit_issued||0)], ['PIKOL Credit used', money(f.pikol_credit_used||0)], ['PIKOL Credit outstanding', money(f.pikol_credit_outstanding||0)],
         ['Confirmed bookings', s.confirmed || 0], ['Completed bookings', s.completed || 0],
         ['Cancelled bookings', s.cancelled || 0], ['No-show bookings', s.no_show || 0],
         ['Pending bookings', s.pending || 0], ['Rejected bookings', s.rejected || 0], ['Date range', d.from + ' → ' + d.to]
@@ -3197,7 +3229,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
         return '<tr><td>' + esc(r.full_name) + '<div class="tiny muted">' + esc(r.email || '') + '</div></td>' +
           '<td>' + esc(r.tournament_name) + '</td><td>' + esc(r.division_name) + '<div class="tiny muted">' + esc(r.match_type || '') + '</div></td>' +
           '<td>' + esc(r.team_name || '—') + (r.partner_name ? '<div class="tiny muted">with ' + esc(r.partner_name) + '</div>' : '') + '</td>' +
-          '<td class="num">' + esc(money(r.amount_due)) + '</td><td>' + payCell + '</td>' +
+          '<td class="num">' + esc(money(Number(r.gross_amount||0)||Number(r.amount_due||0)+Number(r.credit_used||0))) + (Number(r.credit_used||0)>0?'<div class="tiny muted">Credit '+esc(money(r.credit_used))+' · Cash '+esc(money(r.amount_due))+'</div>':'') + '</td><td>' + payCell + '</td>' +
           '<td>' + statusCell + '</td><td class="tiny">' + esc(r.registration_code || '—') + '</td>' +
           '<td class="row-actions">' + actions + '</td></tr>';
       }).join('') || '<tr><td colspan="9" class="muted">No registrations yet</td></tr>';
@@ -3374,18 +3406,26 @@ body.admin-app.role-ready #view-app{visibility:visible}
     }
     if (st) {
       var e2 = find(st.dataset.opStatus);
-      return modal({
-        title: 'Status & visibility', confirmText: 'Save',
-        body: '<div class="field"><label class="label" for="op-status">Status</label><select class="input" id="op-status">' +
-          ['draft', 'published', 'cancelled', 'completed'].map(function (s) {
-            return '<option value="' + s + '"' + (e2.status === s ? ' selected' : '') + '>' + s + '</option>';
-          }).join('') + '</select></div>' +
-          '<div class="field"><label class="label"><input type="checkbox" id="op-published"' + (e2.published ? ' checked' : '') + ' /> Visible to clients</label></div>',
-        onConfirm: function (h) {
-          return api('/api/admin/open-play/' + e2.id + '/status', {
-            method: 'PUT', body: { status: $('#op-status', h).value, published: $('#op-published', h).checked }
-          }).then(function () { toast('Status updated.', 'success'); loadOpenPlay(); });
-        }
+      return api('/api/admin/open-play/'+e2.id+'/cancellation-preview').catch(function(){return {affected:0,funded_players:0,credit_to_issue:0,reserved_to_release:0,pending_payment_reviews:0};}).then(function(preview){
+        var pending=Number(preview.pending_payment_reviews||0);
+        return modal({
+          title: 'Status & visibility', confirmText: 'Save',
+          body: '<div class="field"><label class="label" for="op-status">Status</label><select class="input" id="op-status">' +
+            ['draft', 'published', 'cancelled', 'completed'].map(function (s) {
+              return '<option value="' + s + '"' + (e2.status === s ? ' selected' : '') + '>' + s + '</option>';
+            }).join('') + '</select></div>' +
+            '<div class="field"><label class="label"><input type="checkbox" id="op-published"' + (e2.published ? ' checked' : '') + ' /> Visible to clients</label></div>'+ 
+            '<div class="field"><label class="label" for="op-cancel-reason">Cancellation reason <span class="tiny muted">(required when cancelling)</span></label><textarea class="textarea" id="op-cancel-reason" maxlength="500" placeholder="Explain the unforeseen event"></textarea></div>'+ 
+            '<div class="alert alert-info tiny"><strong>Venue cancellation preview:</strong> '+Number(preview.affected||0)+' active registration(s); '+Number(preview.funded_players||0)+' funded player(s); '+money(preview.credit_to_issue||0)+' PIKOL Credit to issue; '+Number(preview.reserved_to_release||0)+' unpaid reservation(s) to release.</div>'+ 
+            (pending?'<div class="alert alert-danger tiny"><strong>Review payments first.</strong> '+pending+' payment submission(s) are awaiting verification/rejection. Cancellation is blocked until these are resolved.</div>':'')+
+            '<div class="alert alert-info tiny">When Management cancels, funded registrations receive equivalent PIKOL Credit. No cash refund is issued.</div>',
+          onConfirm: function (h) {
+            var next=$('#op-status',h).value,reason=$('#op-cancel-reason',h).value.trim();if(next==='cancelled'&&e2.status!=='cancelled'&&reason.length<3)return Promise.reject(new Error('Cancellation reason is required.'));if(next==='cancelled'&&e2.status!=='cancelled'&&pending)return Promise.reject(new Error('Review or reject all pending Open Play payments before cancelling.'));
+            return api('/api/admin/open-play/' + e2.id + '/status', {
+              method: 'PUT', body: { status: next, published: next==='cancelled'?false:$('#op-published', h).checked, cancellation_reason: reason }
+            }).then(function (out) { var cr=out.cancellation_result||{};toast(next==='cancelled'?('Open Play cancelled. '+money(cr.credit_issued||0)+' PIKOL Credit issued.'):'Status updated.', 'success'); loadOpenPlay();loadDashboard();if(!$('#page-payments').classList.contains('hidden'))loadPayments(); });
+          }
+        });
       });
     }
     if (del) {
@@ -3414,7 +3454,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
           var pay = (r.payments || [])[(r.payments || []).length - 1];
           return '<tr><td>' + esc(r.client_name) + '</td><td class="tiny">' + esc(r.client_email || '') +
             '<div class="muted">' + esc(r.client_mobile || '') + '</div></td>' +
-            '<td class="num">' + esc(money(r.amount_due)) + '</td>' +
+            '<td class="num">' + esc(money(Number(r.gross_amount||0)||Number(r.amount_due||0)+Number(r.credit_used||0))) + (Number(r.credit_used||0)>0?'<div class="tiny muted">Credit '+esc(money(r.credit_used))+' · Cash '+esc(money(r.amount_due))+'</div>':'') + '</td>' +
             '<td>' + badge(PAY_LABEL[r.payment_status] || r.payment_status, PAY_BADGE[r.payment_status] || 'badge-pending') + '</td>' +
             '<td>' + badge(OPREG_LABEL[r.status] || r.status, r.status === 'confirmed' ? 'badge-approved' : r.status === 'rejected' ? 'badge-rejected' : 'badge-pending') +
             (r.payment_rejected ? '<div class="tiny muted">Not an active attendee · rejected payment</div>' : '') + '</td>' +
@@ -3607,7 +3647,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
   };
 
   /* ---------- In-Charge PWA push ---------- */
-  var ADMIN_SW_VERSION='37-booking-rules-midnight';
+  var ADMIN_SW_VERSION='43-pikol-credit-v1';
   var PUSH_PREP={reg:null,publicKey:null,serverStatus:null,ready:false,error:null,promise:null};
   function b64ToUint8(s){s=String(s||'').replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';var raw=atob(s),a=new Uint8Array(raw.length);for(var i=0;i<raw.length;i++)a[i]=raw.charCodeAt(i);return a;}
   function bytesEqual(a,b){if(!a||!b)return false;var x=new Uint8Array(a),y=new Uint8Array(b);if(x.length!==y.length)return false;for(var i=0;i<x.length;i++)if(x[i]!==y[i])return false;return true;}
@@ -4432,7 +4472,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
 
 <script>
 /* PIKOL_PWA_INSTALL_RUNTIME */
-(function(){'use strict';var btn=document.getElementById('pwa-install-admin'),deferredPrompt=null,KEY='pikol_admin_installed_v3';function ios(){return /iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);}function standalone(){return window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true;}function marked(){return localStorage.getItem(KEY)==='1';}function setMarked(v){if(v)localStorage.setItem(KEY,'1');else localStorage.removeItem(KEY);}function showIosGuide(){var g=document.getElementById('ios-pwa-guide');if(g)g.hidden=false;if(typeof toast==='function')toast('iPhone: Safari → Share → Add to Home Screen. Then open PIKOL Admin from the Home Screen icon.','error');}function sync(){if(!btn)return;if(standalone()){setMarked(true);btn.hidden=true;return;}if(ios()){btn.hidden=false;btn.textContent='Install Admin App on iPhone';return;}btn.textContent='Install Admin App';btn.hidden=!deferredPrompt||marked();}window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();deferredPrompt=e;if(!standalone())setMarked(false);sync();});window.addEventListener('appinstalled',function(){setMarked(true);deferredPrompt=null;sync();});window.addEventListener('pageshow',sync);document.addEventListener('visibilitychange',function(){if(!document.hidden)sync();});if(btn)btn.addEventListener('click',async function(){if(ios()){showIosGuide();return;}if(!deferredPrompt)return;btn.disabled=true;try{await deferredPrompt.prompt();var c=await deferredPrompt.userChoice;if(c&&c.outcome==='accepted')setMarked(true);}catch(_){}deferredPrompt=null;btn.disabled=false;sync();});if('serviceWorker' in navigator)window.addEventListener('load',function(){var reloading=false;navigator.serviceWorker.addEventListener('controllerchange',function(){if(reloading)return;reloading=true;location.reload();});navigator.serviceWorker.register('service-worker.js?v=37-booking-rules-midnight',{scope:'./',updateViaCache:'none'}).then(function(reg){return reg.update();}).catch(function(){});});sync();})();
+(function(){'use strict';var btn=document.getElementById('pwa-install-admin'),deferredPrompt=null,KEY='pikol_admin_installed_v3';function ios(){return /iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);}function standalone(){return window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true;}function marked(){return localStorage.getItem(KEY)==='1';}function setMarked(v){if(v)localStorage.setItem(KEY,'1');else localStorage.removeItem(KEY);}function showIosGuide(){var g=document.getElementById('ios-pwa-guide');if(g)g.hidden=false;if(typeof toast==='function')toast('iPhone: Safari → Share → Add to Home Screen. Then open PIKOL Admin from the Home Screen icon.','error');}function sync(){if(!btn)return;if(standalone()){setMarked(true);btn.hidden=true;return;}if(ios()){btn.hidden=false;btn.textContent='Install Admin App on iPhone';return;}btn.textContent='Install Admin App';btn.hidden=!deferredPrompt||marked();}window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();deferredPrompt=e;if(!standalone())setMarked(false);sync();});window.addEventListener('appinstalled',function(){setMarked(true);deferredPrompt=null;sync();});window.addEventListener('pageshow',sync);document.addEventListener('visibilitychange',function(){if(!document.hidden)sync();});if(btn)btn.addEventListener('click',async function(){if(ios()){showIosGuide();return;}if(!deferredPrompt)return;btn.disabled=true;try{await deferredPrompt.prompt();var c=await deferredPrompt.userChoice;if(c&&c.outcome==='accepted')setMarked(true);}catch(_){}deferredPrompt=null;btn.disabled=false;sync();});if('serviceWorker' in navigator)window.addEventListener('load',function(){var reloading=false;navigator.serviceWorker.addEventListener('controllerchange',function(){if(reloading)return;reloading=true;location.reload();});navigator.serviceWorker.register('service-worker.js?v=43-pikol-credit-v1',{scope:'./',updateViaCache:'none'}).then(function(reg){return reg.update();}).catch(function(){});});sync();})();
 </script>
 
 </body>

@@ -1,4 +1,4 @@
-const CACHE = 'pikol-v43-gmail-api-v1';
+const CACHE = 'pikol-v44-gmail-api-pikol-credit-v1';
 const SHELL = [
   './index.html','./admin.html','./scoring.html','./styles.css','./cards.js','./tournament-view.js','./config.js','./qr-lite.js',
   './admin-premium.css?v=28','./admin-premium.css','./admin-charts.js','./admin-charts.js?v=28-admin-reference','./booking-premium.css','./assets/booking/hero-court.jpg','./assets/booking/court-01.jpg','./assets/booking/court-02.jpg','./assets/booking/court-03.jpg',

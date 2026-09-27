@@ -553,6 +553,12 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
             <span class="list-sub">Plan, benefits, expiry and renewal</span></span>
           <span class="list-end"><span class="list-chevron">›</span></span>
         </button>
+        <button type="button" class="list-row is-clickable" data-panel="panel-credit">
+          <span class="list-lead">₱</span>
+          <span class="list-main"><span class="list-title">PIKOL Credit</span>
+            <span class="list-sub">Available credit and activity history</span></span>
+          <span class="list-end"><span class="list-chevron">›</span></span>
+        </button>
         <button type="button" class="list-row is-clickable" data-panel="panel-password">
           <span class="list-lead">🔐</span>
           <span class="list-main"><span class="list-title">Password &amp; security</span>
@@ -579,6 +585,11 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
           <section class="section-shell" id="rating-pending-card" style="display:none"></section>
           <section class="section-shell" id="rating-history-card" style="display:none"></section>
         </div>
+        <section class="section-shell hidden" id="panel-credit-box" data-panelbox="panel-credit">
+          <div class="spread" style="align-items:flex-start;gap:16px"><div><span class="eyebrow">PIKOL CREDIT</span><h2 class="section-title">Your reusable PIKOL Credit</h2><p class="muted tiny">Use available credit for Court Booking, Tournament Registration, and Open Play. It is not a cash refund.</p></div><strong id="credit-balance-display" style="font-size:28px">₱0.00</strong></div>
+          <div class="guide-status-grid mt-3"><div class="guide-status"><strong>Available</strong><span id="credit-available-display">₱0.00</span></div><div class="guide-status"><strong>Reserved at checkout</strong><span id="credit-reserved-display">₱0.00</span></div></div>
+          <h3 class="section-title mt-4" style="font-size:16px">Credit activity</h3><div class="list mt-3" id="credit-history"><div class="skeleton" style="height:80px"></div></div>
+        </section>
         <form class="form-section hidden" id="form-profile" data-panelbox="panel-profile">
           <h2 class="section-title" style="margin-bottom:16px">Account details</h2>
           <div class="field"><label class="label" for="pf-name">Full name</label><input class="input" id="pf-name" required /></div>
@@ -665,6 +676,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
 
   var TOKEN = localStorage.getItem('pb_token') || '';
   var USER = null, BRAND = {}, AVAIL = null, BOOKING_RULES = { open_time:'06:00', close_time:'22:00', evening_rate_start:'16:00', slot_minutes:60 };
+  var PIKOL_CREDIT = { balance:0, reserved:0, available:0, history:[] };
 
   var $ = function (s, r) { return (r || document).querySelector(s); };
   var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
@@ -813,7 +825,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
     { id:'refund', label:'Cancellation & No Refund', html:
       '<h3>Cancellation &amp; No-Refund Policy</h3>'+
       '<div class="terms-callout"><strong>Player-initiated cancellations and no-shows are non-refundable.</strong> If you cancel a confirmed reservation or do not appear for your booked schedule, payments already made will not be refunded.</div>'+
-      '<ul><li>Please check the date, court and time carefully before completing payment.</li><li>When you cancel, the schedule may be released for another player to book.</li><li>If the venue itself cannot honor the reservation because of a facility closure, emergency or another management-controlled reason, Management may arrange a reschedule or booking credit based on the situation.</li></ul>' },
+      '<ul><li>Please check the date, court and time carefully before completing payment.</li><li>When you cancel, the schedule may be released for another player to book.</li><li>If Management cannot honor a confirmed Court Booking because of a facility closure, emergency, unsafe court condition, maintenance or another venue-controlled circumstance, Management may rebook the reservation or issue equivalent <strong>PIKOL Credit</strong>. Cash refunds are not issued.</li><li>If Management cancels a Tournament or Open Play session, eligible funded registrations receive equivalent PIKOL Credit for future Court Booking, Tournament or Open Play use.</li></ul>' },
     { id:'dos', label:"Venue Do's", html:
       '<h3>Venue Do\'s</h3><ul><li>Arrive before your booked schedule and be ready to play on time.</li><li>Wear proper sports attire and suitable court shoes.</li><li>Use appropriate pickleball paddles, balls and equipment.</li><li>Respect other players, venue staff and nearby games.</li><li>Keep the court and surrounding areas clean.</li><li>Follow your confirmed court and schedule, and leave the court when your reserved time ends.</li><li>Report unsafe court conditions or damaged equipment to venue staff.</li></ul>' },
     { id:'donts', label:"Venue Don'ts", html:
@@ -874,9 +886,9 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
       '<span class="guide-kicker">Online Court Reservation</span><h3>How to book</h3><div class="guide-steps"><div class="guide-step"><div><strong>Date</strong>Choose <strong>Select Date</strong> or use <strong>Browse calendar</strong>.</div></div><div class="guide-step"><div><strong>Court</strong>Select a court. Use <strong>View Details</strong> if you want to review the court first.</div></div><div class="guide-step"><div><strong>Time</strong>Choose <strong>Start Time</strong> and <strong>End Time</strong>. The schedule must be a continuous available range.</div></div><div class="guide-step"><div><strong>Confirm</strong>Set the <strong>Number of Players</strong>, add <strong>Additional Notes (Optional)</strong>, check the <strong>Booking Summary</strong>, then choose <strong>Continue to Confirmation</strong>.</div></div></div>'+
       '<h4>Temporary payment hold</h4><p>When <strong>Complete Your Payment</strong> opens, your selected court and time are temporarily held for you. Finish the payment steps before the countdown reaches zero. If the hold expires, that schedule can become available to other players again.</p>'+
       '<h4>Payment</h4><p>Select the available Payment method, follow the instructions, enter the correct Reference number and upload the requested Receipt / screenshot. A payment marked <strong>under review</strong> is waiting for staff verification.</p>'+
-      '<div class="guide-callout"><strong>Cancellation reminder:</strong> player-initiated cancellations and no-shows are non-refundable.</div><div class="guide-actions"><button class="btn btn-primary btn-sm" type="button" data-help-goto="book">Open Book a Court</button></div>' },
+      '<div class="guide-callout"><strong>Cancellation reminder:</strong> player-initiated cancellations and no-shows are non-refundable. PIKOL Credit already used for a confirmed booking or registration is not restored.</div><div class="guide-actions"><button class="btn btn-primary btn-sm" type="button" data-help-goto="book">Open Book a Court</button></div>' },
     {id:'games',label:'My Games',html:
-      '<span class="guide-kicker">My Games / My Bookings</span><h3>Track your reservations</h3><p>On mobile, the navigation says <strong>My Games</strong>. Inside the page, the title is <strong>My Bookings</strong>.</p><ul><li><strong>Upcoming</strong> shows active or future reservations.</li><li><strong>History</strong> shows previous, completed or cancelled bookings.</li><li><strong>Payments</strong> helps you review payment-related booking information.</li><li>Open a booking to review its court, schedule, booking reference and current status.</li><li>If the site shows <strong>Complete payment</strong>, follow the payment screen before the temporary hold expires.</li><li>Use <strong>Cancel Booking</strong> only when you really want to release the reservation. The No-Refund Policy still applies to player-initiated cancellations.</li></ul><div class="guide-actions"><button class="btn btn-primary btn-sm" type="button" data-help-goto="bookings">Open My Bookings</button></div>' },
+      '<span class="guide-kicker">My Games / My Bookings</span><h3>Track your reservations</h3><p>On mobile, the navigation says <strong>My Games</strong>. Inside the page, the title is <strong>My Bookings</strong>.</p><ul><li><strong>Upcoming</strong> shows active or future reservations.</li><li><strong>History</strong> shows previous, completed or cancelled bookings.</li><li><strong>Payments</strong> helps you review payment-related booking information.</li><li>Open a booking to review its court, schedule, booking reference and current status.</li><li>If the site shows <strong>Complete payment</strong>, follow the payment screen before the temporary hold expires.</li><li>Use <strong>Cancel Booking</strong> only when you really want to release the reservation. The No-Refund Policy still applies: verified payments remain collected and PIKOL Credit already used is not restored.</li></ul><div class="guide-actions"><button class="btn btn-primary btn-sm" type="button" data-help-goto="bookings">Open My Bookings</button></div>' },
     {id:'events',label:'Events & Rating',html:
       '<span class="guide-kicker">Tournaments, Open Play &amp; Stars</span><h3>Events &amp; Registrations</h3><p>Use <strong>Events</strong> to browse <strong>Tournaments</strong>, <strong>Open Play</strong> and <strong>My registrations</strong>. Tournament pages also show <strong>My matches</strong> when you have scheduled matches.</p>'+
       '<h4>Star-Based Tournament Rating</h4><p>Your star rating comes only from <strong>completed Tournament matches</strong>. Normal court bookings and Open Play do not add stars to your Tournament Rating.</p><ul><li>After a completed Tournament match, you may rate opponents you actually played against from <strong>1 ★ to 5 ★</strong>.</li><li>You cannot rate yourself, and in Doubles you rate the opposing players—not your teammate.</li><li>Each opponent can be rated only once for that match.</li><li>The rating opportunity stays available for <strong>30 days</strong> after the match is completed.</li><li>Valid submitted ratings become <strong>Verified ratings</strong>.</li></ul>'+
@@ -885,7 +897,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
       '<div class="guide-status-grid"><div class="guide-status"><strong>Not Enough Evidence</strong><span>No verified rating evidence yet.</span></div><div class="guide-status"><strong>Collecting Ratings</strong><span>You have verified ratings but still need more.</span></div><div class="guide-status"><strong>Promotion Pending</strong><span>You have enough evidence and an average of 4.20 or higher, where a higher division exists.</span></div><div class="guide-status"><strong>Demotion Pending</strong><span>You have enough evidence and an average below 2.50, where a lower division exists.</span></div><div class="guide-status"><strong>Eligible for Evaluation</strong><span>You have enough evidence for Management review.</span></div></div>'+
       '<p><strong>Your division does not change automatically.</strong> Management reviews the rating evidence and confirms the final division update.</p><p><strong>Pending Tournament Ratings</strong> shows opponents you still need to rate. <strong>My Tournament Rating History</strong> shows the ratings you submitted and their Verified status.</p><div class="guide-actions"><button class="btn btn-primary btn-sm" type="button" data-help-goto="profile" data-help-panel="panel-rating">Open My rating</button><button class="btn btn-outline btn-sm" type="button" data-help-goto="tournaments">Open Events</button></div>' },
     {id:'account',label:'Membership & Account',html:
-      '<span class="guide-kicker">Membership, Notifications &amp; Account</span><h3>Membership</h3><ul><li><strong>Available Plans</strong> shows plans currently offered by the club.</li><li><strong>Current Membership</strong> shows your current plan and status.</li><li><strong>Benefits</strong> explains the benefits configured for the selected plan.</li></ul><h3>Notifications</h3><p>The bell opens <strong>Notifications</strong>, where you can review Booking, Payment, Event, Tournament, Membership and Player Rating updates. Some updates may also be sent through the club\'s configured email, SMS or app notifications.</p><h3>My Profile</h3><ul><li><strong>Personal information</strong> — name and mobile number.</li><li><strong>My Bookings</strong> — your court reservations.</li><li><strong>My Matches</strong> — your Tournament match area.</li><li><strong>My rating</strong> — Tournament expertise, Verified ratings, Official Division and rating history.</li><li><strong>Password &amp; security</strong> — update your password.</li><li><strong>Account settings</strong> — appearance, Help &amp; User Guide, Terms &amp; Venue Rules, and Sign out.</li></ul><h4>Install Booking App</h4><p>If <strong>Install Booking App</strong> appears on your device, you may install the Booking Site on your Home Screen or desktop for quicker access.</p><div class="guide-actions"><button class="btn btn-primary btn-sm" type="button" data-help-goto="membership">Open Membership</button><button class="btn btn-outline btn-sm" type="button" data-help-goto="notifications">Open Notifications</button></div>' },
+      '<span class="guide-kicker">Membership, Notifications &amp; Account</span><h3>Membership</h3><ul><li><strong>Available Plans</strong> shows plans currently offered by the club.</li><li><strong>Current Membership</strong> shows your current plan and status.</li><li><strong>Benefits</strong> explains the benefits configured for the selected plan.</li></ul><h3>Notifications</h3><p>The bell opens <strong>Notifications</strong>, where you can review Booking, Payment, Event, Tournament, Membership and Player Rating updates. Some updates may also be sent through the club\'s configured email, SMS or app notifications.</p><h3>My Profile</h3><ul><li><strong>Personal information</strong> — name and mobile number.</li><li><strong>My Bookings</strong> — your court reservations.</li><li><strong>My Matches</strong> — your Tournament match area.</li><li><strong>My rating</strong> — Tournament expertise, Verified ratings, Official Division and rating history.</li><li><strong>Password &amp; security</strong> — update your password.</li><li><strong>PIKOL Credit</strong> — your reusable credit balance and activity. It can be used for Court Booking, Tournament and Open Play, but not Membership.</li><li><strong>Account settings</strong> — appearance, Help &amp; User Guide, Terms &amp; Venue Rules, and Sign out.</li></ul><h4>How PIKOL Credit works</h4><ul><li>Use all or part of your available credit at checkout.</li><li>If credit covers the whole fee, no receipt upload is needed.</li><li>Player cancellation does not restore credit already used.</li><li>When Management cannot honor a funded service, eligible value is returned as PIKOL Credit instead of a cash refund.</li></ul><h4>Install Booking App</h4><p>If <strong>Install Booking App</strong> appears on your device, you may install the Booking Site on your Home Screen or desktop for quicker access.</p><div class="guide-actions"><button class="btn btn-primary btn-sm" type="button" data-help-goto="membership">Open Membership</button><button class="btn btn-outline btn-sm" type="button" data-help-goto="notifications">Open Notifications</button></div>' },
     {id:'terms',label:'Terms & Rules',html:
       '<span class="guide-kicker">Booking Terms &amp; Venue Rules</span><h3>Review the rules any time</h3><p>You can revisit the same booking, cancellation, no-refund and venue rules here even after you have accepted them.</p><div id="guide-terms-holder"></div><div class="guide-meta" id="guide-terms-meta"></div>' }
   ];
@@ -1076,13 +1088,27 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
     }).then(function (data) { onAuth(data); toast('Account created. Welcome!', 'success'); });
   });
 
+  function renderPikolCredit() {
+    var bal=$('#credit-balance-display'),avail=$('#credit-available-display'),reserved=$('#credit-reserved-display'),hist=$('#credit-history');
+    if(bal)bal.textContent=money(PIKOL_CREDIT.balance||0); if(avail)avail.textContent=money(PIKOL_CREDIT.available||0); if(reserved)reserved.textContent=money(PIKOL_CREDIT.reserved||0);
+    if(hist){var rows=PIKOL_CREDIT.history||[];hist.innerHTML=rows.length?rows.map(function(x){var plus=Number(x.delta||0)>0;return '<div class="list-row is-compact"><span class="list-lead is-plain">'+(plus?'+':'−')+'</span><span class="list-main"><span class="list-title">'+esc(x.reason||(plus?'PIKOL Credit added':'PIKOL Credit used'))+'</span><span class="list-sub">'+esc(x.source_ref||x.source_type||'PIKOL')+' · '+esc((x.created_at||'').slice(0,10))+(x.status==='reserved'?' · Reserved':'')+'</span></span><span class="list-end"><strong>'+(plus?'+':'−')+money(Math.abs(Number(x.delta||0)))+'</strong></span></div>';}).join(''):'<div class="empty"><strong>No PIKOL Credit activity yet</strong>Eligible venue cancellations can create credit for future play.</div>';}
+  }
+  function loadPikolCredit() {
+    if(!TOKEN||!USER){PIKOL_CREDIT={balance:0,reserved:0,available:0,history:[]};renderPikolCredit();return Promise.resolve(PIKOL_CREDIT);}
+    return api('/api/credits/me').then(function(c){PIKOL_CREDIT=c||{balance:0,reserved:0,available:0,history:[]};renderPikolCredit();return PIKOL_CREDIT;}).catch(function(){return PIKOL_CREDIT;});
+  }
+  function creditChoiceHtml(fee,id) {
+    var available=Number(PIKOL_CREDIT.available||0),eligible=Math.min(Math.max(0,Number(fee)||0),available);
+    if(!(eligible>0.009))return '';
+    return '<label class="terms-check mt-3" style="align-items:flex-start"><input type="checkbox" id="'+id+'"/><span><strong>Use PIKOL Credit</strong><br><span class="tiny muted">Available '+money(available)+' · Up to '+money(eligible)+' can be applied to this fee.</span></span></label>';
+  }
   function onAuth(data) {
     TOKEN = data.token; USER = data.user;
     localStorage.setItem('pb_token', TOKEN);
     showApp();
   }
   function signOutLocal() {
-    TOKEN='';USER=null;CURRENT_MEMBERSHIP=null;myBookings=[];NOTIFS=[];afterAuth=null;
+    TOKEN='';USER=null;CURRENT_MEMBERSHIP=null;myBookings=[];NOTIFS=[];afterAuth=null;PIKOL_CREDIT={balance:0,reserved:0,available:0,history:[]};renderPikolCredit();
     localStorage.removeItem('pb_token');setBell(0);
     $('#modal-root').innerHTML='';
     $('#form-profile').reset();$('#form-password').reset();
@@ -1152,7 +1178,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
   }
   function settlementOf(b) {
     var fee = Number(b.amount || 0);
-    var paid = Number(b.reservation_paid || 0) + Number(b.game_paid || 0);
+    var paid = Number(b.reservation_paid || 0) + Number(b.game_paid || 0) + Number(b.credit_used || 0);
     var balance = Math.max(0, fee - paid);
     return {
       game_fee: fee, total_paid: paid, balance: balance,
@@ -1369,7 +1395,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
       locked: true,
       danger: true,
       body: '<p>Cancel <strong>' + esc(booking.court_name) + '</strong> on ' + humanDate(booking.booking_date) +
-        ' at ' + humanTime(booking.start_time) + '?</p><p class="muted tiny">Reference ' + esc(booking.reference) + '. This cannot be undone.</p>',
+        ' at ' + humanTime(booking.start_time) + '?</p><div class="notice danger"><strong>No refund / no credit restoration</strong><p class="tiny">Because you are cancelling this confirmed booking, verified payments remain collected and any PIKOL Credit already used will not be returned.</p></div><p class="muted tiny">Reference ' + esc(booking.reference) + '. The court schedule will be released and this cannot be undone.</p>',
       confirmText: 'Cancel booking',
       cancelText: 'Keep booking',
       onConfirm: function () {
@@ -1624,6 +1650,8 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
     if (!AVAIL) return;
     var court = AVAIL.courts.filter(function (c) { return c.id === sel.court; })[0];
     if (!court || !sel.start || !sel.end) return;
+    return loadPikolCredit().then(function(){
+    var estimatedFee=rangePricing(court,sel.start,sel.end).total;
     modal({
       title: 'Confirm your booking',
       wide:true,
@@ -1636,8 +1664,9 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
         '<div class="summary-row"><dt>Duration</dt><dd>' + esc((rangePricing(court,sel.start,sel.end).duration/60) + ' hour(s)') + '</dd></div>' +
         '<div class="summary-row"><dt>Full court fee</dt><dd><strong>' + esc(money(rangePricing(court,sel.start,sel.end).total)) + '</strong></dd></div></dl>' +
         (CURRENT_MEMBERSHIP?'<div class="alert alert-success mt-3"><strong>Member court discount applied</strong></div>':'') +
-        '<div class="terms-callout mt-3"><strong>Cancellation reminder:</strong> Player-initiated cancellations and no-shows are non-refundable.</div>' +
-        '<p class="field-hint mt-4">After submitting the request, pay the full court fee online and upload your proof. Staff confirms the booking after payment review.</p>',
+        '<div class="terms-callout mt-3"><strong>Cancellation reminder:</strong> Player-initiated cancellations and no-shows are non-refundable, and PIKOL Credit already used is not restored.</div>' +
+        creditChoiceHtml(estimatedFee,'bk-use-credit') +
+        '<p class="field-hint mt-4">If PIKOL Credit covers the full fee, your booking can confirm immediately. Otherwise, pay only the remaining amount and upload your proof for verification.</p>',
       confirmText: 'Confirm booking',
       cancelText: 'Go back',
       onConfirm: function () {
@@ -1645,16 +1674,18 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
           method: 'POST',
           body: {
             court_id: sel.court, date: sel.date, start_time: sel.start, end_time: sel.end,
-            players: Number($('#bk-players').value), notes: $('#bk-notes').value
+            players: Number($('#bk-players').value), notes: $('#bk-notes').value,
+            use_credit: !!($('#bk-use-credit')&&$('#bk-use-credit').checked)
           }
         }).then(function (b) {
-          toast('Time temporarily held for '+Number(b.checkout_hold_minutes||PAYCFG&&PAYCFG.checkout_hold_minutes||10)+' minutes. Complete payment before the timer expires.', 'success');
+          toast(b.payment_required ? ('Time temporarily held for '+Number(b.checkout_hold_minutes||PAYCFG&&PAYCFG.checkout_hold_minutes||10)+' minutes. Pay only '+money(b.cash_due)+' before the timer expires.') : 'Booking confirmed using PIKOL Credit.', 'success');
+          loadPikolCredit();
           $('#bk-notes').value = '';
           sel.start = null; sel.end = null;
           return loadAvailability().then(function () {
             return loadBookings().then(function () {
               goto('bookings');
-              setTimeout(function () { if(TOKEN&&USER)paymentDialog(b.id); }, 250);
+              if(b.payment_required)setTimeout(function () { if(TOKEN&&USER)paymentDialog(b.id); }, 250);
             });
           });
         }).catch(function (err) {
@@ -1663,6 +1694,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
           throw err;
         });
       }
+    });
     });
   };
 
@@ -1704,14 +1736,14 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
     Promise.all([(PAYCFG ? Promise.resolve(PAYCFG) : loadPayCfg()),api('/api/bookings/'+bookingId+'/hold',{method:'POST'})]).then(function (parts) {
       var b=parts[1];
       for(var k in b)localBooking[k]=b[k];
-      var fee = Number(b.amount || 0);
-      if(!fee){release();toast('No booking fee is due for this booking.','info');return;}
+      var fullFee = Number(b.amount || 0), creditUsed=Number(b.credit_used||0), fee = Math.max(0,fullFee-creditUsed);
+      if(!fee){release();toast('This booking is already fully covered by PIKOL Credit.','info');loadPikolCredit();return;}
       if(['payment_submitted','payment_verified','pending_approval','confirmed'].indexOf(b.status)>=0){release();toast('This booking is already in payment/approval processing.','info');loadBookings();return;}
       var expiry=Date.parse(b.hold_expires_at||''), serverNow=Date.parse(b.server_now||''), offset=isFinite(serverNow)?serverNow-Date.now():0;
       if(!isFinite(expiry)){release();toast('The payment hold could not be started. Please choose the time again.','error');return;}
       var options = (PAYCFG.methods || []).map(function (m) { return '<option value="' + esc(m.key) + '"'+(m.available===false?' disabled':'')+'>' + esc(m.label) + (m.available===false?' · setup incomplete':'') + '</option>'; }).join('');
       var dlg = modal({ title:'Full booking payment', locked:true, wide:true,onClose:release,
-        body:'<div class="checkout-hold-banner" id="pm-hold-banner"><div class="checkout-hold-copy"><strong>Time slot temporarily held</strong><span class="tiny">'+esc(b.court_name)+' · '+humanDate(b.booking_date)+' · '+humanTime(b.start_time)+'–'+humanTime(b.end_time)+'</span></div><span class="checkout-hold-count" id="pm-hold-count">--:--</span></div><div class="payment-checkout"><div class="payment-summary-card"><span class="eyebrow">BOOKING</span><strong class="num">'+esc(b.reference)+'</strong><div>'+esc(b.court_name)+' · '+humanDate(b.booking_date)+' · '+humanTime(b.start_time)+'–'+humanTime(b.end_time)+'</div><div class="payment-total"><span>Full court fee</span><strong>'+esc(money(fee))+'</strong></div></div>'+ 
+        body:'<div class="checkout-hold-banner" id="pm-hold-banner"><div class="checkout-hold-copy"><strong>Time slot temporarily held</strong><span class="tiny">'+esc(b.court_name)+' · '+humanDate(b.booking_date)+' · '+humanTime(b.start_time)+'–'+humanTime(b.end_time)+'</span></div><span class="checkout-hold-count" id="pm-hold-count">--:--</span></div><div class="payment-checkout"><div class="payment-summary-card"><span class="eyebrow">BOOKING</span><strong class="num">'+esc(b.reference)+'</strong><div>'+esc(b.court_name)+' · '+humanDate(b.booking_date)+' · '+humanTime(b.start_time)+'–'+humanTime(b.end_time)+'</div><div class="payment-total"><span>Full court fee</span><strong>'+esc(money(fullFee))+'</strong></div>'+(creditUsed>0?'<div class="payment-total"><span>PIKOL Credit</span><strong>−'+esc(money(creditUsed))+'</strong></div>':'')+'<div class="payment-total"><span>Amount to pay</span><strong>'+esc(money(fee))+'</strong></div></div>'+ 
           '<div class="field"><label class="label" for="pm-method">Payment method</label><select class="select" id="pm-method">'+options+'</select></div><div id="pm-details"></div></div>',
         confirmText:'Submit payment', cancelText:'Later',
         onConfirm:function(h){
@@ -2155,7 +2187,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
 
   /* --------------------------- tournament registration ------------------------- */
   function openTournamentRegistration(tournamentId, tournamentName) {
-    return api('/api/tournaments/' + tournamentId + '/registration-info').then(function (info) {
+    return Promise.all([api('/api/tournaments/' + tournamentId + '/registration-info'),loadPikolCredit()]).then(function (parts) { var info=parts[0];
       if (!info.registration_open) return toast('Registration is closed for this tournament.', 'error');
       var open = info.divisions.filter(function (d) { return !d.full; });
       if (!open.length) return toast('All divisions are full.', 'error');
@@ -2200,6 +2232,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
           '<div class="s hidden" id="tr-partner-selected" style="font-weight:700"></div></div>' +
           '</div>' +
           '<div class="field"><label class="label" for="tr-notes">Notes for the organiser (optional)</label><textarea class="textarea" id="tr-notes" maxlength="400"></textarea></div>' +
+          creditChoiceHtml(Math.max.apply(null,eligibleOpen.map(function(d){return Number(d.entry_fee||d.fee||0);})), 'tr-use-credit') +
           '</div>',
         onConfirm: function (host) {
           var sel = $('#tr-division', host);
@@ -2222,7 +2255,8 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
               partner_email: Number(opt.dataset.size) > 1 && partner ? partner.email : '',
               partner_mobile: Number(opt.dataset.size) > 1 && partner ? partner.mobile : '',
               partner_user_id: Number(opt.dataset.size) > 1 && partner ? partner.id : null,
-              notes: $('#tr-notes', host).value
+              notes: $('#tr-notes', host).value,
+              use_credit: !!($('#tr-use-credit',host)&&$('#tr-use-credit',host).checked)
             }
           }).then(function (r) {
             /* When the previous payment was rejected the SAME registration is
@@ -2230,7 +2264,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
             toast(r.payment_retry
               ? 'Your previous payment attempt was not completed. Choose a payment method to continue.'
               : 'Registration submitted. It is pending admin approval.', r.payment_retry ? 'info' : 'success');
-            loadMyRegistrations();
+            loadMyRegistrations(); loadPikolCredit();
             if (r.payment_required) {
               openPaymentFlow({
                 eventType: 'tournament', registrationId: r.registration.id, amountDue: r.amount_due,
@@ -2330,7 +2364,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
     if (!join) return;
     if(!requirePlayer(function(){goto('openplay');var resume=document.createElement('button');resume.dataset.opJoin=join.dataset.opJoin;document.body.appendChild(resume);resume.click();resume.remove();}))return;
     var id = join.dataset.opJoin;
-    api('/api/open-play/' + id).then(function (e) {
+    Promise.all([api('/api/open-play/' + id),loadPikolCredit()]).then(function (parts) { var e=parts[0];
       if (eventEnded(e)) return toast('This Open Play event has already ended', 'error');
       modal({
         title: 'Join ' + e.title,
@@ -2339,16 +2373,17 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
           '<div class="s">' + esc(whenText(e.event_date, e.start_time, e.end_time)) + (e.location ? ' · ' + esc(e.location) : '') + '</div>' +
           '<div class="s">Entrance fee: <strong>' + money(e.entrance_fee) + '</strong></div>' +
           (e.capacity ? '<div class="s muted">' + e.slots_left + ' slot(s) left</div>' : '') +
+          creditChoiceHtml(Number(e.entrance_fee||0),'op-use-credit') +
           '<div class="field"><label class="label" for="op-notes">Notes (optional)</label><textarea class="textarea" id="op-notes" maxlength="300"></textarea></div>' +
           '</div>',
         onConfirm: function (host) {
-          return api('/api/open-play/' + e.id + '/register', { method: 'POST', body: { notes: $('#op-notes', host).value } })
+          return api('/api/open-play/' + e.id + '/register', { method: 'POST', body: { notes: $('#op-notes', host).value, use_credit: !!($('#op-use-credit',host)&&$('#op-use-credit',host).checked) } })
             .then(function (r) {
               toast(r.payment_retry
                 ? 'Your previous payment attempt was not completed. Choose a payment method to keep your slot.'
                 : r.payment_required ? 'Registered. Please complete your payment.' : 'Your slot is confirmed.',
                 r.payment_retry ? 'info' : 'success');
-              loadOpenPlay(); loadMyRegistrations();
+              loadOpenPlay(); loadMyRegistrations(); loadPikolCredit();
               if (r.payment_required) {
                 openPaymentFlow({
                   eventType: 'open_play', registrationId: r.registration.id, amountDue: r.amount_due,
@@ -2376,7 +2411,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
           'data-pay-name="' + esc(name) + '" data-pay-sub="' + esc(subtitle || '') + '">' + label + '</button>';
       }
     }
-    if (r.is_active) {
+    if (r.can_cancel || r.is_active) {
       pay += (pay ? ' ' : '') + '<button class="btn btn-outline btn-sm" data-cancel-registration="' + eventType + ':' + r.id + '">Cancel</button>';
     }
     return pay;
@@ -2396,7 +2431,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
           (r.status === 'disapproved' && r.rejection_reason ? '<span class="list-sub is-danger">Reason: ' + esc(r.rejection_reason) + '</span>' : '') +
           (pay && pay.status === 'rejected' && pay.rejection_reason ? '<span class="list-sub is-danger">Receipt issue: ' + esc(pay.rejection_reason) + '</span>' : '') +
           '</span>' +
-          '<span class="list-col">Fee ' + money(r.amount_due) + '</span>' +
+          '<span class="list-col">Fee ' + money(Number(r.gross_amount||0)||Number(r.amount_due||0)+Number(r.credit_used||0)) + (Number(r.credit_used||0)>0?'<span class="list-sub">Credit '+money(r.credit_used)+' · Due '+money(r.amount_due)+'</span>':'') + '</span>' +
           '<span class="list-col">' + esc(PAY_LABEL_C[r.payment_status] || r.payment_status) + '</span>' +
           '<span class="list-end">' +
           '<span class="badge badge-' + (r.status === 'approved' ? 'confirmed' : r.status === 'disapproved' ? 'rejected' : 'pending') + '">' +
@@ -2416,7 +2451,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
           (r.registration_code ? '<span class="list-sub">Code: ' + esc(r.registration_code) + '</span>' : '') +
           (pay && pay.status === 'rejected' && pay.rejection_reason ? '<span class="list-sub is-danger">Receipt issue: ' + esc(pay.rejection_reason) + '</span>' : '') +
           '</span>' +
-          '<span class="list-col">Fee ' + money(r.amount_due) + '</span>' +
+          '<span class="list-col">Fee ' + money(Number(r.gross_amount||0)||Number(r.amount_due||0)+Number(r.credit_used||0)) + (Number(r.credit_used||0)>0?'<span class="list-sub">Credit '+money(r.credit_used)+' · Due '+money(r.amount_due)+'</span>':'') + '</span>' +
           '<span class="list-col">' + esc(PAY_LABEL_C[r.payment_status] || r.payment_status) + '</span>' +
           '<span class="list-end">' +
           '<span class="badge badge-' + (r.status === 'confirmed' ? 'confirmed' : r.status === 'rejected' ? 'rejected' : 'pending') + '">' +
@@ -2446,11 +2481,11 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
         : '/api/open-play-registrations/' + id + '/cancel';
       return modal({
         title: 'Cancel ' + label, confirmText: 'Cancel registration', danger: true,
-        body: '<p class="muted">Are you sure you want to cancel this ' + label + '? The payment record will be retained for audit/history, but it will no longer appear in Admin → Transactions.</p>',
+        body: '<p class="muted">Are you sure you want to cancel this ' + label + '? If it is already funded/confirmed, verified payments remain collected and PIKOL Credit already used is not restored. If credit was only reserved for an unpaid registration, it is released back to your available balance.</p>',
         onConfirm: function () {
           return api(endpoint, { method: 'POST' }).then(function () {
             toast('Registration cancelled.', 'success');
-            loadMyRegistrations();
+            loadMyRegistrations(); loadPikolCredit();
             if (typeof loadOpenPlay === 'function') loadOpenPlay();
           }).catch(function (err) {
             toast(err.message || 'Registration could not be cancelled.', 'error');
@@ -2727,6 +2762,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
     var row = e.target.closest('[data-panel]');
     if (!row) return;
     openPanel(row.dataset.panel);
+    if(row.dataset.panel==='panel-credit')loadPikolCredit();
     if(row.dataset.panel==='panel-membership')goto('membership');
   });
   /* Server address configuration is not exposed to players. */
@@ -2885,7 +2921,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
   }
   function renderBookingDetail(b){
     var host=$('#booking-detail');if(!b){host.innerHTML='<div class="empty"><strong>Your booking details</strong>Select a reservation to see its details.</div>';return;}
-    host.innerHTML='<div class="court-visual">'+courtPhoto(bookingCourt(b))+'</div><div class="booking-detail-content"><div class="spread"><h2>Booking Details</h2>'+statusBadge(b.status)+'</div><dl class="summary-list">'+detailRow('Court',b.court_name)+detailRow('Date',humanDate(b.booking_date))+detailRow('Time',humanTime(b.start_time)+' – '+humanTime(b.end_time))+detailRow('Players',String(b.players||'—'))+detailRow('Court fee',money(b.amount))+detailRow('Reference',b.reference)+detailRow('Payment status',SETTLE_LABEL[settlementOf(b).status])+'</dl>'+settlementLine(b)+(b.notes?'<p class="tiny muted">'+esc(b.notes)+'</p>':'')+(b.rejection_reason?'<p class="is-danger">'+esc(b.rejection_reason)+'</p>':'')+(b.payment_rejection_reason?'<p class="is-danger">Payment: '+esc(b.payment_rejection_reason)+'</p>':'')+'<div class="booking-detail-actions">'+bookingActions(b)+'</div></div>';
+    host.innerHTML='<div class="court-visual">'+courtPhoto(bookingCourt(b))+'</div><div class="booking-detail-content"><div class="spread"><h2>Booking Details</h2>'+statusBadge(b.status)+'</div><dl class="summary-list">'+detailRow('Court',b.court_name)+detailRow('Date',humanDate(b.booking_date))+detailRow('Time',humanTime(b.start_time)+' – '+humanTime(b.end_time))+detailRow('Players',String(b.players||'—'))+detailRow('Court fee',money(b.amount))+(Number(b.credit_used||0)>0?detailRow('PIKOL Credit used',money(b.credit_used)):'')+detailRow('Reference',b.reference)+detailRow('Payment status',SETTLE_LABEL[settlementOf(b).status])+(b.cancellation_source?detailRow('Cancelled by',b.cancellation_source==='venue'?'Management / Venue':'Player'):'')+(b.cancellation_resolution&&b.cancellation_resolution!=='none'?detailRow('Resolution',b.cancellation_resolution==='credit'?'PIKOL Credit issued':'Rebooked'):'')+'</dl>'+settlementLine(b)+(b.notes?'<p class="tiny muted">'+esc(b.notes)+'</p>':'')+(b.rejection_reason?'<p class="is-danger">'+esc(b.rejection_reason)+'</p>':'')+(b.payment_rejection_reason?'<p class="is-danger">Payment: '+esc(b.payment_rejection_reason)+'</p>':'')+'<div class="booking-detail-actions">'+bookingActions(b)+'</div></div>';
   }
   function detailRow(label,value){return '<div class="summary-row"><dt>'+esc(label)+'</dt><dd>'+esc(value)+'</dd></div>';}
   document.addEventListener('click',function(e){var b=e.target.closest('[data-select-booking]');if(b){selectedBookingId=Number(b.dataset.selectBooking);renderBookings();}});
@@ -2949,7 +2985,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
     var gated=!!(USER&&USER.role==='player'&&USER.terms_required);
     if(gated)showTermsGate(function(){if(resume&&TOKEN===authToken&&USER)resume();});
     loadNotifications({preview:true});
-    Promise.all([loadMembership(),loadPayCfg().catch(function(){})]).then(function(){if(!gated&&resume&&TOKEN===authToken&&USER)resume();});
+    Promise.all([loadMembership(),loadPayCfg().catch(function(){}),loadPikolCredit()]).then(function(){if(!gated&&resume&&TOKEN===authToken&&USER)resume();});
     loadDashboard();RT.connect();
   }
 
@@ -3139,7 +3175,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
   window.addEventListener('appinstalled',function(){setMarked(true);deferredPrompt=null;sync();});
   window.addEventListener('pageshow',sync);document.addEventListener('visibilitychange',function(){if(!document.hidden)sync();});
   if(btn)btn.addEventListener('click',async function(){if(!deferredPrompt)return;btn.disabled=true;try{await deferredPrompt.prompt();var c=await deferredPrompt.userChoice;if(c&&c.outcome==='accepted')setMarked(true);}catch(_){}deferredPrompt=null;btn.disabled=false;sync();});
-  if('serviceWorker' in navigator)window.addEventListener('load',function(){var reloading=false;navigator.serviceWorker.addEventListener('controllerchange',function(){if(reloading)return;reloading=true;location.reload();});navigator.serviceWorker.register('service-worker.js?v=40-help-scroll-v2',{scope:'./',updateViaCache:'none'}).then(function(reg){return reg.update();}).catch(function(){});});
+  if('serviceWorker' in navigator)window.addEventListener('load',function(){var reloading=false;navigator.serviceWorker.addEventListener('controllerchange',function(){if(reloading)return;reloading=true;location.reload();});navigator.serviceWorker.register('service-worker.js?v=43-pikol-credit-v1',{scope:'./',updateViaCache:'none'}).then(function(reg){return reg.update();}).catch(function(){});});
   sync();
 })();
 </script>
