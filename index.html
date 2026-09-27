@@ -662,17 +662,9 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
 
   /* ---------- API base (configurable, never hard-coded for prod) ---------- */
   var DEFAULT_API = window.PIKOL_API_BASE || 'https://pikol.mdmsportal.uk';
-  var qsApi = new URLSearchParams(location.search).get('api');
-  if (qsApi) localStorage.setItem('pb_api_url', qsApi.replace(/\/+$/, ''));
-  var API = localStorage.getItem('pb_api_url');
-  if (API === 'https://api.mdmsportal.uk') {
-    API = DEFAULT_API;
-    localStorage.setItem('pb_api_url', API);
-  }
-  if (!API) {
-    var isLocal = /^(localhost|127\.0\.0\.1)$/i.test(location.hostname || '');
-    API = isLocal && location.origin && location.origin !== 'null' ? location.origin : DEFAULT_API;
-  }
+  var isLocal = /^(localhost|127\.0\.0\.1)$/i.test(location.hostname || '');
+  // Deployment configuration is trusted; URLs and persisted browser settings cannot redirect credentials.
+  var API = isLocal && location.origin && location.origin !== 'null' ? location.origin : DEFAULT_API;
 
   var TOKEN = localStorage.getItem('pb_token') || '';
   var USER = null, BRAND = {}, AVAIL = null, BOOKING_RULES = { open_time:'06:00', close_time:'22:00', evening_rate_start:'16:00', slot_minutes:60 };
@@ -762,8 +754,9 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
     var confirmBtn = $('[data-confirm]', host);
     if (confirmBtn) {
       confirmBtn.onclick = function () {
+        if (confirmBtn.disabled) return;
         busy(confirmBtn, true);
-        Promise.resolve(opts.onConfirm && opts.onConfirm(host))
+        Promise.resolve().then(function () { return opts.onConfirm && opts.onConfirm(host); })
           .then(function (r) { if (r !== false) close(); })
           .catch(function (e) { toast(e.message, 'error'); })
           .finally(function () { busy(confirmBtn, false); });
@@ -1061,8 +1054,9 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
     form.addEventListener('submit', function (e) {
       e.preventDefault();
       var btn = form.querySelector('button[type=submit]');
+      if (btn && btn.disabled) return;
       busy(btn, true);
-      Promise.resolve(fn()).catch(function (err) { toast(err.message, 'error'); })
+      Promise.resolve().then(fn).catch(function (err) { toast(err.message, 'error'); })
         .finally(function () { busy(btn, false); });
     });
   }
@@ -1436,8 +1430,8 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
     }
     $('#cal-days').innerHTML = html;
   }
-  $('#cal-prev').onclick = function () { calCursor.setMonth(calCursor.getMonth() - 1); renderCalendar(); };
-  $('#cal-next').onclick = function () { calCursor.setMonth(calCursor.getMonth() + 1); renderCalendar(); };
+  $('#cal-prev').onclick = function () { calCursor.setDate(1); calCursor.setMonth(calCursor.getMonth() - 1); renderCalendar(); };
+  $('#cal-next').onclick = function () { calCursor.setDate(1); calCursor.setMonth(calCursor.getMonth() + 1); renderCalendar(); };
   $('#cal-today').onclick = function () {
     calCursor = new Date(); sel.date = ymd(new Date()); sel.start = null; sel.end = null; sel.end = null; renderCalendar(); loadAvailability();
   };
@@ -1773,7 +1767,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
         }
         var secs=Math.ceil(remaining/1000),min=Math.floor(secs/60),sec=secs%60;if(count)count.textContent=String(min).padStart(2,'0')+':'+String(sec).padStart(2,'0');
       }
-      tick();holdTicker=setInterval(tick,250);
+      tick();if(!holdExpired)holdTicker=setInterval(tick,250);
       function sync(){ var info=methodInfo(sel.value); $('#pm-details',host).innerHTML=manualMethodPanel(info); var f=$('#pm-receipt',host); if(f)f.onchange=function(){var file=this.files&&this.files[0],box=$('#pm-receipt-preview',host);if(!file||!box)return;var rr=new FileReader();rr.onload=function(){box.classList.remove('hidden');box.innerHTML='<img src="'+rr.result+'" alt="Receipt preview" /><span>'+esc(file.name)+'</span>';};rr.readAsDataURL(file);}; }
       sel.onchange=sync; sync();
     }).catch(function(e){release();toast(e.message,'warning');if(/time range|time slot|processing|secured|expired/i.test(e.message||''))loadAvailability();});
@@ -3296,7 +3290,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
   window.addEventListener('appinstalled',function(){setMarked(true);deferredPrompt=null;sync();});
   window.addEventListener('pageshow',sync);document.addEventListener('visibilitychange',function(){if(!document.hidden)sync();});
   if(btn)btn.addEventListener('click',async function(){if(!deferredPrompt)return;btn.disabled=true;try{await deferredPrompt.prompt();var c=await deferredPrompt.userChoice;if(c&&c.outcome==='accepted')setMarked(true);}catch(_){}deferredPrompt=null;btn.disabled=false;sync();});
-  if('serviceWorker' in navigator)window.addEventListener('load',function(){var reloading=false;navigator.serviceWorker.addEventListener('controllerchange',function(){if(reloading)return;reloading=true;location.reload();});navigator.serviceWorker.register('service-worker.js?v=49-membership-benefits-v1',{scope:'./',updateViaCache:'none'}).then(function(reg){return reg.update();}).catch(function(){});});
+  if('serviceWorker' in navigator)window.addEventListener('load',function(){var reloading=false;navigator.serviceWorker.addEventListener('controllerchange',function(){if(reloading)return;reloading=true;location.reload();});navigator.serviceWorker.register('service-worker.js?v=51-audit-fixes-v1',{scope:'./',updateViaCache:'none'}).then(function(reg){return reg.update();}).catch(function(){});});
   sync();
 })();
 </script>

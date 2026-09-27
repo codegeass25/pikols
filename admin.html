@@ -902,17 +902,9 @@ body.admin-app.role-ready #view-app{visibility:visible}
   'use strict';
 
   var DEFAULT_API = window.PIKOL_API_BASE || 'https://pikol.mdmsportal.uk';
-  var qsApi = new URLSearchParams(location.search).get('api');
-  if (qsApi) localStorage.setItem('pb_api_url', qsApi.replace(/\/+$/, ''));
-  var API = localStorage.getItem('pb_api_url');
-  if (API === 'https://api.mdmsportal.uk') {
-    API = DEFAULT_API;
-    localStorage.setItem('pb_api_url', API);
-  }
-  if (!API) {
-    var isLocal = /^(localhost|127\.0\.0\.1)$/i.test(location.hostname || '');
-    API = isLocal && location.origin && location.origin !== 'null' ? location.origin : DEFAULT_API;
-  }
+  /* Only deployment configuration may choose where staff credentials are sent. */
+  var isLocal = /^(localhost|127\.0\.0\.1)$/i.test(location.hostname || '');
+  var API = isLocal && location.origin && location.origin !== 'null' ? location.origin : DEFAULT_API.replace(/\/+$/, '');
   var TOKEN = localStorage.getItem('pb_admin_token') || '';
   var USER = null, BRAND = {}, SETTINGS = {}, COURTS = [], PLAYERS = [], BOOKINGS = [];
 
@@ -1077,7 +1069,8 @@ body.admin-app.role-ready #view-app{visibility:visible}
     var icon = { confirmed: '✓', verified: '✓', rejected: '✕', cancelled: '✕', completed: '★' }[s] || '⏳';
     return '<span class="badge badge-' + cls + '" data-icon="' + icon + '">' + esc(STATUS_LABEL[s] || s) + '</span>';
   }
-  function badge(s) {
+  function badge(s, cls) {
+    if (cls) return '<span class="badge ' + esc(cls) + '">' + esc(s) + '</span>';
     if (STATUS_LABEL[s]) return statusBadge(s);
     return '<span class="badge badge-' + esc(s) + '" data-icon="' +
       ({ confirmed: '✓', active: '✓', sent: '✓', pending: '⏳', cancelled: '✕', rejected: '✕', failed: '✕',
@@ -3110,7 +3103,6 @@ body.admin-app.role-ready #view-app{visibility:visible}
     rejected: 'Rejected', cancelled: 'Cancelled', completed: 'Completed'
   };
 
-  function badge(text, cls) { return '<span class="badge ' + cls + '">' + esc(text) + '</span>'; }
   function dateCell(d) { return d ? humanDate(d) : '<span class="muted">TBA</span>'; }
   /* ---- centralized event datetime logic (local time, overnight aware) ---- */
   function parseLocalDateTime(date, time, addDays) {
@@ -3352,7 +3344,9 @@ body.admin-app.role-ready #view-app{visibility:visible}
   }
 
   function loadOpenPlay() {
-    return api('/api/admin/open-play').then(function (rows) {
+    return Promise.all([api('/api/admin/open-play'), api('/api/courts')]).then(function (results) {
+      var rows = results[0];
+      COURTS = results[1] || [];
       $('#openplay-body').innerHTML = rows.map(function (e) {
         var vis = e.published ? badge('Published', 'badge-approved') : badge('Hidden', 'badge-pending');
         return '<tr><td>' + esc(e.title) + (e.capacity ? '<div class="tiny muted">Capacity ' + e.capacity + '</div>' : '') + '</td>' +
@@ -3375,6 +3369,10 @@ body.admin-app.role-ready #view-app{visibility:visible}
   var OP_CACHE = [];
 
   $('#btn-new-openplay').onclick = function () {
+    var button = this;
+    busy(button, true);
+    return api('/api/courts').then(function (rows) {
+    COURTS = rows || [];
     var host = modal({
       title: 'New Open Play event', wide: true, confirmText: 'Create event', body: openPlayForm(),
       onConfirm: function (h) {
@@ -3384,6 +3382,8 @@ body.admin-app.role-ready #view-app{visibility:visible}
     });
     wirePosterUpload(host);
     wireOpenPlayAvailability(host, null);
+    }).catch(function (e) { toast(e.message, 'error'); })
+      .finally(function () { busy(button, false); });
   };
 
   $('#openplay-body').addEventListener('click', function (ev) {
@@ -3463,10 +3463,10 @@ body.admin-app.role-ready #view-app{visibility:visible}
         }).join('') || '<tr><td colspan="7" class="muted">No attendees yet</td></tr>') +
         '</tbody></table></div></section>';
       $('#op-regs-close').onclick = function () { OP_REGS_OPEN = null; box.classList.add('hidden'); box.innerHTML = ''; };
-      box.addEventListener('click', function (ev) {
+      box.onclick = function (ev) {
         var b = ev.target.closest('[data-op-receipt]');
         if (b) openPaymentModal(b.dataset.opReceipt, function () { loadOpenPlayRegistrations(id); });
-      });
+      };
       box.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }).catch(function (e) { toast(e.message, 'error'); });
   }
@@ -3498,7 +3498,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
     function field(id,label,value,min,max,step) { return '<div class="field"><label class="label" for="mp-'+id+'">'+label+'</label><input class="input" id="mp-'+id+'" type="number" min="'+min+'"'+(max!=null?' max="'+max+'"':'')+' step="'+(step||1)+'" value="'+Number(value)+'"></div>'; }
     return '<fieldset class="admin-form-section"><legend>Plan details</legend><div class="field"><label class="label" for="mp-name">Plan name</label><input class="input" id="mp-name" value="'+esc(p.name||'')+'" placeholder="e.g. Premier Player"></div><div class="grid cols-2">'+
       field('days','Duration (days)',p.duration_days||365,1)+field('price','Price ('+esc(SETTINGS.currency||'PHP')+')',p.price||0,0,null,'0.01')+'</div><div class="field"><label class="label" for="mp-desc">Description</label><textarea class="textarea" id="mp-desc" rows="2" placeholder="What makes this plan right for your players?">'+esc(p.description||'')+'</textarea></div></fieldset>'+
-      '<fieldset class="admin-form-section"><legend>Booking benefits</legend><div class="grid cols-2">'+field('court','Court discount %',p.court_discount_percent||0,0,100)+field('trn','Tournament discount %',p.tournament_discount_percent||0,0,100)+field('op','Open Play discount %',p.open_play_discount_percent||0,0,100)+field('advance','Advance booking days',p.advance_booking_days||14,0)+field('max','Max active bookings',p.max_active_bookings||5,1)+field('cancel','Cancellation window (hours)',p.cancellation_hours||4,0)+'</div></fieldset><label class="switch mt-3"><input type="checkbox" id="mp-active"'+((p.status||'active')==='active'?' checked':'')+'><span class="track"></span><span>Plan active / available to players</span></label>';
+      '<fieldset class="admin-form-section"><legend>Booking benefits</legend><div class="grid cols-2">'+field('court','Court discount %',p.court_discount_percent||0,0,100)+field('trn','Tournament discount %',p.tournament_discount_percent||0,0,100)+field('op','Open Play discount %',p.open_play_discount_percent||0,0,100)+field('advance','Advance booking days',p.advance_booking_days==null?14:p.advance_booking_days,0)+field('max','Max active bookings',p.max_active_bookings||5,1)+field('cancel','Cancellation window (hours)',p.cancellation_hours==null?4:p.cancellation_hours,0)+'</div></fieldset><label class="switch mt-3"><input type="checkbox" id="mp-active"'+((p.status||'active')==='active'?' checked':'')+'><span class="track"></span><span>Plan active / available to players</span></label>';
   }
   function readMembershipPlan(h){return{name:$('#mp-name',h).value.trim(),description:$('#mp-desc',h).value.trim(),price:Number($('#mp-price',h).value)||0,duration_days:Number($('#mp-days',h).value)||365,court_discount_percent:Number($('#mp-court',h).value)||0,tournament_discount_percent:Number($('#mp-trn',h).value)||0,open_play_discount_percent:Number($('#mp-op',h).value)||0,advance_booking_days:Number($('#mp-advance',h).value)||0,max_active_bookings:Number($('#mp-max',h).value)||1,cancellation_hours:Number($('#mp-cancel',h).value)||0,member_only_events:false,priority_waitlist:false,status:$('#mp-active',h).checked?'active':'inactive'};}
   function loadMembershipAdmin(){return Promise.all([api('/api/admin/membership-plans'),api('/api/admin/memberships')]).then(function(r){MEMBERSHIP_PLANS=r[0]||[];var memberships=r[1]||[],filter=($('#membership-status-filter')||{}).value||'all';$('#membership-plans-admin').innerHTML=MEMBERSHIP_PLANS.length?MEMBERSHIP_PLANS.map(function(p){return '<article class="membership-plan-card"><div class="spread"><span class="plan-icon">'+adminIcon('star')+'</span>'+badge(p.status)+'</div><h3>'+esc(p.name)+'</h3><p class="membership-plan-price">'+money(p.price)+'<small> / '+p.duration_days+' days</small></p><p class="tiny muted">'+esc(p.description||'Your next game, with more benefits.')+'</p><ul class="plan-benefits"><li>'+Number(p.court_discount_percent||0)+'% court discount</li><li>'+Number(p.tournament_discount_percent||0)+'% tournament discount</li><li>'+Number(p.open_play_discount_percent||0)+'% Open Play discount</li><li>'+Number(p.advance_booking_days||0)+'-day advance booking</li><li>Up to '+Number(p.max_active_bookings||0)+' active bookings</li></ul><button class="btn btn-outline btn-block" data-edit-membership-plan="'+p.id+'">Edit plan</button></article>';}).join(''):'<div class="empty">No membership plans yet.</div>';var rows=memberships.filter(function(m){return filter==='all'||m.status===filter;});$('#memberships-admin').innerHTML=rows.length?rows.map(function(m){return '<div class="list-row"><span class="list-main"><span class="list-title">'+esc(m.full_name)+' · '+esc(m.plan_name)+'</span><span class="list-sub">'+esc(m.email)+' · '+esc(m.status.replace(/_/g,' '))+(m.expires_at?' · expires '+esc(m.expires_at.slice(0,10)):'')+'</span></span><span class="list-end">'+badge(m.status)+'</span></div>';}).join(''):'<div class="empty">No memberships match this filter.</div>';});}
@@ -3647,7 +3647,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
   };
 
   /* ---------- In-Charge PWA push ---------- */
-  var ADMIN_SW_VERSION='47-membership-cleanup-v1';
+  var ADMIN_SW_VERSION='51-audit-fixes-v1';
   var PUSH_PREP={reg:null,publicKey:null,serverStatus:null,ready:false,error:null,promise:null};
   function b64ToUint8(s){s=String(s||'').replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';var raw=atob(s),a=new Uint8Array(raw.length);for(var i=0;i<raw.length;i++)a[i]=raw.charCodeAt(i);return a;}
   function bytesEqual(a,b){if(!a||!b)return false;var x=new Uint8Array(a),y=new Uint8Array(b);if(x.length!==y.length)return false;for(var i=0;i<x.length;i++)if(x[i]!==y[i])return false;return true;}
@@ -4476,9 +4476,8 @@ body.admin-app.role-ready #view-app{visibility:visible}
 
 <script>
 /* PIKOL_PWA_INSTALL_RUNTIME */
-(function(){'use strict';var btn=document.getElementById('pwa-install-admin'),deferredPrompt=null,KEY='pikol_admin_installed_v3';function ios(){return /iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);}function standalone(){return window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true;}function marked(){return localStorage.getItem(KEY)==='1';}function setMarked(v){if(v)localStorage.setItem(KEY,'1');else localStorage.removeItem(KEY);}function showIosGuide(){var g=document.getElementById('ios-pwa-guide');if(g)g.hidden=false;if(typeof toast==='function')toast('iPhone: Safari → Share → Add to Home Screen. Then open PIKOL Admin from the Home Screen icon.','error');}function sync(){if(!btn)return;if(standalone()){setMarked(true);btn.hidden=true;return;}if(ios()){btn.hidden=false;btn.textContent='Install Admin App on iPhone';return;}btn.textContent='Install Admin App';btn.hidden=!deferredPrompt||marked();}window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();deferredPrompt=e;if(!standalone())setMarked(false);sync();});window.addEventListener('appinstalled',function(){setMarked(true);deferredPrompt=null;sync();});window.addEventListener('pageshow',sync);document.addEventListener('visibilitychange',function(){if(!document.hidden)sync();});if(btn)btn.addEventListener('click',async function(){if(ios()){showIosGuide();return;}if(!deferredPrompt)return;btn.disabled=true;try{await deferredPrompt.prompt();var c=await deferredPrompt.userChoice;if(c&&c.outcome==='accepted')setMarked(true);}catch(_){}deferredPrompt=null;btn.disabled=false;sync();});if('serviceWorker' in navigator)window.addEventListener('load',function(){var reloading=false;navigator.serviceWorker.addEventListener('controllerchange',function(){if(reloading)return;reloading=true;location.reload();});navigator.serviceWorker.register('service-worker.js?v=47-membership-cleanup-v1',{scope:'./',updateViaCache:'none'}).then(function(reg){return reg.update();}).catch(function(){});});sync();})();
+(function(){'use strict';var btn=document.getElementById('pwa-install-admin'),deferredPrompt=null,KEY='pikol_admin_installed_v3';function ios(){return /iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);}function standalone(){return window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true;}function marked(){return localStorage.getItem(KEY)==='1';}function setMarked(v){if(v)localStorage.setItem(KEY,'1');else localStorage.removeItem(KEY);}function showIosGuide(){var g=document.getElementById('ios-pwa-guide');if(g)g.hidden=false;if(typeof toast==='function')toast('iPhone: Safari → Share → Add to Home Screen. Then open PIKOL Admin from the Home Screen icon.','error');}function sync(){if(!btn)return;if(standalone()){setMarked(true);btn.hidden=true;return;}if(ios()){btn.hidden=false;btn.textContent='Install Admin App on iPhone';return;}btn.textContent='Install Admin App';btn.hidden=!deferredPrompt||marked();}window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();deferredPrompt=e;if(!standalone())setMarked(false);sync();});window.addEventListener('appinstalled',function(){setMarked(true);deferredPrompt=null;sync();});window.addEventListener('pageshow',sync);document.addEventListener('visibilitychange',function(){if(!document.hidden)sync();});if(btn)btn.addEventListener('click',async function(){if(ios()){showIosGuide();return;}if(!deferredPrompt)return;btn.disabled=true;try{await deferredPrompt.prompt();var c=await deferredPrompt.userChoice;if(c&&c.outcome==='accepted')setMarked(true);}catch(_){}deferredPrompt=null;btn.disabled=false;sync();});if('serviceWorker' in navigator)window.addEventListener('load',function(){var reloading=false;navigator.serviceWorker.addEventListener('controllerchange',function(){if(reloading)return;reloading=true;location.reload();});navigator.serviceWorker.register('service-worker.js?v=51-audit-fixes-v1',{scope:'./',updateViaCache:'none'}).then(function(reg){return reg.update();}).catch(function(){});});sync();})();
 </script>
 
 </body>
 </html>
-
