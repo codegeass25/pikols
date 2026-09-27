@@ -898,3 +898,62 @@ body.player-app .booking-inputs .player-stepper .select { min-height: 31px; }
   body.player-app .modal, body.player-app .modal.wide { max-height: calc(100dvh - 16px); }
   body.player-app .modal-host { padding: 8px; }
 }
+
+/* Membership benefits clarity v49 */
+.player-app #membership-card { padding: 22px; }
+.player-app .standard-player-badge { background: #eef2f4; color: #2e4650; border: 1px solid #d6e0e4; }
+.player-app .member-benefit-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; margin-top:18px; }
+.player-app .member-benefit { min-width:0; padding:13px 14px; border:1px solid var(--border); border-radius:10px; background:var(--surface); display:grid; gap:4px; }
+.player-app .member-benefit span { color:var(--text-secondary); font-size:.68rem; font-weight:700; text-transform:uppercase; letter-spacing:.04em; }
+.player-app .member-benefit strong { font-size:1.16rem; letter-spacing:-.03em; }
+.player-app .member-benefit small { color:var(--text-secondary); font-size:.68rem; }
+.player-app .member-benefit.is-cutoff { background:#f5fae9; border-color:#d9e8ac; }
+.player-app .member-benefit.is-cutoff strong { font-size:1.34rem; }
+.player-app .standard-policy-note, .player-app .member-policy-note { margin-top:14px; padding:13px 15px; border-radius:10px; display:grid; gap:3px; background:#f3f7f8; border:1px solid #dce6e9; }
+.player-app .standard-policy-note strong, .player-app .member-policy-note strong { font-size:.82rem; }
+.player-app .standard-policy-note span, .player-app .member-policy-note span { color:var(--text-secondary); font-size:.72rem; line-height:1.55; }
+.player-app .active-membership-head { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; }
+.player-app .cutoff-hero { min-width:170px; padding:14px 16px; border-radius:12px; background:#003b2f; color:#fff; display:grid; gap:2px; text-align:right; }
+.player-app .cutoff-hero span { font-size:.6rem; font-weight:800; letter-spacing:.08em; opacity:.8; }
+.player-app .cutoff-hero strong { color:var(--premium-lime); font-size:1.5rem; line-height:1.05; }
+.player-app .cutoff-hero small { font-size:.64rem; opacity:.82; }
+.player-app .plans-heading, .player-app .comparison-heading { margin-bottom:14px; }
+.player-app .plans-heading .section-title, .player-app .comparison-heading .section-title { margin:4px 0 5px; }
+.player-app .benefit-grid .benefit-cutoff { margin-top:2px; padding:9px 10px; border-radius:8px; background:#f5fae9; border:1px solid #d9e8ac; color:#23452f; }
+.player-app .benefit-grid .benefit-cutoff::before { background:#173f32; }
+.player-app .benefit-grid .benefit-cutoff strong { font-weight:850; }
+.player-app .plan-cutoff-chip { margin-bottom:10px; padding:9px 10px; border-radius:9px; background:#edf6f4; border:1px solid #d5e7e2; display:grid; gap:1px; }
+.player-app .plan-cutoff-chip span { color:#58756d; font-size:.6rem; font-weight:800; text-transform:uppercase; letter-spacing:.05em; }
+.player-app .plan-cutoff-chip strong { font-size:.95rem !important; color:#113d32; }
+.player-app .membership-benefits-view { display:none; }
+.player-app #membership-plans-card.show-benefits .membership-plans-view { display:none; }
+.player-app #membership-plans-card.show-benefits .membership-benefits-view { display:block; }
+.player-app .membership-comparison-scroll { overflow-x:auto; border:1px solid var(--border); border-radius:12px; background:var(--surface); }
+.player-app .membership-comparison { width:100%; min-width:760px; border-collapse:collapse; font-size:.73rem; }
+.player-app .membership-comparison th, .player-app .membership-comparison td { padding:12px 13px; border-bottom:1px solid var(--border); text-align:center; vertical-align:middle; }
+.player-app .membership-comparison thead th { background:#f5f8f7; font-weight:800; }
+.player-app .membership-comparison thead th:first-child, .player-app .membership-comparison tbody th { text-align:left; }
+.player-app .membership-comparison th small { display:block; margin-top:4px; color:var(--text-secondary); font-size:.58rem; font-weight:500; }
+.player-app .membership-comparison .is-standard { background:#eef3f4; }
+.player-app .membership-comparison .is-cutoff-row th, .player-app .membership-comparison .is-cutoff-row td { background:#f7fbe9; font-weight:800; }
+.player-app .membership-comparison tr:last-child th, .player-app .membership-comparison tr:last-child td { border-bottom:0; }
+.player-app .comparison-legend { margin-top:11px; padding:11px 13px; border-radius:9px; background:#eef6f3; color:#35564d; font-size:.69rem; line-height:1.5; }
+
+[data-theme="dark"] .player-app .member-benefit, [data-theme="dark"] .player-app .membership-comparison-scroll { background:#203a32; }
+[data-theme="dark"] .player-app .member-benefit.is-cutoff, [data-theme="dark"] .player-app .membership-comparison .is-cutoff-row th, [data-theme="dark"] .player-app .membership-comparison .is-cutoff-row td, [data-theme="dark"] .player-app .benefit-grid .benefit-cutoff { background:#31462a; border-color:#56683f; color:#edf7dd; }
+[data-theme="dark"] .player-app .standard-policy-note, [data-theme="dark"] .player-app .member-policy-note, [data-theme="dark"] .player-app .plan-cutoff-chip, [data-theme="dark"] .player-app .comparison-legend { background:#234039; border-color:#36564d; color:#d9ece5; }
+[data-theme="dark"] .player-app .membership-comparison thead th { background:#274239; }
+[data-theme="dark"] .player-app .membership-comparison .is-standard { background:#2d4640; }
+
+@media (max-width: 760px) {
+  .player-app .member-benefit-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .player-app .active-membership-head { flex-direction:column; }
+  .player-app .cutoff-hero { width:100%; min-width:0; text-align:left; }
+}
+@media (max-width: 480px) {
+  .player-app #membership-card { padding:17px; }
+  .player-app .member-benefit-grid { grid-template-columns:1fr 1fr; gap:8px; }
+  .player-app .member-benefit { padding:11px; }
+  .player-app .member-benefit strong { font-size:1rem; }
+  .player-app .member-benefit.is-cutoff { grid-column:1 / -1; }
+}

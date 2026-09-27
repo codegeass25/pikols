@@ -14,7 +14,7 @@
 <script src="config.js"></script>
 <script src="tournament-view.js"></script>
 <link rel="stylesheet" href="styles.css" />
-<link rel="stylesheet" href="booking-premium.css" />
+<link rel="stylesheet" href="booking-premium.css?v=49-membership-benefits-v1" />
 <link rel="preload" as="image" href="assets/booking/hero-court.jpg" fetchpriority="high" />
 
 <style id="checkout-hold-style">
@@ -897,7 +897,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
       '<div class="guide-status-grid"><div class="guide-status"><strong>Not Enough Evidence</strong><span>No verified rating evidence yet.</span></div><div class="guide-status"><strong>Collecting Ratings</strong><span>You have verified ratings but still need more.</span></div><div class="guide-status"><strong>Promotion Pending</strong><span>You have enough evidence and an average of 4.20 or higher, where a higher division exists.</span></div><div class="guide-status"><strong>Demotion Pending</strong><span>You have enough evidence and an average below 2.50, where a lower division exists.</span></div><div class="guide-status"><strong>Eligible for Evaluation</strong><span>You have enough evidence for Management review.</span></div></div>'+
       '<p><strong>Your division does not change automatically.</strong> Management reviews the rating evidence and confirms the final division update.</p><p><strong>Pending Tournament Ratings</strong> shows opponents you still need to rate. <strong>My Tournament Rating History</strong> shows the ratings you submitted and their Verified status.</p><div class="guide-actions"><button class="btn btn-primary btn-sm" type="button" data-help-goto="profile" data-help-panel="panel-rating">Open My rating</button><button class="btn btn-outline btn-sm" type="button" data-help-goto="tournaments">Open Events</button></div>' },
     {id:'account',label:'Membership & Account',html:
-      '<span class="guide-kicker">Membership, Notifications &amp; Account</span><h3>Membership</h3><ul><li><strong>Available Plans</strong> shows plans currently offered by the club.</li><li><strong>Current Membership</strong> shows your current plan and status.</li><li><strong>Benefits</strong> explains the benefits configured for the selected plan.</li></ul><h3>Notifications</h3><p>The bell opens <strong>Notifications</strong>, where you can review Booking, Payment, Event, Tournament, Membership and Player Rating updates. Some updates may also be sent through the club\'s configured email, SMS or app notifications.</p><h3>My Profile</h3><ul><li><strong>Personal information</strong> — name and mobile number.</li><li><strong>My Bookings</strong> — your court reservations.</li><li><strong>My Matches</strong> — your Tournament match area.</li><li><strong>My rating</strong> — Tournament expertise, Verified ratings, Official Division and rating history.</li><li><strong>Password &amp; security</strong> — update your password.</li><li><strong>PIKOL Credit</strong> — your reusable credit balance and activity. It can be used for Court Booking, Tournament and Open Play, but not Membership.</li><li><strong>Account settings</strong> — appearance, Help &amp; User Guide, Terms &amp; Venue Rules, and Sign out.</li></ul><h4>How PIKOL Credit works</h4><ul><li>Use all or part of your available credit at checkout.</li><li>If credit covers the whole fee, no receipt upload is needed.</li><li>Player cancellation does not restore credit already used.</li><li>When Management cannot honor a funded service, eligible value is returned as PIKOL Credit instead of a cash refund.</li></ul><h4>Install Booking App</h4><p>If <strong>Install Booking App</strong> appears on your device, you may install the Booking Site on your Home Screen or desktop for quicker access.</p><div class="guide-actions"><button class="btn btn-primary btn-sm" type="button" data-help-goto="membership">Open Membership</button><button class="btn btn-outline btn-sm" type="button" data-help-goto="notifications">Open Notifications</button></div>' },
+      '<span class="guide-kicker">Membership, Notifications &amp; Account</span><h3>Membership</h3><ul><li><strong>Available Plans</strong> shows plan prices, discounts, booking limits and each plan&apos;s self-cancellation cutoff.</li><li><strong>Current Membership</strong> shows your active plan and exact benefits. If you have no active plan, it shows your <strong>Standard Player</strong> rules: 1-day advance booking, max 1 active booking and a 24-hour self-cancellation cutoff.</li><li><strong>Benefits</strong> compares Standard Player rules with all active membership plans. A shorter cancellation cutoff gives more flexibility, but the No-Refund Policy still applies.</li></ul><h3>Notifications</h3><p>The bell opens <strong>Notifications</strong>, where you can review Booking, Payment, Event, Tournament, Membership and Player Rating updates. Some updates may also be sent through the club\'s configured email, SMS or app notifications.</p><h3>My Profile</h3><ul><li><strong>Personal information</strong> — name and mobile number.</li><li><strong>My Bookings</strong> — your court reservations.</li><li><strong>My Matches</strong> — your Tournament match area.</li><li><strong>My rating</strong> — Tournament expertise, Verified ratings, Official Division and rating history.</li><li><strong>Password &amp; security</strong> — update your password.</li><li><strong>PIKOL Credit</strong> — your reusable credit balance and activity. It can be used for Court Booking, Tournament and Open Play, but not Membership.</li><li><strong>Account settings</strong> — appearance, Help &amp; User Guide, Terms &amp; Venue Rules, and Sign out.</li></ul><h4>How PIKOL Credit works</h4><ul><li>Use all or part of your available credit at checkout.</li><li>If credit covers the whole fee, no receipt upload is needed.</li><li>Player cancellation does not restore credit already used.</li><li>When Management cannot honor a funded service, eligible value is returned as PIKOL Credit instead of a cash refund.</li></ul><h4>Install Booking App</h4><p>If <strong>Install Booking App</strong> appears on your device, you may install the Booking Site on your Home Screen or desktop for quicker access.</p><div class="guide-actions"><button class="btn btn-primary btn-sm" type="button" data-help-goto="membership">Open Membership</button><button class="btn btn-outline btn-sm" type="button" data-help-goto="notifications">Open Notifications</button></div>' },
     {id:'terms',label:'Terms & Rules',html:
       '<span class="guide-kicker">Booking Terms &amp; Venue Rules</span><h3>Review the rules any time</h3><p>You can revisit the same booking, cancellation, no-refund and venue rules here even after you have accepted them.</p><div id="guide-terms-holder"></div><div class="guide-meta" id="guide-terms-meta"></div>' }
   ];
@@ -1784,8 +1784,71 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
   });
 
   /* ---------- membership ---------- */
+  var STANDARD_PLAYER_RULES={court_discount_percent:0,tournament_discount_percent:0,open_play_discount_percent:0,advance_booking_days:1,max_active_bookings:1,cancellation_hours:24};
   function membershipStatusLabel(s){return ({active:'Active',pending_payment:'Awaiting payment',payment_review:'For review',expired:'Expired',cancelled:'Cancelled'})[s]||String(s||'').replace(/_/g,' ');}
-  function membershipBenefits(p){return '<div class="benefit-grid tiny"><span>'+Number(p.court_discount_percent||0)+'% court discount</span><span>'+Number(p.tournament_discount_percent||0)+'% tournament discount</span><span>'+Number(p.open_play_discount_percent||0)+'% Open Play discount</span><span>'+Number(p.advance_booking_days||0)+' days advance booking</span><span>Up to '+Number(p.max_active_bookings||0)+' active bookings</span></div>';}
+  function pluralHours(v){v=Number(v||0);return v+' hour'+(v===1?'':'s');}
+  function membershipBenefits(p,compact){
+    p=p||{};
+    var court=Number(p.court_discount_percent||0), tournament=Number(p.tournament_discount_percent||0), openplay=Number(p.open_play_discount_percent||0);
+    var advance=Number(p.advance_booking_days||0), active=Number(p.max_active_bookings||0), cancel=Number(p.cancellation_hours||0);
+    if(compact){
+      return '<div class="benefit-grid tiny">'+
+        '<span>'+court+'% court discount</span>'+
+        '<span>'+tournament+'% tournament discount</span>'+
+        '<span>'+openplay+'% Open Play discount</span>'+
+        '<span>'+advance+' day'+(advance===1?'':'s')+' advance booking</span>'+
+        '<span>Up to '+active+' active booking'+(active===1?'':'s')+'</span>'+
+        '<span class="benefit-cutoff"><strong>'+pluralHours(cancel)+'</strong> self-cancellation cutoff</span>'+
+      '</div>';
+    }
+    return '<div class="member-benefit-grid">'+
+      '<div class="member-benefit"><span>Court discount</span><strong>'+court+'%</strong></div>'+
+      '<div class="member-benefit"><span>Tournament discount</span><strong>'+tournament+'%</strong></div>'+
+      '<div class="member-benefit"><span>Open Play discount</span><strong>'+openplay+'%</strong></div>'+
+      '<div class="member-benefit"><span>Advance booking</span><strong>'+advance+' day'+(advance===1?'':'s')+'</strong></div>'+
+      '<div class="member-benefit"><span>Active bookings</span><strong>Up to '+active+'</strong></div>'+
+      '<div class="member-benefit is-cutoff"><span>Self-cancellation cutoff</span><strong>'+pluralHours(cancel)+'</strong><small>before booking start</small></div>'+
+    '</div>';
+  }
+  function standardPlayerSummary(){
+    return '<span class="badge standard-player-badge">STANDARD PLAYER</span>'+
+      '<h2 class="section-title mt-3">Your current booking benefits</h2>'+
+      '<p class="muted">You do not have an active membership plan. These are your current standard player limits.</p>'+
+      membershipBenefits(STANDARD_PLAYER_RULES,false)+
+      '<div class="standard-policy-note"><strong>24-hour cancellation cutoff</strong><span>You can self-cancel only until 24 hours before the booking starts. Player cancellations remain non-refundable.</span></div>'+
+      '<button class="btn btn-primary btn-sm mt-3" type="button" data-member-show-plans>Compare membership plans</button>';
+  }
+  function membershipComparison(plans){
+    var items=[{name:'STANDARD PLAYER',standard:true,price:null,duration_days:null}].concat(plans||[]);
+    function val(item,key){
+      if(item.standard)item=STANDARD_PLAYER_RULES;
+      if(key==='court')return Number(item.court_discount_percent||0)+'%';
+      if(key==='tournament')return Number(item.tournament_discount_percent||0)+'%';
+      if(key==='openplay')return Number(item.open_play_discount_percent||0)+'%';
+      if(key==='advance'){var n=Number(item.advance_booking_days||0);return n+' day'+(n===1?'':'s');}
+      if(key==='active'){var n=Number(item.max_active_bookings||0);return 'Up to '+n;}
+      if(key==='cancel')return pluralHours(Number(item.cancellation_hours||0));
+      return '—';
+    }
+    var rows=[
+      ['Court discount','court'],
+      ['Tournament discount','tournament'],
+      ['Open Play discount','openplay'],
+      ['Advance booking','advance'],
+      ['Max active bookings','active'],
+      ['Self-cancellation cutoff','cancel']
+    ];
+    return '<div class="membership-comparison-wrap">'+
+      '<div class="comparison-heading"><span class="eyebrow">BENEFITS</span><h3 class="section-title">See what changes when you become a member</h3><p class="muted">A shorter cancellation cutoff means more flexibility. The No-Refund Policy still applies to player cancellations.</p></div>'+
+      '<div class="membership-comparison-scroll"><table class="membership-comparison"><thead><tr><th>Benefit</th>'+
+      items.map(function(x){return '<th class="'+(x.standard?'is-standard':'')+'">'+esc(x.name||'Plan')+(x.standard?'<small>Current non-member rules</small>':'<small>'+money(x.price||0)+' · '+Number(x.duration_days||0)+' days</small>')+'</th>';}).join('')+
+      '</tr></thead><tbody>'+
+      rows.map(function(r){return '<tr class="'+(r[1]==='cancel'?'is-cutoff-row':'')+'"><th>'+r[0]+'</th>'+items.map(function(x){return '<td>'+val(x,r[1])+'</td>';}).join('')+'</tr>';}).join('')+
+      '<tr><th>No-refund policy</th>'+items.map(function(){return '<td>Applies</td>';}).join('')+'</tr>'+
+      '</tbody></table></div>'+
+      '<div class="comparison-legend"><strong>Standard Player:</strong> 1-day advance booking · max 1 active booking · 24-hour self-cancellation cutoff.</div>'+
+    '</div>';
+  }
   function membershipPaymentDialog(membershipId,plan,methods,sourceBtn){
     if(sourceBtn&&sourceBtn.dataset.paymentDialogOpen==='1') return;
     if(sourceBtn){sourceBtn.dataset.paymentDialogOpen='1';sourceBtn.disabled=true;sourceBtn.dataset.originalText=sourceBtn.textContent;sourceBtn.textContent='Payment pending…';}
@@ -1819,20 +1882,21 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
       var resp=r[0]||{},m=resp.membership,pending=resp.pending_membership,plans=r[1]||[],card=$('#membership-card'),ph=$('#membership-plans-card'); CURRENT_MEMBERSHIP=(m&&m.status==='active')?m:null; if(!card||!ph)return;
       if(AVAIL)renderBooking();
       if(m&&m.status==='active'){
-        card.innerHTML='<span class="badge badge-approved">ACTIVE MEMBER</span><h2 class="section-title mt-3">'+esc(m.plan_name||'Club Member')+'</h2><p class="muted">Valid until '+esc(m.expires_at?humanDate(m.expires_at.slice(0,10)):'—')+'</p>'+membershipBenefits(m)+'<p class="tiny muted mt-3">Renewing before expiry extends your membership from the current expiry date.</p>'+(pending?'<div class="alert alert-info mt-3"><strong>Renewal: '+esc(membershipStatusLabel(pending.status))+'</strong><br><span class="tiny">'+(pending.status==='payment_review'?'Your renewal payment is for review.':'Complete the renewal payment below.')+'</span></div>':'');
+        card.innerHTML='<div class="active-membership-head"><div><span class="badge badge-approved">ACTIVE MEMBER</span><h2 class="section-title mt-3">'+esc(m.plan_name||'Club Member')+'</h2><p class="muted">Valid until '+esc(m.expires_at?humanDate(m.expires_at.slice(0,10)):'—')+'</p></div><div class="cutoff-hero"><span>SELF-CANCELLATION</span><strong>'+pluralHours(m.cancellation_hours)+'</strong><small>before booking start</small></div></div>'+membershipBenefits(m,false)+'<div class="member-policy-note"><strong>Your active plan is applied automatically.</strong><span>Discounts and booking limits above are enforced by the system. Player cancellations remain non-refundable.</span></div><p class="tiny muted mt-3">Renewing before expiry extends your membership from the current expiry date.</p>'+(pending?'<div class="alert alert-info mt-3"><strong>Renewal: '+esc(membershipStatusLabel(pending.status))+'</strong><br><span class="tiny">'+(pending.status==='payment_review'?'Your renewal payment is for review.':'Complete the renewal payment below.')+'</span></div>':'');
       }else if(m){
-        card.innerHTML='<span class="badge '+(m.status==='expired'?'badge-rejected':'badge-pending')+'">'+esc(membershipStatusLabel(m.status))+'</span><h2 class="section-title mt-3">'+esc(m.plan_name||'Membership')+'</h2><p class="muted">'+(m.status==='payment_review'?'Your receipt is for review. No additional approval is needed after payment is marked paid.':m.status==='pending_payment'?'Complete payment to activate your membership.':'Choose a plan below to join again.')+'</p>';
-      }else card.innerHTML='<span class="eyebrow">MEMBERSHIP</span><h2 class="section-title">Get member benefits</h2><p class="muted">Join a plan to unlock the benefits configured by the club.</p>';
+        card.innerHTML='<span class="badge '+(m.status==='expired'?'badge-rejected':'badge-pending')+'">'+esc(membershipStatusLabel(m.status))+'</span><h2 class="section-title mt-3">'+esc(m.plan_name||'Membership')+'</h2><p class="muted">'+(m.status==='payment_review'?'Your receipt is for review. Your membership benefits begin after payment is verified.':m.status==='pending_payment'?'Complete payment to activate your membership benefits.':'This plan is no longer active. Standard Player rules apply until you activate a plan again.')+'</p>'+standardPlayerSummary();
+      }else card.innerHTML=standardPlayerSummary();
       var canStart=!m||m.status==='expired'||m.status==='cancelled'||m.status==='active';
-      ph.innerHTML='<h3 class="section-title">Available plans</h3><div class="membership-plans mt-3">'+(plans.length?plans.map(function(x){
+      var planCards='<div class="membership-plans-view"><div class="plans-heading"><span class="eyebrow">AVAILABLE PLANS</span><h3 class="section-title">Choose the benefits that fit how you play</h3><p class="muted">Members unlock discounts, longer advance booking, higher active-booking limits, and a shorter self-cancellation cutoff.</p></div><div class="membership-plans mt-3">'+(plans.length?plans.map(function(x){
         var payTarget=(pending&&Number(pending.plan_id)===Number(x.id)?pending:(m&&Number(m.plan_id)===Number(x.id)&&m.status==='pending_payment'?m:null)); var pendingSame=!!payTarget;
         var pendingPayment=payTarget&&payTarget.pending_payment; var alreadySubmitted=!!pendingPayment;
         var cashDue=alreadySubmitted&&String(pendingPayment.payment_method||'').toLowerCase()==='cash';
         var label=alreadySubmitted?(cashDue?'Pay at venue':'For review'):(pendingSame?'Pay now':(m&&m.status==='active'?'Renew':'Join'));
         var show=canStart||pendingSame;
         var button=show?'<button class="btn '+(alreadySubmitted?'btn-outline':'btn-primary')+' btn-sm mt-3" '+(alreadySubmitted?'disabled aria-disabled="true"':'data-member-action="'+(pendingSame?'pay':'join')+'"')+' data-plan-id="'+x.id+'" data-membership-id="'+(pendingSame?payTarget.id:'')+'">'+label+'</button>':'';
-        return '<article class="membership-plan"><div><strong>'+esc(x.name)+'</strong><p class="tiny muted">'+esc(x.description||'')+'</p>'+membershipBenefits(x)+'</div><div><strong>'+money(x.price)+'</strong><div class="tiny muted">'+Number(x.duration_days||365)+' days</div>'+button+'</div></article>';
-      }).join(''):'<div class="empty">Membership is currently unavailable or no active plan is configured.</div>')+'</div>';
+        return '<article class="membership-plan"><div><strong>'+esc(x.name)+'</strong><p class="tiny muted">'+esc(x.description||'')+'</p>'+membershipBenefits(x,true)+'</div><div><div class="plan-cutoff-chip"><span>Cancel cutoff</span><strong>'+pluralHours(x.cancellation_hours)+'</strong></div><strong>'+money(x.price)+'</strong><div class="tiny muted">'+Number(x.duration_days||365)+' days</div>'+button+'</div></article>';
+      }).join(''):'<div class="empty">Membership is currently unavailable or no active plan is configured.</div>')+'</div></div>';
+      ph.innerHTML=planCards+'<div class="membership-benefits-view">'+membershipComparison(plans)+'</div>';
       ph.onclick=function(e){
         var b=e.target.closest('[data-member-action]'); if(!b||b.disabled||b.dataset.actionBusy==='1')return;
         var plan=plans.filter(function(x){return String(x.id)===String(b.dataset.planId)})[0]; if(!plan)return;
@@ -2825,6 +2889,12 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
     if(e.target.closest('[data-close-auth]')) closeAuth();
     var adjust=e.target.closest('[data-player-change]');
     if(adjust){var input=$('#bk-players');input.value=String(Math.max(2,Math.min(6,Number(input.value)+Number(adjust.dataset.playerChange))));renderBooking();}
+    var showPlans=e.target.closest('[data-member-show-plans]');
+    if(showPlans){
+      var plansTab=$('.membership-sidebar [data-member-view="plans"]');
+      if(plansTab)plansTab.click();
+      return;
+    }
     var view=e.target.closest('[data-member-view]');
     if(view){
       var current=view.dataset.memberView==='current';
@@ -3219,7 +3289,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
   window.addEventListener('appinstalled',function(){setMarked(true);deferredPrompt=null;sync();});
   window.addEventListener('pageshow',sync);document.addEventListener('visibilitychange',function(){if(!document.hidden)sync();});
   if(btn)btn.addEventListener('click',async function(){if(!deferredPrompt)return;btn.disabled=true;try{await deferredPrompt.prompt();var c=await deferredPrompt.userChoice;if(c&&c.outcome==='accepted')setMarked(true);}catch(_){}deferredPrompt=null;btn.disabled=false;sync();});
-  if('serviceWorker' in navigator)window.addEventListener('load',function(){var reloading=false;navigator.serviceWorker.addEventListener('controllerchange',function(){if(reloading)return;reloading=true;location.reload();});navigator.serviceWorker.register('service-worker.js?v=48-cancellation-cutoff-v1',{scope:'./',updateViaCache:'none'}).then(function(reg){return reg.update();}).catch(function(){});});
+  if('serviceWorker' in navigator)window.addEventListener('load',function(){var reloading=false;navigator.serviceWorker.addEventListener('controllerchange',function(){if(reloading)return;reloading=true;location.reload();});navigator.serviceWorker.register('service-worker.js?v=49-membership-benefits-v1',{scope:'./',updateViaCache:'none'}).then(function(reg){return reg.update();}).catch(function(){});});
   sync();
 })();
 </script>
