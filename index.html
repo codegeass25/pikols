@@ -3042,8 +3042,10 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
       refreshEvents();
     }
 
+    function refreshCredit() { if (TOKEN) run('credit', loadPikolCredit); }
+    function refreshRegistrations() { if (TOKEN) run('myregs', loadMyRegistrations); }
     function bookingChange() {
-      if (TOKEN) { run('bookings', loadBookings); run('dashboard', loadDashboard); refreshNotifications(); }
+      if (TOKEN) { run('bookings', loadBookings); run('dashboard', loadDashboard); refreshNotifications(); refreshCredit(); }
       refreshAvailability();
     }
     function refreshCourtViews() {
@@ -3058,9 +3060,12 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
       'booking:cancelled': bookingChange,
       'booking:rescheduled': bookingChange,
       'booking:payment_updated': bookingChange,
-      'payment:submitted': function () { if (!TOKEN) return; run('bookings', loadBookings); if (visible('tournaments')) run('myregs', loadMyRegistrations); },
-      'payment:approved': function () { if (!TOKEN) return; run('bookings', loadBookings); run('dashboard', loadDashboard); if (visible('tournaments')) run('myregs', loadMyRegistrations); },
-      'payment:rejected': function () { if (!TOKEN) return; run('bookings', loadBookings); if (visible('tournaments')) run('myregs', loadMyRegistrations); },
+      'payment:submitted': function () { if (!TOKEN) return; run('bookings', loadBookings); refreshRegistrations(); refreshCredit(); },
+      'payment:approved': function () { if (!TOKEN) return; run('bookings', loadBookings); run('dashboard', loadDashboard); refreshRegistrations(); refreshCredit(); refreshNotifications(); },
+      'payment:rejected': function () { if (!TOKEN) return; run('bookings', loadBookings); refreshRegistrations(); refreshCredit(); refreshNotifications(); },
+      'notification:created': function () { if (!TOKEN) return; refreshNotifications(); },
+      'credit:updated': function () { if (!TOKEN) return; refreshCredit(); run('dashboard', loadDashboard); refreshRegistrations(); if (visible('bookings')) run('bookings', loadBookings); },
+      'rating:updated': function () { if (!TOKEN) return; if (visible('profile')) run('rating', loadRating); refreshNotifications(); },
       'membership:updated': function () { if (!TOKEN) return; run('membership', loadMembership); run('dashboard', loadDashboard); refreshNotifications(); },
       'membership:plans_updated': function () { if(visible('membership'))run('membership', loadMembership); },
       'court:created': refreshCourtViews,
@@ -3072,19 +3077,21 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
       'availability:changed': refreshAvailability,
       'openplay:created': function () { if (visible('tournaments')) run('openplay', loadOpenPlay); },
       'openplay:updated': function () { if (visible('tournaments')) run('openplay', loadOpenPlay); },
-      'openplay:status_changed': function () { if (visible('tournaments')) run('openplay', loadOpenPlay); },
-      'openplay:deleted': function () { if (visible('tournaments')) run('openplay', loadOpenPlay); },
-      'openplay:registration_created': function () { if (!visible('tournaments')) return; run('openplay', loadOpenPlay); if (TOKEN) run('myregs', loadMyRegistrations); },
-      'openplay:registration_updated': function () { if (!visible('tournaments')) return; run('openplay', loadOpenPlay); if (TOKEN) run('myregs', loadMyRegistrations); },
-      'openplay:payment_updated': function () { if (TOKEN && visible('tournaments')) run('myregs', loadMyRegistrations); },
+      'openplay:status_changed': function () { if (visible('tournaments')) run('openplay', loadOpenPlay); if(TOKEN){refreshRegistrations();refreshCredit();refreshNotifications();} },
+      'openplay:deleted': function () { if (visible('tournaments')) run('openplay', loadOpenPlay); if(TOKEN)refreshRegistrations(); },
+      'openplay:registration_created': function () { if (visible('tournaments')) run('openplay', loadOpenPlay); if (TOKEN) refreshRegistrations(); },
+      'openplay:registration_updated': function () { if (visible('tournaments')) run('openplay', loadOpenPlay); if (TOKEN) { refreshRegistrations(); refreshCredit(); refreshNotifications(); } },
+      'openplay:registration_cancelled': function () { if (visible('tournaments')) run('openplay', loadOpenPlay); if (TOKEN) { refreshRegistrations(); refreshCredit(); refreshNotifications(); } },
+      'openplay:payment_updated': function () { if (TOKEN) { refreshRegistrations(); refreshCredit(); } },
       'tournament:created': function () { if (visible('tournaments')) run('tournaments', refreshTournamentView); },
       'tournament:updated': function () { if (visible('tournaments')) run('tournaments', refreshTournamentView); },
-      'tournament:status_changed': function () { if (visible('tournaments')) run('tournaments', refreshTournamentView); },
-      'tournament:deleted': function () { if (visible('tournaments')) run('tournaments', refreshTournamentView); },
-      'tournament:match_updated': function () { if (visible('tournaments')) run('tournaments', refreshTournamentView); },
-      'tournament:registration_created': function () { if (!visible('tournaments')) return; run('tournaments', refreshTournamentView); if (TOKEN) run('myregs', loadMyRegistrations); },
-      'tournament:registration_updated': function () { if (!visible('tournaments')) return; run('tournaments', refreshTournamentView); if (TOKEN) run('myregs', loadMyRegistrations); },
-      'tournament:payment_updated': function () { if (TOKEN && visible('tournaments')) run('myregs', loadMyRegistrations); },
+      'tournament:status_changed': function () { if (visible('tournaments')) run('tournaments', refreshTournamentView); if(TOKEN){refreshRegistrations();refreshCredit();refreshNotifications();} },
+      'tournament:deleted': function () { if (visible('tournaments')) run('tournaments', refreshTournamentView); if(TOKEN)refreshRegistrations(); },
+      'tournament:match_updated': function () { if (visible('tournaments')) run('tournaments', refreshTournamentView); if(TOKEN&&visible('profile'))run('rating',loadRating); },
+      'tournament:registration_created': function () { if (visible('tournaments')) run('tournaments', refreshTournamentView); if (TOKEN) refreshRegistrations(); },
+      'tournament:registration_updated': function () { if (visible('tournaments')) run('tournaments', refreshTournamentView); if (TOKEN) { refreshRegistrations(); refreshCredit(); refreshNotifications(); } },
+      'tournament:registration_cancelled': function () { if (visible('tournaments')) run('tournaments', refreshTournamentView); if (TOKEN) { refreshRegistrations(); refreshCredit(); refreshNotifications(); } },
+      'tournament:payment_updated': function () { if (TOKEN) { refreshRegistrations(); refreshCredit(); } },
       'settings:updated': function () { run('branding', function () { api('/api/branding').then(applyBranding).catch(function () {}); loadPayCfg().catch(function () {}); }); },
       'branding:updated': function () { run('branding', function () { api('/api/branding').then(applyBranding).catch(function () {}); }); },
       'system:data-reset': function () { if (TOKEN) signOutLocal(); refreshAvailability(); refreshEvents(); toast('Operational data was reset. Please sign in again if needed.', 'info'); },
@@ -3093,6 +3100,14 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
 
     function bind() {
       Object.keys(MAP).forEach(function (evt) { socket.on(evt, MAP[evt]); });
+      socket.on('system:data_changed', function (payload) {
+        /* Known events already ran their focused handler. Unknown future
+           mutations get a throttled authoritative re-sync instead of forcing
+           the user to hard-refresh the page. */
+        if (payload && payload.event && MAP[payload.event]) return;
+        refreshCurrent();
+        if (TOKEN) { refreshCredit(); refreshRegistrations(); }
+      });
       socket.on('connect', function () {
         setStatus('live');
         if (everConnected) refreshCurrent();   /* re-sync after a dropout */
@@ -3135,11 +3150,22 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
     lastPublicFreshCheck = Date.now();
     if (!$('#tab-dashboard').classList.contains('hidden')) loadDashboard();
     if (!$('#tab-book').classList.contains('hidden')) loadAvailability();
+    if (TOKEN) {
+      loadNotifications({preview:true});
+      loadPikolCredit();
+      if (!$('#tab-bookings').classList.contains('hidden')) loadBookings();
+      if (!$('#tab-tournaments').classList.contains('hidden')) loadMyRegistrations();
+      if (!$('#tab-membership').classList.contains('hidden')) loadMembership();
+      if (!$('#tab-profile').classList.contains('hidden')) loadRating();
+    }
   }
   window.addEventListener('focus', refreshPublicFreshData);
   window.addEventListener('pageshow', refreshPublicFreshData);
   document.addEventListener('visibilitychange', function(){ if(!document.hidden) refreshPublicFreshData(); });
   window.addEventListener('storage', function(e){ if(e.key==='pikol_public_data_version') refreshPublicFreshData(); });
+  /* Socket.IO is primary. This low-frequency safety net covers mobile sleep,
+     background-tab throttling and a dropped event without requiring refresh. */
+  setInterval(function(){ if(TOKEN && !document.hidden){ loadNotifications({preview:true}); loadPikolCredit(); } }, 30000);
 
   renderDow();
   renderCalendar();
@@ -3175,7 +3201,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
   window.addEventListener('appinstalled',function(){setMarked(true);deferredPrompt=null;sync();});
   window.addEventListener('pageshow',sync);document.addEventListener('visibilitychange',function(){if(!document.hidden)sync();});
   if(btn)btn.addEventListener('click',async function(){if(!deferredPrompt)return;btn.disabled=true;try{await deferredPrompt.prompt();var c=await deferredPrompt.userChoice;if(c&&c.outcome==='accepted')setMarked(true);}catch(_){}deferredPrompt=null;btn.disabled=false;sync();});
-  if('serviceWorker' in navigator)window.addEventListener('load',function(){var reloading=false;navigator.serviceWorker.addEventListener('controllerchange',function(){if(reloading)return;reloading=true;location.reload();});navigator.serviceWorker.register('service-worker.js?v=43-pikol-credit-v1',{scope:'./',updateViaCache:'none'}).then(function(reg){return reg.update();}).catch(function(){});});
+  if('serviceWorker' in navigator)window.addEventListener('load',function(){var reloading=false;navigator.serviceWorker.addEventListener('controllerchange',function(){if(reloading)return;reloading=true;location.reload();});navigator.serviceWorker.register('service-worker.js?v=45-realtime-hardening-v1',{scope:'./',updateViaCache:'none'}).then(function(reg){return reg.update();}).catch(function(){});});
   sync();
 })();
 </script>
