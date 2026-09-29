@@ -1,4 +1,4 @@
-const CACHE = 'pikol-v56-android-native-scroll';
+const CACHE = 'pikol-v57-admin-stability';
 const SHELL = [
   './range-availability.js?v=56-android-native-scroll','./client-upgrades.css?v=56-android-native-scroll',
   './index.html','./admin.html','./scoring.html','./styles.css','./cards.js','./tournament-view.js','./config.js','./qr-lite.js',
@@ -16,13 +16,11 @@ self.addEventListener('activate', event => {
   event.waitUntil((async () => {
     const keys = await caches.keys();
     await Promise.all(keys.filter(k => k !== CACHE && (k.startsWith('pikol-') || k.startsWith('pikol-admin-shell-'))).map(k => caches.delete(k)));
+    // Take control silently. Do NOT navigate or reload open pages here.
+    // The previous implementation navigated every client during activation while
+    // index/admin also reloaded on controllerchange, creating a refresh loop on
+    // some browsers/PWA sessions (especially the Admin site).
     await self.clients.claim();
-    // Existing tabs may still be displaying HTML served by the previous cache-first worker.
-    // Navigate them once after this new worker takes control; the fetch path above is network-first.
-    const windows = await self.clients.matchAll({type:'window', includeUncontrolled:true});
-    for (const client of windows) {
-      try { if ('navigate' in client) await client.navigate(client.url); } catch (_) {}
-    }
   })());
 });
 self.addEventListener('fetch', event => {
