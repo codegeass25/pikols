@@ -275,6 +275,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
 }
 </style>
 
+<link rel="stylesheet" href="client-upgrades.css?v=53-client-upgrades">
 </head>
 <body class="player-app">
 
@@ -441,7 +442,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
           <div class="grid cols-3 booking-inputs"><div class="field"><label class="label" for="booking-date">Select Date</label><input class="input" id="booking-date" type="date" required/></div><div class="field"><label class="label" for="booking-time">Start Time</label><select class="select" id="booking-time"><option value="">Choose a court first</option></select></div><div class="field"><label class="label" for="booking-end">End Time</label><select class="select" id="booking-end" disabled><option value="">Select start time first</option></select></div></div>
           <details class="booking-calendar-details"><summary>Browse calendar <span id="book-date-label"></span></summary><div class="card calendar" id="calendar"><div class="calendar-head"><button class="btn btn-ghost btn-icon" id="cal-prev" aria-label="Previous month">‹</button><span class="calendar-month" id="cal-month"></span><button class="btn btn-ghost btn-icon" id="cal-next" aria-label="Next month">›</button></div><div class="calendar-grid" id="cal-dow"></div><div class="calendar-grid" id="cal-days" role="grid"></div><button class="btn btn-outline btn-sm btn-block" id="cal-today">Today</button></div></details>
           <details id="slot-card" class="booking-times-details"><summary>View all time slots</summary><div class="slot-grid" id="slot-grid"></div></details>
-          <div class="grid cols-2 booking-inputs"><div class="field"><label class="label" for="bk-players">Number of Players</label><div class="player-stepper"><button type="button" data-player-change="-1" aria-label="Fewer players">−</button><select class="select" id="bk-players"><option>2</option><option>3</option><option selected>4</option><option>5</option><option>6</option></select><button type="button" data-player-change="1" aria-label="More players">+</button></div><span class="field-hint">2 to 6 players</span></div><div class="field"><label class="label" for="bk-notes">Additional Notes (Optional)</label><textarea class="textarea" id="bk-notes" maxlength="300" placeholder="Special requests, equipment, occasion…"></textarea></div></div>
+          <div class="grid cols-2 booking-inputs"><div class="field"><label class="label" for="bk-players">Number of Players</label><div class="player-stepper"><button type="button" data-player-change="-1" aria-label="Fewer players">−</button><select class="select" id="bk-players"><option value="1">1</option></select><button type="button" data-player-change="1" aria-label="More players">+</button></div><span class="field-hint" id="player-limit-hint"></span></div><div class="field"><label class="label" for="bk-notes">Additional Notes (Optional)</label><textarea class="textarea" id="bk-notes" maxlength="300" placeholder="Special requests, equipment, occasion…"></textarea></div></div>
           <div class="card action-card" id="summary-card"><h2 class="section-title">Booking Summary</h2><dl class="summary-list" id="summary-list" aria-live="polite"></dl></div>
           <p class="field-hint">Select a continuous time range. The full court fee is calculated automatically using the applicable daytime/evening rates and is paid online before staff approval.</p><div id="booking-fee-status" class="hidden" role="status"><p class="field-hint">Payment details could not load.</p><button class="btn btn-outline btn-sm" data-retry-fees>Retry payment details</button></div><button class="btn btn-primary btn-block" id="btn-confirm" data-loading="Booking…">Continue to Confirmation →</button>
         </div>
@@ -654,7 +655,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
 <button id="pwa-install-player" class="btn btn-primary btn-block pwa-install-inline" type="button" hidden>Install Booking App</button>
 <div id="modal-root"></div>
 
-<script src="qr-lite.js"></script>
+<script src="range-availability.js?v=53-client-upgrades"></script>
 <script>
 /* ================= shared runtime (player app) ================= */
 (function () {
@@ -747,10 +748,11 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
     enhanceDialog(host,opts);syncLayers();
     var didClose=false;
     function close() { if(didClose)return; didClose=true; host.remove(); document.removeEventListener('keydown', onKey); syncLayers(); if(returnFocus&&returnFocus.isConnected&&!returnFocus.closest('[inert]'))returnFocus.focus({preventScroll:true}); if(typeof opts.onClose==='function'){try{opts.onClose();}catch(_){} } }
-    function onKey(e) { if (e.key === 'Escape') close(); }
+    function cancel(){if(opts.onCancel){if(host.dataset.cancelling)return;host.dataset.cancelling='1';Promise.resolve().then(function(){return opts.onCancel(host);}).then(function(ok){if(ok!==false)close();}).catch(function(e){toast(e.message,'error');}).finally(function(){delete host.dataset.cancelling;});}else close();}
+    function onKey(e) { if (e.key === 'Escape') cancel(); }
     document.addEventListener('keydown', onKey);
-    $$('[data-close]', host).forEach(function (b) { b.onclick = close; });
-    if (!opts.locked) host.addEventListener('mousedown', function (e) { if (e.target === host) close(); });
+    $$('[data-close]', host).forEach(function (b) { b.onclick = cancel; });
+    if (!opts.locked) host.addEventListener('mousedown', function (e) { if (e.target === host) cancel(); });
     var confirmBtn = $('[data-confirm]', host);
     if (confirmBtn) {
       confirmBtn.onclick = function () {
@@ -1018,9 +1020,10 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
   }
   function syncBookingRules(source) {
     source = source || {};
-    ['open_time','close_time','evening_rate_start','slot_minutes'].forEach(function(k){
+    ['open_time','close_time','evening_rate_start','slot_minutes','maximum_players'].forEach(function(k){
       if(source[k] != null && source[k] !== '') BOOKING_RULES[k] = source[k];
     });
+    if(source.maximum_players){var input=$('#bk-players'),old=Number(input.value)||1,max=Number(source.maximum_players);input.innerHTML=Array.from({length:max},function(_,i){return '<option value="'+(i+1)+'">'+(i+1)+'</option>';}).join('');input.value=String(Math.min(old,max));$('#player-limit-hint').textContent='1 to '+max+' players';}
   }
   function rateWindowLabels(source) {
     syncBookingRules(source);
@@ -1277,14 +1280,15 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
     function go(nextIndex){ index=clamp(nextIndex); paint(true); }
     function pointerDown(e){
       if(!COURT_CAROUSEL_MQ.matches || slides.length<2 || (e.pointerType==='mouse' && e.button!==0))return;
+      if(e.target.closest('input,select,textarea,button,.inline-availability'))return;
       dragging=true; axis=null; dx=0; startX=e.clientX; startY=e.clientY;
       track.classList.add('is-dragging');
-      try{track.setPointerCapture(e.pointerId);}catch(_){}
+
     }
     function pointerMove(e){
       if(!dragging)return;
       var mx=e.clientX-startX, my=e.clientY-startY;
-      if(axis===null && (Math.abs(mx)>7 || Math.abs(my)>7)) axis=Math.abs(mx)>Math.abs(my)?'x':'y';
+      if(axis===null && (Math.abs(mx)>10 || Math.abs(my)>10)){axis=Math.abs(mx)>Math.abs(my)*1.25?'x':'y';if(axis==='x'){try{track.setPointerCapture(e.pointerId);}catch(_){}}else{dragging=false;track.classList.remove('is-dragging');return;}}
       if(axis!=='x')return;
       dx=mx;
       if((index===0 && dx>0)||(index===slides.length-1 && dx<0))dx*=.28;
@@ -1329,7 +1333,47 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
     syncMode();
   }
 
+  var INLINE_SELECTIONS={},inlineCache=new Map(),inlineGeneration=0;
+  function inlineData(date){
+    var hit=inlineCache.get(date);if(hit&&Date.now()-hit.at<15000)return hit.promise;
+    var promise=api('/api/availability?date='+encodeURIComponent(date));inlineCache.set(date,{at:Date.now(),promise:promise});
+    promise.catch(function(){inlineCache.delete(date);});return promise;
+  }
+  function inlineShell(c,date){
+    var state=INLINE_SELECTIONS[c.id]||(INLINE_SELECTIONS[c.id]={date:date,start:null,end:null});
+    return '<div class="inline-availability" data-inline-court="'+c.id+'"><label>Choose date<input class="input" type="date" aria-label="Booking date for '+esc(c.name)+'" min="'+date+'" value="'+state.date+'" data-inline-date="'+c.id+'"></label><div data-inline-slots></div><p class="inline-range-label" aria-live="polite"></p></div>';
+  }
+  function paintInline(courtId){
+    var host=$('[data-inline-court="'+courtId+'"]'),state=INLINE_SELECTIONS[courtId];if(!host||!state)return;
+    var date=state.date,generation=inlineGeneration;host.querySelector('[data-inline-slots]').textContent='Loading availability…';
+    return inlineData(date).then(function(data){
+      if(!host.isConnected||state.date!==date||generation!==inlineGeneration)return;
+      var court=data.courts.find(function(c){return c.id===Number(courtId);});state.court=court;
+      if(!court)return;
+      var card=host.closest('.promo-court'),free=court.slots.filter(function(slot){return slot.bookable;}).length;
+      if(card){
+        var cardState=court.status==='active'?(free?'available':'booked'):court.status,cardLabel=cardState==='available'?'AVAILABLE':cardState==='booked'?'FULLY BOOKED':String(cardState).toUpperCase();
+        var count=card.querySelector('.court-meta span:last-child'),badge=card.querySelector('.court-visual .badge');
+        if(count)count.textContent='◷ '+(court.status==='active'?free+' open slots':cardLabel);
+        if(badge){badge.className='badge badge-'+cardState;badge.textContent=cardLabel;}
+      }
+      if(state.start&&(!validRangeEnds(court,state.start).length || state.end&&!validRangeEnds(court,state.start).includes(state.end))){state.start=null;state.end=null;}
+      var ends=state.start&&!state.end?validRangeEnds(court,state.start):[];
+      var times=Array.from(new Set(court.slots.flatMap(function(slot){return [slot.start,slot.end];})));
+      times.sort(function(a,b){return (a==='00:00'?1440:PikolAvailability.minutes(a))-(b==='00:00'?1440:PikolAvailability.minutes(b));});
+      host.querySelector('[data-inline-slots]').innerHTML='<div class="range-grid">'+times.map(function(time){
+        var startOk=court.slots.some(function(slot){return slot.start===time&&slot.bookable;}),ok=ends.length?ends.includes(time):startOk;
+        var m=time==='00:00'?1440:PikolAvailability.minutes(time),selected=state.start&&(time===state.start||state.end&&m>=PikolAvailability.minutes(state.start)&&m<=(state.end==='00:00'?1440:PikolAvailability.minutes(state.end)));
+        return '<button type="button" class="range-slot'+(selected?' is-selected':'')+(ok?'':' is-unavailable')+'" data-inline-time="'+time+'"'+(ok?'':' disabled')+'>'+humanTime(time)+'</button>';
+      }).join('')+'</div>';
+      host.querySelector('.inline-range-label').textContent=state.start?(state.end?humanTime(state.start)+' – '+humanTime(state.end):'Start '+humanTime(state.start)+'. Select end time.'):'First tap: Start time. Second tap: End time.';
+      if(state.start)host.querySelector('.inline-range-label').insertAdjacentHTML('beforeend',' <button type="button" class="btn btn-ghost btn-sm" data-inline-clear>Clear</button>');
+    }).catch(function(e){if(host.isConnected)host.querySelector('[data-inline-slots]').textContent=e.message;});
+  }
+  document.addEventListener('change',function(e){var el=e.target.closest('[data-inline-date]');if(!el)return;var state=INLINE_SELECTIONS[el.dataset.inlineDate];state.date=el.value;state.start=state.end=null;paintInline(el.dataset.inlineDate);});
+  document.addEventListener('click',function(e){var host=e.target.closest('[data-inline-court]');if(!host)return;var id=host.dataset.inlineCourt,state=INLINE_SELECTIONS[id],button=e.target.closest('[data-inline-time]');if(e.target.closest('[data-inline-clear]')){state.start=state.end=null;return paintInline(id);}if(!button||button.disabled)return;if(!state.start||state.end){state.start=button.dataset.inlineTime;state.end=null;}else{state.end=button.dataset.inlineTime;}paintInline(id);});
   function loadDashboard() {
+    inlineCache.clear();inlineGeneration++;
     var today=ymd(new Date());
     $('#today-label').textContent='Live availability · '+humanDate(today);
     if(TOKEN&&USER)loadNotifications({preview:true});
@@ -1342,8 +1386,10 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
         var free=c.slots.filter(function(slot){return slot.status==='available';}).length;
         var state=c.status==='active'?(free?'available':'booked'):c.status;
         var label=state==='available'?'AVAILABLE':state==='booked'?'FULLY BOOKED':String(state).toUpperCase();
-        return '<article class="promo-court"><div class="court-visual">'+courtPhoto(c)+'<span class="court-type">'+esc(c.surface||'Pickleball')+'</span><span class="badge badge-'+esc(state)+'">'+esc(label)+'</span></div><div class="court-info"><h3>'+esc(c.name)+'</h3><p class="court-surface">'+esc(c.description||c.surface||'Your next great game starts here.')+'</p><div class="court-meta"><span>♟ 2–6 players</span><span>◷ '+(c.status==='active'?free+' open slots':esc(label))+'</span></div><div class="court-rate" style="display:grid;gap:3px"><span><strong>'+money(c.day_hourly_rate==null?c.hourly_rate:c.day_hourly_rate)+'</strong><small>/hr · '+esc(rateLabels.day)+'</small></span><span><strong>'+money(c.evening_hourly_rate==null?c.hourly_rate:c.evening_hourly_rate)+'</strong><small>/hr · '+esc(rateLabels.evening)+'</small></span></div><div class="court-card-footer"><button class="btn btn-outline" data-court-details="'+c.id+'">View Details</button><button class="btn btn-primary" data-book-court="'+c.id+'">Book Now</button></div></div></article>';
+        return '<article class="promo-court"><div class="court-visual">'+courtPhoto(c)+'<span class="court-type">'+esc(c.surface||'Pickleball')+'</span><span class="badge badge-'+esc(state)+'">'+esc(label)+'</span></div><div class="court-info"><h3>'+esc(c.name)+'</h3><p class="court-surface">'+esc(c.description||c.surface||'Your next great game starts here.')+'</p><div class="court-meta"><span>♟ 1–'+Number(BOOKING_RULES.maximum_players||1)+' players</span><span>◷ '+(c.status==='active'?free+' open slots':esc(label))+'</span></div><div class="court-rate" style="display:grid;gap:3px"><span><strong>'+money(c.day_hourly_rate==null?c.hourly_rate:c.day_hourly_rate)+'</strong><small>/hr · '+esc(rateLabels.day)+'</small></span><span><strong>'+money(c.evening_hourly_rate==null?c.hourly_rate:c.evening_hourly_rate)+'</strong><small>/hr · '+esc(rateLabels.evening)+'</small></span></div>'+inlineShell(c,today)+'<div class="court-card-footer"><button class="btn btn-outline" data-court-details="'+c.id+'">View Details</button><button class="btn btn-primary" data-book-court="'+c.id+'">Book Now</button></div></div></article>';
       }).join(''):'<div class="empty"><strong>No courts yet</strong>Courts appear here once the facility adds them.</div>';
+      inlineCache.set(today,{at:Date.now(),promise:Promise.resolve(data)});
+      PUBLIC_COURTS.forEach(function(c){paintInline(c.id);});
       initCourtCarousel($('#today-courts'), {kind:'home'});
     }).catch(function(e){$('#today-courts').innerHTML='<div class="empty"><strong>Courts could not load</strong><span>'+esc(e.message)+'</span><button class="btn btn-outline" data-goto="dashboard">Try again</button></div>';});
   }
@@ -1351,9 +1397,9 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
   document.addEventListener('click', function (e) {
     var b = e.target.closest('[data-book-court]');
     if (!b) return;
-    sel.date = ymd(new Date()); calCursor = new Date(); renderCalendar();
-    sel.court = Number(b.dataset.bookCourt);
-    sel.start = null; sel.end = null; sel.end = null;
+    var chosen=INLINE_SELECTIONS[b.dataset.bookCourt];
+    sel.date=chosen&&chosen.date||ymd(new Date());calCursor=new Date(sel.date+'T00:00:00');renderCalendar();
+    sel.court=Number(b.dataset.bookCourt);sel.start=chosen&&chosen.start||null;sel.end=chosen&&chosen.end||null;
     goto('book');
   });
 
@@ -1499,20 +1545,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
     if(CURRENT_MEMBERSHIP)total=memberPrice(total,CURRENT_MEMBERSHIP.court_discount_percent);
     return {total:total,duration:r.duration,dayAmount:da,eveningAmount:ea,dayMinutes:dm,eveningMinutes:xm,dayRate:dr,eveningRate:er,boundary:b};
   }
-  function validRangeEnds(court,start) {
-    if(!court||!start)return [];
-    var out=[], active=false, expectedStart=null;
-    for(var i=0;i<court.slots.length;i++){
-      var sl=court.slots[i], ok=sl.bookable===undefined?sl.status==='available':!!sl.bookable;
-      if(sl.start===start){active=true;expectedStart=sl.start;}
-      if(!active)continue;
-      if(expectedStart!==null && sl.start!==expectedStart)break;
-      if(!ok)break;
-      out.push(sl.end);
-      expectedStart=sl.end;
-    }
-    return out;
-  }
+  function validRangeEnds(court,start) { return window.PikolAvailability.ends(court,start); }
   function renderBooking() {
     $('#book-date-label').textContent = humanDate(sel.date);
     if (!AVAIL) return;
@@ -1714,9 +1747,13 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
   function methodInfo(key) {
     return (PAYCFG && PAYCFG.methods || []).filter(function (x) { return x.key === key; })[0] || null;
   }
+  function officialPaymentQr(m){
+    if(!m)return '';
+    return m.qr_url?'<div class="payment-qr-wrap"><img src="'+esc(assetUrl(m.qr_url))+'" alt="Official '+esc(m.label||'payment')+' QR code"></div>':'<p class="tiny muted">QR Code not configured. Use the account details below.</p>';
+  }
   function manualMethodPanel(m) {
     if (!m) return '';
-    var qr = m.qr_text && window.PIKOL_QR ? '<div class="payment-qr-wrap auto-qr"><div class="payment-provider-badge">' + esc(m.label) + '</div>' + window.PIKOL_QR.svg(m.qr_text,220) + '<span class="tiny muted">Scan the PIKOL number QR or copy the number below</span></div>' : '';
+    var qr = officialPaymentQr(m);
     var account = (m.account_name || m.account_number) ? '<div class="payment-account"><strong>' + esc(m.account_name || m.label) + '</strong><button type="button" class="copy-payment-number" data-copy-number="' + esc(m.account_number || '') + '">' + esc(m.account_number || '') + ' ⧉</button></div>' : '';
     return '<div class="payment-method-panel premium-pay-panel">' + qr + account + '<p class="s muted">' + esc(m.instructions || '') + '</p>' +
       (m.key === 'other' ? '<div class="field"><label class="label">Payment provider</label><input class="input" id="pm-other-provider" placeholder="e.g. BPI, UnionBank, another e-wallet" /></div>' : '') +
@@ -1743,7 +1780,12 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
       var dlg = modal({ title:'Full booking payment', locked:true, wide:true,onClose:release,
         body:'<div class="checkout-hold-banner" id="pm-hold-banner"><div class="checkout-hold-copy"><strong>Time slot temporarily held</strong><span class="tiny">'+esc(b.court_name)+' · '+humanDate(b.booking_date)+' · '+humanTime(b.start_time)+'–'+humanTime(b.end_time)+'</span></div><span class="checkout-hold-count" id="pm-hold-count">--:--</span></div><div class="payment-checkout"><div class="payment-summary-card"><span class="eyebrow">BOOKING</span><strong class="num">'+esc(b.reference)+'</strong><div>'+esc(b.court_name)+' · '+humanDate(b.booking_date)+' · '+humanTime(b.start_time)+'–'+humanTime(b.end_time)+'</div><div class="payment-total"><span>Full court fee</span><strong>'+esc(money(fullFee))+'</strong></div>'+(creditUsed>0?'<div class="payment-total"><span>PIKOL Credit</span><strong>−'+esc(money(creditUsed))+'</strong></div>':'')+'<div class="payment-total"><span>Amount to pay</span><strong>'+esc(money(fee))+'</strong></div></div>'+ 
           '<div class="field"><label class="label" for="pm-method">Payment method</label><select class="select" id="pm-method">'+options+'</select></div><div id="pm-details"></div></div>',
-        confirmText:'Submit payment', cancelText:'Later',
+        confirmText:'Submit payment', cancelText:'CANCEL BOOKING / RELEASE SLOT',
+        onCancel:function(h){
+          if(submitted)return false;
+          if($('[data-confirm]',h).disabled && !holdExpired)throw new Error('Please wait for payment submission to finish.');
+          return api('/api/bookings/'+b.id+'/release-hold',{method:'POST'}).then(function(){stopTicker();loadBookings();loadPikolCredit();loadDashboard();loadAvailability();toast('Booking cancelled. Slot and reserved credit released.','success');});
+        },
         onConfirm:function(h){
           if(holdExpired)return Promise.reject(new Error('Payment timer expired. Please secure the time slot again.'));
           var method=$('#pm-method',h).value; var info=methodInfo(method); if(!info) return Promise.reject(new Error('Select a payment method.'));
@@ -1762,7 +1804,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
         if(remaining<=0){
           remaining=0;holdExpired=true;stopTicker();if(count)count.textContent='EXPIRED';if(banner)banner.classList.add('is-expired');
           var submit=$('.modal-foot .btn-primary',host);if(submit)submit.disabled=true;
-          api('/api/bookings/'+b.id+'/release-hold',{method:'POST'}).catch(function(){}).finally(function(){loadAvailability();loadBookings();});
+          loadAvailability();loadBookings();loadPikolCredit();
           toast('Payment timer expired. The time range is available again. Please select another time slot.','warning');return;
         }
         var secs=Math.ceil(remaining/1000),min=Math.floor(secs/60),sec=secs%60;if(count)count.textContent=String(min).padStart(2,'0')+':'+String(sec).padStart(2,'0');
@@ -1869,7 +1911,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
     function render(){
       var info=methods.filter(function(x){return x.key===sel.value})[0]||{};
       
-      var qr=(info.qr_text&&window.PIKOL_QR)?'<div class="payment-qr-wrap auto-qr"><div class="payment-provider-badge">'+esc(info.label||'')+'</div>'+PIKOL_QR.svg(info.qr_text,200)+'<strong>'+esc(info.account_name||'')+'</strong><div class="num">'+esc(info.account_number||'')+'</div><button type="button" class="btn btn-ghost btn-sm" data-copy-member-number>Copy number</button></div>':'';
+      var qr=officialPaymentQr(info)+'<div class="payment-account"><strong>'+esc(info.account_name||'')+'</strong><div>'+esc(info.account_number||'')+'</div>'+(info.account_number?'<button type="button" class="btn btn-outline btn-sm" data-copy-member-number>Copy number</button>':'')+'</div>';
       pay.innerHTML=qr+(info.instructions?'<p class="tiny muted">'+esc(info.instructions)+'</p>':'')+(sel.value==='other'?'<div class="field"><label class="label">Specify payment method</label><input class="input" id="mb-provider" placeholder="Bank / wallet / provider"></div>':'')+'<div class="grid cols-2"><div class="field"><label class="label">Reference number</label><input class="input" id="mb-ref"></div><div class="field"><label class="label">Receipt</label><input class="input" id="mb-receipt" type="file" accept="image/png,image/jpeg,image/webp"></div></div>';
       var cp=$('[data-copy-member-number]',h); if(cp)cp.onclick=function(){navigator.clipboard&&navigator.clipboard.writeText(info.account_number||'').then(function(){toast('Payment number copied.','success')});};
     }
@@ -2246,7 +2288,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
         }});
       var host=m.host;
       function render(){var key=$('#pf-method',host).value,info=methods.filter(function(x){return x.key===key;})[0]||{}; 
-        var qr=info.qr_text&&window.PIKOL_QR?'<div class="payment-qr-wrap auto-qr"><div class="payment-provider-badge">'+esc(info.label||key)+'</div>'+window.PIKOL_QR.svg(info.qr_text,220)+'<span class="tiny muted">Scan the PIKOL number QR or copy the number below</span></div>':'';
+        var qr=officialPaymentQr(info);
         var acct=(info.account_name||info.account_number)?'<div class="payment-account"><strong>'+esc(info.account_name||info.label||key)+'</strong><button type="button" class="copy-payment-number" data-copy-number="'+esc(info.account_number||'')+'">'+esc(info.account_number||'')+' ⧉</button></div>':'';
         $('#pf-details',host).innerHTML='<div class="payment-method-panel premium-pay-panel">'+qr+acct+'<p class="s muted">'+esc(info.instructions||'')+'</p>'+(key==='other'?'<div class="field"><label class="label">Payment provider</label><input class="input" id="pf-other-provider" placeholder="Specify bank / e-wallet" /></div>':'')+'<div class="grid cols-2 payment-entry-grid"><div class="field"><label class="label">Reference number</label><input class="input" id="pf-reference" /></div><div class="field"><label class="label">Receipt / screenshot</label><input class="input" id="pf-receipt" type="file" accept="image/png,image/jpeg,image/webp" /></div></div></div>';
       }
@@ -2889,7 +2931,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
     if(e.target.closest('[data-close-sheet]')) closeSheet();
     if(e.target.closest('[data-close-auth]')) closeAuth();
     var adjust=e.target.closest('[data-player-change]');
-    if(adjust){var input=$('#bk-players');input.value=String(Math.max(2,Math.min(6,Number(input.value)+Number(adjust.dataset.playerChange))));renderBooking();}
+    if(adjust){var input=$('#bk-players');input.value=String(Math.max(1,Math.min(Number(BOOKING_RULES.maximum_players)||1,Number(input.value)+Number(adjust.dataset.playerChange))));renderBooking();}
     var showPlans=e.target.closest('[data-member-show-plans]');
     if(showPlans){
       var plansTab=$('.membership-sidebar [data-member-view="plans"]');
@@ -2955,7 +2997,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
       rows.sort(function(a,b){return String(a.date||'9999').localeCompare(String(b.date||'9999'));});
       $('#home-events').innerHTML=rows.length?rows.slice(0,2).map(function(item){
         var e=item.event,date=item.date?new Date(item.date+'T00:00:00'):null;
-        return '<article class="home-event-card">'+eventArtwork(e,item.type)+'<div class="home-event-info">'+(date?'<span class="event-date-badge"><b>'+MONTHS[date.getMonth()].slice(0,3)+'</b>'+date.getDate()+'</span>':'')+'<h3>'+esc(e.name||e.title)+'</h3><p>'+esc(item.type==='tournament'?'Tournament':'Open Play · Community games')+'</p><span>'+esc(item.type==='tournament'?tnWhen(e):whenText(e.event_date,e.start_time,e.end_time))+'</span><span>'+esc(e.venue||e.location||BRAND.facility_name||'')+'</span><button class="btn btn-lime btn-sm" data-home-event="'+esc(item.type)+':'+esc(e.id)+'">View Details</button></div></article>';
+        return '<article class="home-event-card">'+eventArtwork(e,item.type)+'<div class="home-event-info">'+(date?'<span class="event-date-badge"><b>'+MONTHS[date.getMonth()].slice(0,3)+'</b>'+date.getDate()+'</span>':'')+'<h3>'+esc(e.name||e.title)+'</h3><p>'+esc(item.type==='tournament'?'Tournament':'Open Play · Community games')+'</p><span>'+esc(item.type==='tournament'?tnWhen(e):whenText(e.event_date,e.start_time,e.end_time))+'</span><span>'+esc(e.venue||e.location||BRAND.facility_name||'')+'</span>'+(item.type==='openplay'?openPlayCapacity(e):'')+'<button class="btn btn-lime btn-sm" data-home-event="'+esc(item.type)+':'+esc(e.id)+'">View Details</button></div></article>';
       }).join(''):'<div class="empty"><strong>'+(results.every(function(r){return r.status==='rejected';})?'Events could not load':'More good games are on the way')+'</strong><span>'+(results.every(function(r){return r.status==='rejected';})?'Try again to see upcoming events.':'Upcoming tournaments and Open Play sessions will appear here when published.')+'</span><button class="btn btn-outline btn-sm" data-retry-home-events>Refresh events</button></div>';
     });
   }
@@ -2973,7 +3015,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
     var rateLabels=rateWindowLabels(AVAIL||BOOKING_RULES);
     $('#booking-title').textContent=c?'Book '+c.name:'Book a Court';
     $('#booking-photo').innerHTML=c?courtPhoto(c):'<img class="court-promo-image" src="assets/booking/hero-court.jpg" alt="Promotional court illustration"/><span class="court-image-note">Promotional image</span>';
-    $('#booking-court-description').innerHTML=c?'<div class="spread"><h2>'+esc(c.name)+'</h2><strong>'+money(c.day_hourly_rate==null?c.hourly_rate:c.day_hourly_rate)+'/hr · '+esc(rateLabels.day)+' · '+money(c.evening_hourly_rate==null?c.hourly_rate:c.evening_hourly_rate)+'/hr · '+esc(rateLabels.evening)+'</strong></div><p>'+esc(c.description||c.surface||'Find your favourite time and get ready to play.')+'</p><div class="court-amenities"><span>▦ '+esc(c.surface||'Pickleball court')+'</span><span>♟ 2–6 players</span><span>◷ '+Number(AVAIL.slot_minutes)+' minute slots</span></div>':'<h2>Your next game starts here.</h2><p>Select a court and a time that works for you.</p>';
+    $('#booking-court-description').innerHTML=c?'<div class="spread"><h2>'+esc(c.name)+'</h2><strong>'+money(c.day_hourly_rate==null?c.hourly_rate:c.day_hourly_rate)+'/hr · '+esc(rateLabels.day)+' · '+money(c.evening_hourly_rate==null?c.hourly_rate:c.evening_hourly_rate)+'/hr · '+esc(rateLabels.evening)+'</strong></div><p>'+esc(c.description||c.surface||'Find your favourite time and get ready to play.')+'</p><div class="court-amenities"><span>▦ '+esc(c.surface||'Pickleball court')+'</span><span>♟ 1–'+Number(BOOKING_RULES.maximum_players||1)+' players</span><span>◷ '+Number(AVAIL.slot_minutes)+' minute slots</span></div>':'<h2>Your next game starts here.</h2><p>Select a court and a time that works for you.</p>';
     var options='<option value="">'+(c?'Select an available time':'Choose a court first')+'</option>';
     if(c)options+=c.slots.map(function(slot){var ok=slot.bookable===undefined?slot.status==='available':!!slot.bookable;return '<option value="'+esc(slot.start)+'"'+(ok?'':' disabled')+'>'+humanTime(slot.start)+(ok?'':' · '+esc(slot.status_label||slot.label||slot.status))+'</option>';}).join('');
     $('#booking-time').innerHTML=options;$('#booking-time').value=sel.start||'';$('#booking-time').disabled=!c;
@@ -3016,12 +3058,13 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
   document.addEventListener('click',function(e){var b=e.target.closest('[data-select-booking]');if(b){selectedBookingId=Number(b.dataset.selectBooking);renderBookings();}});
   function eventListCard(e,type,selected){
     var isTournament=type==='tournament',open=isTournament?e.registration_open:e.status==='published'&&!e.full&&!eventEnded(e);
-    return '<article class="event-list-card'+(selected?' is-selected':'')+'">'+eventArtwork(e,type)+'<div class="event-list-info"><span class="badge">'+(isTournament?'TOURNAMENT':'OPEN PLAY')+'</span><h3>'+esc(e.name||e.title)+'</h3><p>'+esc(isTournament?tnWhen(e):whenText(e.event_date,e.start_time,e.end_time))+'</p><p>'+esc(e.venue||e.location||BRAND.facility_name||'')+'</p><span class="tiny muted">'+(isTournament?Number(e.division_count||0)+' divisions · '+Number(e.team_count||0)+' participants':Number(e.registered||0)+' registered'+(e.capacity?' / '+Number(e.capacity)+' slots':''))+'</span><div class="event-card-actions"><button class="btn btn-outline btn-sm" data-select-event="'+type+':'+e.id+'">View Details</button>'+(open?'<button class="btn btn-lime btn-sm" '+(isTournament?'data-tn-register="'+e.id+'" data-tn-name="'+esc(e.name)+'"':'data-op-join="'+e.id+'"')+'>Register →</button>':'<span class="badge">'+esc(isTournament?(TN_STATUS[e.status]||'Registration closed'):(e.full?'Full':eventEnded(e)?'Ended':e.status))+'</span>')+'</div></div></article>';
+    return '<article class="event-list-card'+(selected?' is-selected':'')+'">'+eventArtwork(e,type)+'<div class="event-list-info"><span class="badge">'+(isTournament?'TOURNAMENT':'OPEN PLAY')+'</span><h3>'+esc(e.name||e.title)+(type==='openplay'?openPlayCapacity(e):'')+'</h3><p>'+esc(isTournament?tnWhen(e):whenText(e.event_date,e.start_time,e.end_time))+'</p><p>'+esc(e.venue||e.location||BRAND.facility_name||'')+'</p><span class="tiny muted">'+(isTournament?Number(e.division_count||0)+' divisions · '+Number(e.team_count||0)+' participants':Number(e.registered||0)+' registered'+(e.capacity?' / '+Number(e.capacity)+' slots':''))+'</span><div class="event-card-actions"><button class="btn btn-outline btn-sm" data-select-event="'+type+':'+e.id+'">View Details</button>'+(open?'<button class="btn btn-lime btn-sm" '+(isTournament?'data-tn-register="'+e.id+'" data-tn-name="'+esc(e.name)+'"':'data-op-join="'+e.id+'"')+'>Register →</button>':'<span class="badge">'+esc(isTournament?(TN_STATUS[e.status]||'Registration closed'):(e.full?'Full':eventEnded(e)?'Ended':e.status))+'</span>')+'</div></div></article>';
   }
+  function openPlayCapacity(e){return '<strong class="slots-available">'+(e.slots_left==null?'OPEN CAPACITY':Number(e.slots_left)+' SLOTS AVAILABLE')+'</strong><span class="tiny">'+Number(e.confirmed||0)+' Registered'+(e.capacity?' / '+Number(e.capacity)+' Capacity':'')+' · '+Number(e.pending||0)+' Pending</span>';}
   function renderEventSpotlight(e,type){
     var host=$(type==='tournament'?'#event-spotlight':'#openplay-spotlight');if(!e){host.innerHTML='';return;}
     var tournament=type==='tournament',open=tournament?e.registration_open:e.status==='published'&&!e.full&&!eventEnded(e);
-    host.innerHTML=eventArtwork(e,type)+'<h2>'+esc(e.name||e.title)+'</h2><p class="event-detail-meta">'+esc(tournament?tnWhen(e):whenText(e.event_date,e.start_time,e.end_time))+'</p><p class="muted">'+esc(e.venue||e.location||BRAND.facility_name||'')+'</p><p>'+esc(e.description||'Come for the game. Stay for the community.')+'</p><div class="event-fee"><span>'+(tournament?'Registration fee from':'Entry fee')+'</span><strong>'+money(tournament?e.registration_fee:e.entrance_fee)+'</strong></div><div class="event-card-actions">'+(open?'<button class="btn btn-primary" '+(tournament?'data-tn-register="'+e.id+'" data-tn-name="'+esc(e.name)+'"':'data-op-join="'+e.id+'"')+'>Register Now →</button>':'<span class="muted">Registration is currently closed.</span>')+(tournament?'<button class="btn btn-outline" data-tn="'+e.id+'">View Full Details</button>':'')+'</div><div class="membership-note">Play. Compete. Belong.<span>Same passion. Bigger community.</span></div>';
+    host.innerHTML=eventArtwork(e,type)+(tournament?'':openPlayCapacity(e))+'<h2>'+esc(e.name||e.title)+'</h2><p class="event-detail-meta">'+esc(tournament?tnWhen(e):whenText(e.event_date,e.start_time,e.end_time))+'</p><p class="muted">'+esc(e.venue||e.location||BRAND.facility_name||'')+'</p><p>'+esc(e.description||'Come for the game. Stay for the community.')+'</p><div class="event-fee"><span>'+(tournament?'Registration fee from':'Entry fee')+'</span><strong>'+money(tournament?e.registration_fee:e.entrance_fee)+'</strong></div><div class="event-card-actions">'+(open?'<button class="btn btn-primary" '+(tournament?'data-tn-register="'+e.id+'" data-tn-name="'+esc(e.name)+'"':'data-op-join="'+e.id+'"')+'>Register Now →</button>':'<span class="muted">Registration is currently closed.</span>')+(tournament?'<button class="btn btn-outline" data-tn="'+e.id+'">View Full Details</button>':'')+'</div><div class="membership-note">Play. Compete. Belong.<span>Same passion. Bigger community.</span></div>';
   }
   function renderPublicEvents(type){
     var isTournament=type==='tournament',rows=isTournament?PUBLIC_EVENTS:PUBLIC_OPENPLAY,id=isTournament?selectedEventId:selectedOpenPlayId;
@@ -3110,8 +3153,9 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
     }
 
     function visible(tab) { return !$('#tab-' + tab).classList.contains('hidden'); }
-    function refreshAvailability() { if (visible('book')) run('availability', loadAvailability); }
+    function refreshAvailability() { if (visible('book')) run('availability', loadAvailability); if (visible('dashboard')) run('dashboard', loadDashboard); }
     function refreshEvents() {
+      if (visible('dashboard')) run('home-events', loadHomeEvents);
       if (!visible('tournaments')) return;
       if (EV_SUB === 'openplay') run('openplay', loadOpenPlay);
       else if (EV_SUB === 'tournaments') run('tournaments', refreshTournamentView);
@@ -3164,23 +3208,23 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
       'block:created': refreshAvailability,
       'block:removed': refreshAvailability,
       'availability:changed': refreshAvailability,
-      'openplay:created': function () { if (visible('tournaments')) run('openplay', loadOpenPlay); },
-      'openplay:updated': function () { if (visible('tournaments')) run('openplay', loadOpenPlay); },
-      'openplay:status_changed': function () { if (visible('tournaments')) run('openplay', loadOpenPlay); if(TOKEN){refreshRegistrations();refreshCredit();refreshNotifications();} },
-      'openplay:deleted': function () { if (visible('tournaments')) run('openplay', loadOpenPlay); if(TOKEN)refreshRegistrations(); },
-      'openplay:registration_created': function () { if (visible('tournaments')) run('openplay', loadOpenPlay); if (TOKEN) refreshRegistrations(); },
-      'openplay:registration_updated': function () { if (visible('tournaments')) run('openplay', loadOpenPlay); if (TOKEN) { refreshRegistrations(); refreshCredit(); refreshNotifications(); } },
-      'openplay:registration_cancelled': function () { if (visible('tournaments')) run('openplay', loadOpenPlay); if (TOKEN) { refreshRegistrations(); refreshCredit(); refreshNotifications(); } },
-      'openplay:payment_updated': function () { if (TOKEN) { refreshRegistrations(); refreshCredit(); } },
-      'tournament:created': function () { if (visible('tournaments')) run('tournaments', refreshTournamentView); },
-      'tournament:updated': function () { if (visible('tournaments')) run('tournaments', refreshTournamentView); },
-      'tournament:status_changed': function () { if (visible('tournaments')) run('tournaments', refreshTournamentView); if(TOKEN){refreshRegistrations();refreshCredit();refreshNotifications();} },
-      'tournament:deleted': function () { if (visible('tournaments')) run('tournaments', refreshTournamentView); if(TOKEN)refreshRegistrations(); },
-      'tournament:match_updated': function () { if (visible('tournaments')) run('tournaments', refreshTournamentView); if(TOKEN&&visible('profile'))run('rating',loadRating); },
-      'tournament:registration_created': function () { if (visible('tournaments')) run('tournaments', refreshTournamentView); if (TOKEN) refreshRegistrations(); },
-      'tournament:registration_updated': function () { if (visible('tournaments')) run('tournaments', refreshTournamentView); if (TOKEN) { refreshRegistrations(); refreshCredit(); refreshNotifications(); } },
-      'tournament:registration_cancelled': function () { if (visible('tournaments')) run('tournaments', refreshTournamentView); if (TOKEN) { refreshRegistrations(); refreshCredit(); refreshNotifications(); } },
-      'tournament:payment_updated': function () { if (TOKEN) { refreshRegistrations(); refreshCredit(); } },
+      'openplay:created': function () { if (visible('dashboard')) run('home-events', loadHomeEvents); if (visible('tournaments')) run('openplay', loadOpenPlay); },
+      'openplay:updated': function () { if (visible('dashboard')) run('home-events', loadHomeEvents); if (visible('tournaments')) run('openplay', loadOpenPlay); },
+      'openplay:status_changed': function () { if (visible('dashboard')) run('home-events', loadHomeEvents); if (visible('tournaments')) run('openplay', loadOpenPlay); if(TOKEN){refreshRegistrations();refreshCredit();refreshNotifications();} },
+      'openplay:deleted': function () { if (visible('dashboard')) run('home-events', loadHomeEvents); if (visible('tournaments')) run('openplay', loadOpenPlay); if(TOKEN)refreshRegistrations(); },
+      'openplay:registration_created': function () { if (visible('dashboard')) run('home-events', loadHomeEvents); if (visible('tournaments')) run('openplay', loadOpenPlay); if (TOKEN) refreshRegistrations(); },
+      'openplay:registration_updated': function () { if (visible('dashboard')) run('home-events', loadHomeEvents); if (visible('tournaments')) run('openplay', loadOpenPlay); if (TOKEN) { refreshRegistrations(); refreshCredit(); refreshNotifications(); } },
+      'openplay:registration_cancelled': function () { if (visible('dashboard')) run('home-events', loadHomeEvents); if (visible('tournaments')) run('openplay', loadOpenPlay); if (TOKEN) { refreshRegistrations(); refreshCredit(); refreshNotifications(); } },
+      'openplay:payment_updated': function () { if (visible('dashboard')) run('home-events', loadHomeEvents); if (TOKEN) { refreshRegistrations(); refreshCredit(); } },
+      'tournament:created': function () { if (visible('dashboard')) run('home-events', loadHomeEvents); if (visible('tournaments')) run('tournaments', refreshTournamentView); },
+      'tournament:updated': function () { if (visible('dashboard')) run('home-events', loadHomeEvents); if (visible('tournaments')) run('tournaments', refreshTournamentView); },
+      'tournament:status_changed': function () { if (visible('dashboard')) run('home-events', loadHomeEvents); if (visible('tournaments')) run('tournaments', refreshTournamentView); if(TOKEN){refreshRegistrations();refreshCredit();refreshNotifications();} },
+      'tournament:deleted': function () { if (visible('dashboard')) run('home-events', loadHomeEvents); if (visible('tournaments')) run('tournaments', refreshTournamentView); if(TOKEN)refreshRegistrations(); },
+      'tournament:match_updated': function () { if (visible('dashboard')) run('home-events', loadHomeEvents); if (visible('tournaments')) run('tournaments', refreshTournamentView); if(TOKEN&&visible('profile'))run('rating',loadRating); },
+      'tournament:registration_created': function () { if (visible('dashboard')) run('home-events', loadHomeEvents); if (visible('tournaments')) run('tournaments', refreshTournamentView); if (TOKEN) refreshRegistrations(); },
+      'tournament:registration_updated': function () { if (visible('dashboard')) run('home-events', loadHomeEvents); if (visible('tournaments')) run('tournaments', refreshTournamentView); if (TOKEN) { refreshRegistrations(); refreshCredit(); refreshNotifications(); } },
+      'tournament:registration_cancelled': function () { if (visible('dashboard')) run('home-events', loadHomeEvents); if (visible('tournaments')) run('tournaments', refreshTournamentView); if (TOKEN) { refreshRegistrations(); refreshCredit(); refreshNotifications(); } },
+      'tournament:payment_updated': function () { if (visible('dashboard')) run('home-events', loadHomeEvents); if (TOKEN) { refreshRegistrations(); refreshCredit(); } },
       'settings:updated': function () { run('branding', function () { api('/api/branding').then(applyBranding).catch(function () {}); loadPayCfg().catch(function () {}); }); if(visible('membership'))run('membership',loadMembership); if(TOKEN&&visible('bookings'))run('bookings',loadBookings); refreshAvailability(); },
       'branding:updated': function () { run('branding', function () { api('/api/branding').then(applyBranding).catch(function () {}); }); },
       'system:data-reset': function () { if (TOKEN) signOutLocal(); refreshAvailability(); refreshEvents(); toast('Operational data was reset. Please sign in again if needed.', 'info'); },
@@ -3290,7 +3334,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
   window.addEventListener('appinstalled',function(){setMarked(true);deferredPrompt=null;sync();});
   window.addEventListener('pageshow',sync);document.addEventListener('visibilitychange',function(){if(!document.hidden)sync();});
   if(btn)btn.addEventListener('click',async function(){if(!deferredPrompt)return;btn.disabled=true;try{await deferredPrompt.prompt();var c=await deferredPrompt.userChoice;if(c&&c.outcome==='accepted')setMarked(true);}catch(_){}deferredPrompt=null;btn.disabled=false;sync();});
-  if('serviceWorker' in navigator)window.addEventListener('load',function(){var reloading=false;navigator.serviceWorker.addEventListener('controllerchange',function(){if(reloading)return;reloading=true;location.reload();});navigator.serviceWorker.register('service-worker.js?v=51-audit-fixes-v1',{scope:'./',updateViaCache:'none'}).then(function(reg){return reg.update();}).catch(function(){});});
+  if('serviceWorker' in navigator)window.addEventListener('load',function(){var reloading=false;navigator.serviceWorker.addEventListener('controllerchange',function(){if(reloading)return;reloading=true;location.reload();});navigator.serviceWorker.register('service-worker.js?v=53-client-upgrades',{scope:'./',updateViaCache:'none'}).then(function(reg){return reg.update();}).catch(function(){});});
   sync();
 })();
 </script>

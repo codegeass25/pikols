@@ -77,6 +77,8 @@ body.admin-app.role-ready #view-app{visibility:visible}
   #page-settings .settings-panel-enter.is-visible{transition-duration:1ms !important}
 }
 </style>
+<link rel="stylesheet" href="client-upgrades.css?v=53-client-upgrades">
+<script src="range-availability.js?v=53-client-upgrades"></script>
 </head>
 <body class="admin-app">
 
@@ -622,7 +624,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
         <form class="settings-section hidden mt-5" id="set-booking">
           <h2 class="section-title" style="margin-bottom:16px">Booking rules</h2>
           <div class="grid cols-3" style="gap:0 18px">
-            <div class="field"><label class="label" for="s-open_time">Opening time</label><input class="input" id="s-open_time" data-key="open_time" type="time" step="900" /></div>
+            <div class="field"><label class="label" for="s-maximum_players">Maximum Number of Players</label><input class="input" id="s-maximum_players" data-key="maximum_players" type="number" min="1" max="10000" step="1" required></div><div class="field"><label class="label" for="s-open_time">Opening time</label><input class="input" id="s-open_time" data-key="open_time" type="time" step="900" /></div>
             <div class="field"><label class="label" for="s-close_time">Closing time</label><input class="input" id="s-close_time" data-key="close_time" type="time" step="900" /></div>
             <div class="field"><label class="label" for="s-slot_minutes">Slot length (minutes)</label>
               <select class="select" id="s-slot_minutes" data-key="slot_minutes"><option>30</option><option>60</option><option>90</option><option>120</option></select></div>
@@ -646,18 +648,18 @@ body.admin-app.role-ready #view-app{visibility:visible}
               <div class="spread"><div><strong>GCash</strong><div class="tiny muted">QR + number → manual reference → receipt upload → Admin verification.</div></div><label class="switch"><input type="checkbox" id="s-gcash_enabled" data-key="gcash_enabled"><span class="track"></span></label></div>
               <div class="grid cols-2 mt-3"><div class="field"><label class="label">Account name</label><input class="input" id="s-gcash_account_name" data-key="gcash_account_name"></div><div class="field"><label class="label">Mobile number</label><input class="input" id="s-gcash_number" data-key="gcash_number" inputmode="tel"></div></div>
               <div class="field"><label class="label">Instructions</label><input class="input" id="s-gcash_instructions" data-key="gcash_instructions" placeholder="Scan QR, send payment, then upload your receipt."></div>
-              <div class="auto-payment-qr-card" id="gcash-auto-qr"><div class="payment-qr-wrap auto-qr" data-auto-qr="gcash"></div><div class="tiny muted">Generated automatically from the mobile number. No upload required.</div></div>
+              <div class="payment-qr-upload" data-payment-qr="gcash"><strong>Official GCash QR Code</strong><div data-qr-preview></div><input type="hidden" id="s-gcash_qr_url" data-key="gcash_qr_url"><input type="file" data-qr-file accept="image/png,image/jpeg,image/webp" hidden><div class="row wrap"><button type="button" class="btn btn-outline btn-sm" data-qr-upload>Upload / Replace GCash QR</button><button type="button" class="btn btn-ghost btn-sm" data-qr-remove>Remove QR</button></div><p class="tiny muted">Upload the official image from your payment app. PNG, JPG or WebP, up to 5 MB.</p></div>
             </div>
             <div class="payment-channel-section">
               <div class="spread"><div><strong>Maya / PayMaya</strong><div class="tiny muted">QR + number → manual reference → receipt upload → Admin verification.</div></div><label class="switch"><input type="checkbox" id="s-maya_enabled" data-key="maya_enabled"><span class="track"></span></label></div>
               <div class="grid cols-2 mt-3"><div class="field"><label class="label">Account name</label><input class="input" id="s-maya_account_name" data-key="maya_account_name"></div><div class="field"><label class="label">Mobile number</label><input class="input" id="s-maya_number" data-key="maya_number" inputmode="tel"></div></div>
               <div class="field"><label class="label">Instructions</label><input class="input" id="s-maya_instructions" data-key="maya_instructions" placeholder="Scan QR, send payment, then upload your receipt."></div>
-              <div class="auto-payment-qr-card" id="maya-auto-qr"><div class="payment-qr-wrap auto-qr" data-auto-qr="maya"></div><div class="tiny muted">Generated automatically from the mobile number. No upload required.</div></div>
+              <div class="payment-qr-upload" data-payment-qr="maya"><strong>Official Maya QR Code</strong><div data-qr-preview></div><input type="hidden" id="s-maya_qr_url" data-key="maya_qr_url"><input type="file" data-qr-file accept="image/png,image/jpeg,image/webp" hidden><div class="row wrap"><button type="button" class="btn btn-outline btn-sm" data-qr-upload>Upload / Replace Maya QR</button><button type="button" class="btn btn-ghost btn-sm" data-qr-remove>Remove QR</button></div><p class="tiny muted">Upload the official image from your payment app. PNG, JPG or WebP, up to 5 MB.</p></div>
             </div>
             <div class="payment-channel-section">
               <div class="spread"><div><strong>GoTyme Bank</strong><div class="tiny muted">Bank transfer → reference → receipt upload → staff verification.</div></div><label class="switch"><input type="checkbox" id="s-gotyme_enabled" data-key="gotyme_enabled"><span class="track"></span></label></div>
               <div class="grid cols-2 mt-3"><div class="field"><label class="label">Account name</label><input class="input" id="s-gotyme_account_name" data-key="gotyme_account_name"></div><div class="field"><label class="label">Account number</label><input class="input" id="s-gotyme_number" data-key="gotyme_number"></div></div>
-              <div class="field"><label class="label">Official QR image URL (optional)</label><input class="input" id="s-gotyme_qr_url" data-key="gotyme_qr_url" placeholder="https://... or /branding/..."></div>
+              <div class="payment-qr-upload" data-payment-qr="gotyme"><strong>Official GoTyme QR Code</strong><div data-qr-preview></div><input type="hidden" id="s-gotyme_qr_url" data-key="gotyme_qr_url"><input type="file" data-qr-file accept="image/png,image/jpeg,image/webp" hidden><div class="row wrap"><button type="button" class="btn btn-outline btn-sm" data-qr-upload>Upload / Replace GoTyme QR</button><button type="button" class="btn btn-ghost btn-sm" data-qr-remove>Remove QR</button></div><p class="tiny muted">Upload the official image from your payment app. PNG, JPG or WebP, up to 5 MB.</p></div>
               <div class="field"><label class="label">Instructions</label><input class="input" id="s-gotyme_instructions" data-key="gotyme_instructions" placeholder="Send exact amount, enter reference, upload receipt."></div>
             </div>
             <div class="payment-channel-section">
@@ -1004,6 +1006,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
         .catch(function (e) { toast(e.message, 'error'); })
         .finally(function () { busy(cb, false); });
     };
+    if($('#tf-date',host))wireEventRange(host,'tf','tournament',Number($('[data-tournament-form-id]',host).dataset.tournamentFormId)||null);
     return host;
   }
 
@@ -1736,16 +1739,29 @@ body.admin-app.role-ready #view-app{visibility:visible}
     }).catch(function (e) { toast(e.message, 'error'); });
   }
 
+  function selectedCourts(host,id){return $$('[type="checkbox"]:checked',$('#'+id,host)).map(function(el){return Number(el.value);});}
+  function multiCourtField(id,event){var selected=event.court_ids||(event.court_id?[event.court_id]:[]);return '<div class="field"><span class="label">Venue Courts</span><div class="court-checks" id="'+id+'">'+COURTS.map(function(c){return '<label><input type="checkbox" value="'+c.id+'"'+(selected.includes(c.id)?' checked':'')+(c.status==='active'?'':' disabled')+'>'+esc(c.name)+'</label>';}).join('')+'</div></div>';}
+  function asTimeSelect(input){var value=input.value,select=document.createElement('select');select.id=input.id;select.className='select';select.innerHTML='<option value="'+value+'"></option>';input.replaceWith(select);return select;}
+  function wireEventRange(host,prefix,type,id){
+    var date=$('#'+prefix+'-date',host),until=$('#'+prefix+'-date-to',host),courts=$('#'+prefix+'-court',host),start=asTimeSelect($('#'+prefix+'-start',host)),end=asTimeSelect($('#'+prefix+'-end',host)),box=$('#'+prefix+'-availability',host);
+    if(!box){box=document.createElement('div');box.id=prefix+'-availability';date.closest('.grid').after(box);}
+    return PikolAvailability.bind({start:start,end:end,box:box,label:humanTime,courts:function(){return selectedCourts(host,prefix+'-court');},watch:[date,courts].concat(until?[until]:[]),load:function(){if(!date.value||!selectedCourts(host,prefix+'-court').length)return Promise.resolve({courts:[]});return api('/api/admin/availability?date='+date.value+(until&&until.value?'&date_to='+until.value:'')+(id?'&event_type='+type+'&event_id='+id:''));}});
+  }
+  function wireBookingMove(host,prefix,booking){
+    var date=$('#'+prefix+'-date',host),court=$('#'+prefix+'-court',host),start=asTimeSelect($('#'+prefix+'-time',host)),end=document.createElement('select'),field=document.createElement('div');end.className='select';end.id=prefix+'-end';field.className='field';field.innerHTML='<label class="label">End time · original duration</label>';field.appendChild(end);start.closest('.field').after(field);
+    var box=document.createElement('div');field.after(box);
+    return PikolAvailability.bind({start:start,end:end,box:box,label:humanTime,duration:PikolAvailability.duration(booking.start_time,booking.end_time),courts:function(){return [Number(court.value)];},watch:[date,court],load:function(){return api('/api/admin/availability?date='+date.value+'&exclude_booking_id='+booking.id);}});
+  }
   function tournamentForm(t) {
     t = t || {};
-    return '<div class="grid cols-2" style="gap:0 12px">' +
+    return '<div data-tournament-form-id="'+(t.id||'')+'"></div><div class="grid cols-2" style="gap:0 12px">' +
       '<div class="field"><label class="label" for="tf-name">Name</label><input class="input" id="tf-name" maxlength="120" value="' + esc(t.name || '') + '" /></div>' +
-      courtField('tf-court', t.court_id) +
+      multiCourtField('tf-court', t) +
       '<div class="field"><label class="label" for="tf-date">Date from</label><input class="input" id="tf-date" type="date" value="' + esc(t.tournament_date || '') + '" /></div>' +
       '<div class="field"><label class="label" for="tf-date-to">Date to</label><input class="input" id="tf-date-to" type="date" value="' + esc(t.end_date || t.tournament_date || '') + '" />' +
       '<span class="tiny muted">The tournament occupies the court on every date from DATE FROM through DATE TO.</span></div>' +
       '<div class="field"><label class="label" for="tf-start">Start time</label><input class="input" id="tf-start" type="time" step="900" value="' + esc(t.start_time || '') + '" />' +
-      '<span class="tiny muted">A tournament is an exclusive administrative event: every time option stays selectable.</span></div>' +
+      '<span class="tiny muted">Select a range available on every selected court and date.</span></div>' +
       '<div class="field"><label class="label" for="tf-end">End time</label><input class="input" id="tf-end" type="time" step="900" value="' + esc(t.end_time || '') + '" /></div>' +
       '<div class="field"><label class="label" for="tf-poster">Promotional image</label><input class="input" id="tf-poster" maxlength="400" value="' + esc(t.poster_url || '') + '" placeholder="Uploaded image URL appears here" /><button class="btn btn-outline btn-sm mt-3" type="button" data-tournament-poster-upload>Upload promotional image</button><input type="file" data-tournament-poster-file accept="image/png,image/jpeg,image/webp" class="hidden" /><div data-tournament-poster-preview class="mt-3">'+(t.poster_url?'<img src="'+esc(assetUrl(t.poster_url))+'" style="max-height:160px;border-radius:12px">':'')+'</div></div>' +
       '<div class="field"><label class="label" for="tf-regs">Registration opens</label><input class="input" id="tf-regs" type="date" value="' + esc(t.registration_start || '') + '" /></div>' +
@@ -1759,7 +1775,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
   }
   function readTournament(h) {
     return {
-      name: $('#tf-name', h).value.trim(), court_id: $('#tf-court', h).value || null,
+      name: $('#tf-name', h).value.trim(), court_ids: selectedCourts(h,'tf-court'),
       date_from: $('#tf-date', h).value,
       date_to: $('#tf-date-to', h).value || $('#tf-date', h).value,
       poster_url: $('#tf-poster', h).value.trim(),
@@ -1817,7 +1833,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
     TRN_OPEN = id;
     return Promise.all([api('/api/admin/tournaments/' + id), api('/api/admin/scorers').catch(function(){ return []; }), api('/api/courts')]).then(function (r) {
       if (String(TRN_OPEN) !== String(id)) return;
-      var d = r[0]; SCORERS = r[1] || []; COURTS = r[2] || [];
+      var d = r[0]; SCORERS = r[1] || []; COURTS = r[2] || [];TOURNAMENT_COURT_IDS=d.tournament.court_ids||[];
       $('#trn-list-view').classList.add('hidden');
       var host = $('#trn-detail-view');
       host.classList.remove('hidden');
@@ -1848,7 +1864,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
       '<td><input class="input" type="date" data-mfield="scheduled_date" data-mid="' + m.id + '" value="' + esc(m.scheduled_date || '') + '" />' +
       '<input class="input mt-2" type="time" step="900" data-mfield="scheduled_time" data-mid="' + m.id + '" value="' + esc(m.scheduled_time || '') + '" /></td>' +
       '<td><select class="select" data-mfield="court_id" data-mid="' + m.id + '"><option value="">— Court TBA —</option>' +
-      COURTS.map(function (c) { return '<option value="' + c.id + '"' + (String(m.court_id) === String(c.id) ? ' selected' : '') + '>' + esc(c.name) + '</option>'; }).join('') +
+      COURTS.filter(function(c){return TOURNAMENT_COURT_IDS.includes(c.id);}).map(function (c) { return '<option value="' + c.id + '"' + (String(m.court_id) === String(c.id) ? ' selected' : '') + '>' + esc(c.name) + '</option>'; }).join('') +
       '</select></td>' +
       '<td><select class="select" data-scorer-mid="' + m.id + '">' + scorerOptions(m.assigned_scorer_id) + '</select>' + (m.scorer_name ? '<div class="tiny muted mt-2">' + esc(m.scorer_name) + '</div>' : '') + '</td>' +
       '<td><div class="row" style="gap:4px"><input class="input num" style="width:66px" type="number" min="0" max="999" data-score="a" data-mid="' + m.id + '" value="' + (m.score_a || 0) + '" />' +
@@ -1877,6 +1893,21 @@ body.admin-app.role-ready #view-app{visibility:visible}
     return '<div class="bracket-board" aria-label="Tournament bracket">'+rounds.map(function(round){return '<section class="bracket-column"><div class="bracket-column-head"><strong>'+esc(round.label)+'</strong></div>'+round.matches.map(function(m){return '<article class="bracket-match '+(m.status==='completed'?'is-done':'')+'"><div><span>'+esc(m.team_a_name||'TBA')+'</span><b class="num">'+window.PikolTournamentUI.scoreText(m,'a')+'</b></div><div><span>'+esc(m.team_b_name||'TBA')+'</span><b class="num">'+window.PikolTournamentUI.scoreText(m,'b')+'</b></div><small>'+esc(m.status||'scheduled')+' · '+(m.court_name?esc(m.court_name)+' · ':'')+esc(m.scheduled_date||'Date TBA')+' · '+esc(m.scheduled_time||'Time TBA')+'</small></article>';}).join('')+'</section>';}).join('')+'</div>';
   }
 
+
+  document.addEventListener('click',function(e){
+    var download=e.target.closest('[data-division-docx]'),print=e.target.closest('[data-division-print]'),button=download||print;if(!button)return;
+    var id=download?download.dataset.divisionDocx:print.dataset.divisionPrint;
+    var win=print?window.open('','_blank'):null;
+    if(print&&!win)return toast('Allow popups to open the print document.','error');
+    if(win)win.document.body.textContent='Preparing division print document…';
+    busy(button,true);
+    fetch(API+'/api/admin/divisions/'+id+'/output'+(print?'?format=print':''),{headers:{Authorization:'Bearer '+TOKEN}}).then(async function(response){
+      if(!response.ok){var error=await response.json();throw new Error(error.error||'Export failed');}
+      if(print){var html=await response.text();win.document.open();win.document.write(html);win.document.close();win.focus();setTimeout(function(){win.print();},350);}
+      else{var blob=await response.blob(),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='PIKOL-division-'+id+'-schedule-bracket.docx';a.click();setTimeout(function(){URL.revokeObjectURL(url);},1000);}
+    }).catch(function(error){if(win)win.close();toast(error.message,'error');}).finally(function(){busy(button,false);});
+  });
+  var TOURNAMENT_COURT_IDS=[];
   function renderDivision(div) {
     var teams = div.teams || [];
     return '<section class="division-workspace mt-5" data-division="' + div.id + '">' +
@@ -1896,7 +1927,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
       '<button class="btn btn-outline btn-sm" data-div-edit="' + div.id + '">Edit</button>' +
       '<button class="btn btn-ghost btn-sm" data-div-del="' + div.id + '">Delete</button>' +
 
-      '</div></div>' +
+      '</div></div><div class="division-output-actions"><strong>Schedule &amp; Bracket Output</strong><button class="btn btn-outline btn-sm" data-division-docx="'+div.id+'">↓ Download DOCX</button><button class="btn btn-outline btn-sm" data-division-print="'+div.id+'">Print</button></div>' +
       '<div class="grid cols-2" style="gap:16px">' +
       '<div><h4 class="label">Participants (' + teams.length + ')</h4>' +
       (teams.length ? '<div class="table-wrap"><table class="data"><thead><tr><th>Entry</th><th>Players</th><th></th></tr></thead><tbody>' +
@@ -2267,7 +2298,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
           '<div class="field"><label class="label" for="mf-date">Date</label><input class="input" id="mf-date" type="date" /></div>' +
           '<div class="field"><label class="label" for="mf-time">Time</label><input class="input" id="mf-time" type="time" step="900" /></div>' +
           '<div class="field"><label class="label" for="mf-court">Court</label><select class="select" id="mf-court"><option value="">— TBA —</option>' +
-          COURTS.map(function (c) { return '<option value="' + c.id + '">' + esc(c.name) + '</option>'; }).join('') + '</select></div>' +
+          COURTS.filter(function(c){return (r[1].tournament.court_ids||[]).includes(c.id);}).map(function (c) { return '<option value="' + c.id + '">' + esc(c.name) + '</option>'; }).join('') + '</select></div>' +
           '</div>',
         onConfirm: function (h) {
           return api('/api/admin/divisions/' + divisionId + '/matches', {
@@ -2493,6 +2524,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
         '<div id="vc-rebook"><div class="field"><label class="label" for="vc-court">New court</label><select class="select" id="vc-court">'+COURTS.filter(function(c){return c.status==='active';}).map(function(c){return '<option value="'+c.id+'"'+(c.id===bk.court_id?' selected':'')+'>'+esc(c.name)+'</option>';}).join('')+'</select></div>'+ 
         '<div class="grid cols-2"><div class="field"><label class="label" for="vc-date">New date</label><input class="input" id="vc-date" type="date" value="'+esc(bk.booking_date)+'"></div><div class="field"><label class="label" for="vc-time">New start time</label><input class="input" id="vc-time" type="time" step="900" value="'+esc(bk.start_time)+'"></div></div><p class="tiny muted">The original booking duration is preserved and the new schedule is clash-checked.</p></div>',
         onConfirm:function(h){var reason=$('#vc-reason',h).value.trim(),resolution=$('#vc-resolution',h).value;if(reason.length<3)return Promise.reject(new Error('Enter the venue cancellation reason.'));var body={reason:reason,resolution:resolution};if(resolution==='rebook'){body.court_id=Number($('#vc-court',h).value);body.date=$('#vc-date',h).value;body.start_time=$('#vc-time',h).value;}return api('/api/admin/bookings/'+bk.id+'/venue-cancel',{method:'POST',body:body}).then(function(out){toast(resolution==='credit'?('Venue cancellation saved. '+money(out.credit_issued||0)+' PIKOL Credit issued.'):'Player rebooked successfully.','success');loadBookings();loadDashboard();if(!$('#page-payments').classList.contains('hidden'))loadPayments();});}});
+      wireBookingMove(host,'vc',bk);
       function syncVc(){var credit=$('#vc-resolution',host).value==='credit';$('#vc-rebook',host).classList.toggle('hidden',credit);}
       $('#vc-resolution',host).onchange=syncVc;syncVc();return;
     }
@@ -2529,7 +2561,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
     var rs = e.target.closest('[data-resched]');
     if (rs) {
       var bk = BOOKINGS.filter(function (x) { return x.id === Number(rs.dataset.resched); })[0];
-      modal({
+      var moveHost=modal({
         title: 'Reschedule ' + bk.reference, locked: true,
         body: '<div class="field"><label class="label" for="rs-court">Court</label><select class="select" id="rs-court">' +
           COURTS.map(function (c) { return '<option value="' + c.id + '"' + (c.id === bk.court_id ? ' selected' : '') + '>' + esc(c.name) + '</option>'; }).join('') +
@@ -2546,6 +2578,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
           }).then(function () { toast('Booking rescheduled.', 'success'); loadBookings(); });
         }
       });
+      wireBookingMove(moveHost,'rs',bk);
     }
   });
 
@@ -3268,7 +3301,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
       '<div class="field"><label class="label" for="op-start">Start time</label><input class="input" id="op-start" type="time" value="' + esc(e.start_time || '') + '" /></div>' +
       '<div class="field"><label class="label" for="op-end">End time</label><input class="input" id="op-end" type="time" value="' + esc(e.end_time || '') + '" /></div>' +
       '</div>' +
-      courtField('op-court', e.court_id) +
+      multiCourtField('op-court', e) +
       '<div class="field"><label class="label" for="op-description">Description</label><textarea class="textarea" id="op-description" maxlength="2000">' + esc(e.description || '') + '</textarea></div>' +
       '<div class="field"><label class="label" for="op-poster">Poster image URL</label>' +
       '<input class="input" id="op-poster" maxlength="400" value="' + esc(e.poster_url || '') + '" />' +
@@ -3283,46 +3316,12 @@ body.admin-app.role-ready #view-app{visibility:visible}
 
   /* Renders the availability of the selected court/date inside the Open Play
      form and lets the admin click an AVAILABLE slot to fill the times. */
-  function wireOpenPlayAvailability(host, currentId) {
-    var dateEl = $('#op-date', host), courtEl = $('#op-court', host), box = $('#op-availability', host);
-    function render() {
-      var date = dateEl.value, courtId = courtEl.value;
-      if (!date || !courtId) {
-        box.innerHTML = '<span class="tiny muted">Choose a date and a court to load the schedule.</span>';
-        return;
-      }
-      box.innerHTML = '<span class="tiny muted">Loading schedule…</span>';
-      api('/api/availability?date=' + encodeURIComponent(date)).then(function (data) {
-        var court = (data.courts || []).filter(function (c) { return String(c.id) === String(courtId); })[0];
-        if (!court) { box.innerHTML = '<span class="tiny muted">No schedule for this court.</span>'; return; }
-        var excl = court.exclusive_tournament
-          ? '<div class="court-exclusive">' + esc(court.exclusive_label) + '<span>' +
-            esc(court.exclusive_tournament.title) + '</span></div>' : '';
-        box.innerHTML = excl + '<div class="slot-grid">' + court.slots.map(function (sl) {
-          var own = sl.event && currentId && sl.event.type === 'open_play' && String(sl.event.id) === String(currentId);
-          var free = sl.booking_status === 'available' || own;
-          return '<button type="button" class="slot-chip st-' + sl.status + (free ? '' : ' is-booked') + '"' +
-            (free ? ' data-slot-start="' + sl.start + '" data-slot-end="' + sl.end + '"' : ' disabled') + '>' +
-            '<strong class="num">' + humanTime(sl.start) + '</strong>' +
-            '<span>' + esc(own ? 'THIS EVENT' : sl.status_label) + '</span></button>';
-        }).join('') + '</div>';
-      }).catch(function () { box.innerHTML = '<span class="tiny muted">Schedule unavailable.</span>'; });
-    }
-    dateEl.addEventListener('change', render);
-    courtEl.addEventListener('change', render);
-    box.addEventListener('click', function (ev) {
-      var chip = ev.target.closest('[data-slot-start]');
-      if (!chip) return;
-      $('#op-start', host).value = chip.dataset.slotStart;
-      if (!$('#op-end', host).value) $('#op-end', host).value = chip.dataset.slotEnd;
-    });
-    render();
-  }
+  function wireOpenPlayAvailability(host,currentId){return wireEventRange(host,'op','open_play',currentId);}
   function readOpenPlayForm(host) {
     return {
       title: $('#op-title', host).value, entrance_fee: $('#op-fee', host).value || 0,
       event_date: $('#op-date', host).value, start_time: $('#op-start', host).value, end_time: $('#op-end', host).value,
-      capacity: $('#op-capacity', host).value, court_id: $('#op-court', host).value || null,
+      capacity: $('#op-capacity', host).value, court_ids: selectedCourts(host,'op-court'),
       description: $('#op-description', host).value, poster_url: $('#op-poster', host).value
     };
   }
@@ -3352,7 +3351,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
         return '<tr><td>' + esc(e.title) + (e.capacity ? '<div class="tiny muted">Capacity ' + e.capacity + '</div>' : '') + '</td>' +
           '<td>' + dateCell(e.event_date) + '</td><td>' + timeCell(e.start_time, e.end_time, e.event_date) + '</td>' +
           '<td class="num">' + esc(money(e.entrance_fee)) + '</td><td>' + esc(e.court_name || e.location || '—') + '</td>' +
-          '<td class="num">' + (e.registered || 0) + (e.capacity ? ' / ' + e.capacity : '') + '</td>' +
+          '<td class="num">' + (e.confirmed || 0) + (e.capacity ? ' / ' + e.capacity : '') + '<div class="tiny muted">'+Number(e.pending||0)+' Pending</div></td>' +
           '<td class="num">' + esc(money(e.collected)) + '</td>' +
           '<td>' + badge(e.status.replace('_', ' '), e.status === 'published' ? 'badge-approved' : e.status === 'cancelled' ? 'badge-rejected' : 'badge-pending') + '</td>' +
           '<td>' + vis + '</td>' +
@@ -3568,7 +3567,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
       updateGmailConnectionUi(s);
       renderSmsGatewayStatus(s.sms_gateway);
       renderAssetPreviews();
-      renderAutoPaymentQr();
+      renderPaymentQr();
       refreshAdminPushStatus();
     }).catch(function (e) { toast(e.message, 'error'); });
   }
@@ -3606,9 +3605,9 @@ body.admin-app.role-ready #view-app{visibility:visible}
     });
   }
   saveSettings($('#set-branding'), ['facility_name','short_name','tagline','description','address','contact_number','contact_email','website','social_facebook','social_instagram','brand_primary','brand_secondary','brand_accent','booking_prefix']);
-  saveSettings($('#set-booking'), ['open_time','close_time','slot_minutes','currency','facility_timezone','evening_rate_start','checkout_hold_minutes']);
+  saveSettings($('#set-booking'), ['maximum_players','open_time','close_time','slot_minutes','currency','facility_timezone','evening_rate_start','checkout_hold_minutes']);
   saveSettings($('#set-membership'), ['membership_enabled','membership_sms_enabled','membership_expiry_reminder_days','nonmember_advance_days','nonmember_max_active_bookings','nonmember_cancellation_hours']);
-  saveSettings($('#set-payments'), ['payment_note','gcash_enabled','gcash_account_name','gcash_number','gcash_instructions','maya_enabled','maya_account_name','maya_number','maya_instructions','gotyme_enabled','gotyme_account_name','gotyme_number','gotyme_qr_url','gotyme_instructions','other_enabled','other_label','other_instructions']);
+  saveSettings($('#set-payments'), ['payment_note','gcash_enabled','gcash_account_name','gcash_number','gcash_qr_url','gcash_instructions','maya_enabled','maya_account_name','maya_number','maya_qr_url','maya_instructions','gotyme_enabled','gotyme_account_name','gotyme_number','gotyme_qr_url','gotyme_instructions','other_enabled','other_label','other_instructions']);
   saveSettings($('#set-tournament'), ['tournament_default_format','tournament_default_seeding','tournament_match_duration_minutes','tournament_rest_minutes','tournament_group_size','tournament_group_qualifiers','tournament_scoring_best_of','tournament_scoring_points_to_win','tournament_scoring_win_by','tournament_third_place','tournament_double_reset_final']);
   function updateGmailConnectionUi(s){
     s=s||SETTINGS||{};
@@ -3647,7 +3646,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
   };
 
   /* ---------- In-Charge PWA push ---------- */
-  var ADMIN_SW_VERSION='51-audit-fixes-v1';
+  var ADMIN_SW_VERSION='53-client-upgrades';
   var PUSH_PREP={reg:null,publicKey:null,serverStatus:null,ready:false,error:null,promise:null};
   function b64ToUint8(s){s=String(s||'').replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';var raw=atob(s),a=new Uint8Array(raw.length);for(var i=0;i<raw.length;i++)a[i]=raw.charCodeAt(i);return a;}
   function bytesEqual(a,b){if(!a||!b)return false;var x=new Uint8Array(a),y=new Uint8Array(b);if(x.length!==y.length)return false;for(var i=0;i<x.length;i++)if(x[i]!==y[i])return false;return true;}
@@ -3911,10 +3910,16 @@ body.admin-app.role-ready #view-app{visibility:visible}
 
   /* ---------- branding assets (upload / URL / remove) ---------- */
   var ASSET_KEY = { logo: 'logo_url', app_logo: 'app_logo_url', boot_logo: 'boot_logo_url', favicon: 'favicon_url', hero: 'hero_image_url' };
-  function renderAutoPaymentQr(){
-    ['gcash','maya'].forEach(function(k){var box=document.querySelector('[data-auto-qr="'+k+'"]');if(!box)return;var input=document.getElementById('s-'+k+'_number');var raw=String(input&&input.value!==''?input.value:((SETTINGS&&SETTINGS[k+'_number'])||''));var n=raw.replace(/\s+/g,'');var label=k==='gcash'?'GCash':'Maya / PayMaya';box.innerHTML=n&&window.PIKOL_QR?'<div class="payment-provider-badge">'+label+'</div>'+window.PIKOL_QR.svg(n,190)+'<strong class="num">'+esc(raw)+'</strong>':'<div class="empty tiny">Enter a mobile number to generate the QR automatically.</div>';});
+  function renderPaymentQr(){
+    $$('[data-payment-qr]').forEach(function(card){var key=card.dataset.paymentQr+'_qr_url',url=SETTINGS[key]||'';card.querySelector('[data-key]').value=url;card.querySelector('[data-qr-preview]').innerHTML=url?'<img src="'+esc(assetUrl(url))+'" alt="Official payment QR">':'<p class="tiny muted">QR Code not configured</p>';card.querySelector('[data-qr-remove]').disabled=!url;});
   }
-  ['s-gcash_number','s-maya_number'].forEach(function(id){var el=document.getElementById(id);if(el)el.addEventListener('input',renderAutoPaymentQr);});
+  $$('[data-payment-qr]').forEach(function(card){
+    var provider=card.dataset.paymentQr,file=card.querySelector('[data-qr-file]');
+    card.querySelector('[data-qr-upload]').onclick=function(){file.click();};
+    function save(value){var body={};body[provider+'_qr_url']=value;return api('/api/admin/settings',{method:'PUT',body:body}).then(function(settings){SETTINGS=settings;renderPaymentQr();toast('Official QR saved.','success');});}
+    file.onchange=function(){var f=this.files&&this.files[0];this.value='';if(!f)return;if(!['image/png','image/jpeg','image/webp'].includes(f.type)||f.size>5*1024*1024)return toast('Use PNG, JPG or WebP up to 5 MB.','error');var reader=new FileReader();reader.onload=function(){api('/api/admin/events/upload-image',{method:'POST',body:{kind:'qr',mime:f.type,data:reader.result}}).then(function(r){return save(r.url);}).catch(function(e){toast(e.message,'error');});};reader.readAsDataURL(f);};
+    card.querySelector('[data-qr-remove]').onclick=function(){save('').catch(function(e){toast(e.message,'error');});};
+  });
   function renderAssetPreviews() {
     $$('.asset-card').forEach(function (card) {
       var key = ASSET_KEY[card.dataset.asset];
@@ -4100,10 +4105,11 @@ body.admin-app.role-ready #view-app{visibility:visible}
     return api('/api/admin/staff-users').then(function(rows){
       var box=$('#staff-users-list'); if(!box)return;
       box.innerHTML=(rows||[]).length?(rows||[]).map(function(u){
-        return '<div class="list-row"><div class="list-main"><div class="list-title">'+esc(u.full_name)+'</div><div class="list-sub">'+esc(u.email)+' · '+esc(String(u.role).replace(/_/g,' '))+'</div></div><div class="list-end">'+statusBadge(u.status)+'<button class="btn btn-outline btn-sm" data-staff-edit="'+u.id+'">Edit</button></div></div>';
+        return '<div class="list-row"><div class="list-main"><div class="list-title">'+esc(u.full_name)+'</div><div class="list-sub">'+esc(u.email)+' · '+esc(String(u.role).replace(/_/g,' '))+'</div></div><div class="list-end">'+statusBadge(u.status)+'<button class="btn btn-outline btn-sm" data-staff-edit="'+u.id+'">Edit</button><button class="btn btn-ghost btn-sm" data-staff-delete="'+u.id+'"'+(u.status==='inactive'?'':' disabled title="Deactivate this user before deletion"')+'>Delete</button></div></div>';
       }).join(''):'<div class="empty">No staff users found.</div>';
     }).catch(function(e){toast(e.message,'error');});
   }
+  document.addEventListener('click',function(e){var b=e.target.closest('[data-staff-delete]');if(!b||b.disabled)return;modal({title:'Permanently delete inactive user',danger:true,confirmText:'Delete user',body:'<p>Delete this inactive staff account? Financial and participation history will be preserved; accounts with protected history must remain inactive.</p>',onConfirm:function(){return api('/api/admin/staff-users/'+b.dataset.staffDelete,{method:'DELETE'}).then(function(){toast('User deleted.','success');loadStaffUsers();});}});});
   function staffUserModal(u){
     u=u||{};
     return modal({title:u.id?'Edit staff user':'Add staff user',confirmText:u.id?'Save changes':'Create user',
@@ -4362,7 +4368,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
       'tournament:registration_cancelled': function () { if (onPage('tournaments')) { run('treg', loadTournamentRegistrations); run('tournaments', loadTournaments); } if (onPage('events')) run('hub', loadEventsHub); if (onPage('payments')) run('payments', loadPayments); run('badges', refreshEventBadges); },
       'tournament:registration_updated': function () { if (onPage('tournaments')) { run('treg', loadTournamentRegistrations); run('tournaments', loadTournaments); } run('badges', refreshEventBadges); },
       'tournament:payment_updated': function () { if (onPage('tournaments')) run('treg', loadTournamentRegistrations); run('badges', refreshEventBadges); },
-      'availability:changed': function () { if (onPage('calendar')) run('calendar', loadCalendar); },
+      'availability:changed': function () { window.dispatchEvent(new Event('pikol:availability')); if (onPage('calendar')) run('calendar', loadCalendar); },
       'player:created': function () { if (onPage('players')) run('players', loadPlayers); run('dashboard', loadDashboard); },
       'player:updated': function () { if (onPage('players')) run('players', loadPlayers); },
       'player:status_changed': function () { if (onPage('players')) run('players', loadPlayers); },
@@ -4476,7 +4482,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
 
 <script>
 /* PIKOL_PWA_INSTALL_RUNTIME */
-(function(){'use strict';var btn=document.getElementById('pwa-install-admin'),deferredPrompt=null,KEY='pikol_admin_installed_v3';function ios(){return /iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);}function standalone(){return window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true;}function marked(){return localStorage.getItem(KEY)==='1';}function setMarked(v){if(v)localStorage.setItem(KEY,'1');else localStorage.removeItem(KEY);}function showIosGuide(){var g=document.getElementById('ios-pwa-guide');if(g)g.hidden=false;if(typeof toast==='function')toast('iPhone: Safari → Share → Add to Home Screen. Then open PIKOL Admin from the Home Screen icon.','error');}function sync(){if(!btn)return;if(standalone()){setMarked(true);btn.hidden=true;return;}if(ios()){btn.hidden=false;btn.textContent='Install Admin App on iPhone';return;}btn.textContent='Install Admin App';btn.hidden=!deferredPrompt||marked();}window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();deferredPrompt=e;if(!standalone())setMarked(false);sync();});window.addEventListener('appinstalled',function(){setMarked(true);deferredPrompt=null;sync();});window.addEventListener('pageshow',sync);document.addEventListener('visibilitychange',function(){if(!document.hidden)sync();});if(btn)btn.addEventListener('click',async function(){if(ios()){showIosGuide();return;}if(!deferredPrompt)return;btn.disabled=true;try{await deferredPrompt.prompt();var c=await deferredPrompt.userChoice;if(c&&c.outcome==='accepted')setMarked(true);}catch(_){}deferredPrompt=null;btn.disabled=false;sync();});if('serviceWorker' in navigator)window.addEventListener('load',function(){var reloading=false;navigator.serviceWorker.addEventListener('controllerchange',function(){if(reloading)return;reloading=true;location.reload();});navigator.serviceWorker.register('service-worker.js?v=51-audit-fixes-v1',{scope:'./',updateViaCache:'none'}).then(function(reg){return reg.update();}).catch(function(){});});sync();})();
+(function(){'use strict';var btn=document.getElementById('pwa-install-admin'),deferredPrompt=null,KEY='pikol_admin_installed_v3';function ios(){return /iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);}function standalone(){return window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true;}function marked(){return localStorage.getItem(KEY)==='1';}function setMarked(v){if(v)localStorage.setItem(KEY,'1');else localStorage.removeItem(KEY);}function showIosGuide(){var g=document.getElementById('ios-pwa-guide');if(g)g.hidden=false;if(typeof toast==='function')toast('iPhone: Safari → Share → Add to Home Screen. Then open PIKOL Admin from the Home Screen icon.','error');}function sync(){if(!btn)return;if(standalone()){setMarked(true);btn.hidden=true;return;}if(ios()){btn.hidden=false;btn.textContent='Install Admin App on iPhone';return;}btn.textContent='Install Admin App';btn.hidden=!deferredPrompt||marked();}window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();deferredPrompt=e;if(!standalone())setMarked(false);sync();});window.addEventListener('appinstalled',function(){setMarked(true);deferredPrompt=null;sync();});window.addEventListener('pageshow',sync);document.addEventListener('visibilitychange',function(){if(!document.hidden)sync();});if(btn)btn.addEventListener('click',async function(){if(ios()){showIosGuide();return;}if(!deferredPrompt)return;btn.disabled=true;try{await deferredPrompt.prompt();var c=await deferredPrompt.userChoice;if(c&&c.outcome==='accepted')setMarked(true);}catch(_){}deferredPrompt=null;btn.disabled=false;sync();});if('serviceWorker' in navigator)window.addEventListener('load',function(){var reloading=false;navigator.serviceWorker.addEventListener('controllerchange',function(){if(reloading)return;reloading=true;location.reload();});navigator.serviceWorker.register('service-worker.js?v=53-client-upgrades',{scope:'./',updateViaCache:'none'}).then(function(reg){return reg.update();}).catch(function(){});});sync();})();
 </script>
 
 </body>

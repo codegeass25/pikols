@@ -1,0 +1,13 @@
+.inline-availability{margin:14px 0;padding:12px;border:1px solid var(--border,#dce5e0);border-radius:14px;min-width:0}
+.player-app .home-main{grid-template-columns:minmax(0,1fr)}.player-app .home-main>section{min-width:0;max-width:100%}
+.inline-availability label{display:block;font-size:.8rem;font-weight:700;margin-bottom:8px}
+.inline-availability input{width:100%;max-width:100%;min-width:0;margin-top:5px}
+.range-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(76px,1fr));gap:6px;max-height:220px;overflow-y:auto;touch-action:pan-y;overscroll-behavior-y:auto}
+.range-slot{display:block;border:1px solid var(--border,#dce5e0);padding:9px 4px;border-radius:8px;background:var(--surface,#fff);color:var(--text,#17392e);text-align:center;font-size:.72rem;line-height:1.4;min-height:42px}
+button.range-slot{cursor:pointer}.range-slot small{display:block;font-size:.6rem}.range-slot.is-unavailable{opacity:.5;background:#e6e9e7}.range-slot.is-selected{background:#174c3c;color:#fff;border-color:#174c3c}
+.inline-range-label{font-size:.8rem;min-height:2.5em;margin:8px 0 0}.court-checks{display:flex;flex-wrap:wrap;gap:10px;padding:12px;border:1px solid var(--border,#dce5e0);border-radius:10px}.court-checks label{display:flex;gap:7px;align-items:center;font-size:.85rem}
+.slots-available{display:block;font-size:1.05rem;font-weight:850;color:var(--brand-primary,#174c3c);margin:10px 0}.payment-qr-upload img,.payment-qr-wrap img{max-width:min(100%,260px);height:auto;object-fit:contain;background:#fff;padding:8px}.payment-qr-upload{min-width:0;margin:12px 0}.division-output-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 0;border-bottom:1px solid var(--border,#dce5e0);margin-bottom:16px}
+/* Scroll ownership stays with the visible document/sheet. Horizontal capture is delayed until intent is known. */
+html{overflow-y:auto}.player-app:not(.sheet-open){overflow-y:auto!important;touch-action:pan-y pinch-zoom}.player-app .pikol-carousel-track{touch-action:pan-y pinch-zoom}.player-app .modal-body,.player-app .site-sheet{touch-action:pan-y pinch-zoom;overscroll-behavior-y:contain;-webkit-overflow-scrolling:touch}
+@media(max-width:700px){.modal{max-height:calc(100dvh - 16px)}.modal-body{min-height:0;overflow-y:auto}.payment-qr-upload .row{flex-wrap:wrap}.inline-availability .range-grid{max-height:170px}.division-output-actions strong{width:100%}}
+@media(max-width:1024px){#today-courts .promo-court .court-meta{display:flex!important;flex-wrap:wrap}.player-app .inline-availability input{font-size:16px}.player-app .pikol-carousel-track{touch-action:pan-y pinch-zoom!important}}
