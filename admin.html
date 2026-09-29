@@ -3651,7 +3651,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
   };
 
   /* ---------- In-Charge PWA push ---------- */
-  var ADMIN_SW_VERSION='55-mobile-layer-hotfix';
+  var ADMIN_SW_VERSION='57-admin-stability';
   var PUSH_PREP={reg:null,publicKey:null,serverStatus:null,ready:false,error:null,promise:null};
   function b64ToUint8(s){s=String(s||'').replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';var raw=atob(s),a=new Uint8Array(raw.length);for(var i=0;i<raw.length;i++)a[i]=raw.charCodeAt(i);return a;}
   function bytesEqual(a,b){if(!a||!b)return false;var x=new Uint8Array(a),y=new Uint8Array(b);if(x.length!==y.length)return false;for(var i=0;i<x.length;i++)if(x[i]!==y[i])return false;return true;}
@@ -3962,7 +3962,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
           '<div class="field"><label class="label">Account Name</label><input class="input" data-other-field="account_name" value="'+esc(opt.account_name)+'" placeholder="Account holder name"></div>'+
           '<div class="field"><label class="label">Instructions</label><input class="input" data-other-field="instructions" value="'+esc(opt.instructions)+'" placeholder="Optional transfer instructions"></div>'+
         '</div>'+
-        '<div class="other-payment-image-grid">'+(imgs||'<div class="tiny muted">No payment image uploaded yet.</div>')+'</div>'+
+        '<div class="other-payment-image-grid">'+(imgs||'<div class="tiny muted other-payment-no-image">No payment image uploaded yet.</div>')+'</div>'+
         '<div class="row wrap mt-3"><button type="button" class="btn btn-outline btn-sm" data-other-add-image="'+index+'">+ Upload Image</button><button type="button" class="btn btn-danger btn-sm" data-other-delete="'+index+'">Delete Account</button></div>'+
       '</section>';
     }).join('');
@@ -4013,9 +4013,13 @@ body.admin-app.role-ready #view-app{visibility:visible}
   var otherPaymentFile=$('#other-payment-image-file');
   function fileAsDataUrl(file){return new Promise(function(resolve,reject){var r=new FileReader();r.onload=function(){resolve(r.result);};r.onerror=function(){reject(new Error('Could not read '+file.name));};r.readAsDataURL(file);});}
   function paintOtherUploadPreview(optionId,files){
-    var card=$$('#other-payment-options-admin .other-payment-admin-card').filter(function(el){var list=normalizeOtherPaymentAdmin(parseOtherPaymentOptionsAdmin()),i=Number(el.dataset.otherIndex);return list[i]&&list[i].id===optionId;})[0];
+    var current=normalizeOtherPaymentAdmin(parseOtherPaymentOptionsAdmin());
+    var card=$$('#other-payment-options-admin .other-payment-admin-card').filter(function(el){
+      var i=Number(el.dataset.otherIndex);return current[i]&&current[i].id===optionId;
+    })[0];
     if(!card)return [];
     var grid=card.querySelector('.other-payment-image-grid');if(!grid)return [];
+    var empty=grid.querySelector('.other-payment-no-image');if(empty)empty.remove();
     var placeholders=[];
     files.forEach(function(file){
       var url=URL.createObjectURL(file),box=document.createElement('div');box.className='other-payment-image-thumb is-uploading';
@@ -4023,6 +4027,27 @@ body.admin-app.role-ready #view-app{visibility:visible}
       box.querySelector('img').src=url;grid.appendChild(box);placeholders.push({node:box,url:url});
     });
     return placeholders;
+  }
+  function uploadedOtherPaymentImagePath(result){
+    var value=result&&(result.url||result.image_url||result.path||result.public_url)||'';
+    value=String(value||'').trim();
+    if(/^https?:\/\//i.test(value)){
+      try{value=new URL(value,location.href).pathname;}catch(_){return '';}
+    }
+    if(!/^\/branding\/qr-[A-Za-z0-9._-]+\.(?:png|jpe?g|webp)$/i.test(value))return '';
+    return value;
+  }
+  function persistOtherPaymentOptionsNow(list){
+    var raw=$('#s-other_payment_options');
+    list=normalizeOtherPaymentAdmin(list);
+    var json=JSON.stringify(list);
+    if(raw)raw.value=json;
+    return api('/api/admin/settings',{method:'PUT',body:{other_payment_options:json}}).then(function(saved){
+      SETTINGS=saved||SETTINGS;
+      if(raw&&saved&&Object.prototype.hasOwnProperty.call(saved,'other_payment_options'))raw.value=saved.other_payment_options||'[]';
+      renderOtherPaymentOptionsAdmin();signalPublicRefresh();
+      return saved;
+    });
   }
   if(otherPaymentFile)otherPaymentFile.onchange=function(){
     var files=Array.prototype.slice.call(this.files||[]),optionId=otherPaymentUploadId;this.value='';otherPaymentUploadId=null;
@@ -4033,17 +4058,26 @@ body.admin-app.role-ready #view-app{visibility:visible}
     files=files.slice(0,remaining);
     var bad=files.filter(function(f){return !['image/png','image/jpeg','image/webp'].includes(f.type)||f.size>5*1024*1024;});
     if(bad.length)return toast('Use PNG, JPG or WebP up to 5 MB per image.','error');
-    /* Preview immediately from the local File objects. The user sees the chosen
-       images even before the network upload finishes. */
+    /* Show the selected image immediately, then replace the blob preview with
+       the persisted /branding/ file returned by the backend. */
     var previews=paintOtherUploadPreview(optionId,files);
     Promise.all(files.map(function(f){return fileAsDataUrl(f).then(function(data){return api('/api/admin/events/upload-image',{method:'POST',body:{kind:'qr',mime:f.type,data:data}});});})).then(function(results){
+      var uploaded=results.map(uploadedOtherPaymentImagePath).filter(Boolean);
+      if(uploaded.length!==results.length)throw new Error('The image reached the server but no valid payment-image path was returned. Please retry after refreshing Admin.');
       var list=normalizeOtherPaymentAdmin(parseOtherPaymentOptionsAdmin()),idx=list.findIndex(function(x){return x.id===optionId;});
       if(idx<0)throw new Error('Payment account changed while images were uploading. Please try again.');
       list[idx].images=list[idx].images||[];
-      results.forEach(function(r){if(r&&r.url&&list[idx].images.indexOf(r.url)<0)list[idx].images.push(r.url);});
+      uploaded.forEach(function(url){if(list[idx].images.indexOf(url)<0)list[idx].images.push(url);});
+      /* Update local state first so the preview never disappears, then persist
+         the image/account mapping immediately. This removes the old gap where
+         upload succeeded but a later Settings save could lose the image. */
       saveOtherPaymentOptionsLocal(list,true);
-      toast(results.length+' payment image'+(results.length===1?'':'s')+' uploaded. Press Save booking & payment settings to publish.','success');
+      return persistOtherPaymentOptionsNow(list).then(function(){
+        toast(uploaded.length+' payment image'+(uploaded.length===1?'':'s')+' uploaded and saved. It is now available on the Booking Site.','success');
+      });
     }).catch(function(err){
+      /* Keep any successfully attached local state visible; only remove the
+         temporary blob nodes. A clear error replaces the misleading success toast. */
       renderOtherPaymentOptionsAdmin();toast(err.message||'Payment image upload failed.','error');
     }).finally(function(){previews.forEach(function(p){try{URL.revokeObjectURL(p.url);}catch(_){}});});
   };
