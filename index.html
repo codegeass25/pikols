@@ -275,7 +275,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
 }
 </style>
 
-<link rel="stylesheet" href="client-upgrades.css?v=53-client-upgrades">
+<link rel="stylesheet" href="client-upgrades.css?v=54-android-scroll-status-others">
 </head>
 <body class="player-app">
 
@@ -655,7 +655,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
 <button id="pwa-install-player" class="btn btn-primary btn-block pwa-install-inline" type="button" hidden>Install Booking App</button>
 <div id="modal-root"></div>
 
-<script src="range-availability.js?v=53-client-upgrades"></script>
+<script src="range-availability.js?v=54-android-scroll-status-others"></script>
 <script>
 /* ================= shared runtime (player app) ================= */
 (function () {
@@ -1129,7 +1129,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
     if($('#site-overlay').classList.contains('hidden'))sheetReturnFocus=document.activeElement;
     TABS.filter(function(t){return t!=='dashboard';}).forEach(function(t){$('#tab-'+t).classList.toggle('hidden',t!==tab);});
     $('#site-overlay').classList.remove('hidden');syncLayers();
-    var panel=$('#tab-'+tab);panel.scrollTop=0;$('.sheet-close',panel).focus({preventScroll:true});
+    var panel=$('#tab-'+tab),overlay=$('#site-overlay');overlay.scrollTop=0;panel.scrollTop=0;$('.sheet-close',panel).focus({preventScroll:true});
     $$('.bottom-nav button').forEach(function(b){b.classList.toggle('is-active',b.dataset.tab===tab);});
     if(tab==='bookings')loadBookings();
     if(tab==='book')ensureBooking();
@@ -1341,8 +1341,15 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
   }
   function inlineShell(c,date){
     var state=INLINE_SELECTIONS[c.id]||(INLINE_SELECTIONS[c.id]={date:date,start:null,end:null});
-    return '<div class="inline-availability" data-inline-court="'+c.id+'"><label>Choose date<input class="input" type="date" aria-label="Booking date for '+esc(c.name)+'" min="'+date+'" value="'+state.date+'" data-inline-date="'+c.id+'"></label><div data-inline-slots></div><p class="inline-range-label" aria-live="polite"></p></div>';
+    return '<div class="inline-availability" data-inline-court="'+c.id+'"><label>Choose date<input class="input" type="date" aria-label="Booking date for '+esc(c.name)+'" min="'+date+'" value="'+state.date+'" data-inline-date="'+c.id+'"></label><div class="inline-status-legend" aria-label="Time slot status legend"><span class="state-available">Available</span><span class="state-booked">Booked</span><span class="state-held">Temporary Hold</span><span class="state-pending">Pending</span><span class="state-maintenance">Maintenance</span><span class="state-past">Past</span></div><div data-inline-slots></div><p class="inline-range-label" aria-live="polite"></p></div>';
   }
+  function inlineStatusLabel(slot){
+    if(!slot)return '';
+    if(slot.status==='held')return 'TEMPORARY HOLD';
+    if(slot.status==='maintenance'||(slot.status==='blocked'&&String(slot.label||'').toLowerCase()==='maintenance'))return 'UNDER MAINTENANCE';
+    return String(slot.status_label||slot.label||slot.status||'').toUpperCase();
+  }
+  function inlineStateClass(slot){return slot?' state-'+String(slot.status||slot.booking_status||'blocked').replace(/_/g,'-'):'';}
   function paintInline(courtId){
     var host=$('[data-inline-court="'+courtId+'"]'),state=INLINE_SELECTIONS[courtId];if(!host||!state)return;
     var date=state.date,generation=inlineGeneration;host.querySelector('[data-inline-slots]').textContent='Loading availability…';
@@ -1358,13 +1365,18 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
         if(badge){badge.className='badge badge-'+cardState;badge.textContent=cardLabel;}
       }
       if(state.start&&(!validRangeEnds(court,state.start).length || state.end&&!validRangeEnds(court,state.start).includes(state.end))){state.start=null;state.end=null;}
-      var ends=state.start&&!state.end?validRangeEnds(court,state.start):[];
+      var choosingEnd=!!(state.start&&!state.end),ends=choosingEnd?validRangeEnds(court,state.start):[];
       var times=Array.from(new Set(court.slots.flatMap(function(slot){return [slot.start,slot.end];})));
       times.sort(function(a,b){return (a==='00:00'?1440:PikolAvailability.minutes(a))-(b==='00:00'?1440:PikolAvailability.minutes(b));});
       host.querySelector('[data-inline-slots]').innerHTML='<div class="range-grid">'+times.map(function(time){
-        var startOk=court.slots.some(function(slot){return slot.start===time&&slot.bookable;}),ok=ends.length?ends.includes(time):startOk;
+        var slot=court.slots.find(function(item){return item.start===time;});
+        var endpointOk=choosingEnd&&ends.includes(time);
+        if(!slot&&!endpointOk&&time!==state.end)return '';
+        var startOk=!!(slot&&slot.bookable),ok=choosingEnd?endpointOk:startOk;
         var m=time==='00:00'?1440:PikolAvailability.minutes(time),selected=state.start&&(time===state.start||state.end&&m>=PikolAvailability.minutes(state.start)&&m<=(state.end==='00:00'?1440:PikolAvailability.minutes(state.end)));
-        return '<button type="button" class="range-slot'+(selected?' is-selected':'')+(ok?'':' is-unavailable')+'" data-inline-time="'+time+'"'+(ok?'':' disabled')+'>'+humanTime(time)+'</button>';
+        var status=endpointOk?'SELECT AS END':(slot?inlineStatusLabel(slot):'END TIME');
+        var detail=slot&&slot.event&&slot.event.title?slot.event.title:'';
+        return '<button type="button" class="range-slot'+(endpointOk?' state-end-option':inlineStateClass(slot))+(selected?' is-selected':'')+(ok?'':' is-unavailable')+'" data-inline-time="'+time+'"'+(ok?'':' disabled')+'><span class="range-slot-time">'+humanTime(time)+'</span><small class="range-slot-status">'+esc(status)+'</small>'+(detail&&!endpointOk?'<small class="range-slot-detail">'+esc(detail)+'</small>':'')+'</button>';
       }).join('')+'</div>';
       host.querySelector('.inline-range-label').textContent=state.start?(state.end?humanTime(state.start)+' – '+humanTime(state.end):'Start '+humanTime(state.start)+'. Select end time.'):'First tap: Start time. Second tap: End time.';
       if(state.start)host.querySelector('.inline-range-label').insertAdjacentHTML('beforeend',' <button type="button" class="btn btn-ghost btn-sm" data-inline-clear>Clear</button>');
@@ -1751,12 +1763,33 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
     if(!m)return '';
     return m.qr_url?'<div class="payment-qr-wrap"><img src="'+esc(assetUrl(m.qr_url))+'" alt="Official '+esc(m.label||'payment')+' QR code"></div>':'<p class="tiny muted">QR Code not configured. Use the account details below.</p>';
   }
+  function otherPaymentOptions(m){return m&&Array.isArray(m.options)?m.options.filter(function(o){return o&&o.enabled!==false;}):[];}
+  function otherPaymentOptionsPanel(m,prefix){
+    var options=otherPaymentOptions(m);
+    if(!options.length)return '<div class="field"><label class="label">Payment provider</label><input class="input" id="'+prefix+'-other-provider" placeholder="Specify bank / e-wallet" /></div>';
+    return '<div class="other-payment-choice-wrap"><div class="other-payment-choice-title"><strong>Select payment destination</strong><span class="tiny muted">Choose one account below. All images were uploaded by the venue.</span></div><div class="other-payment-choice-list">'+options.map(function(opt,index){
+      var images=(opt.images||[]).map(function(url,i){return '<img src="'+esc(assetUrl(url))+'" alt="'+esc(opt.label)+' payment image '+(i+1)+'" loading="lazy">';}).join('');
+      return '<div class="other-payment-choice'+(index===0?' is-selected':'')+'" data-other-payment-card="'+esc(opt.id)+'"><label class="other-payment-choice-head"><input type="radio" name="'+prefix+'-other-option" value="'+esc(opt.id)+'" data-provider="'+esc(opt.label)+'"'+(index===0?' checked':'')+'><span><strong>'+esc(opt.label)+'</strong>'+(opt.account_name?'<small>'+esc(opt.account_name)+'</small>':'')+'</span></label><div class="other-payment-account-line"><span>'+esc(opt.account_number||'')+'</span>'+(opt.account_number?'<button type="button" class="btn btn-outline btn-sm" data-copy-number="'+esc(opt.account_number)+'">Copy</button>':'')+'</div>'+(images?'<div class="other-payment-images">'+images+'</div>':'<p class="tiny muted">No payment image configured for this account.</p>')+(opt.instructions?'<p class="tiny muted">'+esc(opt.instructions)+'</p>':'')+'</div>';
+    }).join('')+'</div></div>';
+  }
+  function selectedOtherPayment(host,prefix){
+    var selected=host.querySelector('input[name="'+prefix+'-other-option"]:checked');
+    if(selected)return {id:selected.value||'',provider:selected.dataset.provider||''};
+    var legacy=$('#'+prefix+'-other-provider',host);
+    return {id:'',provider:legacy?(legacy.value||'').trim():''};
+  }
+  function bindOtherPaymentChoices(host,prefix){
+    host.addEventListener('change',function(e){
+      if(!e.target.matches('input[name="'+prefix+'-other-option"]'))return;
+      host.querySelectorAll('[data-other-payment-card]').forEach(function(card){var radio=card.querySelector('input[type=radio]');card.classList.toggle('is-selected',!!(radio&&radio.checked));});
+    });
+  }
   function manualMethodPanel(m) {
     if (!m) return '';
-    var qr = officialPaymentQr(m);
-    var account = (m.account_name || m.account_number) ? '<div class="payment-account"><strong>' + esc(m.account_name || m.label) + '</strong><button type="button" class="copy-payment-number" data-copy-number="' + esc(m.account_number || '') + '">' + esc(m.account_number || '') + ' ⧉</button></div>' : '';
+    var qr = m.key==='other'?'':officialPaymentQr(m);
+    var account = m.key==='other'?'':((m.account_name || m.account_number) ? '<div class="payment-account"><strong>' + esc(m.account_name || m.label) + '</strong><button type="button" class="copy-payment-number" data-copy-number="' + esc(m.account_number || '') + '">' + esc(m.account_number || '') + ' ⧉</button></div>' : '');
     return '<div class="payment-method-panel premium-pay-panel">' + qr + account + '<p class="s muted">' + esc(m.instructions || '') + '</p>' +
-      (m.key === 'other' ? '<div class="field"><label class="label">Payment provider</label><input class="input" id="pm-other-provider" placeholder="e.g. BPI, UnionBank, another e-wallet" /></div>' : '') +
+      (m.key === 'other' ? otherPaymentOptionsPanel(m,'pm') : '') +
       '<div class="grid cols-2 payment-entry-grid"><div class="field"><label class="label">Reference number</label><input class="input" id="pm-reference" autocomplete="off" placeholder="Enter transaction reference" /></div>' +
       '<div class="field"><label class="label">Receipt / screenshot</label><input class="input" id="pm-receipt" type="file" accept="image/png,image/jpeg,image/webp" /></div></div>' +
       '<div id="pm-receipt-preview" class="receipt-preview hidden"></div></div>';
@@ -1789,10 +1822,10 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
         onConfirm:function(h){
           if(holdExpired)return Promise.reject(new Error('Payment timer expired. Please secure the time slot again.'));
           var method=$('#pm-method',h).value; var info=methodInfo(method); if(!info) return Promise.reject(new Error('Select a payment method.'));
-          var ref=($('#pm-reference',h)||{}).value||''; var provider=method==='other'?(($('#pm-other-provider',h)||{}).value||''):''; var file=($('#pm-receipt',h)||{}).files&&$('#pm-receipt',h).files[0];
+          var ref=($('#pm-reference',h)||{}).value||''; var other=method==='other'?selectedOtherPayment(h,'pm'):{id:'',provider:''}; var provider=other.provider; var file=($('#pm-receipt',h)||{}).files&&$('#pm-receipt',h).files[0];
           if(ref.trim().length<4) return Promise.reject(new Error('Enter the payment reference number.'));
-          if(method==='other'&&provider.trim().length<2) return Promise.reject(new Error('Specify the payment provider.'));
-          return filePayload(file).then(function(receipt){return api('/api/bookings/'+b.id+'/payment',{method:'POST',body:{payment_method:method,reference_number:ref.trim(),other_provider:provider.trim(),receipt:receipt}});}).then(function(r){submitted=true;stopTicker();toast(r.reused?'Payment is already pending.':(r.duplicate_warning?'Payment submitted with a duplicate warning for Admin review.':'Payment submitted. Your time is protected while staff reviews it.'),'success');loadBookings();loadDashboard();loadAvailability();}).catch(function(err){
+          if(method==='other'&&provider.trim().length<2) return Promise.reject(new Error('Select the payment destination.'));
+          return filePayload(file).then(function(receipt){return api('/api/bookings/'+b.id+'/payment',{method:'POST',body:{payment_method:method,reference_number:ref.trim(),other_option_id:other.id,other_provider:provider.trim(),receipt:receipt}});}).then(function(r){submitted=true;stopTicker();toast(r.reused?'Payment is already pending.':(r.duplicate_warning?'Payment submitted with a duplicate warning for Admin review.':'Payment submitted. Your time is protected while staff reviews it.'),'success');loadBookings();loadDashboard();loadAvailability();}).catch(function(err){
             if(/time range|time slot|timer expired|already processing|already secured/i.test(err.message||'')){toast(err.message||'Someone is already processing this time. Please select another time slot.','warning');loadAvailability();}
             throw err;
           });
@@ -1810,7 +1843,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
         var secs=Math.ceil(remaining/1000),min=Math.floor(secs/60),sec=secs%60;if(count)count.textContent=String(min).padStart(2,'0')+':'+String(sec).padStart(2,'0');
       }
       tick();if(!holdExpired)holdTicker=setInterval(tick,250);
-      function sync(){ var info=methodInfo(sel.value); $('#pm-details',host).innerHTML=manualMethodPanel(info); var f=$('#pm-receipt',host); if(f)f.onchange=function(){var file=this.files&&this.files[0],box=$('#pm-receipt-preview',host);if(!file||!box)return;var rr=new FileReader();rr.onload=function(){box.classList.remove('hidden');box.innerHTML='<img src="'+rr.result+'" alt="Receipt preview" /><span>'+esc(file.name)+'</span>';};rr.readAsDataURL(file);}; }
+      function sync(){ var info=methodInfo(sel.value); $('#pm-details',host).innerHTML=manualMethodPanel(info); if(info&&info.key==='other')bindOtherPaymentChoices($('#pm-details',host),'pm'); var f=$('#pm-receipt',host); if(f)f.onchange=function(){var file=this.files&&this.files[0],box=$('#pm-receipt-preview',host);if(!file||!box)return;var rr=new FileReader();rr.onload=function(){box.classList.remove('hidden');box.innerHTML='<img src="'+rr.result+'" alt="Receipt preview" /><span>'+esc(file.name)+'</span>';};rr.readAsDataURL(file);}; }
       sel.onchange=sync; sync();
     }).catch(function(e){release();toast(e.message,'warning');if(/time range|time slot|processing|secured|expired/i.test(e.message||''))loadAvailability();});
   }
@@ -1901,18 +1934,21 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
     var dlg=modal({title:'Membership payment',wide:true,body:'<div class="payment-summary-card"><strong>'+esc(plan.name||'Membership')+'</strong><div class="payment-total"><span>Membership fee</span><strong>'+money(plan.price||0)+'</strong></div></div><div class="field"><label class="label">Payment method</label><select class="select" id="mb-method">'+opts+'</select></div><div id="mb-pay"></div>',confirmText:'Submit payment',onClose:release,onConfirm:function(h){
       var method=$('#mb-method',h).value;
       
-      var ref=(($('#mb-ref',h)||{}).value||'').trim(),provider=(($('#mb-provider',h)||{}).value||'').trim(),file=($('#mb-receipt',h)||{}).files&&$('#mb-receipt',h).files[0];
+      var other=method==='other'?selectedOtherPayment(h,'mb'):{id:'',provider:''};
+      var ref=(($('#mb-ref',h)||{}).value||'').trim(),provider=other.provider,file=($('#mb-receipt',h)||{}).files&&$('#mb-receipt',h).files[0];
       if(ref.length<4) return Promise.reject(new Error('Enter the payment reference number.'));
-      if(method==='other'&&provider.length<2) return Promise.reject(new Error('Specify the payment provider.'));
+      if(method==='other'&&provider.length<2) return Promise.reject(new Error('Select the payment destination.'));
       if(!file) return Promise.reject(new Error('Upload the payment receipt.'));
-      return filePayload(file).then(function(receipt){return api('/api/membership/'+membershipId+'/payment',{method:'POST',body:{payment_method:method,reference_number:ref,other_provider:provider,receipt:receipt}})}).then(function(out){submitted=true;toast(out.reused?'Payment is already pending.':'Membership payment submitted for review.','success');return loadMembership();});
+      return filePayload(file).then(function(receipt){return api('/api/membership/'+membershipId+'/payment',{method:'POST',body:{payment_method:method,reference_number:ref,other_option_id:other.id,other_provider:provider,receipt:receipt}})}).then(function(out){submitted=true;toast(out.reused?'Payment is already pending.':'Membership payment submitted for review.','success');return loadMembership();});
     }});
     var h=dlg.host,sel=$('#mb-method',h),pay=$('#mb-pay',h);
     function render(){
       var info=methods.filter(function(x){return x.key===sel.value})[0]||{};
       
-      var qr=officialPaymentQr(info)+'<div class="payment-account"><strong>'+esc(info.account_name||'')+'</strong><div>'+esc(info.account_number||'')+'</div>'+(info.account_number?'<button type="button" class="btn btn-outline btn-sm" data-copy-member-number>Copy number</button>':'')+'</div>';
-      pay.innerHTML=qr+(info.instructions?'<p class="tiny muted">'+esc(info.instructions)+'</p>':'')+(sel.value==='other'?'<div class="field"><label class="label">Specify payment method</label><input class="input" id="mb-provider" placeholder="Bank / wallet / provider"></div>':'')+'<div class="grid cols-2"><div class="field"><label class="label">Reference number</label><input class="input" id="mb-ref"></div><div class="field"><label class="label">Receipt</label><input class="input" id="mb-receipt" type="file" accept="image/png,image/jpeg,image/webp"></div></div>';
+      var qr=sel.value==='other'?'':officialPaymentQr(info);
+      var acct=sel.value==='other'?'':('<div class="payment-account"><strong>'+esc(info.account_name||'')+'</strong><div>'+esc(info.account_number||'')+'</div>'+(info.account_number?'<button type="button" class="btn btn-outline btn-sm" data-copy-member-number>Copy number</button>':'')+'</div>');
+      pay.innerHTML=qr+acct+(info.instructions?'<p class="tiny muted">'+esc(info.instructions)+'</p>':'')+(sel.value==='other'?otherPaymentOptionsPanel(info,'mb'):'')+'<div class="grid cols-2"><div class="field"><label class="label">Reference number</label><input class="input" id="mb-ref"></div><div class="field"><label class="label">Receipt</label><input class="input" id="mb-receipt" type="file" accept="image/png,image/jpeg,image/webp"></div></div>';
+      if(sel.value==='other')bindOtherPaymentChoices(pay,'mb');
       var cp=$('[data-copy-member-number]',h); if(cp)cp.onclick=function(){navigator.clipboard&&navigator.clipboard.writeText(info.account_number||'').then(function(){toast('Payment number copied.','success')});};
     }
     sel.onchange=render; render();
@@ -2282,15 +2318,17 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
         onConfirm:function(host){
           var method=$('#pf-method',host).value, info=methods.filter(function(x){return x.key===method;})[0]; if(!info)return Promise.reject(new Error('Select a payment method.'));
           
-          var ref=($('#pf-reference',host)||{}).value||'', provider=method==='other'?((($('#pf-other-provider',host)||{}).value)||''):'', file=($('#pf-receipt',host)||{}).files&&$('#pf-receipt',host).files[0];
-          if(ref.trim().length<4)return Promise.reject(new Error('Enter the payment reference number.')); if(method==='other'&&provider.trim().length<2)return Promise.reject(new Error('Specify the payment provider.'));
-          return filePayload(file).then(function(receipt){return api('/api/event-payments',{method:'POST',body:{event_type:opts.eventType,registration_id:opts.registrationId,payment_method:method,reference_number:ref.trim(),other_provider:provider.trim(),receipt:receipt}});}).then(function(r){submitted=true;toast(r.reused?'Payment is already pending.':'Payment submitted for Admin verification.','success');loadMyRegistrations();if(opts.onDone)opts.onDone();});
+          var other=method==='other'?selectedOtherPayment(host,'pf'):{id:'',provider:''};
+          var ref=($('#pf-reference',host)||{}).value||'', provider=other.provider, file=($('#pf-receipt',host)||{}).files&&$('#pf-receipt',host).files[0];
+          if(ref.trim().length<4)return Promise.reject(new Error('Enter the payment reference number.')); if(method==='other'&&provider.trim().length<2)return Promise.reject(new Error('Select the payment destination.'));
+          return filePayload(file).then(function(receipt){return api('/api/event-payments',{method:'POST',body:{event_type:opts.eventType,registration_id:opts.registrationId,payment_method:method,reference_number:ref.trim(),other_option_id:other.id,other_provider:provider.trim(),receipt:receipt}});}).then(function(r){submitted=true;toast(r.reused?'Payment is already pending.':'Payment submitted for Admin verification.','success');loadMyRegistrations();if(opts.onDone)opts.onDone();});
         }});
       var host=m.host;
       function render(){var key=$('#pf-method',host).value,info=methods.filter(function(x){return x.key===key;})[0]||{}; 
-        var qr=officialPaymentQr(info);
-        var acct=(info.account_name||info.account_number)?'<div class="payment-account"><strong>'+esc(info.account_name||info.label||key)+'</strong><button type="button" class="copy-payment-number" data-copy-number="'+esc(info.account_number||'')+'">'+esc(info.account_number||'')+' ⧉</button></div>':'';
-        $('#pf-details',host).innerHTML='<div class="payment-method-panel premium-pay-panel">'+qr+acct+'<p class="s muted">'+esc(info.instructions||'')+'</p>'+(key==='other'?'<div class="field"><label class="label">Payment provider</label><input class="input" id="pf-other-provider" placeholder="Specify bank / e-wallet" /></div>':'')+'<div class="grid cols-2 payment-entry-grid"><div class="field"><label class="label">Reference number</label><input class="input" id="pf-reference" /></div><div class="field"><label class="label">Receipt / screenshot</label><input class="input" id="pf-receipt" type="file" accept="image/png,image/jpeg,image/webp" /></div></div></div>';
+        var qr=key==='other'?'':officialPaymentQr(info);
+        var acct=key==='other'?'':((info.account_name||info.account_number)?'<div class="payment-account"><strong>'+esc(info.account_name||info.label||key)+'</strong><button type="button" class="copy-payment-number" data-copy-number="'+esc(info.account_number||'')+'">'+esc(info.account_number||'')+' ⧉</button></div>':'');
+        $('#pf-details',host).innerHTML='<div class="payment-method-panel premium-pay-panel">'+qr+acct+'<p class="s muted">'+esc(info.instructions||'')+'</p>'+(key==='other'?otherPaymentOptionsPanel(info,'pf'):'')+'<div class="grid cols-2 payment-entry-grid"><div class="field"><label class="label">Reference number</label><input class="input" id="pf-reference" /></div><div class="field"><label class="label">Receipt / screenshot</label><input class="input" id="pf-receipt" type="file" accept="image/png,image/jpeg,image/webp" /></div></div></div>';
+        if(key==='other')bindOtherPaymentChoices($('#pf-details',host),'pf');
       }
       $('#pf-method',host).onchange=render;render();return m;
     }).catch(function(e){release();toast(e.message,'error');});
@@ -2896,16 +2934,26 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
   }
   function syncLayers() {
     var layer = topLayer(), overlay = $('#site-overlay');
+    var siteOpen = !overlay.classList.contains('hidden') && !!overlay.querySelector('.site-sheet:not(.hidden)');
     var authOpen = !$('#view-auth').classList.contains('hidden');
     var modalOpen = !!$('#modal-root .modal-host');
     $$('.appbar,#tab-dashboard,.site-footer,.bottom-nav').forEach(function(el){el.inert=!!layer;});
     overlay.inert = authOpen || modalOpen;
     $('#view-auth').inert = modalOpen;
     $$('#modal-root .modal-host').forEach(function(el){el.inert=!!layer && !el.contains(layer);});
-    document.body.classList.toggle('sheet-open',!!layer);
+    document.body.classList.toggle('site-layer-open',siteOpen);
+    document.body.classList.toggle('auth-layer-open',authOpen);
+    document.body.classList.toggle('modal-layer-open',modalOpen);
+    document.body.classList.toggle('sheet-open',siteOpen||authOpen||modalOpen);
+    if(!layer){
+      document.documentElement.classList.remove('pikol-scroll-locked');
+      document.body.style.removeProperty('touch-action');
+    }else{
+      document.documentElement.classList.add('pikol-scroll-locked');
+    }
   }
   function closeSheet() {
-    $('#site-overlay').classList.add('hidden');
+    var overlay=$('#site-overlay');overlay.classList.add('hidden');overlay.scrollTop=0;
     TABS.filter(function(t){return t!=='dashboard';}).forEach(function(t){$('#tab-'+t).classList.add('hidden');});
     syncLayers();
     $$('.bottom-nav button').forEach(function(b){b.classList.toggle('is-active',b.dataset.tab==='dashboard');});
@@ -3334,7 +3382,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
   window.addEventListener('appinstalled',function(){setMarked(true);deferredPrompt=null;sync();});
   window.addEventListener('pageshow',sync);document.addEventListener('visibilitychange',function(){if(!document.hidden)sync();});
   if(btn)btn.addEventListener('click',async function(){if(!deferredPrompt)return;btn.disabled=true;try{await deferredPrompt.prompt();var c=await deferredPrompt.userChoice;if(c&&c.outcome==='accepted')setMarked(true);}catch(_){}deferredPrompt=null;btn.disabled=false;sync();});
-  if('serviceWorker' in navigator)window.addEventListener('load',function(){var reloading=false;navigator.serviceWorker.addEventListener('controllerchange',function(){if(reloading)return;reloading=true;location.reload();});navigator.serviceWorker.register('service-worker.js?v=53-client-upgrades',{scope:'./',updateViaCache:'none'}).then(function(reg){return reg.update();}).catch(function(){});});
+  if('serviceWorker' in navigator)window.addEventListener('load',function(){var reloading=false;navigator.serviceWorker.addEventListener('controllerchange',function(){if(reloading)return;reloading=true;location.reload();});navigator.serviceWorker.register('service-worker.js?v=54-android-scroll-status-others',{scope:'./',updateViaCache:'none'}).then(function(reg){return reg.update();}).catch(function(){});});
   sync();
 })();
 </script>

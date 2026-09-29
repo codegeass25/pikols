@@ -11,3 +11,150 @@ button.range-slot{cursor:pointer}.range-slot small{display:block;font-size:.6rem
 html{overflow-y:auto}.player-app:not(.sheet-open){overflow-y:auto!important;touch-action:pan-y pinch-zoom}.player-app .pikol-carousel-track{touch-action:pan-y pinch-zoom}.player-app .modal-body,.player-app .site-sheet{touch-action:pan-y pinch-zoom;overscroll-behavior-y:contain;-webkit-overflow-scrolling:touch}
 @media(max-width:700px){.modal{max-height:calc(100dvh - 16px)}.modal-body{min-height:0;overflow-y:auto}.payment-qr-upload .row{flex-wrap:wrap}.inline-availability .range-grid{max-height:170px}.division-output-actions strong{width:100%}}
 @media(max-width:1024px){#today-courts .promo-court .court-meta{display:flex!important;flex-wrap:wrap}.player-app .inline-availability input{font-size:16px}.player-app .pikol-carousel-track{touch-action:pan-y pinch-zoom!important}}
+
+
+/* v54 — status-aware inline slots */
+.inline-status-legend{display:flex;flex-wrap:wrap;gap:6px 10px;margin:8px 0 10px;font-size:.62rem;font-weight:750;text-transform:uppercase;letter-spacing:.035em}
+.inline-status-legend span{display:inline-flex;align-items:center;gap:5px}
+.inline-status-legend span::before{content:"";width:8px;height:8px;border-radius:50%;background:#9ca3af}
+.inline-status-legend .state-available::before{background:#22c55e}
+.inline-status-legend .state-booked::before{background:#ef4444}
+.inline-status-legend .state-held::before{background:#f59e0b}
+.inline-status-legend .state-pending::before{background:#8b5cf6}
+.inline-status-legend .state-maintenance::before{background:#64748b}
+.inline-status-legend .state-past::before{background:#cbd5e1}
+.range-slot{min-height:58px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+.range-slot-time{font-weight:800}
+.range-slot-status{font-size:.54rem!important;font-weight:800;letter-spacing:.035em;text-transform:uppercase;line-height:1.2}
+.range-slot-detail{font-size:.52rem!important;line-height:1.15;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.range-slot.is-unavailable{opacity:1}
+.range-slot.state-available{background:#f0fdf4;border-color:#86efac}
+.range-slot.state-end-option{background:#effdf7;border-color:#6ee7b7}.range-slot.state-end-option .range-slot-status{color:#047857}
+.range-slot.state-available .range-slot-status{color:#15803d}
+.range-slot.state-booked{background:#fef2f2;border-color:#fecaca}
+.range-slot.state-booked .range-slot-status{color:#b91c1c}
+.range-slot.state-held{background:#fff7ed;border-color:#fed7aa}
+.range-slot.state-held .range-slot-status{color:#c2410c}
+.range-slot.state-pending{background:#faf5ff;border-color:#e9d5ff}
+.range-slot.state-pending .range-slot-status{color:#7e22ce}
+.range-slot.state-maintenance,.range-slot.state-blocked,.range-slot.state-inactive{background:#f1f5f9;border-color:#cbd5e1}
+.range-slot.state-maintenance .range-slot-status,.range-slot.state-blocked .range-slot-status,.range-slot.state-inactive .range-slot-status{color:#475569}
+.range-slot.state-open-play{background:#eff6ff;border-color:#bfdbfe}
+.range-slot.state-open-play .range-slot-status{color:#1d4ed8}
+.range-slot.state-tournament{background:#ecfeff;border-color:#a5f3fc}
+.range-slot.state-tournament .range-slot-status{color:#0e7490}
+.range-slot.state-past{background:#f8fafc;border-color:#e2e8f0;color:#94a3b8}
+.range-slot.state-past .range-slot-status{color:#94a3b8}
+.range-slot.is-selected{background:#174c3c!important;color:#fff!important;border-color:#174c3c!important;box-shadow:0 0 0 2px rgba(23,76,60,.12)}
+.range-slot.is-selected .range-slot-status,.range-slot.is-selected .range-slot-detail{color:#fff!important}
+
+/* v54 — configurable alternative payment destinations */
+.payment-channel-section-wide{grid-column:1/-1}
+.other-payment-admin-list{display:grid;gap:12px}
+.other-payment-admin-card{padding:14px;border:1px solid var(--border,#dce5e0);border-radius:12px;background:var(--surface,#fff)}
+.other-payment-image-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;margin-top:10px}
+.other-payment-image-thumb{position:relative;display:grid;gap:6px;padding:8px;border:1px solid var(--border,#dce5e0);border-radius:10px;background:var(--surface-2,#f8faf9)}
+.other-payment-image-thumb img{width:100%;aspect-ratio:1/1;object-fit:contain;background:#fff;border-radius:8px}
+.other-payment-choice-wrap{display:grid;gap:10px;margin:10px 0 16px}
+.other-payment-choice-title{display:grid;gap:2px}
+.other-payment-choice-list{display:grid;gap:10px}
+.other-payment-choice{padding:12px;border:1px solid var(--border,#dce5e0);border-radius:12px;background:var(--surface,#fff);transition:border-color .15s ease,box-shadow .15s ease,background .15s ease}
+.other-payment-choice.is-selected{border-color:#73a900;background:#f7fce9;box-shadow:0 0 0 1px #73a900}
+.other-payment-choice-head{display:flex;align-items:flex-start;gap:9px;cursor:pointer}
+.other-payment-choice-head input{margin-top:3px}
+.other-payment-choice-head span{display:grid;gap:2px}
+.other-payment-choice-head small{font-size:.68rem;color:var(--text-secondary,#64748b)}
+.other-payment-account-line{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:10px 0;padding:9px 10px;border-radius:8px;background:var(--surface-2,#f6f8f7);font-family:var(--font-num,inherit);overflow-wrap:anywhere}
+.other-payment-images{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin:9px 0}
+.other-payment-images img{display:block;width:100%;max-height:230px;object-fit:contain;background:#fff;border:1px solid var(--border,#dce5e0);border-radius:9px;padding:5px}
+
+/* v54 — Android/iPhone parity: exactly one vertical scroll owner per visible layer.
+   The previous structure allowed the fixed overlay, inner sheet, slot grids and
+   modal body to compete for the same touch gesture on Android Chrome. */
+@media(max-width:1024px){
+  html.pikol-scroll-locked{overflow:hidden!important;overscroll-behavior:none}
+  body.player-app.sheet-open{overflow:hidden!important;overscroll-behavior:none;touch-action:auto!important}
+
+  body.player-app .site-overlay,
+  body.player-app #view-auth.auth-wrap{
+    display:block!important;
+    overflow-x:hidden!important;
+    overflow-y:auto!important;
+    overscroll-behavior-y:auto!important;
+    -webkit-overflow-scrolling:touch;
+    touch-action:pan-y pinch-zoom!important;
+    align-items:initial!important;
+    place-items:initial!important;
+    min-height:100dvh;
+    max-height:100dvh;
+  }
+
+  body.player-app .site-sheet,
+  body.player-app #tab-membership,
+  body.player-app #tab-profile,
+  body.player-app .auth-dialog{
+    max-height:none!important;
+    overflow:visible!important;
+    overscroll-behavior:visible!important;
+    -webkit-overflow-scrolling:auto;
+    touch-action:auto!important;
+  }
+
+  body.player-app .site-sheet{
+    margin:max(8px,env(safe-area-inset-top)) auto calc(82px + env(safe-area-inset-bottom))!important;
+  }
+  body.player-app .auth-dialog{
+    margin:max(8px,env(safe-area-inset-top)) auto max(8px,env(safe-area-inset-bottom))!important;
+  }
+
+  /* Inline availability and the full booking time grid must grow naturally.
+     The outer document/sheet owns vertical scrolling on phones. */
+  body.player-app .inline-availability .range-grid,
+  body.player-app .slot-grid{
+    max-height:none!important;
+    overflow:visible!important;
+    overscroll-behavior:visible!important;
+    touch-action:auto!important;
+  }
+
+  /* Modal: host never scrolls; modal-body is the sole vertical scroll region. */
+  body.player-app .modal-host{
+    overflow:hidden!important;
+    overscroll-behavior:none!important;
+    touch-action:pan-y pinch-zoom!important;
+  }
+  body.player-app .modal,
+  body.player-app .modal.wide{
+    display:flex!important;
+    flex-direction:column!important;
+    overflow:hidden!important;
+    max-height:calc(100dvh - 16px)!important;
+    min-height:0!important;
+    touch-action:pan-y pinch-zoom!important;
+  }
+  body.player-app .modal-head,
+  body.player-app .modal-foot{flex:0 0 auto}
+  body.player-app .modal-body{
+    flex:1 1 auto;
+    min-height:0!important;
+    overflow-x:hidden!important;
+    overflow-y:auto!important;
+    overscroll-behavior-y:auto!important;
+    -webkit-overflow-scrolling:touch;
+    touch-action:pan-y pinch-zoom!important;
+  }
+
+  /* Horizontal court swiping must never claim vertical movement. */
+  body.player-app .pikol-carousel-track{
+    touch-action:pan-y pinch-zoom!important;
+    overscroll-behavior-y:auto!important;
+  }
+}
+@media(max-width:700px){
+  .other-payment-images{grid-template-columns:1fr 1fr}
+  .other-payment-account-line{align-items:flex-start;flex-direction:column}
+  .other-payment-admin-card .grid.cols-2{grid-template-columns:1fr!important}
+}
+@media(max-width:420px){
+  .other-payment-images{grid-template-columns:1fr}
+}

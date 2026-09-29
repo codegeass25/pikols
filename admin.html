@@ -77,8 +77,8 @@ body.admin-app.role-ready #view-app{visibility:visible}
   #page-settings .settings-panel-enter.is-visible{transition-duration:1ms !important}
 }
 </style>
-<link rel="stylesheet" href="client-upgrades.css?v=53-client-upgrades">
-<script src="range-availability.js?v=53-client-upgrades"></script>
+<link rel="stylesheet" href="client-upgrades.css?v=54-android-scroll-status-others">
+<script src="range-availability.js?v=54-android-scroll-status-others"></script>
 </head>
 <body class="admin-app">
 
@@ -662,10 +662,14 @@ body.admin-app.role-ready #view-app{visibility:visible}
               <div class="payment-qr-upload" data-payment-qr="gotyme"><strong>Official GoTyme QR Code</strong><div data-qr-preview></div><input type="hidden" id="s-gotyme_qr_url" data-key="gotyme_qr_url"><input type="file" data-qr-file accept="image/png,image/jpeg,image/webp" hidden><div class="row wrap"><button type="button" class="btn btn-outline btn-sm" data-qr-upload>Upload / Replace GoTyme QR</button><button type="button" class="btn btn-ghost btn-sm" data-qr-remove>Remove QR</button></div><p class="tiny muted">Upload the official image from your payment app. PNG, JPG or WebP, up to 5 MB.</p></div>
               <div class="field"><label class="label">Instructions</label><input class="input" id="s-gotyme_instructions" data-key="gotyme_instructions" placeholder="Send exact amount, enter reference, upload receipt."></div>
             </div>
-            <div class="payment-channel-section">
-              <div class="spread"><div><strong>Others</strong><div class="tiny muted">Client must specify the bank/e-wallet/provider.</div></div><label class="switch"><input type="checkbox" id="s-other_enabled" data-key="other_enabled"><span class="track"></span></label></div>
+            <div class="payment-channel-section payment-channel-section-wide">
+              <div class="spread"><div><strong>Others</strong><div class="tiny muted">Configure multiple alternative banks/e-wallets. Each account can have its own number and several official QR/payment images.</div></div><label class="switch"><input type="checkbox" id="s-other_enabled" data-key="other_enabled"><span class="track"></span></label></div>
               <div class="field mt-3"><label class="label">Display label</label><input class="input" id="s-other_label" data-key="other_label" placeholder="Others"></div>
-              <div class="field"><label class="label">Instructions</label><textarea class="textarea" id="s-other_instructions" data-key="other_instructions" placeholder="Enter provider, reference number and upload receipt."></textarea></div>
+              <div class="field"><label class="label">General instructions</label><textarea class="textarea" id="s-other_instructions" data-key="other_instructions" placeholder="Select one of the payment destinations below, send the exact amount, enter the reference number and upload a receipt."></textarea></div>
+              <textarea id="s-other_payment_options" data-key="other_payment_options" class="hidden" aria-hidden="true"></textarea>
+              <div class="spread mt-3"><div><strong>Alternative payment accounts</strong><div class="tiny muted">Examples: BPI, BDO, UnionBank, SeaBank, ShopeePay. Add a number/account and one or more official payment images.</div></div><button class="btn btn-outline btn-sm" id="btn-add-other-payment" type="button">+ Add Payment Account</button></div>
+              <div id="other-payment-options-admin" class="other-payment-admin-list mt-3"></div>
+              <input id="other-payment-image-file" type="file" accept="image/png,image/jpeg,image/webp" hidden>
             </div>
           </div>
           <div class="panel mt-4"><strong>Duplicate protection</strong><div class="tiny muted mt-2">Manual references and receipt file fingerprints are checked across active payment records. A suspicious duplicate is blocked or flagged for Admin review using the manual reference and receipt fingerprint.</div></div>
@@ -3568,6 +3572,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
       renderSmsGatewayStatus(s.sms_gateway);
       renderAssetPreviews();
       renderPaymentQr();
+      renderOtherPaymentOptionsAdmin();
       refreshAdminPushStatus();
     }).catch(function (e) { toast(e.message, 'error'); });
   }
@@ -3607,7 +3612,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
   saveSettings($('#set-branding'), ['facility_name','short_name','tagline','description','address','contact_number','contact_email','website','social_facebook','social_instagram','brand_primary','brand_secondary','brand_accent','booking_prefix']);
   saveSettings($('#set-booking'), ['maximum_players','open_time','close_time','slot_minutes','currency','facility_timezone','evening_rate_start','checkout_hold_minutes']);
   saveSettings($('#set-membership'), ['membership_enabled','membership_sms_enabled','membership_expiry_reminder_days','nonmember_advance_days','nonmember_max_active_bookings','nonmember_cancellation_hours']);
-  saveSettings($('#set-payments'), ['payment_note','gcash_enabled','gcash_account_name','gcash_number','gcash_qr_url','gcash_instructions','maya_enabled','maya_account_name','maya_number','maya_qr_url','maya_instructions','gotyme_enabled','gotyme_account_name','gotyme_number','gotyme_qr_url','gotyme_instructions','other_enabled','other_label','other_instructions']);
+  saveSettings($('#set-payments'), ['payment_note','gcash_enabled','gcash_account_name','gcash_number','gcash_qr_url','gcash_instructions','maya_enabled','maya_account_name','maya_number','maya_qr_url','maya_instructions','gotyme_enabled','gotyme_account_name','gotyme_number','gotyme_qr_url','gotyme_instructions','other_enabled','other_label','other_instructions','other_payment_options']);
   saveSettings($('#set-tournament'), ['tournament_default_format','tournament_default_seeding','tournament_match_duration_minutes','tournament_rest_minutes','tournament_group_size','tournament_group_qualifiers','tournament_scoring_best_of','tournament_scoring_points_to_win','tournament_scoring_win_by','tournament_third_place','tournament_double_reset_final']);
   function updateGmailConnectionUi(s){
     s=s||SETTINGS||{};
@@ -3646,7 +3651,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
   };
 
   /* ---------- In-Charge PWA push ---------- */
-  var ADMIN_SW_VERSION='53-client-upgrades';
+  var ADMIN_SW_VERSION='54-android-scroll-status-others';
   var PUSH_PREP={reg:null,publicKey:null,serverStatus:null,ready:false,error:null,promise:null};
   function b64ToUint8(s){s=String(s||'').replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';var raw=atob(s),a=new Uint8Array(raw.length);for(var i=0;i<raw.length;i++)a[i]=raw.charCodeAt(i);return a;}
   function bytesEqual(a,b){if(!a||!b)return false;var x=new Uint8Array(a),y=new Uint8Array(b);if(x.length!==y.length)return false;for(var i=0;i<x.length;i++)if(x[i]!==y[i])return false;return true;}
@@ -3906,6 +3911,119 @@ body.admin-app.role-ready #view-app{visibility:visible}
         if(!(isIOS()&&!iosAtLeast164())) pwaPushBtn.disabled=false;
       }
     }
+  };
+
+
+  /* ---------- configurable "Others" payment destinations ---------- */
+  function parseOtherPaymentOptionsAdmin(){
+    var raw=$('#s-other_payment_options');
+    if(!raw)return [];
+    try{
+      var list=JSON.parse(raw.value||'[]');
+      return Array.isArray(list)?list:[];
+    }catch(_){return [];}
+  }
+  function normalizeOtherPaymentAdmin(list){
+    return (list||[]).slice(0,30).map(function(item,index){
+      item=item||{};
+      return {
+        id:String(item.id||('other-'+Date.now()+'-'+index)).replace(/[^A-Za-z0-9_-]/g,'-').slice(0,80),
+        label:String(item.label||'').slice(0,80),
+        account_name:String(item.account_name||'').slice(0,120),
+        account_number:String(item.account_number||'').slice(0,120),
+        instructions:String(item.instructions||'').slice(0,500),
+        enabled:item.enabled===false||String(item.enabled)==='0'?false:true,
+        images:Array.isArray(item.images)?item.images.slice(0,8):[]
+      };
+    });
+  }
+  function saveOtherPaymentOptionsLocal(list,rerender){
+    var raw=$('#s-other_payment_options');if(!raw)return;
+    raw.value=JSON.stringify(normalizeOtherPaymentAdmin(list));
+    if(rerender!==false)renderOtherPaymentOptionsAdmin();
+  }
+  function renderOtherPaymentOptionsAdmin(){
+    var host=$('#other-payment-options-admin');if(!host)return;
+    var list=normalizeOtherPaymentAdmin(parseOtherPaymentOptionsAdmin());
+    if(!list.length){
+      host.innerHTML='<div class="empty other-payment-empty"><strong>No alternative payment accounts yet</strong><span>Add BPI, BDO, UnionBank, SeaBank, ShopeePay or any other payment destination. Each may have a number and multiple official images.</span></div>';
+      return;
+    }
+    host.innerHTML=list.map(function(opt,index){
+      var imgs=(opt.images||[]).map(function(url,imgIndex){
+        return '<div class="other-payment-image-thumb"><img src="'+esc(assetUrl(url))+'" alt="'+esc(opt.label||'Payment')+' image '+(imgIndex+1)+'"><button type="button" class="btn btn-ghost btn-sm" data-other-remove-image="'+index+':'+imgIndex+'">Remove</button></div>';
+      }).join('');
+      return '<section class="other-payment-admin-card" data-other-index="'+index+'">'+
+        '<div class="spread"><div><strong>Payment Account '+(index+1)+'</strong><div class="tiny muted">Displayed to clients when they choose Others.</div></div>'+
+          '<label class="switch"><input type="checkbox" data-other-field="enabled"'+(opt.enabled?' checked':'')+'><span class="track"></span><span>Enabled</span></label></div>'+
+        '<div class="grid cols-2 mt-3">'+
+          '<div class="field"><label class="label">Provider / Display Name</label><input class="input" data-other-field="label" value="'+esc(opt.label)+'" placeholder="e.g. BPI"></div>'+
+          '<div class="field"><label class="label">Account / Mobile Number</label><input class="input" data-other-field="account_number" value="'+esc(opt.account_number)+'" placeholder="Account or mobile number"></div>'+
+          '<div class="field"><label class="label">Account Name</label><input class="input" data-other-field="account_name" value="'+esc(opt.account_name)+'" placeholder="Account holder name"></div>'+
+          '<div class="field"><label class="label">Instructions</label><input class="input" data-other-field="instructions" value="'+esc(opt.instructions)+'" placeholder="Optional transfer instructions"></div>'+
+        '</div>'+
+        '<div class="other-payment-image-grid">'+(imgs||'<div class="tiny muted">No payment image uploaded yet.</div>')+'</div>'+
+        '<div class="row wrap mt-3"><button type="button" class="btn btn-outline btn-sm" data-other-add-image="'+index+'">+ Upload Image</button><button type="button" class="btn btn-danger btn-sm" data-other-delete="'+index+'">Delete Account</button></div>'+
+      '</section>';
+    }).join('');
+  }
+  var otherPaymentUploadIndex=null;
+  var addOtherPaymentBtn=$('#btn-add-other-payment');
+  if(addOtherPaymentBtn)addOtherPaymentBtn.onclick=function(){
+    var list=normalizeOtherPaymentAdmin(parseOtherPaymentOptionsAdmin());
+    if(list.length>=30)return toast('Maximum of 30 alternative payment accounts reached.','warning');
+    list.push({id:'other-'+Date.now()+'-'+Math.random().toString(36).slice(2,7),label:'',account_name:'',account_number:'',instructions:'',enabled:true,images:[]});
+    saveOtherPaymentOptionsLocal(list,true);
+    var cards=$$('#other-payment-options-admin .other-payment-admin-card');if(cards.length)cards[cards.length-1].scrollIntoView({behavior:'smooth',block:'nearest'});
+  };
+  var otherHost=$('#other-payment-options-admin');
+  if(otherHost){
+    otherHost.addEventListener('input',function(e){
+      var field=e.target.closest('[data-other-field]'),card=e.target.closest('[data-other-index]');if(!field||!card)return;
+      var list=normalizeOtherPaymentAdmin(parseOtherPaymentOptionsAdmin()),idx=Number(card.dataset.otherIndex);if(!list[idx])return;
+      list[idx][field.dataset.otherField]=field.type==='checkbox'?field.checked:field.value;
+      saveOtherPaymentOptionsLocal(list,false);
+    });
+    otherHost.addEventListener('change',function(e){
+      var field=e.target.closest('[data-other-field]'),card=e.target.closest('[data-other-index]');if(!field||!card)return;
+      var list=normalizeOtherPaymentAdmin(parseOtherPaymentOptionsAdmin()),idx=Number(card.dataset.otherIndex);if(!list[idx])return;
+      list[idx][field.dataset.otherField]=field.type==='checkbox'?field.checked:field.value;
+      saveOtherPaymentOptionsLocal(list,false);
+    });
+    otherHost.addEventListener('click',function(e){
+      var del=e.target.closest('[data-other-delete]');
+      if(del){
+        var list=normalizeOtherPaymentAdmin(parseOtherPaymentOptionsAdmin()),idx=Number(del.dataset.otherDelete);
+        if(!confirm('Delete this alternative payment account? Existing transaction history will remain.'))return;
+        list.splice(idx,1);saveOtherPaymentOptionsLocal(list,true);return;
+      }
+      var rem=e.target.closest('[data-other-remove-image]');
+      if(rem){
+        var bits=rem.dataset.otherRemoveImage.split(':').map(Number),list2=normalizeOtherPaymentAdmin(parseOtherPaymentOptionsAdmin());
+        if(list2[bits[0]]&&list2[bits[0]].images){list2[bits[0]].images.splice(bits[1],1);saveOtherPaymentOptionsLocal(list2,true);}return;
+      }
+      var add=e.target.closest('[data-other-add-image]');
+      if(add){
+        var list3=normalizeOtherPaymentAdmin(parseOtherPaymentOptionsAdmin()),i=Number(add.dataset.otherAddImage);
+        if(!list3[i])return;if((list3[i].images||[]).length>=8)return toast('Maximum of 8 images per payment account.','warning');
+        otherPaymentUploadIndex=i;$('#other-payment-image-file').click();
+      }
+    });
+  }
+  var otherPaymentFile=$('#other-payment-image-file');
+  if(otherPaymentFile)otherPaymentFile.onchange=function(){
+    var f=this.files&&this.files[0];this.value='';var index=otherPaymentUploadIndex;otherPaymentUploadIndex=null;
+    if(!f||index==null)return;
+    if(!['image/png','image/jpeg','image/webp'].includes(f.type)||f.size>5*1024*1024)return toast('Use PNG, JPG or WebP up to 5 MB.','error');
+    var reader=new FileReader();
+    reader.onload=function(){
+      api('/api/admin/events/upload-image',{method:'POST',body:{kind:'qr',mime:f.type,data:reader.result}}).then(function(r){
+        var list=normalizeOtherPaymentAdmin(parseOtherPaymentOptionsAdmin());if(!list[index])return;
+        list[index].images=list[index].images||[];list[index].images.push(r.url);saveOtherPaymentOptionsLocal(list,true);
+        toast('Payment image uploaded. Press Save booking & payment settings to publish the configuration.','success');
+      }).catch(function(err){toast(err.message,'error');});
+    };
+    reader.readAsDataURL(f);
   };
 
   /* ---------- branding assets (upload / URL / remove) ---------- */
@@ -4482,7 +4600,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
 
 <script>
 /* PIKOL_PWA_INSTALL_RUNTIME */
-(function(){'use strict';var btn=document.getElementById('pwa-install-admin'),deferredPrompt=null,KEY='pikol_admin_installed_v3';function ios(){return /iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);}function standalone(){return window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true;}function marked(){return localStorage.getItem(KEY)==='1';}function setMarked(v){if(v)localStorage.setItem(KEY,'1');else localStorage.removeItem(KEY);}function showIosGuide(){var g=document.getElementById('ios-pwa-guide');if(g)g.hidden=false;if(typeof toast==='function')toast('iPhone: Safari → Share → Add to Home Screen. Then open PIKOL Admin from the Home Screen icon.','error');}function sync(){if(!btn)return;if(standalone()){setMarked(true);btn.hidden=true;return;}if(ios()){btn.hidden=false;btn.textContent='Install Admin App on iPhone';return;}btn.textContent='Install Admin App';btn.hidden=!deferredPrompt||marked();}window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();deferredPrompt=e;if(!standalone())setMarked(false);sync();});window.addEventListener('appinstalled',function(){setMarked(true);deferredPrompt=null;sync();});window.addEventListener('pageshow',sync);document.addEventListener('visibilitychange',function(){if(!document.hidden)sync();});if(btn)btn.addEventListener('click',async function(){if(ios()){showIosGuide();return;}if(!deferredPrompt)return;btn.disabled=true;try{await deferredPrompt.prompt();var c=await deferredPrompt.userChoice;if(c&&c.outcome==='accepted')setMarked(true);}catch(_){}deferredPrompt=null;btn.disabled=false;sync();});if('serviceWorker' in navigator)window.addEventListener('load',function(){var reloading=false;navigator.serviceWorker.addEventListener('controllerchange',function(){if(reloading)return;reloading=true;location.reload();});navigator.serviceWorker.register('service-worker.js?v=53-client-upgrades',{scope:'./',updateViaCache:'none'}).then(function(reg){return reg.update();}).catch(function(){});});sync();})();
+(function(){'use strict';var btn=document.getElementById('pwa-install-admin'),deferredPrompt=null,KEY='pikol_admin_installed_v3';function ios(){return /iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);}function standalone(){return window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true;}function marked(){return localStorage.getItem(KEY)==='1';}function setMarked(v){if(v)localStorage.setItem(KEY,'1');else localStorage.removeItem(KEY);}function showIosGuide(){var g=document.getElementById('ios-pwa-guide');if(g)g.hidden=false;if(typeof toast==='function')toast('iPhone: Safari → Share → Add to Home Screen. Then open PIKOL Admin from the Home Screen icon.','error');}function sync(){if(!btn)return;if(standalone()){setMarked(true);btn.hidden=true;return;}if(ios()){btn.hidden=false;btn.textContent='Install Admin App on iPhone';return;}btn.textContent='Install Admin App';btn.hidden=!deferredPrompt||marked();}window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();deferredPrompt=e;if(!standalone())setMarked(false);sync();});window.addEventListener('appinstalled',function(){setMarked(true);deferredPrompt=null;sync();});window.addEventListener('pageshow',sync);document.addEventListener('visibilitychange',function(){if(!document.hidden)sync();});if(btn)btn.addEventListener('click',async function(){if(ios()){showIosGuide();return;}if(!deferredPrompt)return;btn.disabled=true;try{await deferredPrompt.prompt();var c=await deferredPrompt.userChoice;if(c&&c.outcome==='accepted')setMarked(true);}catch(_){}deferredPrompt=null;btn.disabled=false;sync();});if('serviceWorker' in navigator)window.addEventListener('load',function(){var reloading=false;navigator.serviceWorker.addEventListener('controllerchange',function(){if(reloading)return;reloading=true;location.reload();});navigator.serviceWorker.register('service-worker.js?v=54-android-scroll-status-others',{scope:'./',updateViaCache:'none'}).then(function(reg){return reg.update();}).catch(function(){});});sync();})();
 </script>
 
 </body>
