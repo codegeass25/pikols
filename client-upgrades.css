@@ -163,3 +163,127 @@ html{overflow-y:auto}.player-app:not(.sheet-open){overflow-y:auto!important;touc
 @media(max-width:420px){
   .other-payment-images{grid-template-columns:1fr}
 }
+
+
+/* v56 — Android native document scrolling.
+   Android Chrome/PWA must never depend on html/body scroll locking. Site sheets and
+   authentication become normal document-flow pages while visible. True modals use
+   their backdrop as the one vertical scroll owner. iPhone/iOS keeps the established
+   v55 behavior above. */
+html.pikol-android,
+html.pikol-android.pikol-scroll-locked{
+  height:auto!important;
+  min-height:100%!important;
+  overflow-x:hidden!important;
+  overflow-y:auto!important;
+  overscroll-behavior-y:auto!important;
+  touch-action:pan-y pinch-zoom!important;
+}
+html.pikol-android body.player-app,
+html.pikol-android body.player-app.sheet-open{
+  position:static!important;
+  height:auto!important;
+  min-height:100vh!important;
+  overflow-x:hidden!important;
+  overflow-y:auto!important;
+  overscroll-behavior-y:auto!important;
+  touch-action:pan-y pinch-zoom!important;
+  -webkit-overflow-scrolling:touch;
+}
+@media(max-width:1024px){
+  /* Site sections behave like native pages on Android: no fixed nested scroller. */
+  html.pikol-android body.player-app.site-layer-open .appbar,
+  html.pikol-android body.player-app.site-layer-open #tab-dashboard,
+  html.pikol-android body.player-app.site-layer-open .site-footer,
+  html.pikol-android body.player-app.site-layer-open .bottom-nav{display:none!important}
+  html.pikol-android body.player-app .site-overlay:not(.hidden){
+    position:static!important;
+    inset:auto!important;
+    width:100%!important;
+    min-height:100vh!important;
+    max-height:none!important;
+    margin:0!important;
+    padding:0!important;
+    display:block!important;
+    overflow:visible!important;
+    overscroll-behavior:visible!important;
+    background:var(--surface,#fff)!important;
+    backdrop-filter:none!important;
+    touch-action:pan-y pinch-zoom!important;
+  }
+  html.pikol-android body.player-app .site-overlay:not(.hidden) .site-sheet{
+    width:100%!important;
+    max-width:none!important;
+    max-height:none!important;
+    min-height:100vh!important;
+    margin:0!important;
+    padding:18px 14px calc(28px + env(safe-area-inset-bottom))!important;
+    border:0!important;
+    border-radius:0!important;
+    box-shadow:none!important;
+    overflow:visible!important;
+    overscroll-behavior:visible!important;
+    touch-action:pan-y pinch-zoom!important;
+  }
+  /* Authentication also becomes a document-flow page instead of a fixed scroller. */
+  html.pikol-android body.player-app.auth-layer-open #view-app{display:none!important}
+  html.pikol-android body.player-app #view-auth.auth-wrap:not(.hidden){
+    position:static!important;
+    inset:auto!important;
+    width:100%!important;
+    min-height:100vh!important;
+    max-height:none!important;
+    padding:8px!important;
+    overflow:visible!important;
+    overscroll-behavior:visible!important;
+    background:var(--overlay)!important;
+    touch-action:pan-y pinch-zoom!important;
+  }
+  html.pikol-android body.player-app #view-auth.auth-wrap:not(.hidden) .auth-dialog{
+    max-height:none!important;
+    min-height:calc(100vh - 16px)!important;
+    overflow:visible!important;
+    margin:0 auto!important;
+    touch-action:pan-y pinch-zoom!important;
+  }
+  /* Remove nested time-list scroll regions on Android. */
+  html.pikol-android body.player-app .range-grid,
+  html.pikol-android body.player-app .slot-grid,
+  html.pikol-android body.player-app .booking-main,
+  html.pikol-android body.player-app .booking-controls{
+    max-height:none!important;
+    overflow:visible!important;
+    overscroll-behavior:visible!important;
+    touch-action:pan-y pinch-zoom!important;
+  }
+  /* Modal backdrop is the sole scroll region; the modal/body grow naturally. */
+  html.pikol-android body.player-app .modal-host{
+    overflow-x:hidden!important;
+    overflow-y:auto!important;
+    overscroll-behavior-y:contain!important;
+    -webkit-overflow-scrolling:touch;
+    touch-action:pan-y pinch-zoom!important;
+    align-items:flex-start!important;
+    place-items:start center!important;
+    padding:8px!important;
+  }
+  html.pikol-android body.player-app .modal,
+  html.pikol-android body.player-app .modal.wide{
+    flex:none!important;
+    width:100%!important;
+    max-height:none!important;
+    overflow:visible!important;
+    margin:auto 0!important;
+    touch-action:pan-y pinch-zoom!important;
+  }
+  html.pikol-android body.player-app .modal-body{
+    flex:none!important;
+    max-height:none!important;
+    overflow:visible!important;
+    overscroll-behavior:visible!important;
+    touch-action:pan-y pinch-zoom!important;
+  }
+  html.pikol-android body.player-app .pikol-carousel-track{
+    touch-action:pan-y pinch-zoom!important;
+  }
+}

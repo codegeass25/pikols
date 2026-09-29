@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<script>if(/Android/i.test(navigator.userAgent||''))document.documentElement.classList.add('pikol-android');</script>
 <meta name="description" content="Reserve a pickleball court in a few taps." />
 <title>Court Booking</title>
 <link rel="icon" id="favicon" href="data:," />
@@ -275,7 +276,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
 }
 </style>
 
-<link rel="stylesheet" href="client-upgrades.css?v=55-mobile-layer-hotfix">
+<link rel="stylesheet" href="client-upgrades.css?v=56-android-native-scroll">
 </head>
 <body class="player-app">
 
@@ -655,7 +656,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
 <button id="pwa-install-player" class="btn btn-primary btn-block pwa-install-inline" type="button" hidden>Install Booking App</button>
 <div id="modal-root"></div>
 
-<script src="range-availability.js?v=55-mobile-layer-hotfix"></script>
+<script src="range-availability.js?v=56-android-native-scroll"></script>
 <script>
 /* ================= shared runtime (player app) ================= */
 (function () {
@@ -666,6 +667,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
   var isLocal = /^(localhost|127\.0\.0\.1)$/i.test(location.hostname || '');
   // Deployment configuration is trusted; URLs and persisted browser settings cannot redirect credentials.
   var API = isLocal && location.origin && location.origin !== 'null' ? location.origin : DEFAULT_API;
+  var IS_ANDROID = document.documentElement.classList.contains('pikol-android');
 
   var TOKEN = localStorage.getItem('pb_token') || '';
   var USER = null, BRAND = {}, AVAIL = null, BOOKING_RULES = { open_time:'06:00', close_time:'22:00', evening_rate_start:'16:00', slot_minutes:60 };
@@ -1126,10 +1128,12 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
     if(TABS.indexOf(tab)<0)return;
     if(['bookings','notifications','profile'].indexOf(tab)>=0&&!requirePlayer(function(){goto(tab);}))return;
     if(tab==='dashboard'){closeSheet();window.scrollTo({top:0,behavior:'smooth'});loadDashboard();return;}
-    if($('#site-overlay').classList.contains('hidden'))sheetReturnFocus=document.activeElement;
+    if($('#site-overlay').classList.contains('hidden')){sheetReturnFocus=document.activeElement;sheetReturnScrollY=window.scrollY||0;}
     TABS.filter(function(t){return t!=='dashboard';}).forEach(function(t){$('#tab-'+t).classList.toggle('hidden',t!==tab);});
     $('#site-overlay').classList.remove('hidden');syncLayers();
-    var panel=$('#tab-'+tab),overlay=$('#site-overlay');overlay.scrollTop=0;panel.scrollTop=0;$('.sheet-close',panel).focus({preventScroll:true});
+    var panel=$('#tab-'+tab),overlay=$('#site-overlay');overlay.scrollTop=0;panel.scrollTop=0;
+    if(IS_ANDROID)window.scrollTo(0,0);
+    $('.sheet-close',panel).focus({preventScroll:true});
     $$('.bottom-nav button').forEach(function(b){b.classList.toggle('is-active',b.dataset.tab===tab);});
     if(tab==='bookings')loadBookings();
     if(tab==='book')ensureBooking();
@@ -1260,7 +1264,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
     });
     if (slides.length <= 1) controls.hidden = true;
 
-    var dragging=false, axis=null, startX=0, startY=0, dx=0, suppressUntil=0;
+    var dragging=false, axis=null, startX=0, startY=0, dx=0, suppressUntil=0, androidTouchX=0, androidTouchY=0, androidTouchActive=false;
     function clamp(v){ return Math.max(0,Math.min(slides.length-1,v)); }
     function setTransform(extraPx){
       if (!COURT_CAROUSEL_MQ.matches) { track.style.transform=''; return; }
@@ -1280,6 +1284,9 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
     function go(nextIndex){ index=clamp(nextIndex); paint(true); }
     function pointerDown(e){
       if(!COURT_CAROUSEL_MQ.matches || slides.length<2 || (e.pointerType==='mouse' && e.button!==0))return;
+      /* Android Chrome gets a passive touch path below. Never let a touch PointerEvent
+         capture or cancel the browser's native vertical scroll. */
+      if(IS_ANDROID && e.pointerType!=='mouse')return;
       if(e.target.closest('input,select,textarea,button,.inline-availability'))return;
       dragging=true; axis=null; dx=0; startX=e.clientX; startY=e.clientY;
       track.classList.add('is-dragging');
@@ -1317,10 +1324,30 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
       controls.hidden=!COURT_CAROUSEL_MQ.matches || slides.length<=1;
       paint(true);
     }
-    track.addEventListener('pointerdown',pointerDown);
-    track.addEventListener('pointermove',pointerMove,{passive:false});
-    track.addEventListener('pointerup',pointerEnd);
-    track.addEventListener('pointercancel',pointerEnd);
+    function androidTouchStart(e){
+      androidTouchActive=false;
+      if(!IS_ANDROID || !COURT_CAROUSEL_MQ.matches || slides.length<2 || !e.touches || !e.touches[0])return;
+      if(e.target.closest('input,select,textarea,button,.inline-availability'))return;
+      androidTouchX=e.touches[0].clientX; androidTouchY=e.touches[0].clientY; androidTouchActive=true;
+    }
+    function androidTouchEnd(e){
+      if(!IS_ANDROID || !androidTouchActive || !COURT_CAROUSEL_MQ.matches || slides.length<2 || !e.changedTouches || !e.changedTouches[0])return;
+      androidTouchActive=false;
+      var x=e.changedTouches[0].clientX-androidTouchX, y=e.changedTouches[0].clientY-androidTouchY;
+      /* Swipe only when horizontal intent is unmistakable. No preventDefault, no
+         pointer capture, and no touchmove listener: vertical scrolling stays native. */
+      if(Math.abs(x)>=55 && Math.abs(x)>Math.abs(y)*1.35){ if(x<0)go(index+1); else go(index-1); suppressUntil=Date.now()+320; }
+    }
+    if(IS_ANDROID){
+      track.addEventListener('touchstart',androidTouchStart,{passive:true});
+      track.addEventListener('touchend',androidTouchEnd,{passive:true});
+      track.addEventListener('touchcancel',function(){androidTouchActive=false;},{passive:true});
+    }else{
+      track.addEventListener('pointerdown',pointerDown);
+      track.addEventListener('pointermove',pointerMove,{passive:false});
+      track.addEventListener('pointerup',pointerEnd);
+      track.addEventListener('pointercancel',pointerEnd);
+    }
     host.addEventListener('click',suppressDraggedClick,true);
     controls.addEventListener('click',onControl);
     if(COURT_CAROUSEL_MQ.addEventListener)COURT_CAROUSEL_MQ.addEventListener('change',syncMode);
@@ -2922,7 +2949,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
 
   /* Reference presentation: public home, focused dialogs, live club data. */
   var PUBLIC_COURTS = [], PUBLIC_EVENTS = [], PUBLIC_OPENPLAY = [];
-  var sheetReturnFocus = null, authReturnFocus = null, afterAuth = null;
+  var sheetReturnFocus = null, authReturnFocus = null, afterAuth = null, sheetReturnScrollY = 0, authReturnScrollY = 0;
   var selectedBookingId = null, selectedEventId = null, selectedOpenPlayId = null;
 
   function topLayer() {
@@ -2945,7 +2972,9 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
     document.body.classList.toggle('auth-layer-open',authOpen);
     document.body.classList.toggle('modal-layer-open',modalOpen);
     document.body.classList.toggle('sheet-open',siteOpen||authOpen||modalOpen);
-    if(!layer){
+    /* iOS keeps the existing locked-background dialog model. Android uses the
+       document itself as the scroll owner; never lock html/body there. */
+    if(!layer || IS_ANDROID){
       document.documentElement.classList.remove('pikol-scroll-locked');
       document.body.style.removeProperty('touch-action');
     }else{
@@ -2957,18 +2986,21 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
     TABS.filter(function(t){return t!=='dashboard';}).forEach(function(t){$('#tab-'+t).classList.add('hidden');});
     syncLayers();
     $$('.bottom-nav button').forEach(function(b){b.classList.toggle('is-active',b.dataset.tab==='dashboard');});
+    if(IS_ANDROID) requestAnimationFrame(function(){window.scrollTo(0,sheetReturnScrollY||0);});
     if(sheetReturnFocus && sheetReturnFocus.isConnected) sheetReturnFocus.focus({preventScroll:true});
   }
   function openAuth(next) {
     afterAuth = typeof next==='function' ? next : null;
-    authReturnFocus = document.activeElement;
+    authReturnFocus = document.activeElement; authReturnScrollY = window.scrollY || 0;
     $('#view-auth').classList.remove('hidden');
     syncLayers();
-    $('#li-email').focus();
+    if(IS_ANDROID) window.scrollTo(0,0);
+    $('#li-email').focus({preventScroll:IS_ANDROID});
   }
   function closeAuth() {
     $('#view-auth').classList.add('hidden'); afterAuth=null;
     syncLayers();
+    if(IS_ANDROID) requestAnimationFrame(function(){window.scrollTo(0,authReturnScrollY||0);});
     if(authReturnFocus && authReturnFocus.isConnected) authReturnFocus.focus({preventScroll:true});
   }
   function requirePlayer(next) { if(USER && TOKEN) return true; openAuth(next); return false; }
@@ -3382,7 +3414,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
   window.addEventListener('appinstalled',function(){setMarked(true);deferredPrompt=null;sync();});
   window.addEventListener('pageshow',sync);document.addEventListener('visibilitychange',function(){if(!document.hidden)sync();});
   if(btn)btn.addEventListener('click',async function(){if(!deferredPrompt)return;btn.disabled=true;try{await deferredPrompt.prompt();var c=await deferredPrompt.userChoice;if(c&&c.outcome==='accepted')setMarked(true);}catch(_){}deferredPrompt=null;btn.disabled=false;sync();});
-  if('serviceWorker' in navigator)window.addEventListener('load',function(){var reloading=false;navigator.serviceWorker.addEventListener('controllerchange',function(){if(reloading)return;reloading=true;location.reload();});navigator.serviceWorker.register('service-worker.js?v=55-mobile-layer-hotfix',{scope:'./',updateViaCache:'none'}).then(function(reg){return reg.update();}).catch(function(){});});
+  if('serviceWorker' in navigator)window.addEventListener('load',function(){var reloading=false;navigator.serviceWorker.addEventListener('controllerchange',function(){if(reloading)return;reloading=true;location.reload();});navigator.serviceWorker.register('service-worker.js?v=56-android-native-scroll',{scope:'./',updateViaCache:'none'}).then(function(reg){return reg.update();}).catch(function(){});});
   sync();
 })();
 </script>
