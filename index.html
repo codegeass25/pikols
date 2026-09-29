@@ -275,7 +275,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
 }
 </style>
 
-<link rel="stylesheet" href="client-upgrades.css?v=54-android-scroll-status-others">
+<link rel="stylesheet" href="client-upgrades.css?v=55-mobile-layer-hotfix">
 </head>
 <body class="player-app">
 
@@ -655,7 +655,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
 <button id="pwa-install-player" class="btn btn-primary btn-block pwa-install-inline" type="button" hidden>Install Booking App</button>
 <div id="modal-root"></div>
 
-<script src="range-availability.js?v=54-android-scroll-status-others"></script>
+<script src="range-availability.js?v=55-mobile-layer-hotfix"></script>
 <script>
 /* ================= shared runtime (player app) ================= */
 (function () {
@@ -3382,7 +3382,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
   window.addEventListener('appinstalled',function(){setMarked(true);deferredPrompt=null;sync();});
   window.addEventListener('pageshow',sync);document.addEventListener('visibilitychange',function(){if(!document.hidden)sync();});
   if(btn)btn.addEventListener('click',async function(){if(!deferredPrompt)return;btn.disabled=true;try{await deferredPrompt.prompt();var c=await deferredPrompt.userChoice;if(c&&c.outcome==='accepted')setMarked(true);}catch(_){}deferredPrompt=null;btn.disabled=false;sync();});
-  if('serviceWorker' in navigator)window.addEventListener('load',function(){var reloading=false;navigator.serviceWorker.addEventListener('controllerchange',function(){if(reloading)return;reloading=true;location.reload();});navigator.serviceWorker.register('service-worker.js?v=54-android-scroll-status-others',{scope:'./',updateViaCache:'none'}).then(function(reg){return reg.update();}).catch(function(){});});
+  if('serviceWorker' in navigator)window.addEventListener('load',function(){var reloading=false;navigator.serviceWorker.addEventListener('controllerchange',function(){if(reloading)return;reloading=true;location.reload();});navigator.serviceWorker.register('service-worker.js?v=55-mobile-layer-hotfix',{scope:'./',updateViaCache:'none'}).then(function(reg){return reg.update();}).catch(function(){});});
   sync();
 })();
 </script>

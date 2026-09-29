@@ -68,15 +68,20 @@ html{overflow-y:auto}.player-app:not(.sheet-open){overflow-y:auto!important;touc
 .other-payment-images{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin:9px 0}
 .other-payment-images img{display:block;width:100%;max-height:230px;object-fit:contain;background:#fff;border:1px solid var(--border,#dce5e0);border-radius:9px;padding:5px}
 
-/* v54 — Android/iPhone parity: exactly one vertical scroll owner per visible layer.
+/* v55 — Android/iPhone parity + hidden-layer guard: exactly one vertical scroll owner per visible layer.
    The previous structure allowed the fixed overlay, inner sheet, slot grids and
    modal body to compete for the same touch gesture on Android Chrome. */
 @media(max-width:1024px){
   html.pikol-scroll-locked{overflow:hidden!important;overscroll-behavior:none}
   body.player-app.sheet-open{overflow:hidden!important;overscroll-behavior:none;touch-action:auto!important}
 
-  body.player-app .site-overlay,
-  body.player-app #view-auth.auth-wrap{
+  /* Critical visibility guard: auth/overlay stay completely out of layout until opened. */
+  body.player-app .site-overlay.hidden,
+  body.player-app #view-auth.auth-wrap.hidden{display:none!important}
+
+  /* Only visible layers become mobile scroll owners. Never override .hidden. */
+  body.player-app .site-overlay:not(.hidden),
+  body.player-app #view-auth.auth-wrap:not(.hidden){
     display:block!important;
     overflow-x:hidden!important;
     overflow-y:auto!important;
