@@ -509,6 +509,72 @@ body.admin-app .bracket-format-option input { width: 15px; height: 15px; accent-
 body.admin-app .bracket-format-option strong { display: block; color: var(--text-primary); font-size: 11px; }
 body.admin-app .bracket-format-option small { display: block; font-size: 10px; color: var(--text-secondary); line-height: 1.5; margin-top: 4px; }
 
+
+/* Players — mobile/tablet table behavior.
+   Keep whole cells readable. Extra columns stay completely outside the viewport
+   until the user swipes, instead of squeezing/overlapping into mobile cards. */
+body.admin-app #page-players .players-table-viewport {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-inline: contain;
+}
+body.admin-app #page-players .players-table {
+  table-layout: fixed;
+}
+body.admin-app #page-players .players-table th,
+body.admin-app #page-players .players-table td {
+  overflow: hidden;
+}
+body.admin-app #page-players .players-table .admin-player-cell {
+  max-width: 100%;
+  min-width: 0;
+}
+body.admin-app #page-players .players-table .admin-player-cell > span:last-child {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: normal;
+}
+
+@media (max-width: 767px) {
+  body.admin-app #page-players .players-table-viewport {
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+  }
+  body.admin-app #page-players .players-table-viewport::-webkit-scrollbar { display: none; }
+  body.admin-app #page-players .players-table {
+    /* First viewport = NAME + EMAIL exactly; MOBILE and the rest are fully hidden until swipe. */
+    width: auto;
+    min-width: 0;
+  }
+  body.admin-app #page-players .players-table th:nth-child(1),
+  body.admin-app #page-players .players-table td:nth-child(1) { width: 150px; min-width: 150px; max-width: 150px; white-space: normal; overflow-wrap: anywhere; text-overflow: clip; }
+  body.admin-app #page-players .players-table th:nth-child(2),
+  body.admin-app #page-players .players-table td:nth-child(2) { width: calc(100vw - 202px); min-width: calc(100vw - 202px); max-width: calc(100vw - 202px); white-space: normal; overflow-wrap: anywhere; word-break: break-word; text-overflow: clip; }
+  body.admin-app #page-players .players-table th:nth-child(3),
+  body.admin-app #page-players .players-table td:nth-child(3) { width: 145px; min-width: 145px; max-width: 145px; }
+  body.admin-app #page-players .players-table th:nth-child(4),
+  body.admin-app #page-players .players-table td:nth-child(4) { width: 90px; min-width: 90px; max-width: 90px; }
+  body.admin-app #page-players .players-table th:nth-child(5),
+  body.admin-app #page-players .players-table td:nth-child(5) { width: 110px; min-width: 110px; max-width: 110px; }
+  body.admin-app #page-players .players-table th:nth-child(6),
+  body.admin-app #page-players .players-table td:nth-child(6) { width: 112px; min-width: 112px; max-width: 112px; }
+  body.admin-app #page-players .players-table td:nth-child(1) .admin-player-cell { align-items: flex-start; white-space: normal; }
+  body.admin-app #page-players .players-table td:nth-child(1) .admin-player-cell > span:last-child { white-space: normal; overflow-wrap: anywhere; text-overflow: clip; }
+  body.admin-app #page-players .players-table th:nth-child(1),
+  body.admin-app #page-players .players-table th:nth-child(3),
+  body.admin-app #page-players .players-table th:nth-child(5) { scroll-snap-align: start; }
+}
+
+@media (min-width: 768px) and (max-width: 1024px) {
+  body.admin-app #page-players .players-table { min-width: 760px; width: 100%; table-layout: auto; }
+  body.admin-app #page-players .players-table th,
+  body.admin-app #page-players .players-table td { white-space: nowrap; }
+}
+
 @media (min-width: 1500px) {
   body.admin-app #upcoming-list .admin-schedule-row { grid-template-columns: 6px minmax(100px,1fr) auto minmax(60px,.8fr) auto; min-height: 43px; }
   body.admin-app #upcoming-list .admin-schedule-row .list-main { grid-column: 4; }
