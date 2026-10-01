@@ -803,3 +803,114 @@ body.admin-app #page-players .players-table .admin-player-cell > span:last-child
 }
 [data-theme="dark"] body.admin-app .communication-tips { background: #183f35; border-color: #315d4f; }
 [data-theme="dark"] body.admin-app .bracket-format-option:has(input:checked) { background: #183f35; border-color: #60cf9a; }
+
+/* PIKOL v61 — Communications tables mirror the proven Players table mobile behavior.
+   The visible viewport stays within the card/phone width; only the internal table track scrolls. */
+body.admin-app #page-notifications .communication-table-viewport {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-inline: contain;
+}
+body.admin-app #page-notifications .communication-table {
+  table-layout: fixed;
+}
+body.admin-app #page-notifications .communication-table th,
+body.admin-app #page-notifications .communication-table td {
+  overflow: hidden;
+}
+body.admin-app #page-notifications .communication-table td {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+/* Player avatars: real profile photo when present, neutral silhouette otherwise. */
+body.admin-app .admin-player-avatar {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  overflow: hidden;
+  isolation: isolate;
+  background: #e8f5ef;
+  color: #315f55;
+}
+body.admin-app .admin-player-avatar > svg {
+  width: 55%;
+  height: 55%;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+body.admin-app .admin-player-avatar > img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  background: var(--surface);
+}
+
+@media (max-width: 767px) {
+  body.admin-app #page-notifications .communication-table-viewport {
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+  }
+  body.admin-app #page-notifications .communication-table-viewport::-webkit-scrollbar { display: none; }
+  body.admin-app #page-notifications .communication-table {
+    width: auto;
+    min-width: 0;
+  }
+  /* Exactly the same first-view sizing model as Players: first column + second column
+     fills the compact table viewport. Later columns remain outside until the user swipes. */
+  body.admin-app #page-notifications .communication-table th:nth-child(1),
+  body.admin-app #page-notifications .communication-table td:nth-child(1) {
+    width: 150px; min-width: 150px; max-width: 150px;
+    white-space: normal; overflow-wrap: anywhere; text-overflow: clip;
+  }
+  body.admin-app #page-notifications .communication-table th:nth-child(2),
+  body.admin-app #page-notifications .communication-table td:nth-child(2) {
+    width: calc(100vw - 202px); min-width: calc(100vw - 202px); max-width: calc(100vw - 202px);
+    white-space: normal; overflow-wrap: anywhere; word-break: break-word; text-overflow: clip;
+  }
+  body.admin-app #page-notifications .message-log-table th:nth-child(3),
+  body.admin-app #page-notifications .message-log-table td:nth-child(3) { width:145px; min-width:145px; max-width:145px; }
+  body.admin-app #page-notifications .message-log-table th:nth-child(4),
+  body.admin-app #page-notifications .message-log-table td:nth-child(4) { width:205px; min-width:205px; max-width:205px; }
+  body.admin-app #page-notifications .message-log-table th:nth-child(5),
+  body.admin-app #page-notifications .message-log-table td:nth-child(5) { width:135px; min-width:135px; max-width:135px; }
+  body.admin-app #page-notifications .message-log-table th:nth-child(6),
+  body.admin-app #page-notifications .message-log-table td:nth-child(6) { width:150px; min-width:150px; max-width:150px; }
+  body.admin-app #page-notifications .message-log-table th:nth-child(7),
+  body.admin-app #page-notifications .message-log-table td:nth-child(7) { width:115px; min-width:115px; max-width:115px; }
+
+  body.admin-app #page-notifications .scheduled-table th:nth-child(3),
+  body.admin-app #page-notifications .scheduled-table td:nth-child(3) { width:150px; min-width:150px; max-width:150px; }
+  body.admin-app #page-notifications .scheduled-table th:nth-child(4),
+  body.admin-app #page-notifications .scheduled-table td:nth-child(4) { width:205px; min-width:205px; max-width:205px; }
+  body.admin-app #page-notifications .scheduled-table th:nth-child(5),
+  body.admin-app #page-notifications .scheduled-table td:nth-child(5) { width:95px; min-width:95px; max-width:95px; }
+  body.admin-app #page-notifications .scheduled-table th:nth-child(6),
+  body.admin-app #page-notifications .scheduled-table td:nth-child(6) { width:145px; min-width:145px; max-width:145px; }
+  body.admin-app #page-notifications .scheduled-table th:nth-child(7),
+  body.admin-app #page-notifications .scheduled-table td:nth-child(7) { width:170px; min-width:170px; max-width:170px; }
+
+  body.admin-app #page-notifications .communication-table th:nth-child(1),
+  body.admin-app #page-notifications .communication-table th:nth-child(3),
+  body.admin-app #page-notifications .communication-table th:nth-child(5),
+  body.admin-app #page-notifications .communication-table th:nth-child(7) { scroll-snap-align: start; }
+}
+
+@media (min-width: 768px) and (max-width: 1024px) {
+  body.admin-app #page-notifications .communication-table { min-width: 820px; width: 100%; table-layout: auto; }
+  body.admin-app #page-notifications .communication-table th,
+  body.admin-app #page-notifications .communication-table td { white-space: nowrap; }
+}
+
+@media (min-width: 1025px) {
+  body.admin-app #page-notifications .communication-table { min-width: 760px; width: 100%; table-layout: auto; }
+}

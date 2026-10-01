@@ -957,3 +957,100 @@ body.player-app .booking-inputs .player-stepper .select { min-height: 31px; }
   .player-app .member-benefit strong { font-size:1rem; }
   .player-app .member-benefit.is-cutoff { grid-column:1 / -1; }
 }
+
+/* PIKOL v61 — player profile photo + compact PIKOL Credit mobile layout. */
+.player-app .profile-avatar,
+.player-app .profile-photo-editor-preview {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  background: linear-gradient(135deg, #e3f5c5, #c5ecc4);
+  color: #244e45;
+}
+.player-app .profile-avatar > svg,
+.player-app .profile-photo-editor-preview > svg {
+  width: 42%;
+  height: 42%;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  z-index: 0;
+}
+.player-app .profile-avatar > .player-profile-photo,
+.player-app .profile-photo-editor-preview > .player-profile-photo {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  background: var(--surface);
+}
+.player-app .profile-photo-editor {
+  display: grid;
+  grid-template-columns: 88px minmax(0,1fr);
+  gap: 14px;
+  align-items: center;
+  padding: 14px;
+  margin-bottom: 20px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface-2);
+}
+.player-app .profile-photo-editor-preview {
+  display: grid;
+  place-items: center;
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  border: 3px solid var(--surface);
+  box-shadow: 0 0 0 1px var(--border);
+}
+.player-app .profile-photo-editor-copy { min-width: 0; display: grid; gap: 7px; }
+.player-app .profile-photo-editor-copy > strong { color: var(--text-primary); font-size: .88rem; }
+.player-app .profile-photo-actions { margin-top: 2px; }
+.player-app #pf-photo-status { overflow-wrap: anywhere; }
+
+.player-app #panel-credit-box { min-width: 0; overflow: hidden; }
+.player-app #panel-credit-box .credit-summary-head { align-items: flex-start; gap: 18px; min-width: 0; }
+.player-app #panel-credit-box .credit-summary-copy { min-width: 0; flex: 1 1 auto; }
+.player-app #panel-credit-box .credit-summary-copy p { max-width: 48ch; overflow-wrap: anywhere; }
+.player-app #panel-credit-box .credit-balance-value {
+  flex: 0 0 auto;
+  font-size: 28px;
+  line-height: 1.1;
+  white-space: nowrap;
+  color: var(--text-primary);
+}
+.player-app #panel-credit-box #credit-history .list-row { min-width: 0; }
+.player-app #panel-credit-box #credit-history .list-main { min-width: 0; }
+.player-app #panel-credit-box #credit-history .list-title,
+.player-app #panel-credit-box #credit-history .list-sub { overflow-wrap: anywhere; white-space: normal; }
+.player-app #panel-credit-box #credit-history .list-end { min-width: 0; white-space: nowrap; }
+
+@media (max-width: 640px) {
+  .player-app .profile-photo-editor { grid-template-columns: 72px minmax(0,1fr); gap: 12px; padding: 12px; }
+  .player-app .profile-photo-editor-preview { width: 72px; height: 72px; }
+  .player-app #panel-credit-box .credit-summary-head { display: grid; grid-template-columns: minmax(0,1fr); gap: 12px; }
+  .player-app #panel-credit-box .credit-balance-value {
+    display: block;
+    width: 100%;
+    padding: 12px 14px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--surface-2);
+    font-size: 24px;
+  }
+  .player-app #panel-credit-box .guide-status-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 420px) {
+  .player-app .profile-photo-editor { grid-template-columns: 1fr; text-align: center; }
+  .player-app .profile-photo-editor-preview { margin-inline: auto; }
+  .player-app .profile-photo-actions { justify-content: center; }
+  .player-app #panel-credit-box #credit-history .list-row { grid-template-columns: auto minmax(0,1fr); }
+  .player-app #panel-credit-box #credit-history .list-end { grid-column: 2; justify-self: start; padding-top: 3px; }
+}

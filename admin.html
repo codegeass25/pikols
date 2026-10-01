@@ -31,7 +31,7 @@
 .admin-app .promo-image-actions .btn{white-space:normal}
 @media(max-width:620px){.admin-app .asset-card.booking-hero-asset{grid-template-columns:minmax(0,1fr)}.admin-app .booking-hero-asset .asset-preview{grid-column:1;grid-row:auto}.admin-app .booking-hero-asset .card-title,.admin-app .booking-hero-asset>p,.admin-app .booking-hero-asset>.input,.admin-app .booking-hero-asset>.row,.admin-app .booking-hero-asset .promo-preview-note{grid-column:1}.admin-app .court-promo-preview{max-height:250px}}
 </style>
-<link rel="stylesheet" href="admin-premium.css?v=30-players-snap-table" />
+<link rel="stylesheet" href="admin-premium.css?v=31-communications-profile" />
 
 <style id="pikol-role-ui-v33">
 .role-hidden{display:none !important}
@@ -374,8 +374,8 @@ body.admin-app.role-ready #view-app{visibility:visible}
               <button class="btn btn-outline" type="button" id="nq-run">Run scheduler now</button>
             </div></div>
           <div class="row wrap" id="nq-counts" style="padding:0 4px 10px"></div>
-          <div class="table-wrap"><table class="data" data-mobile-cards="true">
-            <thead><tr><th>Scheduled</th><th>Channel</th><th>Type</th><th>Recipient</th><th>Attempts</th><th>Status</th><th></th></tr></thead>
+          <div class="table-wrap communication-table-viewport scheduled-table-viewport" role="region" aria-label="Scheduled messages table. Swipe horizontally to view hidden columns."><table class="data communication-table scheduled-table">
+            <thead><tr><th>Scheduled</th><th>Channel</th><th>Type</th><th>Recipient</th><th>Attempts</th><th>Status</th><th>Actions</th></tr></thead>
             <tbody id="nq-body"></tbody>
           </table></div>
         </section>
@@ -414,8 +414,8 @@ body.admin-app.role-ready #view-app{visibility:visible}
               <select class="select" id="nt-channel" aria-label="Message channel"><option value="all">All channels</option><option value="email">Email</option><option value="sms">SMS</option><option value="push">PWA Push</option></select>
               <select class="select" id="nt-status" aria-label="Message status"><option value="all">All statuses</option><option value="sent">Sent</option><option value="failed">Failed</option></select>
             </div></div>
-          <div class="table-wrap"><table class="data" data-mobile-cards="true">
-            <thead><tr><th>Created</th><th>Channel</th><th>Type</th><th>Recipient</th><th>Booking</th><th>Status</th><th></th></tr></thead>
+          <div class="table-wrap communication-table-viewport message-log-table-viewport" role="region" aria-label="Message log table. Swipe horizontally to view hidden columns."><table class="data communication-table message-log-table">
+            <thead><tr><th>Created</th><th>Channel</th><th>Type</th><th>Recipient</th><th>Booking</th><th>Status</th><th>Actions</th></tr></thead>
             <tbody id="notifications-body"></tbody>
           </table></div>
         </section>
@@ -912,7 +912,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
   var isLocal = /^(localhost|127\.0\.0\.1)$/i.test(location.hostname || '');
   var API = isLocal && location.origin && location.origin !== 'null' ? location.origin : DEFAULT_API.replace(/\/+$/, '');
   var TOKEN = localStorage.getItem('pb_admin_token') || '';
-  var USER = null, BRAND = {}, SETTINGS = {}, COURTS = [], PLAYERS = [], BOOKINGS = [];
+  var USER = null, BRAND = {}, SETTINGS = {}, COURTS = [], PLAYERS = [], PLAYER_DIRECTORY = [], BOOKINGS = [];
 
   var $ = function (s, r) { return (r || document).querySelector(s); };
   var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
@@ -2373,9 +2373,29 @@ body.admin-app.role-ready #view-app{visibility:visible}
     var tag = c[3] ? 'button' : 'div';
     return '<' + tag + ' class="card tight stat-card admin-metric' + (c[3] ? ' hoverable' : '') + '"' + (c[3] ? ' type="button" data-goto-page="' + esc(c[3]) + '"' : '') + '><span class="admin-metric-icon is-' + esc(c[2] || 'calendar') + '">' + adminMetricIcon(c[2]) + '</span><span class="admin-metric-copy"><span class="label">' + esc(c[0]) + '</span><strong class="stat-value num">' + esc(c[1]) + '</strong><span class="admin-metric-note">' + esc(c[4] || '') + '</span></span></' + tag + '>';
   }
-  function adminPerson(name, detail) {
-    var initials = String(name || '?').trim().split(/\s+/).slice(0, 2).map(function (part) { return part.charAt(0); }).join('').toUpperCase();
-    return '<span class="admin-player-cell"><span class="admin-avatar" aria-hidden="true">' + esc(initials) + '</span><span>' + esc(name || 'Unknown player') + (detail ? '<span class="tiny muted">' + esc(detail) + '</span>' : '') + '</span></span>';
+  function rememberPlayerDirectory(rows) {
+    PLAYER_DIRECTORY = Array.isArray(rows) ? rows.slice() : [];
+    return PLAYER_DIRECTORY;
+  }
+  function loadPlayerDirectory() {
+    if (!USER || USER.role !== 'admin') return Promise.resolve(PLAYER_DIRECTORY);
+    return api('/api/admin/players').then(rememberPlayerDirectory).catch(function(){ return PLAYER_DIRECTORY; });
+  }
+  function findDirectoryPlayer(name, detail, playerId) {
+    var id=Number(playerId||0),email=String(detail||'').toLowerCase(),n=String(name||'').trim().toLowerCase();
+    if(id){var byId=PLAYER_DIRECTORY.find(function(p){return Number(p.id)===id;});if(byId)return byId;}
+    if(email && email.indexOf('@')>0){var byEmail=PLAYER_DIRECTORY.find(function(p){return String(p.email||'').toLowerCase()===email;});if(byEmail)return byEmail;}
+    if(n){return PLAYER_DIRECTORY.find(function(p){return String(p.full_name||'').trim().toLowerCase()===n;})||null;}
+    return null;
+  }
+  function adminPlayerAvatar(photoUrl) {
+    var url=photoUrl?assetUrl(photoUrl):'';
+    return '<span class="admin-avatar admin-player-avatar" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 22v-2a8 8 0 0 1 16 0v2"/></svg>'+(url?'<img src="'+esc(url)+'" alt="" loading="lazy" decoding="async" onerror="this.style.display=\'none\'" />':'')+'</span>';
+  }
+  function adminPerson(name, detail, profilePhotoUrl, playerId) {
+    var found=!profilePhotoUrl?findDirectoryPlayer(name,detail,playerId):null;
+    var photo=profilePhotoUrl||(found&&found.profile_photo_url)||'';
+    return '<span class="admin-player-cell">' + adminPlayerAvatar(photo) + '<span>' + esc(name || 'Unknown player') + (detail ? '<span class="tiny muted">' + esc(detail) + '</span>' : '') + '</span></span>';
   }
   function adminStatus(status) {
     var good = ['confirmed', 'completed', 'approved', 'verified', 'published', 'active'].indexOf(status) >= 0;
@@ -2924,8 +2944,9 @@ body.admin-app.role-ready #view-app{visibility:visible}
     var q = $('#pl-q').value.trim();
     return api('/api/admin/players' + (q ? '?q=' + encodeURIComponent(q) : '')).then(function (rows) {
       PLAYERS = rows;
+      if (!q) rememberPlayerDirectory(rows);
       $('#players-body').innerHTML = rows.length ? rows.map(function (p) {
-        return '<tr><td>' + adminPerson(p.full_name) + '</td><td>' + esc(p.email) + '</td><td class="num">' + esc(p.mobile || '—') +
+        return '<tr><td>' + adminPerson(p.full_name, '', p.profile_photo_url, p.id) + '</td><td>' + esc(p.email) + '</td><td class="num">' + esc(p.mobile || '—') +
           '</td><td class="num">' + p.booking_count + '</td><td>' + badge(p.status) + '</td><td>' +
           '<button class="btn btn-outline btn-sm" data-player-status="' + p.id + '" data-to="' +
           (p.status === 'active' ? 'suspended' : 'active') + '">' + (p.status === 'active' ? 'Suspend' : 'Reactivate') + '</button></td></tr>';
@@ -3008,7 +3029,9 @@ body.admin-app.role-ready #view-app{visibility:visible}
     $$('[data-nttab]').forEach(function (x) { x.setAttribute('aria-selected', String(x.dataset.nttab === key)); });
     Object.keys(NT_PANES).forEach(function (k) {
       var pane = $(NT_PANES[k]); if (!pane) return;
-      var hide = key === 'broadcast' ? k !== 'broadcast' : (key === 'queue' && k === 'log'); pane.hidden = hide; pane.classList.toggle('hidden', hide);
+      var hide = k !== key;
+      pane.hidden = hide;
+      pane.classList.toggle('hidden', hide);
     });
     $('#page-notifications').dataset.notificationTab = key;
     if (shouldLoad !== false) loadCommunicationsView();
@@ -3016,8 +3039,9 @@ body.admin-app.role-ready #view-app{visibility:visible}
   $$('[data-nttab]').forEach(function (t) { t.onclick = function () { setNotificationTab(t.dataset.nttab); }; });
   setNotificationTab('log', false);
   function loadCommunicationsView() {
+    if (NT_ACTIVE === 'queue') return loadQueue();
     if (NT_ACTIVE === 'broadcast') return previewAudience();
-    return Promise.all([NT_ACTIVE === 'log' ? loadNotifications() : Promise.resolve(), loadQueue(), previewAudience()]);
+    return loadNotifications();
   }
 
   function loadQueue() {
@@ -3651,7 +3675,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
   };
 
   /* ---------- In-Charge PWA push ---------- */
-  var ADMIN_SW_VERSION='59-players-snap-table';
+  var ADMIN_SW_VERSION='61-communications-profile';
   var PUSH_PREP={reg:null,publicKey:null,serverStatus:null,ready:false,error:null,promise:null};
   function b64ToUint8(s){s=String(s||'').replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';var raw=atob(s),a=new Uint8Array(raw.length);for(var i=0;i<raw.length;i++)a[i]=raw.charCodeAt(i);return a;}
   function bytesEqual(a,b){if(!a||!b)return false;var x=new Uint8Array(a),y=new Uint8Array(b);if(x.length!==y.length)return false;for(var i=0;i<x.length;i++)if(x[i]!==y[i])return false;return true;}
@@ -4544,8 +4568,9 @@ body.admin-app.role-ready #view-app{visibility:visible}
       'tournament:payment_updated': function () { if (onPage('tournaments')) run('treg', loadTournamentRegistrations); run('badges', refreshEventBadges); },
       'availability:changed': function () { window.dispatchEvent(new Event('pikol:availability')); if (onPage('calendar')) run('calendar', loadCalendar); },
       'player:created': function () { if (onPage('players')) run('players', loadPlayers); run('dashboard', loadDashboard); },
-      'player:updated': function () { if (onPage('players')) run('players', loadPlayers); },
-      'player:status_changed': function () { if (onPage('players')) run('players', loadPlayers); },
+      'player:updated': function () { run('player-directory', loadPlayerDirectory); if (onPage('players')) run('players', loadPlayers); },
+      'player:profile_updated': function () { run('player-directory', loadPlayerDirectory); if (onPage('players')) run('players', loadPlayers); else refreshCurrent(); },
+      'player:status_changed': function () { run('player-directory', loadPlayerDirectory); if (onPage('players')) run('players', loadPlayers); },
       'notification:created': function () { if (!onPage('notifications')) return; if (NT_ACTIVE === 'log') run('notifications', loadNotifications); else if (NT_ACTIVE === 'queue') run('queue', loadQueue); },
       'notification:queued': function () { if (onPage('notifications') && NT_ACTIVE === 'queue') loadQueue(); },
       'notification:updated': function () { if (!onPage('notifications')) return; if (NT_ACTIVE === 'log') run('notifications', loadNotifications); else if (NT_ACTIVE === 'queue') run('queue', loadQueue); },
@@ -4632,7 +4657,8 @@ body.admin-app.role-ready #view-app{visibility:visible}
     if(isAdmin())loadSettings().then(loadCourts).catch(function () { loadCourts(); });
     var pushParams=new URLSearchParams(location.search),pushPage=pushParams.get('push_page');
     var landing=(pushPage&&LOADERS[pushPage]&&roleAllows(pushPage))?pushPage:roleHomePage();
-    goto(landing);
+    var directoryReady=isAdmin()?loadPlayerDirectory():Promise.resolve([]);
+    directoryReady.catch(function(){return [];}).finally(function(){goto(landing);});
     var pushRef=pushParams.get('push_ref_id'),pushType=pushParams.get('push_ref_type');
     if(pushRef&&pushType==='booking')setTimeout(function(){var x=document.querySelector('[data-detail="'+CSS.escape(String(pushRef))+'"]');if(x)x.click();},900);
     applyAdminOperationalSettingsUI();
@@ -4656,7 +4682,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
 
 <script>
 /* PIKOL_PWA_INSTALL_RUNTIME */
-(function(){'use strict';var btn=document.getElementById('pwa-install-admin'),deferredPrompt=null,KEY='pikol_admin_installed_v3';function ios(){return /iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);}function standalone(){return window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true;}function marked(){return localStorage.getItem(KEY)==='1';}function setMarked(v){if(v)localStorage.setItem(KEY,'1');else localStorage.removeItem(KEY);}function showIosGuide(){var g=document.getElementById('ios-pwa-guide');if(g)g.hidden=false;if(typeof toast==='function')toast('iPhone: Safari → Share → Add to Home Screen. Then open PIKOL Admin from the Home Screen icon.','error');}function sync(){if(!btn)return;if(standalone()){setMarked(true);btn.hidden=true;return;}if(ios()){btn.hidden=false;btn.textContent='Install Admin App on iPhone';return;}btn.textContent='Install Admin App';btn.hidden=!deferredPrompt||marked();}window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();deferredPrompt=e;if(!standalone())setMarked(false);sync();});window.addEventListener('appinstalled',function(){setMarked(true);deferredPrompt=null;sync();});window.addEventListener('pageshow',sync);document.addEventListener('visibilitychange',function(){if(!document.hidden)sync();});if(btn)btn.addEventListener('click',async function(){if(ios()){showIosGuide();return;}if(!deferredPrompt)return;btn.disabled=true;try{await deferredPrompt.prompt();var c=await deferredPrompt.userChoice;if(c&&c.outcome==='accepted')setMarked(true);}catch(_){}deferredPrompt=null;btn.disabled=false;sync();});if('serviceWorker' in navigator)window.addEventListener('load',function(){navigator.serviceWorker.register('service-worker.js?v=59-players-snap-table',{scope:'./',updateViaCache:'none'}).then(function(reg){return reg.update();}).catch(function(){});});sync();})();
+(function(){'use strict';var btn=document.getElementById('pwa-install-admin'),deferredPrompt=null,KEY='pikol_admin_installed_v3';function ios(){return /iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);}function standalone(){return window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true;}function marked(){return localStorage.getItem(KEY)==='1';}function setMarked(v){if(v)localStorage.setItem(KEY,'1');else localStorage.removeItem(KEY);}function showIosGuide(){var g=document.getElementById('ios-pwa-guide');if(g)g.hidden=false;if(typeof toast==='function')toast('iPhone: Safari → Share → Add to Home Screen. Then open PIKOL Admin from the Home Screen icon.','error');}function sync(){if(!btn)return;if(standalone()){setMarked(true);btn.hidden=true;return;}if(ios()){btn.hidden=false;btn.textContent='Install Admin App on iPhone';return;}btn.textContent='Install Admin App';btn.hidden=!deferredPrompt||marked();}window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();deferredPrompt=e;if(!standalone())setMarked(false);sync();});window.addEventListener('appinstalled',function(){setMarked(true);deferredPrompt=null;sync();});window.addEventListener('pageshow',sync);document.addEventListener('visibilitychange',function(){if(!document.hidden)sync();});if(btn)btn.addEventListener('click',async function(){if(ios()){showIosGuide();return;}if(!deferredPrompt)return;btn.disabled=true;try{await deferredPrompt.prompt();var c=await deferredPrompt.userChoice;if(c&&c.outcome==='accepted')setMarked(true);}catch(_){}deferredPrompt=null;btn.disabled=false;sync();});if('serviceWorker' in navigator)window.addEventListener('load',function(){navigator.serviceWorker.register('service-worker.js?v=61-communications-profile',{scope:'./',updateViaCache:'none'}).then(function(reg){return reg.update();}).catch(function(){});});sync();})();
 </script>
 
 </body>

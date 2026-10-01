@@ -15,7 +15,7 @@
 <script src="config.js"></script>
 <script src="tournament-view.js"></script>
 <link rel="stylesheet" href="styles.css" />
-<link rel="stylesheet" href="booking-premium.css?v=49-membership-benefits-v1" />
+<link rel="stylesheet" href="booking-premium.css?v=50-profile-credit-v1" />
 <link rel="preload" as="image" href="assets/booking/hero-court.jpg" fetchpriority="high" />
 
 <style id="checkout-hold-style">
@@ -534,7 +534,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
       <button class="sheet-close" data-close-sheet aria-label="Close My Profile">×</button>
       <div><h1 class="page-title">My Profile</h1><p class="page-subtitle">Manage your account details.</p></div>
 
-      <div class="profile-layout"><aside class="profile-sidebar"><div class="profile-avatar" id="profile-avatar" aria-hidden="true">P</div><h2 id="profile-display-name">Player</h2><p class="muted tiny">Play. Improve. Belong.</p><div class="list" id="profile-menu">
+      <div class="profile-layout"><aside class="profile-sidebar"><div class="profile-avatar" id="profile-avatar" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 22v-2a8 8 0 0 1 16 0v2"/></svg></div><h2 id="profile-display-name">Player</h2><p class="muted tiny">Play. Improve. Belong.</p><div class="list" id="profile-menu">
         <button type="button" class="list-row is-clickable" data-panel="panel-profile">
           <span class="list-lead">👤</span>
           <span class="list-main"><span class="list-title">Personal information</span>
@@ -588,12 +588,19 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
           <section class="section-shell" id="rating-history-card" style="display:none"></section>
         </div>
         <section class="section-shell hidden" id="panel-credit-box" data-panelbox="panel-credit">
-          <div class="spread" style="align-items:flex-start;gap:16px"><div><span class="eyebrow">PIKOL CREDIT</span><h2 class="section-title">Your reusable PIKOL Credit</h2><p class="muted tiny">Use available credit for Court Booking, Tournament Registration, and Open Play. It is not a cash refund.</p></div><strong id="credit-balance-display" style="font-size:28px">₱0.00</strong></div>
+          <div class="spread credit-summary-head"><div class="credit-summary-copy"><span class="eyebrow">PIKOL CREDIT</span><h2 class="section-title">Your reusable PIKOL Credit</h2><p class="muted tiny">Use available credit for Court Booking, Tournament Registration, and Open Play. It is not a cash refund.</p></div><strong id="credit-balance-display" class="credit-balance-value">₱0.00</strong></div>
           <div class="guide-status-grid mt-3"><div class="guide-status"><strong>Available</strong><span id="credit-available-display">₱0.00</span></div><div class="guide-status"><strong>Reserved at checkout</strong><span id="credit-reserved-display">₱0.00</span></div></div>
           <h3 class="section-title mt-4" style="font-size:16px">Credit activity</h3><div class="list mt-3" id="credit-history"><div class="skeleton" style="height:80px"></div></div>
         </section>
         <form class="form-section hidden" id="form-profile" data-panelbox="panel-profile">
-          <h2 class="section-title" style="margin-bottom:16px">Account details</h2>
+          <h2 class="section-title" style="margin-bottom:16px">Personal information</h2>
+          <div class="profile-photo-editor">
+            <div class="profile-photo-editor-preview" id="pf-photo-preview" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 22v-2a8 8 0 0 1 16 0v2"/></svg></div>
+            <div class="profile-photo-editor-copy"><strong>Profile picture</strong><span class="field-hint">Choose a photo from your device. Large images are resized and optimized automatically before upload.</span>
+              <div class="row wrap profile-photo-actions"><button class="btn btn-outline btn-sm" type="button" id="pf-photo-upload">Upload photo</button><input id="pf-photo-input" type="file" accept="image/*,.heic,.heif" hidden /></div>
+              <span class="field-hint" id="pf-photo-status">JPG, PNG, WebP or supported phone photo formats.</span>
+            </div>
+          </div>
           <div class="field"><label class="label" for="pf-name">Full name</label><input class="input" id="pf-name" required /></div>
           <div class="field"><label class="label" for="pf-email">Email</label><input class="input" id="pf-email" disabled /></div>
           <div class="field"><label class="label" for="pf-mobile">Mobile number</label><input class="input" id="pf-mobile" required /></div>
@@ -1045,6 +1052,9 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
     if (!v) return 'Free';
     return (BRAND.currency || '₱') + ' ' + Number(v).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   }
+  function creditMoney(v) {
+    return (BRAND.currency || '₱') + ' ' + Number(v || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
 
   /* ---------- auth tabs ---------- */
   $$('[data-authtab]').forEach(function (tab) {
@@ -1089,8 +1099,8 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
 
   function renderPikolCredit() {
     var bal=$('#credit-balance-display'),avail=$('#credit-available-display'),reserved=$('#credit-reserved-display'),hist=$('#credit-history');
-    if(bal)bal.textContent=money(PIKOL_CREDIT.balance||0); if(avail)avail.textContent=money(PIKOL_CREDIT.available||0); if(reserved)reserved.textContent=money(PIKOL_CREDIT.reserved||0);
-    if(hist){var rows=PIKOL_CREDIT.history||[];hist.innerHTML=rows.length?rows.map(function(x){var plus=Number(x.delta||0)>0;return '<div class="list-row is-compact"><span class="list-lead is-plain">'+(plus?'+':'−')+'</span><span class="list-main"><span class="list-title">'+esc(x.reason||(plus?'PIKOL Credit added':'PIKOL Credit used'))+'</span><span class="list-sub">'+esc(x.source_ref||x.source_type||'PIKOL')+' · '+esc((x.created_at||'').slice(0,10))+(x.status==='reserved'?' · Reserved':'')+'</span></span><span class="list-end"><strong>'+(plus?'+':'−')+money(Math.abs(Number(x.delta||0)))+'</strong></span></div>';}).join(''):'<div class="empty"><strong>No PIKOL Credit activity yet</strong>Eligible venue cancellations can create credit for future play.</div>';}
+    if(bal)bal.textContent=creditMoney(PIKOL_CREDIT.balance||0); if(avail)avail.textContent=creditMoney(PIKOL_CREDIT.available||0); if(reserved)reserved.textContent=creditMoney(PIKOL_CREDIT.reserved||0);
+    if(hist){var rows=PIKOL_CREDIT.history||[];hist.innerHTML=rows.length?rows.map(function(x){var plus=Number(x.delta||0)>0;return '<div class="list-row is-compact"><span class="list-lead is-plain">'+(plus?'+':'−')+'</span><span class="list-main"><span class="list-title">'+esc(x.reason||(plus?'PIKOL Credit added':'PIKOL Credit used'))+'</span><span class="list-sub">'+esc(x.source_ref||x.source_type||'PIKOL')+' · '+esc((x.created_at||'').slice(0,10))+(x.status==='reserved'?' · Reserved':'')+'</span></span><span class="list-end"><strong>'+(plus?'+':'−')+creditMoney(Math.abs(Number(x.delta||0)))+'</strong></span></div>';}).join(''):'<div class="empty"><strong>No PIKOL Credit activity yet</strong>Eligible venue cancellations can create credit for future play.</div>';}
   }
   function loadPikolCredit() {
     if(!TOKEN||!USER){PIKOL_CREDIT={balance:0,reserved:0,available:0,history:[]};renderPikolCredit();return Promise.resolve(PIKOL_CREDIT);}
@@ -2021,6 +2031,56 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
   }
 
   /* ---------- profile ---------- */
+  function playerAvatarSvg() {
+    return '<svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 22v-2a8 8 0 0 1 16 0v2"/></svg>';
+  }
+  function playerPhotoMarkup(user) {
+    var url=user&&user.profile_photo_url?assetUrl(user.profile_photo_url):'';
+    return playerAvatarSvg()+(url?'<img class="player-profile-photo" src="'+esc(url)+'" alt="" loading="eager" decoding="async" onerror="this.style.display=\'none\'" />':'');
+  }
+  function updateProfilePhotoPresentation() {
+    var html=playerPhotoMarkup(USER);
+    var avatar=$('#profile-avatar'),preview=$('#pf-photo-preview');
+    if(avatar)avatar.innerHTML=html;
+    if(preview)preview.innerHTML=html;
+  }
+  function fileSizeLabel(bytes) {
+    bytes=Number(bytes||0); if(bytes<1024)return bytes+' B'; if(bytes<1024*1024)return Math.max(1,Math.round(bytes/1024))+' KB'; return (bytes/(1024*1024)).toFixed(1)+' MB';
+  }
+  function loadPhotoSource(file) {
+    return new Promise(function(resolve,reject){
+      var url=URL.createObjectURL(file),img=new Image();
+      img.onload=function(){resolve({img:img,close:function(){URL.revokeObjectURL(url);}});};
+      img.onerror=function(){URL.revokeObjectURL(url);reject(new Error('This photo format could not be opened on this device. Please choose a JPG, PNG, WebP or another photo from your gallery.'));};
+      img.src=url;
+    });
+  }
+  function optimizeProfilePhoto(file) {
+    if(!file) return Promise.reject(new Error('Choose a profile photo first.'));
+    return loadPhotoSource(file).then(function(src){
+      try {
+        var w=src.img.naturalWidth||src.img.width,h=src.img.naturalHeight||src.img.height;
+        if(!w||!h)throw new Error('The selected photo has no readable image dimensions.');
+        var side=Math.min(w,h),out=Math.min(512,side),sx=Math.max(0,(w-side)/2),sy=Math.max(0,(h-side)/2);
+        var canvas=document.createElement('canvas');canvas.width=out;canvas.height=out;
+        var ctx=canvas.getContext('2d',{alpha:false}); if(!ctx)throw new Error('Photo optimization is not supported by this browser.');
+        ctx.fillStyle='#fff';ctx.fillRect(0,0,out,out);ctx.drawImage(src.img,sx,sy,side,side,0,0,out,out);
+        return new Promise(function(resolve,reject){canvas.toBlob(function(blob){if(!blob)return reject(new Error('The optimized photo could not be created.'));var reader=new FileReader();reader.onload=function(){resolve({dataUrl:String(reader.result||''),bytes:blob.size,width:out,height:out});};reader.onerror=function(){reject(new Error('The optimized photo could not be read.'));};reader.readAsDataURL(blob);},'image/jpeg',0.82);});
+      } finally { src.close(); }
+    });
+  }
+  if($('#pf-photo-upload')) $('#pf-photo-upload').onclick=function(){if(!USER)return openAuth();$('#pf-photo-input').click();};
+  if($('#pf-photo-input')) $('#pf-photo-input').onchange=function(){
+    var input=this,file=input.files&&input.files[0],button=$('#pf-photo-upload'),status=$('#pf-photo-status'); if(!file)return;
+    busy(button,true); if(status)status.textContent='Optimizing '+fileSizeLabel(file.size)+' photo…';
+    optimizeProfilePhoto(file).then(function(out){
+      if(status)status.textContent='Uploading optimized '+out.width+'×'+out.height+' photo ('+fileSizeLabel(out.bytes)+')…';
+      return api('/api/auth/profile-photo',{method:'POST',body:{data_url:out.dataUrl}}).then(function(d){
+        USER=d.user;updateAccountPresentation();if(status)status.textContent='Profile photo updated · optimized to '+fileSizeLabel(out.bytes)+'.';toast('Profile photo updated.','success');
+      });
+    }).catch(function(err){if(status)status.textContent='Photo was not changed.';toast(err.message,'error');}).finally(function(){input.value='';busy(button,false);});
+  };
+
   submitHandler($('#form-profile'), function () {
     return api('/api/auth/profile', {
       method: 'PUT',
@@ -3055,7 +3115,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
     $('#site-account').textContent=USER ? (USER.full_name||'My Account').split(' ')[0] : 'Sign In';
     $('#btn-bell').classList.toggle('hidden',!USER);
     var help=$('#btn-help');if(help)help.classList.toggle('hidden',!(USER&&USER.role==='player'));
-    $('#profile-avatar').textContent=USER ? USER.full_name.trim().split(/\s+/).slice(0,2).map(function(x){return x.charAt(0);}).join('') : 'P';
+    updateProfilePhotoPresentation();
     $('#profile-display-name').textContent=USER?USER.full_name:'Player';
   }
   function showGuest(){
@@ -3279,6 +3339,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
       'notification:created': function () { if (!TOKEN) return; refreshNotifications(); },
       'credit:updated': function () { if (!TOKEN) return; refreshCredit(); run('dashboard', loadDashboard); refreshRegistrations(); if (visible('bookings')) run('bookings', loadBookings); },
       'rating:updated': function () { if (!TOKEN) return; if (visible('profile')) run('rating', loadRating); refreshNotifications(); },
+      'player:profile_updated': function (payload) { if (!TOKEN || !USER || (payload&&payload.userId&&Number(payload.userId)!==Number(USER.id))) return; run('profile-self', function(){api('/api/auth/me').then(function(d){USER=d.user;updateAccountPresentation();if($('#pf-name'))$('#pf-name').value=USER.full_name||'';if($('#pf-mobile'))$('#pf-mobile').value=USER.mobile||'';}).catch(function(){});}); },
       'membership:updated': function () { if (!TOKEN) return; run('membership', loadMembership); run('dashboard', loadDashboard); refreshNotifications(); },
       'membership:plans_updated': function () { if(visible('membership'))run('membership', loadMembership); },
       'court:created': refreshCourtViews,
@@ -3414,7 +3475,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
   window.addEventListener('appinstalled',function(){setMarked(true);deferredPrompt=null;sync();});
   window.addEventListener('pageshow',sync);document.addEventListener('visibilitychange',function(){if(!document.hidden)sync();});
   if(btn)btn.addEventListener('click',async function(){if(!deferredPrompt)return;btn.disabled=true;try{await deferredPrompt.prompt();var c=await deferredPrompt.userChoice;if(c&&c.outcome==='accepted')setMarked(true);}catch(_){}deferredPrompt=null;btn.disabled=false;sync();});
-  if('serviceWorker' in navigator)window.addEventListener('load',function(){navigator.serviceWorker.register('service-worker.js?v=57-admin-stability',{scope:'./',updateViaCache:'none'}).then(function(reg){return reg.update();}).catch(function(){});});
+  if('serviceWorker' in navigator)window.addEventListener('load',function(){navigator.serviceWorker.register('service-worker.js?v=61-communications-profile',{scope:'./',updateViaCache:'none'}).then(function(reg){return reg.update();}).catch(function(){});});
   sync();
 })();
 </script>
