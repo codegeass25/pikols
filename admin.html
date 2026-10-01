@@ -31,7 +31,7 @@
 .admin-app .promo-image-actions .btn{white-space:normal}
 @media(max-width:620px){.admin-app .asset-card.booking-hero-asset{grid-template-columns:minmax(0,1fr)}.admin-app .booking-hero-asset .asset-preview{grid-column:1;grid-row:auto}.admin-app .booking-hero-asset .card-title,.admin-app .booking-hero-asset>p,.admin-app .booking-hero-asset>.input,.admin-app .booking-hero-asset>.row,.admin-app .booking-hero-asset .promo-preview-note{grid-column:1}.admin-app .court-promo-preview{max-height:250px}}
 </style>
-<link rel="stylesheet" href="admin-premium.css?v=32-payments-card-wrap" />
+<link rel="stylesheet" href="admin-premium.css?v=33-bookings-schedule-groups" />
 
 <style id="pikol-role-ui-v33">
 .role-hidden{display:none !important}
@@ -190,23 +190,47 @@ body.admin-app.role-ready #view-app{visibility:visible}
       <!-- BOOKINGS -->
       <section id="page-bookings" class="hidden">
         <div class="section-shell">
-          <div class="card-header">
-            <div><h2 class="section-title">All bookings</h2><p class="page-subtitle">Court reservations, payments and status in one place.</p></div>
-            <div class="row wrap">
+          <div class="card-header bookings-header">
+            <div><h2 class="section-title">Bookings</h2><p class="page-subtitle">Court reservations, payments and status in one place.</p></div>
+            <div class="row wrap bookings-filters">
               <input class="input" id="bk-q" aria-label="Search bookings" placeholder="Search name, email, reference" style="min-width:220px" />
               <select class="select" id="bk-status" aria-label="Booking status" style="min-width:150px">
                 <option value="all">All statuses</option>
-                <option value="checkout_hold">Checkout hold</option><option value="payment_submitted">Payment under review</option><option value="pending_approval">Pending approval</option><option value="confirmed">Confirmed</option><option value="expired">Hold expired</option><option value="pending_payment">Payment required</option><option value="completed">Completed</option>
+                <option value="checkout_hold">Checkout hold</option><option value="payment_submitted">Payment under review</option><option value="pending_approval">Pending approval</option><option value="confirmed" selected>Confirmed</option><option value="expired">Hold expired</option><option value="pending_payment">Payment required</option><option value="completed">Completed</option>
                 <option value="cancelled">Cancelled</option>
               </select>
-              <input class="input" id="bk-date" aria-label="Booking date" type="date" style="min-width:160px" />
+              <span class="mobile-date-field booking-date-field">
+                <input class="input" id="bk-date" aria-label="Booking date" type="date" style="min-width:160px" />
+                <span class="mobile-date-display" id="bk-date-display" aria-hidden="true">MM/DD/YY</span>
+              </span>
               <button class="btn btn-outline btn-sm" id="bk-clear">Clear</button>
             </div>
           </div>
-          <div class="table-wrap"><table class="data" data-mobile-cards="true">
-            <thead><tr><th>Reference</th><th>Client</th><th>Court</th><th>Date & time</th><th>Full court fee</th><th>Payment</th><th>Payment status</th><th>Settlement</th><th>Booking status</th><th>Actions</th></tr></thead>
-            <tbody id="bookings-body"></tbody>
-          </table></div>
+
+          <div id="bookings-confirmed-groups">
+            <section class="booking-schedule-group" id="bookings-upcoming-group">
+              <div class="booking-group-head"><div><h3>Upcoming Games</h3><p>Nearest confirmed court schedules first.</p></div><span class="booking-group-count" id="bookings-upcoming-count">0</span></div>
+              <div class="table-wrap"><table class="data bookings-table" data-mobile-cards="true">
+                <thead><tr><th>Reference</th><th>Client</th><th>Court</th><th>Date & time</th><th>Court Fee</th><th>Method</th><th>Payment status</th><th>Booking status</th><th>Actions</th></tr></thead>
+                <tbody id="bookings-upcoming-body"></tbody>
+              </table></div>
+            </section>
+
+            <section class="booking-schedule-group" id="bookings-past-group">
+              <div class="booking-group-head"><div><h3>Past Games</h3><p>Most recently passed confirmed schedules first.</p></div><span class="booking-group-count" id="bookings-past-count">0</span></div>
+              <div class="table-wrap"><table class="data bookings-table" data-mobile-cards="true">
+                <thead><tr><th>Reference</th><th>Client</th><th>Court</th><th>Date & time</th><th>Court Fee</th><th>Method</th><th>Payment status</th><th>Booking status</th><th>Actions</th></tr></thead>
+                <tbody id="bookings-past-body"></tbody>
+              </table></div>
+            </section>
+          </div>
+
+          <div id="bookings-standard-list" class="hidden">
+            <div class="table-wrap"><table class="data bookings-table" data-mobile-cards="true">
+              <thead><tr><th>Reference</th><th>Client</th><th>Court</th><th>Date & time</th><th>Court Fee</th><th>Method</th><th>Payment status</th><th>Booking status</th><th>Actions</th></tr></thead>
+              <tbody id="bookings-body"></tbody>
+            </table></div>
+          </div>
         </div>
       </section>
 
@@ -253,7 +277,10 @@ body.admin-app.role-ready #view-app{visibility:visible}
             <div><h2 class="section-title">Daily schedule</h2><p class="page-subtitle">View and manage the court schedule for your club.</p></div>
             <div class="row">
               <button class="btn btn-outline btn-sm" id="cal-prev-day" aria-label="Previous day">‹</button>
-              <input class="input" id="cal-date" aria-label="Schedule date" type="date" style="min-width:170px" />
+              <span class="mobile-date-field calendar-date-field">
+                <input class="input" id="cal-date" aria-label="Schedule date" type="date" style="min-width:170px" />
+                <span class="mobile-date-display" id="cal-date-display" aria-hidden="true">MM/DD/YY</span>
+              </span>
               <button class="btn btn-outline btn-sm" id="cal-next-day" aria-label="Next day">›</button>
             </div>
           </div>
@@ -2497,10 +2524,29 @@ body.admin-app.role-ready #view-app{visibility:visible}
 
   /* ---------- bookings ---------- */
   var bkTimer;
+  function shortDateDisplay(value, emptyText) {
+    if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return emptyText || 'MM/DD/YY';
+    var p = value.split('-');
+    return p[1] + '/' + p[2] + '/' + p[0].slice(-2);
+  }
+  function syncDateDisplay(inputId, displayId, emptyText) {
+    var input = $('#' + inputId), display = $('#' + displayId);
+    if (input && display) display.textContent = shortDateDisplay(input.value, emptyText);
+  }
   ['#bk-q', '#bk-status', '#bk-date'].forEach(function (sel) {
-    $(sel).addEventListener('input', function () { clearTimeout(bkTimer); bkTimer = setTimeout(loadBookings, 260); });
+    $(sel).addEventListener('input', function () {
+      if (sel === '#bk-date') syncDateDisplay('bk-date', 'bk-date-display', 'MM/DD/YY');
+      clearTimeout(bkTimer); bkTimer = setTimeout(loadBookings, 260);
+    });
   });
-  $('#bk-clear').onclick = function () { $('#bk-q').value = ''; $('#bk-status').value = 'all'; $('#bk-date').value = ''; loadBookings(); };
+  $('#bk-clear').onclick = function () {
+    $('#bk-q').value = '';
+    $('#bk-status').value = 'confirmed';
+    $('#bk-date').value = '';
+    syncDateDisplay('bk-date', 'bk-date-display', 'MM/DD/YY');
+    loadBookings();
+  };
+  syncDateDisplay('bk-date', 'bk-date-display', 'MM/DD/YY');
 
   function bookingDetailsBody(b) {
     function rows(items) { return '<dl class="summary-list">' + items.map(function (item) { return '<div class="summary-row"><dt>' + esc(item[0]) + '</dt><dd>' + esc(item[1] == null ? '—' : item[1]) + '</dd></div>'; }).join('') + '</dl>'; }
@@ -2513,27 +2559,53 @@ body.admin-app.role-ready #view-app{visibility:visible}
       section('list', 'Booking notes', rows([['Created by',b.created_by || '—'],['Cancelled by',b.cancellation_source==='venue'?'Management / Venue':b.cancellation_source==='player'?'Player':'—'],['Cancellation reason',b.cancellation_reason||'—'],['Resolution',b.cancellation_resolution==='credit'?'PIKOL Credit issued':b.cancellation_resolution==='rebooked'?'Rebooked':b.cancellation_resolution||'—'],['Notes',b.notes || 'No additional notes.']])) + '</div>';
   }
 
+  function bookingRowHtml(b) {
+    var act = bookingActions(b);
+    if (b.status === 'confirmed' && isAdmin()) {
+      act.push('<button class="btn btn-outline btn-sm" data-resched="' + b.id + '">Reschedule</button>');
+    }
+    act.push('<button class="btn btn-ghost btn-sm" data-detail="' + b.id + '">Details</button>');
+    return '<tr><td class="num">' + esc(b.reference) + '</td><td>' + esc(b.player_name) + '<div class="tiny muted">' +
+      esc(b.player_email) + '</div></td><td>' + esc(b.court_name) + '</td><td>' + humanDate(b.booking_date) +
+      '<div class="tiny muted num booking-time-range">' + humanTime(b.start_time) + ' – ' + humanTime(b.end_time) + '</div></td><td>' +
+      esc(money(b.amount)) + '</td><td>' + esc(b.payment_method ? b.payment_method.toUpperCase() : '—') +
+      '</td><td>' + (b.payment_amount != null ? esc(money(b.payment_amount)) : '—') + '<div class="tiny">' +
+      badge(b.payment_record_status || b.payment_status || 'none') + '</div></td><td>' + badge(b.status) +
+      '</td><td><div class="row wrap" style="gap:6px">' + act.join('') + '</div></td></tr>';
+  }
+
+  function bookingEmptyRow(title, detail) {
+    return '<tr><td colspan="9"><div class="empty"><strong>' + esc(title) + '</strong>' + esc(detail) + '</div></td></tr>';
+  }
+
   function loadBookings() {
     var p = new URLSearchParams();
+    var selectedStatus = $('#bk-status').value || 'confirmed';
     if ($('#bk-q').value.trim()) p.set('q', $('#bk-q').value.trim());
-    if ($('#bk-status').value !== 'all') p.set('status', $('#bk-status').value);
+    if (selectedStatus !== 'all') p.set('status', selectedStatus);
     if ($('#bk-date').value) p.set('date', $('#bk-date').value);
     return api('/api/admin/bookings?' + p.toString()).then(function (rows) {
       BOOKINGS = rows;
-      $('#bookings-body').innerHTML = rows.length ? rows.map(function (b) {
-        var act = bookingActions(b);
-        if (b.status === 'confirmed' && isAdmin()) {
-          act.push('<button class="btn btn-outline btn-sm" data-resched="' + b.id + '">Reschedule</button>');
-        }
-        act.push('<button class="btn btn-ghost btn-sm" data-detail="' + b.id + '">Details</button>');
-        return '<tr><td class="num">' + esc(b.reference) + '</td><td>' + esc(b.player_name) + '<div class="tiny muted">' +
-          esc(b.player_email) + '</div></td><td>' + esc(b.court_name) + '</td><td>' + humanDate(b.booking_date) +
-          '<div class="tiny muted num">' + humanTime(b.start_time) + ' – ' + humanTime(b.end_time) + '</div></td><td>' +
-          esc(money(b.amount)) + '</td><td>' + esc(b.payment_method ? b.payment_method.toUpperCase() : '—') +
-          '</td><td>' + (b.payment_amount != null ? esc(money(b.payment_amount)) : '—') + '<div class="tiny">' +
-          badge(b.payment_record_status || b.payment_status || 'none') + '</div></td><td>' + settleBadge(b) + '</td><td>' +
-          badge(b.status) + '</td><td><div class="row wrap" style="gap:6px">' + act.join('') + '</div></td></tr>';
-      }).join('') : '<tr><td colspan="10"><div class="empty"><strong>No bookings found</strong>Try a different filter.</div></td></tr>';
+      var confirmedView = selectedStatus === 'confirmed';
+      $('#bookings-confirmed-groups').classList.toggle('hidden', !confirmedView);
+      $('#bookings-standard-list').classList.toggle('hidden', confirmedView);
+
+      if (confirmedView) {
+        var upcoming = rows.filter(function (b) { return b.schedule_group !== 'past'; });
+        var past = rows.filter(function (b) { return b.schedule_group === 'past'; });
+        $('#bookings-upcoming-count').textContent = String(upcoming.length);
+        $('#bookings-past-count').textContent = String(past.length);
+        $('#bookings-upcoming-body').innerHTML = upcoming.length
+          ? upcoming.map(bookingRowHtml).join('')
+          : bookingEmptyRow('No upcoming confirmed games', 'New confirmed schedules will appear here.');
+        $('#bookings-past-body').innerHTML = past.length
+          ? past.map(bookingRowHtml).join('')
+          : bookingEmptyRow('No past confirmed games', 'Finished schedule times will appear here.');
+      } else {
+        $('#bookings-body').innerHTML = rows.length
+          ? rows.map(bookingRowHtml).join('')
+          : bookingEmptyRow('No bookings found', 'Try a different filter.');
+      }
     }).catch(function (e) { toast(e.message, 'error'); });
   }
 
@@ -2610,12 +2682,13 @@ body.admin-app.role-ready #view-app{visibility:visible}
 
   /* ---------- calendar ---------- */
   $('#cal-date').value = ymd(new Date());
-  $('#cal-date').onchange = loadCalendar;
+  syncDateDisplay('cal-date', 'cal-date-display', 'MM/DD/YY');
+  $('#cal-date').onchange = function () { syncDateDisplay('cal-date', 'cal-date-display', 'MM/DD/YY'); loadCalendar(); };
   $('#cal-prev-day').onclick = function () { shiftDay(-1); };
   $('#cal-next-day').onclick = function () { shiftDay(1); };
   function shiftDay(n) {
     var d = new Date($('#cal-date').value + 'T00:00:00');
-    d.setDate(d.getDate() + n); $('#cal-date').value = ymd(d); loadCalendar();
+    d.setDate(d.getDate() + n); $('#cal-date').value = ymd(d); syncDateDisplay('cal-date', 'cal-date-display', 'MM/DD/YY'); loadCalendar();
   }
   function loadCalendar() {
     var date = $('#cal-date').value || ymd(new Date());
@@ -4682,7 +4755,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
 
 <script>
 /* PIKOL_PWA_INSTALL_RUNTIME */
-(function(){'use strict';var btn=document.getElementById('pwa-install-admin'),deferredPrompt=null,KEY='pikol_admin_installed_v3';function ios(){return /iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);}function standalone(){return window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true;}function marked(){return localStorage.getItem(KEY)==='1';}function setMarked(v){if(v)localStorage.setItem(KEY,'1');else localStorage.removeItem(KEY);}function showIosGuide(){var g=document.getElementById('ios-pwa-guide');if(g)g.hidden=false;if(typeof toast==='function')toast('iPhone: Safari → Share → Add to Home Screen. Then open PIKOL Admin from the Home Screen icon.','error');}function sync(){if(!btn)return;if(standalone()){setMarked(true);btn.hidden=true;return;}if(ios()){btn.hidden=false;btn.textContent='Install Admin App on iPhone';return;}btn.textContent='Install Admin App';btn.hidden=!deferredPrompt||marked();}window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();deferredPrompt=e;if(!standalone())setMarked(false);sync();});window.addEventListener('appinstalled',function(){setMarked(true);deferredPrompt=null;sync();});window.addEventListener('pageshow',sync);document.addEventListener('visibilitychange',function(){if(!document.hidden)sync();});if(btn)btn.addEventListener('click',async function(){if(ios()){showIosGuide();return;}if(!deferredPrompt)return;btn.disabled=true;try{await deferredPrompt.prompt();var c=await deferredPrompt.userChoice;if(c&&c.outcome==='accepted')setMarked(true);}catch(_){}deferredPrompt=null;btn.disabled=false;sync();});if('serviceWorker' in navigator)window.addEventListener('load',function(){navigator.serviceWorker.register('service-worker.js?v=62-payments-card-wrap',{scope:'./',updateViaCache:'none'}).then(function(reg){return reg.update();}).catch(function(){});});sync();})();
+(function(){'use strict';var btn=document.getElementById('pwa-install-admin'),deferredPrompt=null,KEY='pikol_admin_installed_v3';function ios(){return /iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);}function standalone(){return window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true;}function marked(){return localStorage.getItem(KEY)==='1';}function setMarked(v){if(v)localStorage.setItem(KEY,'1');else localStorage.removeItem(KEY);}function showIosGuide(){var g=document.getElementById('ios-pwa-guide');if(g)g.hidden=false;if(typeof toast==='function')toast('iPhone: Safari → Share → Add to Home Screen. Then open PIKOL Admin from the Home Screen icon.','error');}function sync(){if(!btn)return;if(standalone()){setMarked(true);btn.hidden=true;return;}if(ios()){btn.hidden=false;btn.textContent='Install Admin App on iPhone';return;}btn.textContent='Install Admin App';btn.hidden=!deferredPrompt||marked();}window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();deferredPrompt=e;if(!standalone())setMarked(false);sync();});window.addEventListener('appinstalled',function(){setMarked(true);deferredPrompt=null;sync();});window.addEventListener('pageshow',sync);document.addEventListener('visibilitychange',function(){if(!document.hidden)sync();});if(btn)btn.addEventListener('click',async function(){if(ios()){showIosGuide();return;}if(!deferredPrompt)return;btn.disabled=true;try{await deferredPrompt.prompt();var c=await deferredPrompt.userChoice;if(c&&c.outcome==='accepted')setMarked(true);}catch(_){}deferredPrompt=null;btn.disabled=false;sync();});if('serviceWorker' in navigator)window.addEventListener('load',function(){navigator.serviceWorker.register('service-worker.js?v=63-bookings-schedule-groups',{scope:'./',updateViaCache:'none'}).then(function(reg){return reg.update();}).catch(function(){});});sync();})();
 </script>
 
 </body>
