@@ -914,3 +914,32 @@ body.admin-app .admin-player-avatar > img {
 @media (min-width: 1025px) {
   body.admin-app #page-notifications .communication-table { min-width: 760px; width: 100%; table-layout: auto; }
 }
+
+/* Payments mobile cards: keep long player/client details inside the card. */
+@media (max-width: 767px) {
+  body.admin-app #page-payments #tx-body > tr.is-card > td:nth-child(3) {
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
+  }
+  body.admin-app #page-payments #tx-body > tr.is-card > td:nth-child(3) .admin-player-cell {
+    display: flex;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    align-items: flex-start;
+  }
+  body.admin-app #page-payments #tx-body > tr.is-card > td:nth-child(3) .admin-player-cell > span:last-child {
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
+    white-space: normal;
+  }
+  body.admin-app #page-payments #tx-body > tr.is-card > td:nth-child(3) .admin-player-cell .tiny {
+    display: block;
+    max-width: 100%;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+}
