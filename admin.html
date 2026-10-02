@@ -938,7 +938,10 @@ body.admin-app.role-ready #view-app{visibility:visible}
   /* Only deployment configuration may choose where staff credentials are sent. */
   var isLocal = /^(localhost|127\.0\.0\.1)$/i.test(location.hostname || '');
   var API = isLocal && location.origin && location.origin !== 'null' ? location.origin : DEFAULT_API.replace(/\/+$/, '');
-  var TOKEN = localStorage.getItem('pb_admin_token') || '';
+  /* Staff credentials are tab/session scoped. Remove the legacy persistent copy
+     once so an old Admin token cannot survive browser/PWA restarts. */
+  try { localStorage.removeItem('pb_admin_token'); } catch (_) {}
+  var TOKEN = sessionStorage.getItem('pb_admin_token') || '';
   var USER = null, BRAND = {}, SETTINGS = {}, COURTS = [], PLAYERS = [], PLAYER_DIRECTORY = [], BOOKINGS = [];
 
   var $ = function (s, r) { return (r || document).querySelector(s); };
@@ -957,6 +960,26 @@ body.admin-app.role-ready #view-app{visibility:visible}
     if (/^(?:https?:|data:|blob:|\/\/)/i.test(url)) return url;
     if (url.charAt(0) === '/') return API.replace(/\/+$/, '') + url;
     return API.replace(/\/+$/, '') + '/' + url.replace(/^\/+/, '');
+  }
+
+  function openScoringTab(matchId) {
+    var target = 'scoring.html?match=' + encodeURIComponent(matchId);
+    var win = null;
+    try {
+      /* about:blank inherits this trusted origin, allowing a one-time copy into
+         the new tab's sessionStorage without putting credentials in the URL. */
+      win = window.open('about:blank', '_blank');
+      if (!win) throw new Error('popup blocked');
+      if (TOKEN) win.sessionStorage.setItem('pb_admin_token', TOKEN);
+      try { win.opener = null; } catch (_) {}
+      win.location.replace(target);
+      return;
+    } catch (_) {
+      try { if (win && !win.closed) win.close(); } catch (_) {}
+      /* Safe fallback: scoring still opens; if the browser blocked the secure
+         transfer it will simply ask for a scorer/Admin sign-in. */
+      window.open(target, '_blank', 'noopener');
+    }
   }
 
   function signalPublicRefresh() {
@@ -1391,14 +1414,14 @@ body.admin-app.role-ready #view-app{visibility:visible}
     api('/api/auth/login', { method: 'POST', body: { email: $('#li-email').value.trim(), password: $('#li-pass').value } })
       .then(function (d) {
         if (['admin','booking_manager','event_manager'].indexOf(d.user.role)<0) throw new Error('This account is not authorized for the Staff System');
-        TOKEN = d.token; USER = d.user; localStorage.setItem('pb_admin_token', TOKEN);
+        TOKEN = d.token; USER = d.user; sessionStorage.setItem('pb_admin_token', TOKEN);
         showApp(); toast('Welcome back, ' + d.user.full_name.split(' ')[0] + '.', 'success');
       })
       .catch(function (err) { toast(err.message, 'error'); })
       .finally(function () { busy(btn, false); });
   });
   function signOutLocal() {
-    TOKEN = ''; USER = null; localStorage.removeItem('pb_admin_token');
+    TOKEN = ''; USER = null; sessionStorage.removeItem('pb_admin_token');
     if (RT) RT.disconnect();
     COURTS=[]; PLAYERS=[]; BOOKINGS=[]; SETTINGS={};
     var mr=$('#modal-root');if(mr)mr.innerHTML='';
@@ -2190,7 +2213,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
       modal({title:'Auto-schedule matches',confirmText:'Generate schedule',body:'<div class="alert alert-info"><strong>Automatic court scheduling</strong><br>The scheduler uses the tournament date/time window, selected/active courts, match duration and rest interval. Existing reservations, maintenance and event blocks are respected.</div>',onConfirm:function(){return api('/api/admin/divisions/'+sid+'/auto-schedule',{method:'POST',body:{}}).then(function(){toast('Match schedule generated.','success');openTournament(TRN_OPEN);});}});
       return;
     }
-    if ((el = e.target.closest('[data-score-open]'))) { window.open('scoring.html?match=' + encodeURIComponent(el.dataset.scoreOpen), '_blank', 'noopener'); return; }
+    if ((el = e.target.closest('[data-score-open]'))) { openScoringTab(el.dataset.scoreOpen); return; }
     if ((el = e.target.closest('[data-div-match]'))) { addMatch(el.dataset.divMatch); return; }
     if ((el = e.target.closest('[data-msave]'))) { saveMatch(el.dataset.msave); return; }
     if ((el = e.target.closest('[data-mdel]'))) {
@@ -3748,7 +3771,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
   };
 
   /* ---------- In-Charge PWA push ---------- */
-  var ADMIN_SW_VERSION='62-payments-card-wrap';
+  var ADMIN_SW_VERSION='64-session-cors-hardening';
   var PUSH_PREP={reg:null,publicKey:null,serverStatus:null,ready:false,error:null,promise:null};
   function b64ToUint8(s){s=String(s||'').replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';var raw=atob(s),a=new Uint8Array(raw.length);for(var i=0;i<raw.length;i++)a[i]=raw.charCodeAt(i);return a;}
   function bytesEqual(a,b){if(!a||!b)return false;var x=new Uint8Array(a),y=new Uint8Array(b);if(x.length!==y.length)return false;for(var i=0;i<x.length;i++)if(x[i]!==y[i])return false;return true;}
@@ -4755,7 +4778,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
 
 <script>
 /* PIKOL_PWA_INSTALL_RUNTIME */
-(function(){'use strict';var btn=document.getElementById('pwa-install-admin'),deferredPrompt=null,KEY='pikol_admin_installed_v3';function ios(){return /iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);}function standalone(){return window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true;}function marked(){return localStorage.getItem(KEY)==='1';}function setMarked(v){if(v)localStorage.setItem(KEY,'1');else localStorage.removeItem(KEY);}function showIosGuide(){var g=document.getElementById('ios-pwa-guide');if(g)g.hidden=false;if(typeof toast==='function')toast('iPhone: Safari → Share → Add to Home Screen. Then open PIKOL Admin from the Home Screen icon.','error');}function sync(){if(!btn)return;if(standalone()){setMarked(true);btn.hidden=true;return;}if(ios()){btn.hidden=false;btn.textContent='Install Admin App on iPhone';return;}btn.textContent='Install Admin App';btn.hidden=!deferredPrompt||marked();}window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();deferredPrompt=e;if(!standalone())setMarked(false);sync();});window.addEventListener('appinstalled',function(){setMarked(true);deferredPrompt=null;sync();});window.addEventListener('pageshow',sync);document.addEventListener('visibilitychange',function(){if(!document.hidden)sync();});if(btn)btn.addEventListener('click',async function(){if(ios()){showIosGuide();return;}if(!deferredPrompt)return;btn.disabled=true;try{await deferredPrompt.prompt();var c=await deferredPrompt.userChoice;if(c&&c.outcome==='accepted')setMarked(true);}catch(_){}deferredPrompt=null;btn.disabled=false;sync();});if('serviceWorker' in navigator)window.addEventListener('load',function(){navigator.serviceWorker.register('service-worker.js?v=63-bookings-schedule-groups',{scope:'./',updateViaCache:'none'}).then(function(reg){return reg.update();}).catch(function(){});});sync();})();
+(function(){'use strict';var btn=document.getElementById('pwa-install-admin'),deferredPrompt=null,KEY='pikol_admin_installed_v3';function ios(){return /iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);}function standalone(){return window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true;}function marked(){return localStorage.getItem(KEY)==='1';}function setMarked(v){if(v)localStorage.setItem(KEY,'1');else localStorage.removeItem(KEY);}function showIosGuide(){var g=document.getElementById('ios-pwa-guide');if(g)g.hidden=false;if(typeof toast==='function')toast('iPhone: Safari → Share → Add to Home Screen. Then open PIKOL Admin from the Home Screen icon.','error');}function sync(){if(!btn)return;if(standalone()){setMarked(true);btn.hidden=true;return;}if(ios()){btn.hidden=false;btn.textContent='Install Admin App on iPhone';return;}btn.textContent='Install Admin App';btn.hidden=!deferredPrompt||marked();}window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();deferredPrompt=e;if(!standalone())setMarked(false);sync();});window.addEventListener('appinstalled',function(){setMarked(true);deferredPrompt=null;sync();});window.addEventListener('pageshow',sync);document.addEventListener('visibilitychange',function(){if(!document.hidden)sync();});if(btn)btn.addEventListener('click',async function(){if(ios()){showIosGuide();return;}if(!deferredPrompt)return;btn.disabled=true;try{await deferredPrompt.prompt();var c=await deferredPrompt.userChoice;if(c&&c.outcome==='accepted')setMarked(true);}catch(_){}deferredPrompt=null;btn.disabled=false;sync();});if('serviceWorker' in navigator)window.addEventListener('load',function(){navigator.serviceWorker.register('service-worker.js?v=64-session-cors-hardening',{scope:'./',updateViaCache:'none'}).then(function(reg){return reg.update();}).catch(function(){});});sync();})();
 </script>
 
 </body>

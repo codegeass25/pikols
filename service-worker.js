@@ -1,4 +1,4 @@
-const CACHE = 'pikol-v63-bookings-schedule-groups';
+const CACHE = 'pikol-v64-session-cors-hardening';
 const SHELL = [
   './range-availability.js?v=56-android-native-scroll','./client-upgrades.css?v=56-android-native-scroll',
   './index.html','./admin.html','./scoring.html','./styles.css','./cards.js','./tournament-view.js','./config.js','./qr-lite.js',
