@@ -79,6 +79,9 @@ body.admin-app.role-ready #view-app{visibility:visible}
 </style>
 <link rel="stylesheet" href="client-upgrades.css?v=56-android-native-scroll">
 <script src="range-availability.js?v=56-android-native-scroll"></script>
+<link rel="stylesheet" href="tournament-premium.css?v=65" />
+<script src="tournament-premium.js?v=65"></script>
+<script src="tournament-command.js?v=65"></script>
 </head>
 <body class="admin-app">
 
@@ -1710,8 +1713,8 @@ body.admin-app.role-ready #view-app{visibility:visible}
     renderSubnav(page);
     var mobileMore = ['players','memberships','ratings','notifications','reports','settings'].indexOf(physicalPage) >= 0;
     $$('#admin-mobile-nav [data-mobile-page]').forEach(function(b){var mp=b.dataset.mobilePage;if(mp==='calendar'&&staffRole()==='booking_manager')mp='bookings';b.classList.toggle('is-active',mp===physicalPage||(b.dataset.mobilePage==='calendar'&&GROUP_OF[page]==='schedule')||(b.dataset.mobilePage==='events'&&GROUP_OF[page]==='events')||(b.dataset.mobilePage==='more'&&mobileMore));});
-    $('#page-title').textContent = physicalPage === 'settings' ? 'Settings' : (PAGE_TITLES[page] || PAGE_TITLES[physicalPage] || (physicalPage.charAt(0).toUpperCase() + physicalPage.slice(1)));
-    var description = {dashboard:'Manage bookings, players, payments and more — all in one place.',calendar:'Plan. Play. Belong. Manage court availability and the daily schedule.',bookings:'Manage bookings, payments and availability — keep your club running smoothly.',courts:'Your courts, ready for the next game. Manage rates, status and promotional images.',blocks:'Plan maintenance and reserved periods without missing a beat.',payments:'Track and manage your court, event and membership collections.',players:'Build a stronger community, one player at a time.',memberships:'Memberships that bring your community closer.',ratings:'Follow player progress and review verified tournament ratings.',events:'Create memorable experiences. Build a stronger community.',tournaments:'Build community through competition, play and connection.',openplay:'More games. More connections. Bring your players together.',notifications:'Connect. Engage. Build a stronger community.',reports:'Track growth, engagement and performance — all in one place.',settings:'Configure your club, payments, communications and more.'};
+    $('#page-title').textContent = physicalPage === 'tournaments' ? 'Tournament Command Center' : physicalPage === 'settings' ? 'Settings' : (PAGE_TITLES[page] || PAGE_TITLES[physicalPage] || (physicalPage.charAt(0).toUpperCase() + physicalPage.slice(1)));
+    var description = {dashboard:'Manage bookings, players, payments and more — all in one place.',calendar:'Plan. Play. Belong. Manage court availability and the daily schedule.',bookings:'Manage bookings, payments and availability — keep your club running smoothly.',courts:'Your courts, ready for the next game. Manage rates, status and promotional images.',blocks:'Plan maintenance and reserved periods without missing a beat.',payments:'Track and manage your court, event and membership collections.',players:'Build a stronger community, one player at a time.',memberships:'Memberships that bring your community closer.',ratings:'Follow player progress and review verified tournament ratings.',events:'Create memorable experiences. Build a stronger community.',tournaments:'Manage tournaments, registrations, matches and more — all in one place.',openplay:'More games. More connections. Bring your players together.',notifications:'Connect. Engage. Build a stronger community.',reports:'Track growth, engagement and performance — all in one place.',settings:'Configure your club, payments, communications and more.'};
     $('#admin-hero-description').textContent = physicalPage==='settings' ? description.settings : (description[page] || description[physicalPage] || '');
     $('#view-app').dataset.page = page;
     $('#view-app').classList.remove('drawer-open');
@@ -1768,8 +1771,11 @@ body.admin-app.role-ready #view-app{visibility:visible}
     return '<span class="badge badge-' + cls + '" data-icon="' + (st === 'live' ? '●' : '•') + '">' + esc(TRN_LABEL[st] || st) + '</span>';
   }
 
+  function tournamentCommandContext(){return {api:api,money:money,toast:toast,modal:modal,user:function(){return USER;},open:openTournament,
+    receipt:openPaymentModal,refresh:loadTournaments,scorers:function(){$('#btn-manage-scorers').click();},create:function(){$('#btn-new-tournament').click();}};}
   function loadTournaments() {
     loadTournamentRegistrations();
+    if(!TRN_OPEN)window.PikolTournamentCommand.load(tournamentCommandContext());
     if (TRN_OPEN) return openTournament(TRN_OPEN);
     $('#trn-list-view').classList.remove('hidden');
     $('#trn-detail-view').classList.add('hidden');
@@ -1893,6 +1899,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
       host.classList.remove('hidden');
       host.innerHTML = renderTournamentDetail(d);
       bindTournamentDetail(d);
+      window.PikolTournamentCommand.enhanceDetail(host,d,tournamentCommandContext());
     }).catch(function (e) { toast(e.message, 'error'); });
   }
 
@@ -1942,6 +1949,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
   }
 
   function renderBracketBoard(div) {
+    return '<div class="tp-bracket-surface">'+window.PikolPremium.bracket(div)+'</div>';
     var rounds=window.PikolTournamentUI.roundGroups(div.matches||[]);
     if(!rounds.length) return '';
     return '<div class="bracket-board" aria-label="Tournament bracket">'+rounds.map(function(round){return '<section class="bracket-column"><div class="bracket-column-head"><strong>'+esc(round.label)+'</strong></div>'+round.matches.map(function(m){return '<article class="bracket-match '+(m.status==='completed'?'is-done':'')+'"><div><span>'+esc(m.team_a_name||'TBA')+'</span><b class="num">'+window.PikolTournamentUI.scoreText(m,'a')+'</b></div><div><span>'+esc(m.team_b_name||'TBA')+'</span><b class="num">'+window.PikolTournamentUI.scoreText(m,'b')+'</b></div><small>'+esc(m.status||'scheduled')+' · '+(m.court_name?esc(m.court_name)+' · ':'')+esc(m.scheduled_date||'Date TBA')+' · '+esc(m.scheduled_time||'Time TBA')+'</small></article>';}).join('')+'</section>';}).join('')+'</div>';
@@ -3385,11 +3393,11 @@ body.admin-app.role-ready #view-app{visibility:visible}
     }).catch(function (e) { toast(e.message, 'error'); });
   }
   $('#treg-status').onchange = loadTournamentRegistrations;
-  $('#treg-body').addEventListener('click', function (e) {
+  $('#page-tournaments').addEventListener('click', function (e) {
     var ap = e.target.closest('[data-treg-approve]');
     var rj = e.target.closest('[data-treg-reject]');
     var rc = e.target.closest('[data-treg-receipt]');
-    if (rc) return openPaymentModal(rc.dataset.tregReceipt);
+    if (rc) return openPaymentModal(rc.dataset.tregReceipt, function(){loadTournamentRegistrations();loadTournaments();});
     if (ap) {
       return modal({
         title: 'Approve registration', confirmText: 'Approve',
@@ -3408,7 +3416,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
         onConfirm: function (host) {
           return api('/api/admin/tournament-registrations/' + rj.dataset.tregReject + '/disapprove', {
             method: 'POST', body: { reason: $('#treg-reason', host).value }
-          }).then(function () { toast('Registration disapproved.', 'success'); loadTournamentRegistrations(); });
+          }).then(function () { toast('Registration disapproved.', 'success'); loadTournamentRegistrations(); loadTournaments(); });
         }
       });
     }
@@ -3612,6 +3620,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
     if (current === 'payments') loadPayments();
     else if (current === 'openplay') loadOpenPlay();
     else if (current === 'events') loadEventsHub();
+    else if (current === 'tournaments' && !$('.modal-host')) loadTournaments();
   }, 20000);
 
   /* ---------- membership administration ---------- */
@@ -3771,7 +3780,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
   };
 
   /* ---------- In-Charge PWA push ---------- */
-  var ADMIN_SW_VERSION='64-session-cors-hardening';
+  var ADMIN_SW_VERSION='65-premium-tournament';
   var PUSH_PREP={reg:null,publicKey:null,serverStatus:null,ready:false,error:null,promise:null};
   function b64ToUint8(s){s=String(s||'').replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';var raw=atob(s),a=new Uint8Array(raw.length);for(var i=0;i<raw.length;i++)a[i]=raw.charCodeAt(i);return a;}
   function bytesEqual(a,b){if(!a||!b)return false;var x=new Uint8Array(a),y=new Uint8Array(b);if(x.length!==y.length)return false;for(var i=0;i<x.length;i++)if(x[i]!==y[i])return false;return true;}
@@ -4661,7 +4670,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
       'tournament:registration_created': function () { if (onPage('tournaments')) { run('treg', loadTournamentRegistrations); run('tournaments', loadTournaments); } if (onPage('events')) run('hub', loadEventsHub); if (onPage('payments')) run('payments', loadPayments); run('badges', refreshEventBadges); },
       'tournament:registration_cancelled': function () { if (onPage('tournaments')) { run('treg', loadTournamentRegistrations); run('tournaments', loadTournaments); } if (onPage('events')) run('hub', loadEventsHub); if (onPage('payments')) run('payments', loadPayments); run('badges', refreshEventBadges); },
       'tournament:registration_updated': function () { if (onPage('tournaments')) { run('treg', loadTournamentRegistrations); run('tournaments', loadTournaments); } run('badges', refreshEventBadges); },
-      'tournament:payment_updated': function () { if (onPage('tournaments')) run('treg', loadTournamentRegistrations); run('badges', refreshEventBadges); },
+      'tournament:payment_updated': function () { if (onPage('tournaments')) {run('treg', loadTournamentRegistrations);run('tournaments', loadTournaments);} run('badges', refreshEventBadges); },
       'availability:changed': function () { window.dispatchEvent(new Event('pikol:availability')); if (onPage('calendar')) run('calendar', loadCalendar); },
       'player:created': function () { if (onPage('players')) run('players', loadPlayers); run('dashboard', loadDashboard); },
       'player:updated': function () { run('player-directory', loadPlayerDirectory); if (onPage('players')) run('players', loadPlayers); },
@@ -4742,6 +4751,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
   $('#admin-mobile-nav').addEventListener('click',function(e){var b=e.target.closest('[data-mobile-page]');if(!b)return;var page=b.dataset.mobilePage;if(page==='calendar'&&staffRole()==='booking_manager')page='bookings';if(page==='more'){var rows=[];[['players','Players & Membership'],['notifications','Communications'],['reports','Reports'],['settings',isAdmin()?'Settings':'Change Password']].forEach(function(x){if(roleAllows(x[0]))rows.push('<button class="list-row is-clickable" data-more-page="'+x[0]+'"><span class="list-main"><span class="list-title">'+x[1]+'</span></span><span class="list-chevron">›</span></button>');});rows.push('<button class="list-row is-clickable" data-mobile-action="theme"><span class="list-main"><span class="list-title">Toggle theme</span></span></button><button class="list-row is-clickable" data-mobile-action="logout"><span class="list-main"><span class="list-title">Logout</span></span></button>');modal({title:'More',cancelText:'Close',body:'<div class="list">'+rows.join('')+'</div>'});return;}if(!roleAllows(page))return;goto(page);});
   document.addEventListener('click',function(e){var b=e.target.closest('[data-more-page]');if(b){var root=b.closest('.modal-host');if(root)root.remove();goto(b.dataset.morePage);return;}var a=e.target.closest('[data-mobile-action]');if(!a)return;var root2=a.closest('.modal-host');if(root2)root2.remove();if(a.dataset.mobileAction==='logout'){$('#btn-logout').click();return;}if(a.dataset.mobileAction==='theme'){var t=document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark';applyTheme(t);}});
 
+  window.PikolTournamentAdminNavigate=function(){goto('tournaments');};
   /* ---------- boot ---------- */
   function showApp() {
     $('#view-auth').classList.add('hidden');
@@ -4778,7 +4788,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
 
 <script>
 /* PIKOL_PWA_INSTALL_RUNTIME */
-(function(){'use strict';var btn=document.getElementById('pwa-install-admin'),deferredPrompt=null,KEY='pikol_admin_installed_v3';function ios(){return /iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);}function standalone(){return window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true;}function marked(){return localStorage.getItem(KEY)==='1';}function setMarked(v){if(v)localStorage.setItem(KEY,'1');else localStorage.removeItem(KEY);}function showIosGuide(){var g=document.getElementById('ios-pwa-guide');if(g)g.hidden=false;if(typeof toast==='function')toast('iPhone: Safari → Share → Add to Home Screen. Then open PIKOL Admin from the Home Screen icon.','error');}function sync(){if(!btn)return;if(standalone()){setMarked(true);btn.hidden=true;return;}if(ios()){btn.hidden=false;btn.textContent='Install Admin App on iPhone';return;}btn.textContent='Install Admin App';btn.hidden=!deferredPrompt||marked();}window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();deferredPrompt=e;if(!standalone())setMarked(false);sync();});window.addEventListener('appinstalled',function(){setMarked(true);deferredPrompt=null;sync();});window.addEventListener('pageshow',sync);document.addEventListener('visibilitychange',function(){if(!document.hidden)sync();});if(btn)btn.addEventListener('click',async function(){if(ios()){showIosGuide();return;}if(!deferredPrompt)return;btn.disabled=true;try{await deferredPrompt.prompt();var c=await deferredPrompt.userChoice;if(c&&c.outcome==='accepted')setMarked(true);}catch(_){}deferredPrompt=null;btn.disabled=false;sync();});if('serviceWorker' in navigator)window.addEventListener('load',function(){navigator.serviceWorker.register('service-worker.js?v=64-session-cors-hardening',{scope:'./',updateViaCache:'none'}).then(function(reg){return reg.update();}).catch(function(){});});sync();})();
+(function(){'use strict';var btn=document.getElementById('pwa-install-admin'),deferredPrompt=null,KEY='pikol_admin_installed_v3';function ios(){return /iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);}function standalone(){return window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true;}function marked(){return localStorage.getItem(KEY)==='1';}function setMarked(v){if(v)localStorage.setItem(KEY,'1');else localStorage.removeItem(KEY);}function showIosGuide(){var g=document.getElementById('ios-pwa-guide');if(g)g.hidden=false;if(typeof toast==='function')toast('iPhone: Safari → Share → Add to Home Screen. Then open PIKOL Admin from the Home Screen icon.','error');}function sync(){if(!btn)return;if(standalone()){setMarked(true);btn.hidden=true;return;}if(ios()){btn.hidden=false;btn.textContent='Install Admin App on iPhone';return;}btn.textContent='Install Admin App';btn.hidden=!deferredPrompt||marked();}window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();deferredPrompt=e;if(!standalone())setMarked(false);sync();});window.addEventListener('appinstalled',function(){setMarked(true);deferredPrompt=null;sync();});window.addEventListener('pageshow',sync);document.addEventListener('visibilitychange',function(){if(!document.hidden)sync();});if(btn)btn.addEventListener('click',async function(){if(ios()){showIosGuide();return;}if(!deferredPrompt)return;btn.disabled=true;try{await deferredPrompt.prompt();var c=await deferredPrompt.userChoice;if(c&&c.outcome==='accepted')setMarked(true);}catch(_){}deferredPrompt=null;btn.disabled=false;sync();});if('serviceWorker' in navigator)window.addEventListener('load',function(){navigator.serviceWorker.register('service-worker.js?v=65-premium-tournament',{scope:'./',updateViaCache:'none'}).then(function(reg){return reg.update();}).catch(function(){});});sync();})();
 </script>
 
 </body>
