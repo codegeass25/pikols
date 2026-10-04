@@ -559,7 +559,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
             <div class="field"><label class="label" for="s-address">Address</label><input class="input" id="s-address" data-key="address" /></div>
             <div class="field"><label class="label" for="s-contact_number">Contact number</label><input class="input" id="s-contact_number" data-key="contact_number" /></div>
             <div class="field"><label class="label" for="s-contact_email">Contact email</label><input class="input" id="s-contact_email" data-key="contact_email" /></div>
-            <div class="field"><label class="label" for="s-website">Website</label><input class="input" id="s-website" data-key="website" /></div>
+            <div class="field"><label class="label" for="s-website">Official Website URL</label><input class="input" id="s-website" data-key="website" /></div>
             <div class="field"><label class="label" for="s-social_facebook">Facebook</label><input class="input" id="s-social_facebook" data-key="social_facebook" /></div>
             <div class="field"><label class="label" for="s-social_instagram">Instagram</label><input class="input" id="s-social_instagram" data-key="social_instagram" /></div>
           </div>
@@ -578,7 +578,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
         <section id="promo-qr-panel" class="settings-section mt-5 admin-only-panel">
           <h2 class="section-title">Promotional QR Generator</h2>
           <p class="page-subtitle">Use the approved landscape artwork with a QR that opens the selected public section.</p>
-          <div class="promo-controls"><div class="field"><label class="label" for="promo-qr-destination">Destination</label><select class="select" id="promo-qr-destination"><option value="booking">Booking Site</option><option value="tournament">Tournament Registration</option><option value="open-play">Open Play Registration</option></select></div><button class="btn btn-primary" type="button" id="btn-generate-promo-qr">Generate Advertisement</button></div>
+          <div class="promo-controls"><div class="field"><label class="label" for="promo-qr-destination">Destination</label><select class="select" id="promo-qr-destination"><option value="booking">Booking Site</option><option value="tournament">Tournament Registration</option><option value="open-play">Open Play Registration</option><option value="official-website">Official Website</option></select></div><button class="btn btn-primary" type="button" id="btn-generate-promo-qr">Generate Advertisement</button></div>
           <p id="promo-qr-status" class="muted" role="status" aria-live="polite">Uses your saved public Website and the approved promotional artwork.</p>
           <div id="promo-qr-result" hidden><canvas id="promo-qr-canvas" width="1672" height="941" aria-label="Landscape promotional advertisement"></canvas><div class="promo-output"><div><strong id="promo-qr-title"></strong><a id="promo-qr-link" target="_blank" rel="noopener"></a></div><div class="promo-downloads"><button class="btn btn-primary" type="button" id="btn-download-promo-qr" disabled>Download Landscape PNG</button><button class="btn btn-outline" type="button" id="btn-copy-promo-link" disabled>Copy Link</button><button class="btn btn-outline" type="button" id="btn-download-qr-only" disabled>Download QR Only</button></div></div></div>
         </section>
@@ -932,7 +932,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
 
 <script src="qr-lite.js?v=67"></script>
 <script src="qr-decoder.js?v=67"></script>
-<script src="promo-qr.js?v=67"></script>
+<script src="promo-qr.js?v=68-official-website"></script>
 <link rel="stylesheet" href="promo-qr.css?v=67" />
 <script src="admin-charts.js?v=28-admin-reference"></script>
 <script>

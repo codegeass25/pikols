@@ -4,15 +4,25 @@
   const base='assets/promo-qr/';
   // Native 1672 x 941. Dark/antialiased sample matrix bounds were measured per master:
   // tournament [1116,175,1530,594], open-play [1188,303,1558,662], booking [1159,125,1584,552].
+  // official-website [1114,172,1532,592], measured from its separately supplied native master.
   // Each square includes 4px minimum clearance inside the existing white card, preserving its frame.
   const templates={
     booking:{name:'Booking Site',view:'booking',file:'booking-site',x:1154,y:121,size:435,logoWidth:155},
     tournament:{name:'Tournament Registration',view:'events',tab:'tournament',file:'tournament-registration',x:1109,y:171,size:427,logoWidth:152},
-    'open-play':{name:'Open Play Registration',view:'events',tab:'open-play',file:'open-play-registration',x:1184,y:293,size:378,logoWidth:143}
+    'open-play':{name:'Open Play Registration',view:'events',tab:'open-play',file:'open-play-registration',x:1184,y:293,size:378,logoWidth:143},
+    'official-website':{name:'Official Website',file:'official-website',x:1109,y:168,size:428,logoWidth:152}
   };
   function destinationUrl(website,type){
     const d=templates[type];if(!d)throw new Error('Select a supported destination.');
-    let raw=String(website||'').trim();if(!raw)throw new Error('Save your official Website under Settings → Club first.');
+    let raw=String(website||'').trim();
+    if(type==='official-website'){
+      if(!raw)throw new Error('Please set the Official Website URL in Settings → Club first.');
+      let official;try{official=new URL(raw);}catch(_){throw new Error('Save a complete Official Website URL starting with https:// or http://.');}
+      if(!/^https?:$/.test(official.protocol)||official.username||official.password)throw new Error('Use an HTTP or HTTPS Official Website URL without credentials.');
+      // Validate without normalizing: encode the saved URL exactly, including its path/query/hash.
+      return raw;
+    }
+    if(!raw)throw new Error('Save your official Website under Settings → Club first.');
     if(!/^https?:\/\//i.test(raw))raw='https://'+raw;
     let url;try{url=new URL(raw);}catch(_){throw new Error('Save a valid official Website URL.');}
     if(!/^https?:$/.test(url.protocol)||url.username||url.password)throw new Error('Use an HTTP or HTTPS public Website URL without credentials.');
