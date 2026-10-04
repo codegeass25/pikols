@@ -277,8 +277,8 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
 </style>
 
 <link rel="stylesheet" href="client-upgrades.css?v=56-android-native-scroll">
-<link rel="stylesheet" href="tournament-premium.css?v=65" />
-<script src="tournament-premium.js?v=65"></script>
+<link rel="stylesheet" href="tournament-premium.css?v=66" />
+<script src="tournament-premium.js?v=66"></script>
 </head>
 <body class="player-app">
 
@@ -3081,7 +3081,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
       rows.sort(function(a,b){return String(a.date||'9999').localeCompare(String(b.date||'9999'));});
       $('#home-events').innerHTML=rows.length?rows.slice(0,2).map(function(item){
         var e=item.event,date=item.date?new Date(item.date+'T00:00:00'):null;
-        return '<article class="home-event-card">'+eventArtwork(e,item.type)+'<div class="home-event-info">'+(date?'<span class="event-date-badge"><b>'+MONTHS[date.getMonth()].slice(0,3)+'</b>'+date.getDate()+'</span>':'')+'<h3>'+esc(e.name||e.title)+'</h3><p>'+esc(item.type==='tournament'?'Tournament':'Open Play · Community games')+'</p><span>'+esc(item.type==='tournament'?tnWhen(e):whenText(e.event_date,e.start_time,e.end_time))+'</span><span>'+esc(e.venue||e.location||BRAND.facility_name||'')+'</span>'+(item.type==='openplay'?openPlayCapacity(e):'')+'<button class="btn btn-lime btn-sm" data-home-event="'+esc(item.type)+':'+esc(e.id)+'">View Details</button></div></article>';
+        return '<article class="home-event-card" role="link" tabindex="0" data-card-nav data-home-event="'+esc(item.type)+':'+esc(e.id)+'" aria-label="Open '+esc(e.name||e.title)+'">'+eventArtwork(e,item.type)+'<div class="home-event-info">'+(date?'<span class="event-date-badge"><b>'+MONTHS[date.getMonth()].slice(0,3)+'</b>'+date.getDate()+'</span>':'')+'<h3>'+esc(e.name||e.title)+'</h3><p>'+esc(item.type==='tournament'?'Tournament':'Open Play · Community games')+'</p><span>'+esc(item.type==='tournament'?tnWhen(e):whenText(e.event_date,e.start_time,e.end_time))+'</span><span>'+esc(e.venue||e.location||BRAND.facility_name||'')+'</span>'+(item.type==='openplay'?openPlayCapacity(e):'')+'</div></article>';
       }).join(''):'<div class="empty"><strong>'+(results.every(function(r){return r.status==='rejected';})?'Events could not load':'More good games are on the way')+'</strong><span>'+(results.every(function(r){return r.status==='rejected';})?'Try again to see upcoming events.':'Upcoming tournaments and Open Play sessions will appear here when published.')+'</span><button class="btn btn-outline btn-sm" data-retry-home-events>Refresh events</button></div>';
     });
   }
@@ -3142,7 +3142,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
   document.addEventListener('click',function(e){var b=e.target.closest('[data-select-booking]');if(b){selectedBookingId=Number(b.dataset.selectBooking);renderBookings();}});
   function eventListCard(e,type,selected){
     var isTournament=type==='tournament',open=isTournament?e.registration_open:e.status==='published'&&!e.full&&!eventEnded(e);
-    return '<article class="event-list-card'+(selected?' is-selected':'')+'">'+eventArtwork(e,type)+'<div class="event-list-info"><span class="badge">'+(isTournament?'TOURNAMENT':'OPEN PLAY')+'</span><h3>'+esc(e.name||e.title)+(type==='openplay'?openPlayCapacity(e):'')+'</h3><p>'+esc(isTournament?tnWhen(e):whenText(e.event_date,e.start_time,e.end_time))+'</p><p>'+esc(e.venue||e.location||BRAND.facility_name||'')+'</p><span class="tiny muted">'+(isTournament?Number(e.division_count||0)+' divisions · '+Number(e.team_count||0)+' participants':Number(e.registered||0)+' registered'+(e.capacity?' / '+Number(e.capacity)+' slots':''))+'</span><div class="event-card-actions"><button class="btn btn-outline btn-sm" data-select-event="'+type+':'+e.id+'">View Details</button>'+(open?'<button class="btn btn-lime btn-sm" '+(isTournament?'data-tn-register="'+e.id+'" data-tn-name="'+esc(e.name)+'"':'data-op-join="'+e.id+'"')+'>Register →</button>':'<span class="badge">'+esc(isTournament?(TN_STATUS[e.status]||'Registration closed'):(e.full?'Full':eventEnded(e)?'Ended':e.status))+'</span>')+'</div></div></article>';
+    return '<article class="event-list-card'+(selected?' is-selected':'')+'" role="link" tabindex="0" data-card-nav data-select-event="'+type+':'+e.id+'" aria-label="Open '+esc(e.name||e.title)+'">'+eventArtwork(e,type)+'<div class="event-list-info"><span class="badge">'+(isTournament?'TOURNAMENT':'OPEN PLAY')+'</span><h3>'+esc(e.name||e.title)+(type==='openplay'?openPlayCapacity(e):'')+'</h3><p>'+esc(isTournament?tnWhen(e):whenText(e.event_date,e.start_time,e.end_time))+'</p><p>'+esc(e.venue||e.location||BRAND.facility_name||'')+'</p><span class="tiny muted">'+(isTournament?Number(e.division_count||0)+' divisions · '+Number(e.team_count||0)+' participants':Number(e.registered||0)+' registered'+(e.capacity?' / '+Number(e.capacity)+' slots':''))+'</span><div class="event-card-actions">'+(open?'<button class="btn btn-lime btn-sm" '+(isTournament?'data-tn-register="'+e.id+'" data-tn-name="'+esc(e.name)+'"':'data-op-join="'+e.id+'"')+'>Register →</button>':'<span class="badge">'+esc(isTournament?(TN_STATUS[e.status]||'Registration closed'):(e.full?'Full':eventEnded(e)?'Ended':e.status))+'</span>')+'</div></div></article>';
   }
   function openPlayCapacity(e){return '<strong class="slots-available">'+(e.slots_left==null?'OPEN CAPACITY':Number(e.slots_left)+' SLOTS AVAILABLE')+'</strong><span class="tiny">'+Number(e.confirmed||0)+' Registered'+(e.capacity?' / '+Number(e.capacity)+' Capacity':'')+' · '+Number(e.pending||0)+' Pending</span>';}
   function renderEventSpotlight(e,type){
@@ -3158,7 +3158,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
     $(isTournament?'#tn-events':'#op-events').innerHTML=rows.length?rows.map(function(e){return eventListCard(e,type,e===selected);}).join(''):'<div class="empty"><strong>'+(isTournament?'No tournaments yet':'No Open Play sessions yet')+'</strong>Published events will appear here.</div>';
     renderEventSpotlight(selected,type);
   }
-  document.addEventListener('click',function(e){var b=e.target.closest('[data-select-event]');if(!b)return;var bits=b.dataset.selectEvent.split(':');if(bits[0]==='tournament')selectedEventId=Number(bits[1]);else selectedOpenPlayId=Number(bits[1]);renderPublicEvents(bits[0]);});
+  document.addEventListener('click',function(e){var b=e.target.closest('[data-select-event]');if(!b||e.target.closest('button,a,input,select'))return;var bits=b.dataset.selectEvent.split(':');if(bits[0]==='tournament')selectedEventId=Number(bits[1]);else selectedOpenPlayId=Number(bits[1]);renderPublicEvents(bits[0]);});
 
   function enhanceDialog(host,opts){
     var body=$('.modal-body',host),dlg=$('.modal',host);
@@ -3193,7 +3193,8 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
     }
   }
 
-  window.PikolTournamentNavigate=function(id,view){goto('tournaments');if(id)return openTournament(id,false,view);};
+  window.PikolPremium.bindCards(document.body);
+  window.PikolTournamentNavigate=function(id,view){EV_SUB='tournaments';goto('tournaments');if(id)return openTournament(id,false,view);};
   /* ---------- boot ---------- */
   function showApp() {
     var resume=afterAuth,authToken=TOKEN;afterAuth=null;
@@ -3421,7 +3422,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
   window.addEventListener('appinstalled',function(){setMarked(true);deferredPrompt=null;sync();});
   window.addEventListener('pageshow',sync);document.addEventListener('visibilitychange',function(){if(!document.hidden)sync();});
   if(btn)btn.addEventListener('click',async function(){if(!deferredPrompt)return;btn.disabled=true;try{await deferredPrompt.prompt();var c=await deferredPrompt.userChoice;if(c&&c.outcome==='accepted')setMarked(true);}catch(_){}deferredPrompt=null;btn.disabled=false;sync();});
-  if('serviceWorker' in navigator)window.addEventListener('load',function(){navigator.serviceWorker.register('service-worker.js?v=65-premium-tournament',{scope:'./',updateViaCache:'none'}).then(function(reg){return reg.update();}).catch(function(){});});
+  if('serviceWorker' in navigator)window.addEventListener('load',function(){navigator.serviceWorker.register('service-worker.js?v=66-premium-tournament',{scope:'./',updateViaCache:'none'}).then(function(reg){return reg.update();}).catch(function(){});});
   sync();
 })();
 </script>

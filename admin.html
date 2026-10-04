@@ -79,9 +79,9 @@ body.admin-app.role-ready #view-app{visibility:visible}
 </style>
 <link rel="stylesheet" href="client-upgrades.css?v=56-android-native-scroll">
 <script src="range-availability.js?v=56-android-native-scroll"></script>
-<link rel="stylesheet" href="tournament-premium.css?v=65" />
-<script src="tournament-premium.js?v=65"></script>
-<script src="tournament-command.js?v=65"></script>
+<link rel="stylesheet" href="tournament-premium.css?v=66" />
+<script src="tournament-premium.js?v=66"></script>
+<script src="tournament-command.js?v=66"></script>
 </head>
 <body class="admin-app">
 
@@ -1772,31 +1772,13 @@ body.admin-app.role-ready #view-app{visibility:visible}
   }
 
   function tournamentCommandContext(){return {api:api,money:money,toast:toast,modal:modal,user:function(){return USER;},open:openTournament,
-    receipt:openPaymentModal,refresh:loadTournaments,scorers:function(){$('#btn-manage-scorers').click();},create:function(){$('#btn-new-tournament').click();}};}
+    receipt:openPaymentModal,refresh:loadTournaments,matchOperations:function(m){return '<div class="tp-match-operations"><table class="data"><thead><tr><th>Round</th><th>Teams</th><th>Date / Time</th><th>Court</th><th>Scorer</th><th>Score</th><th>Status</th><th>Actions</th></tr></thead><tbody>'+renderMatchRow(m,TOURNAMENT_CURRENT.divisions.find(function(v){return v.id===m.division_id;}).teams) +'</tbody></table></div>';},scorers:function(){$('#btn-manage-scorers').click();},create:function(){$('#btn-new-tournament').click();}};}
   function loadTournaments() {
     loadTournamentRegistrations();
-    if(!TRN_OPEN)window.PikolTournamentCommand.load(tournamentCommandContext());
     if (TRN_OPEN) return openTournament(TRN_OPEN);
     $('#trn-list-view').classList.remove('hidden');
     $('#trn-detail-view').classList.add('hidden');
-    return api('/api/admin/tournaments').then(function (rows) {
-      $('#tournaments-body').innerHTML = rows.length ? rows.map(function (t) {
-        return '<tr><td><strong>' + esc(t.name) + '</strong><div class="tiny muted">' + esc(t.description || '') +
-          '</div></td><td>' + esc(trnDateRange(t)) +
-          (t.start_time ? '<div class="tiny muted num">' + humanTime(t.start_time) +
-            (t.end_time ? ' – ' + humanTime(t.end_time) : '') + '</div>' : '') +
-          '</td><td>' + esc(t.court_name || t.venue || '—') + '</td><td class="num">' + t.division_count + '</td><td class="num">' +
-          t.team_count + '</td><td class="num">' + t.match_count + '</td><td class="num">' + esc(money(t.prize_pool)) +
-          '</td><td>' + trnStatusBadge(t.status) + '</td><td>' +
-          (t.published ? '<span class="badge badge-confirmed" data-icon="✓">Published</span>'
-                       : '<span class="badge badge-pending" data-icon="⏳">Hidden</span>') +
-          '</td><td><div class="row wrap" style="gap:6px">' +
-          '<button class="btn btn-primary btn-sm" data-trn-open="' + t.id + '">Manage</button>' +
-          '<button class="btn btn-outline btn-sm" data-trn-edit="' + t.id + '">Edit</button>' +
-          '<button class="btn btn-outline btn-sm" data-trn-del="' + t.id + '">Delete</button>' +
-          '</div></td></tr>';
-      }).join('') : '<tr><td colspan="9"><div class="empty"><strong>No tournaments yet</strong>Create one to get started.</div></td></tr>';
-    }).catch(function (e) { toast(e.message, 'error'); });
+    return window.PikolTournamentCommand.load(tournamentCommandContext());
   }
 
   function selectedCourts(host,id){return $$('[type="checkbox"]:checked',$('#'+id,host)).map(function(el){return Number(el.value);});}
@@ -1893,7 +1875,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
     TRN_OPEN = id;
     return Promise.all([api('/api/admin/tournaments/' + id), api('/api/admin/scorers').catch(function(){ return []; }), api('/api/courts')]).then(function (r) {
       if (String(TRN_OPEN) !== String(id)) return;
-      var d = r[0]; SCORERS = r[1] || []; COURTS = r[2] || [];TOURNAMENT_COURT_IDS=d.tournament.court_ids||[];
+      var d = r[0]; TOURNAMENT_CURRENT=d; SCORERS = r[1] || []; COURTS = r[2] || [];TOURNAMENT_COURT_IDS=d.tournament.court_ids||[];
       $('#trn-list-view').classList.add('hidden');
       var host = $('#trn-detail-view');
       host.classList.remove('hidden');
@@ -1916,7 +1898,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
   }
 
   function renderMatchRow(m, teams) {
-    var isDone = m.status === 'completed' || m.status === 'cancelled';
+    var isDone = m.status === 'completed' || m.status === 'cancelled',canEdit=!['completed','cancelled','live'].includes(m.status);
     return '<tr data-match-row="' + m.id + '">' +
       '<td>' + esc(roundLabel(m.round)) + '<div class="tiny muted">Match ' + m.match_number + '</div></td>' +
       '<td><select class="select tiny-select" data-mfield="team_a_id" data-mid="' + m.id + '">' + teamOptions(teams, m.team_a_id) + '</select>' +
@@ -1934,7 +1916,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
       '<td>' + badgeMatch(m.status) + '</td>' +
       '<td><div class="row wrap" style="gap:6px">' +
       '<button class="btn btn-primary btn-sm" data-score-open="' + m.id + '">Scoring</button>' +
-      '<button class="btn btn-outline btn-sm" data-msave="' + m.id + '">Save</button>' +
+      (canEdit?'<button class="btn btn-outline btn-sm" data-msave="' + m.id + '">Save</button>':'') +
       (isDone ? '' :
         (['scheduled','ready','postponed'].indexOf(m.status)>=0?'<button class="btn btn-ghost btn-sm" data-maction="start" data-mid="' + m.id + '">Start</button>':'') +
         '<button class="btn btn-ghost btn-sm" data-maction="score" data-mid="' + m.id + '">Update score</button>' +
@@ -1948,96 +1930,18 @@ body.admin-app.role-ready #view-app{visibility:visible}
       esc(MATCH_LABEL[st] || st) + '</span>';
   }
 
-  function renderBracketBoard(div) {
-    return '<div class="tp-bracket-surface">'+window.PikolPremium.bracket(div)+'</div>';
-    var rounds=window.PikolTournamentUI.roundGroups(div.matches||[]);
-    if(!rounds.length) return '';
-    return '<div class="bracket-board" aria-label="Tournament bracket">'+rounds.map(function(round){return '<section class="bracket-column"><div class="bracket-column-head"><strong>'+esc(round.label)+'</strong></div>'+round.matches.map(function(m){return '<article class="bracket-match '+(m.status==='completed'?'is-done':'')+'"><div><span>'+esc(m.team_a_name||'TBA')+'</span><b class="num">'+window.PikolTournamentUI.scoreText(m,'a')+'</b></div><div><span>'+esc(m.team_b_name||'TBA')+'</span><b class="num">'+window.PikolTournamentUI.scoreText(m,'b')+'</b></div><small>'+esc(m.status||'scheduled')+' · '+(m.court_name?esc(m.court_name)+' · ':'')+esc(m.scheduled_date||'Date TBA')+' · '+esc(m.scheduled_time||'Time TBA')+'</small></article>';}).join('')+'</section>';}).join('')+'</div>';
-  }
-
-
   document.addEventListener('click',function(e){
-    var download=e.target.closest('[data-division-docx]'),print=e.target.closest('[data-division-print]'),button=download||print;if(!button)return;
-    var id=download?download.dataset.divisionDocx:print.dataset.divisionPrint;
-    var win=print?window.open('','_blank'):null;
-    if(print&&!win)return toast('Allow popups to open the print document.','error');
-    if(win)win.document.body.textContent='Preparing division print document…';
-    busy(button,true);
-    fetch(API+'/api/admin/divisions/'+id+'/output'+(print?'?format=print':''),{headers:{Authorization:'Bearer '+TOKEN}}).then(async function(response){
+    var button=e.target.closest('[data-division-docx]');if(!button)return;
+    var id=button.dataset.divisionDocx;busy(button,true);
+    fetch(API+'/api/admin/divisions/'+id+'/output',{headers:{Authorization:'Bearer '+TOKEN}}).then(async function(response){
       if(!response.ok){var error=await response.json();throw new Error(error.error||'Export failed');}
-      if(print){var html=await response.text();win.document.open();win.document.write(html);win.document.close();win.focus();setTimeout(function(){win.print();},350);}
-      else{var blob=await response.blob(),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='PIKOL-division-'+id+'-schedule-bracket.docx';a.click();setTimeout(function(){URL.revokeObjectURL(url);},1000);}
-    }).catch(function(error){if(win)win.close();toast(error.message,'error');}).finally(function(){busy(button,false);});
+      var blob=await response.blob(),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='PIKOL-division-'+id+'-schedule-bracket.docx';a.click();setTimeout(function(){URL.revokeObjectURL(url);},1000);
+    }).catch(function(error){toast(error.message,'error');}).finally(function(){busy(button,false);});
   });
-  var TOURNAMENT_COURT_IDS=[];
-  function renderDivision(div) {
-    var teams = div.teams || [];
-    return '<section class="division-workspace mt-5" data-division="' + div.id + '">' +
-      '<div class="card-header"><h3 class="section-title">' + esc(div.name) +
-      ' <span class="badge badge-pending" data-icon="◫">' + esc(roundLabel(div.match_type)) + '</span>' +
-      ' <span class="badge badge-approved">' + esc(String(div.competition_format||'single_elimination').replace(/_/g,' ')) + '</span>' +
-      ' <span class="badge badge-confirmed" data-icon="₱">' +
-      (Number(div.entry_fee || 0) > 0 ? esc(money(div.entry_fee)) + ' entry fee' : 'Uses tournament fee') + '</span></h3>' +
-      '<div class="row wrap" style="gap:6px">' +
-      '<button class="btn btn-outline btn-sm" data-div-team="' + div.id + '">＋ Participant</button>' +
-      '<button class="btn btn-outline btn-sm" data-div-prizes="' + div.id + '">Prizes</button>' +
-      '<button class="btn btn-outline btn-sm" data-div-bracket="' + div.id + '">Generate bracket</button>' +
-      '<button class="btn btn-outline btn-sm" data-div-schedule="' + div.id + '">Auto schedule</button>' +
-      ((div.matches || []).length ? '<button class="btn btn-outline btn-sm" data-div-reset="' + div.id + '">Reset bracket</button>' : '') +
-      '<button class="btn btn-outline btn-sm" data-div-match="' + div.id + '">＋ Match</button>' +
-      '<button class="btn btn-outline btn-sm" data-div-winners="' + div.id + '">Set winners</button>' +
-      '<button class="btn btn-outline btn-sm" data-div-edit="' + div.id + '">Edit</button>' +
-      '<button class="btn btn-ghost btn-sm" data-div-del="' + div.id + '">Delete</button>' +
-
-      '</div></div><div class="division-output-actions"><strong>Schedule &amp; Bracket Output</strong><button class="btn btn-outline btn-sm" data-division-docx="'+div.id+'">↓ Download DOCX</button><button class="btn btn-outline btn-sm" data-division-print="'+div.id+'">Print</button></div>' +
-      '<div class="grid cols-2" style="gap:16px">' +
-      '<div><h4 class="label">Participants (' + teams.length + ')</h4>' +
-      (teams.length ? '<div class="table-wrap"><table class="data"><thead><tr><th>Entry</th><th>Players</th><th></th></tr></thead><tbody>' +
-        teams.map(function (t) {
-          return '<tr><td>' + esc(t.name) + (t.seed ? '<div class="tiny muted">Seed ' + t.seed + '</div>' : '') + '</td><td class="tiny">' +
-            t.members.map(function (m) { return esc(m.display_name) + (m.user_id ? ' <span class="muted">(account)</span>' : ''); }).join('<br />') +
-            '</td><td><button class="btn btn-ghost btn-sm" data-team-del="' + t.id + '">✕</button></td></tr>';
-        }).join('') + '</tbody></table></div>' : '<div class="empty">No participants yet.</div>') + '</div>' +
-      '<div><h4 class="label">Prizes</h4><div class="table-wrap"><table class="data"><thead><tr><th>Place</th><th>Prize</th><th>Amount</th><th>Winner</th></tr></thead><tbody>' +
-      (div.prizes || []).map(function (pz) {
-        var w = teams.filter(function (t) { return t.id === pz.winner_team_id; })[0];
-        return '<tr><td class="num">' + pz.place + '</td><td>' + esc(pz.label) + '</td><td class="num">' + esc(money(pz.amount)) +
-          '</td><td>' + (w ? '🏆 ' + esc(w.name) : '<span class="muted tiny">Not set</span>') + '</td></tr>';
-      }).join('') + '</tbody></table></div></div></div>' +
-      window.PikolTournamentUI.renderStandings(div) + '<h4 class="label mt-5">Matches & bracket</h4>' + renderBracketBoard(div) +
-      ((div.matches || []).length
-        ? '<details class="mt-4"><summary class="btn btn-ghost btn-sm">Match operations table</summary><div class="table-wrap mt-3"><table class="data"><thead><tr><th>Round</th><th>Matchup</th><th>Schedule</th><th>Court</th><th>Scorer</th><th>Score</th><th>Status</th><th>Actions</th></tr></thead><tbody>' +
-          div.matches.map(function (m) { return renderMatchRow(m, teams); }).join('') + '</tbody></table></div></details>'
-        : '<div class="empty">No matches yet. Generate a bracket or add matches manually.</div>') +
-      '</section>';
-  }
-
+  var TOURNAMENT_COURT_IDS=[],TOURNAMENT_CURRENT=null;
   function renderTournamentDetail(d) {
-    var t = d.tournament;
-    return '<section class="tournament-summary">' +
-      '<div class="card-header"><div class="row" style="gap:10px">' +
-      '<button class="btn btn-ghost btn-sm" id="trn-back">‹ All tournaments</button>' +
-      '<h2 class="section-title">' + esc(t.name) + '</h2>' + trnStatusBadge(t.status) + '</div>' +
-      '<div class="row wrap" style="gap:6px">' +
-      '<select class="select" id="trn-status" style="min-width:190px">' +
-      TRN_STATUSES.map(function (st) { return '<option value="' + st + '"' + (st === t.status ? ' selected' : '') + '>' + TRN_LABEL[st] + '</option>'; }).join('') +
-      '</select>' +
-      '<button class="btn btn-outline btn-sm" id="trn-publish">' + (t.published ? 'Unpublish' : 'Publish to players') + '</button>' +
-      '<button class="btn btn-outline btn-sm" id="trn-edit">Edit details</button>' +
-      '<button class="btn btn-primary btn-sm" id="trn-add-div">＋ Division</button>' +
-      '</div></div>' +
-      (t.poster_url ? '<img src="' + esc(assetUrl(t.poster_url)) + '" alt="' + esc(t.name) + ' poster" style="max-height:220px;border-radius:12px;margin-bottom:14px" />' : '') +
-      '<dl class="summary-list">' +
-      '<div class="summary-row"><dt>Dates</dt><dd>' + esc(trnDateRange(t)) + '</dd></div>' +
-      '<div class="summary-row"><dt>Time</dt><dd>' + esc(t.start_time ? humanTime(t.start_time) : 'TBA') +
-      (t.end_time ? ' – ' + esc(humanTime(t.end_time)) : '') + '</dd></div>' +
-      '<div class="summary-row"><dt>Venue</dt><dd>' + esc(t.venue || '—') + '</dd></div>' +
-      '<div class="summary-row"><dt>Registration</dt><dd>' + esc(t.registration_start || 'TBA') + ' → ' + esc(t.registration_end || 'TBA') + '</dd></div>' +
-      '<div class="summary-row"><dt>Total prize pool</dt><dd>' + esc(money(d.prize_pool)) + '</dd></div></dl>' +
-      (t.description ? '<p class="mt-3">' + esc(t.description) + '</p>' : '') +
-      '</section>' +
-      (d.divisions.length ? d.divisions.map(renderDivision).join('')
-        : '<div class="empty mt-5"><strong>No divisions yet</strong>Add a division (e.g. Men\'s Doubles) to register participants.</div>');
+    var t=d.tournament,P=window.PikolPremium;
+    return '<section class="tp-tournament-summary"><div class="tp-section-head"><button class="btn btn-ghost" id="trn-back">← All tournaments</button><div class="tp-actions"><button class="btn btn-primary" id="trn-add-div">＋ Division</button><button class="btn btn-outline" id="trn-edit">Edit</button><details class="tp-more"><summary>More</summary><div class="tp-menu"><label class="label" for="trn-status">Change status</label><select class="select" id="trn-status">'+TRN_STATUSES.map(function(st){return '<option value="'+st+'"'+(st===t.status?' selected':'')+'>'+TRN_LABEL[st]+'</option>';}).join('')+'</select><button class="tp-btn" id="trn-publish">'+(t.published?'Unpublish':'Publish to players')+'</button><hr><button class="tp-btn" data-trn-del="'+t.id+'">Delete Tournament</button></div></details></div></div><div class="tp-summary-title"><div><h2 class="section-title">'+esc(t.name)+'</h2><p class="tp-event-meta">'+esc(trnDateRange(t))+' · '+esc(t.venue||'Venue TBA')+'</p><p class="tp-muted">'+d.divisions.length+' divisions · '+d.divisions.reduce(function(n,v){return n+(v.teams||[]).length;},0)+' teams · '+esc(money(d.prize_pool))+' prize pool</p></div>'+P.badge(t.status)+'</div><button class="tp-btn" data-tp-identity>Teams &amp; Identity ('+d.divisions.reduce(function(n,v){return n+(v.teams||[]).length;},0)+')</button></section><div id="tp-admin-workspace"></div>';
   }
 
   function bindTournamentDetail(d) {
@@ -2146,7 +2050,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
     return found;
   }
 
-  $('#trn-detail-view').addEventListener('change', function(e){
+  document.addEventListener('change', function(e){
     var sel=e.target.closest('[data-scorer-mid]'); if(!sel) return;
     api('/api/admin/matches/'+sel.dataset.scorerMid+'/assign-scorer',{method:'POST',body:{scorer_user_id:sel.value?Number(sel.value):null}})
       .then(function(){toast('Scorer assignment saved.','success');})
@@ -2156,7 +2060,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
   /* delegated tournament actions */
   document.addEventListener('click', function (e) {
     var el;
-    if ((el = e.target.closest('[data-trn-open]'))) { openTournament(el.dataset.trnOpen); return; }
+    if ((el = e.target.closest('[data-trn-open]')) && (!e.target.closest('button,a,input,select') || e.target.closest('button,a')===el)) { openTournament(el.dataset.trnOpen); return; }
     if ((el = e.target.closest('[data-trn-edit]'))) {
       var tid = el.dataset.trnEdit;
       api('/api/admin/tournaments/' + tid).then(function (d) {
@@ -2388,7 +2292,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
   }
   function saveMatch(id) {
     api('/api/admin/matches/' + id, { method: 'PUT', body: matchFields(id) })
-      .then(function () { toast('Match updated. Scheduled players are notified automatically.', 'success'); openTournament(TRN_OPEN); })
+      .then(function () { $$('.modal-host:has([data-match-row])').forEach(function(el){el.remove();});toast('Match updated. Scheduled players are notified automatically.', 'success'); openTournament(TRN_OPEN); })
       .catch(function (e) { toast(e.message, 'error'); });
   }
   var MATCH_ACTION_BUSY = {};
@@ -2406,7 +2310,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
     MATCH_ACTION_BUSY[id] = true;
     return api('/api/admin/matches/' + id + '/action', { method: 'POST', body: body })
       .then(function () {
-        toast(action === 'complete' ? 'Result saved. The winner advances in the bracket.' : 'Match updated.', 'success');
+        $$('.modal-host:has([data-match-row])').forEach(function(el){el.remove();});toast(action === 'complete' ? 'Result saved. The winner advances in the bracket.' : 'Match updated.', 'success');
         openTournament(TRN_OPEN);
       })
       .catch(function (e) { toast(e.message, 'error'); })
@@ -3334,8 +3238,8 @@ body.admin-app.role-ready #view-app{visibility:visible}
       var paymentStats = r[3] && r[3].stats || {};
       $('#ev-hub-trn').textContent = r[0] === null ? 'Unavailable' : tournaments.length + ' tournament' + (tournaments.length === 1 ? '' : 's');
       $('#ev-hub-op').textContent = r[1] === null ? 'Unavailable' : openplay.length + ' event' + (openplay.length === 1 ? '' : 's');
-      var events = tournaments.map(function (t) { return {date: t.tournament_date, until: t.end_date || t.tournament_date, name: t.name, venue: t.court_name || t.venue, type: 'Tournament', page: 'tournaments', status: t.status}; })
-        .concat(openplay.map(function (e) { return {date: e.event_date, until: e.event_date, name: e.title, venue: e.court_name || e.location, type: 'Open Play', page: 'openplay', status: e.status}; }))
+      var events = tournaments.map(function (t) { return {id:t.id,date: t.tournament_date, until: t.end_date || t.tournament_date, name: t.name, venue: t.court_name || t.venue, type: 'Tournament', page: 'tournaments', status: t.status}; })
+        .concat(openplay.map(function (e) { return {id:e.id,date: e.event_date, until: e.event_date, name: e.title, venue: e.court_name || e.location, type: 'Open Play', page: 'openplay', status: e.status}; }))
         .filter(function (e) { return e.until && e.until >= today && ['cancelled','completed','draft'].indexOf(e.status) < 0; })
         .sort(function (a, b) { return String(a.date).localeCompare(String(b.date)); });
       $('#ev-hub-stats').innerHTML = [
@@ -3346,7 +3250,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
       ].map(adminMetric).join('');
       var upcoming = $('#ev-upcoming-body');
       if (upcoming) upcoming.innerHTML = events.slice(0, 8).map(function (e) {
-        return '<tr><td>' + humanDate(e.date) + '</td><td><strong>' + esc(e.name) + '</strong><div class="tiny muted">' + esc(e.venue || 'Venue to be announced') + '</div></td><td><span class="badge ' + (e.type === 'Tournament' ? 'badge-pending' : 'badge-confirmed') + '">' + esc(e.type) + '</span></td><td>' + adminStatus(e.status) + '</td><td><button class="btn btn-ghost btn-sm" data-goto-page="' + e.page + '">Manage</button></td></tr>';
+        return '<tr role="link" tabindex="0" data-card-nav data-admin-event="'+e.page+':'+e.id+'" aria-label="Open '+esc(e.name)+'"><td>' + humanDate(e.date) + '</td><td><strong>' + esc(e.name) + '</strong><div class="tiny muted">' + esc(e.venue || 'Venue to be announced') + '</div></td><td><span class="badge ' + (e.type === 'Tournament' ? 'badge-pending' : 'badge-confirmed') + '">' + esc(e.type) + '</span></td><td>' + adminStatus(e.status) + '</td><td aria-hidden="true">→</td></tr>';
       }).join('') || '<tr><td colspan="5" class="muted">' + (r[0] === null || r[1] === null ? 'Unable to load all upcoming events.' : 'No upcoming events scheduled.') + '</td></tr>';
       var recent = $('#ev-recent-body');
       if (recent) recent.innerHTML = registrations.slice().sort(function (a, b) { return String(b.created_at || '').localeCompare(String(a.created_at || '')) || Number(b.id) - Number(a.id); }).slice(0, 8).map(function (reg) {
@@ -3365,7 +3269,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
         var pay = (r.payments || [])[(r.payments || []).length - 1];
         var payCell = Number(r.amount_due) > 0
           ? badge(PAY_LABEL[r.payment_status] || (r.payment_status === 'unpaid' ? 'Unpaid' : r.payment_status), PAY_BADGE[r.payment_status] || 'badge-pending') +
-            (pay ? ' <button class="btn btn-ghost btn-sm" data-treg-receipt="' + pay.id + '">Payment</button>' : '')
+            ''
           : '<span class="muted">Free</span>';
         var st = r.status === 'approved' ? 'badge-approved' : r.status === 'disapproved' ? 'badge-rejected' : 'badge-pending';
         /* A rejected current payment is NOT an actionable pending registration:
@@ -3388,23 +3292,25 @@ body.admin-app.role-ready #view-app{visibility:visible}
           '<td>' + esc(r.team_name || '—') + (r.partner_name ? '<div class="tiny muted">with ' + esc(r.partner_name) + '</div>' : '') + '</td>' +
           '<td class="num">' + esc(money(Number(r.gross_amount||0)||Number(r.amount_due||0)+Number(r.credit_used||0))) + (Number(r.credit_used||0)>0?'<div class="tiny muted">Credit '+esc(money(r.credit_used))+' · Cash '+esc(money(r.amount_due))+'</div>':'') + '</td><td>' + payCell + '</td>' +
           '<td>' + statusCell + '</td><td class="tiny">' + esc(r.registration_code || '—') + '</td>' +
-          '<td class="row-actions">' + actions + '</td></tr>';
+          '<td class="row-actions"><button class="btn btn-outline btn-sm" data-treg-review="'+r.id+'">Review</button>' + '</td></tr>';
       }).join('') || '<tr><td colspan="9" class="muted">No registrations yet</td></tr>';
     }).catch(function (e) { toast(e.message, 'error'); });
   }
   $('#treg-status').onchange = loadTournamentRegistrations;
-  $('#page-tournaments').addEventListener('click', function (e) {
+  document.addEventListener('click', function (e) {
+    var review=e.target.closest('[data-treg-review]');if(review){return api('/api/admin/tournament-registrations?status=all').then(function(rows){var r=rows.find(function(x){return String(x.id)===review.dataset.tregReview;});if(!r)return;var pay=(r.payments||[]).slice(-1)[0],P=window.PikolPremium;var reviewHost=modal({title:'Review registration #'+r.id,cancelText:'Close',body:P.memberRow(r)+'<div class="tp-rule-card"><div>'+esc(r.tournament_name)+' · '+esc(r.division_name)+'</div><div>Team: '+esc(r.team_name||'—')+'</div><div>Partner: '+esc(r.partner_name||'Singles')+'</div><div>Registration: '+esc(r.status)+'</div><div>Payment: '+esc(r.payment_status)+'</div><div>Gross: '+money(r.gross_amount||r.amount_due)+' · Credit: '+money(r.credit_used)+' · Cash due: '+money(r.amount_due)+'</div></div><div class="tp-actions mt-4">'+(pay?'<button class="btn btn-outline" data-treg-receipt="'+pay.id+'">Review payment receipt</button>':'')+(r.status==='pending'&&!r.payment_rejected?'<button class="btn btn-primary" data-treg-approve="'+r.id+'"'+(r.approvable?'':' disabled title="Verify payment first"')+'>Approve</button><button class="btn btn-outline" data-treg-reject="'+r.id+'">Reject</button>':'')+'</div>'});reviewHost.dataset.tregReviewModal=r.id;}).catch(function(err){toast(err.message,'error');});}
     var ap = e.target.closest('[data-treg-approve]');
     var rj = e.target.closest('[data-treg-reject]');
     var rc = e.target.closest('[data-treg-receipt]');
-    if (rc) return openPaymentModal(rc.dataset.tregReceipt, function(){loadTournamentRegistrations();loadTournaments();});
+    function closeReviewedRegistration(){document.querySelectorAll('[data-treg-review-modal]').forEach(function(host){host.remove();});}
+    if (rc) return openPaymentModal(rc.dataset.tregReceipt, function(){closeReviewedRegistration();loadTournamentRegistrations();loadTournaments();});
     if (ap) {
       return modal({
         title: 'Approve registration', confirmText: 'Approve',
         body: '<p class="muted">The player becomes an official participant and a team is created in the division. Payment must already be verified.</p>',
         onConfirm: function () {
           return api('/api/admin/tournament-registrations/' + ap.dataset.tregApprove + '/approve', { method: 'POST' })
-            .then(function () { toast('Registration approved.', 'success'); loadTournamentRegistrations(); loadTournaments(); });
+            .then(function () { toast('Registration approved.', 'success'); closeReviewedRegistration(); loadTournamentRegistrations(); loadTournaments(); });
         }
       });
     }
@@ -3416,7 +3322,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
         onConfirm: function (host) {
           return api('/api/admin/tournament-registrations/' + rj.dataset.tregReject + '/disapprove', {
             method: 'POST', body: { reason: $('#treg-reason', host).value }
-          }).then(function () { toast('Registration disapproved.', 'success'); loadTournamentRegistrations(); loadTournaments(); });
+          }).then(function () { toast('Registration disapproved.', 'success'); closeReviewedRegistration(); loadTournamentRegistrations(); loadTournaments(); });
         }
       });
     }
@@ -3480,7 +3386,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
       COURTS = results[1] || [];
       $('#openplay-body').innerHTML = rows.map(function (e) {
         var vis = e.published ? badge('Published', 'badge-approved') : badge('Hidden', 'badge-pending');
-        return '<tr><td>' + esc(e.title) + (e.capacity ? '<div class="tiny muted">Capacity ' + e.capacity + '</div>' : '') + '</td>' +
+        return '<tr role="link" tabindex="0" data-card-nav data-op-regs="'+e.id+'" aria-label="Open '+esc(e.title)+'"><td>' + esc(e.title) + (e.capacity ? '<div class="tiny muted">Capacity ' + e.capacity + '</div>' : '') + '</td>' +
           '<td>' + dateCell(e.event_date) + '</td><td>' + timeCell(e.start_time, e.end_time, e.event_date) + '</td>' +
           '<td class="num">' + esc(money(e.entrance_fee)) + '</td><td>' + esc(e.court_name || e.location || '—') + '</td>' +
           '<td class="num">' + (e.confirmed || 0) + (e.capacity ? ' / ' + e.capacity : '') + '<div class="tiny muted">'+Number(e.pending||0)+' Pending</div></td>' +
@@ -3488,7 +3394,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
           '<td>' + badge(e.status.replace('_', ' '), e.status === 'published' ? 'badge-approved' : e.status === 'cancelled' ? 'badge-rejected' : 'badge-pending') + '</td>' +
           '<td>' + vis + '</td>' +
           '<td class="row-actions">' +
-          '<button class="btn btn-ghost btn-sm" data-op-regs="' + e.id + '">Attendees</button> ' +
+          '' +
           '<button class="btn btn-ghost btn-sm" data-op-edit="' + e.id + '">Edit</button> ' +
           '<button class="btn btn-ghost btn-sm" data-op-status="' + e.id + '">Status</button> ' +
           '<button class="btn btn-ghost btn-sm" data-op-delete="' + e.id + '">Delete</button>' +
@@ -3578,7 +3484,8 @@ body.admin-app.role-ready #view-app{visibility:visible}
     return api('/api/admin/open-play/' + id + '/registrations').then(function (rows) {
       var box = $('#op-registrations');
       box.classList.remove('hidden');
-      box.innerHTML = '<section class="section-shell"><div class="section-head"><h2 class="section-title">Attendees</h2>' +
+      var event=OP_CACHE.find(function(e){return String(e.id)===String(id);});
+      box.innerHTML = '<section class="section-shell"><div class="section-head"><h2 class="section-title">'+esc(event?event.title:'Open Play')+' · Attendees</h2>' +
         '<button class="btn btn-ghost btn-sm" id="op-regs-close">Close</button></div>' +
         '<div class="table-wrap"><table class="data"><thead><tr><th>Client</th><th>Contact</th><th>Fee</th><th>Payment</th><th>Status</th><th>Code</th><th>Payment</th></tr></thead><tbody>' +
         (rows.map(function (r) {
@@ -4751,7 +4658,9 @@ body.admin-app.role-ready #view-app{visibility:visible}
   $('#admin-mobile-nav').addEventListener('click',function(e){var b=e.target.closest('[data-mobile-page]');if(!b)return;var page=b.dataset.mobilePage;if(page==='calendar'&&staffRole()==='booking_manager')page='bookings';if(page==='more'){var rows=[];[['players','Players & Membership'],['notifications','Communications'],['reports','Reports'],['settings',isAdmin()?'Settings':'Change Password']].forEach(function(x){if(roleAllows(x[0]))rows.push('<button class="list-row is-clickable" data-more-page="'+x[0]+'"><span class="list-main"><span class="list-title">'+x[1]+'</span></span><span class="list-chevron">›</span></button>');});rows.push('<button class="list-row is-clickable" data-mobile-action="theme"><span class="list-main"><span class="list-title">Toggle theme</span></span></button><button class="list-row is-clickable" data-mobile-action="logout"><span class="list-main"><span class="list-title">Logout</span></span></button>');modal({title:'More',cancelText:'Close',body:'<div class="list">'+rows.join('')+'</div>'});return;}if(!roleAllows(page))return;goto(page);});
   document.addEventListener('click',function(e){var b=e.target.closest('[data-more-page]');if(b){var root=b.closest('.modal-host');if(root)root.remove();goto(b.dataset.morePage);return;}var a=e.target.closest('[data-mobile-action]');if(!a)return;var root2=a.closest('.modal-host');if(root2)root2.remove();if(a.dataset.mobileAction==='logout'){$('#btn-logout').click();return;}if(a.dataset.mobileAction==='theme'){var t=document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark';applyTheme(t);}});
 
-  window.PikolTournamentAdminNavigate=function(){goto('tournaments');};
+  window.PikolTournamentAdminNavigate=function(id){goto('tournaments');if(id)return openTournament(id);};
+  window.PikolPremium.bindCards($('#page-events'));window.PikolPremium.bindCards($('#page-openplay'));
+  document.addEventListener('click',function(ev){var row=ev.target.closest('[data-admin-event]');if(!row)return;var parts=row.dataset.adminEvent.split(':');if(parts[0]==='tournaments'){goto('tournaments');openTournament(parts[1]);}else{goto('openplay');loadOpenPlay().then(function(){return loadOpenPlayRegistrations(parts[1]);});}});
   /* ---------- boot ---------- */
   function showApp() {
     $('#view-auth').classList.add('hidden');
@@ -4788,7 +4697,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
 
 <script>
 /* PIKOL_PWA_INSTALL_RUNTIME */
-(function(){'use strict';var btn=document.getElementById('pwa-install-admin'),deferredPrompt=null,KEY='pikol_admin_installed_v3';function ios(){return /iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);}function standalone(){return window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true;}function marked(){return localStorage.getItem(KEY)==='1';}function setMarked(v){if(v)localStorage.setItem(KEY,'1');else localStorage.removeItem(KEY);}function showIosGuide(){var g=document.getElementById('ios-pwa-guide');if(g)g.hidden=false;if(typeof toast==='function')toast('iPhone: Safari → Share → Add to Home Screen. Then open PIKOL Admin from the Home Screen icon.','error');}function sync(){if(!btn)return;if(standalone()){setMarked(true);btn.hidden=true;return;}if(ios()){btn.hidden=false;btn.textContent='Install Admin App on iPhone';return;}btn.textContent='Install Admin App';btn.hidden=!deferredPrompt||marked();}window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();deferredPrompt=e;if(!standalone())setMarked(false);sync();});window.addEventListener('appinstalled',function(){setMarked(true);deferredPrompt=null;sync();});window.addEventListener('pageshow',sync);document.addEventListener('visibilitychange',function(){if(!document.hidden)sync();});if(btn)btn.addEventListener('click',async function(){if(ios()){showIosGuide();return;}if(!deferredPrompt)return;btn.disabled=true;try{await deferredPrompt.prompt();var c=await deferredPrompt.userChoice;if(c&&c.outcome==='accepted')setMarked(true);}catch(_){}deferredPrompt=null;btn.disabled=false;sync();});if('serviceWorker' in navigator)window.addEventListener('load',function(){navigator.serviceWorker.register('service-worker.js?v=65-premium-tournament',{scope:'./',updateViaCache:'none'}).then(function(reg){return reg.update();}).catch(function(){});});sync();})();
+(function(){'use strict';var btn=document.getElementById('pwa-install-admin'),deferredPrompt=null,KEY='pikol_admin_installed_v3';function ios(){return /iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);}function standalone(){return window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true;}function marked(){return localStorage.getItem(KEY)==='1';}function setMarked(v){if(v)localStorage.setItem(KEY,'1');else localStorage.removeItem(KEY);}function showIosGuide(){var g=document.getElementById('ios-pwa-guide');if(g)g.hidden=false;if(typeof toast==='function')toast('iPhone: Safari → Share → Add to Home Screen. Then open PIKOL Admin from the Home Screen icon.','error');}function sync(){if(!btn)return;if(standalone()){setMarked(true);btn.hidden=true;return;}if(ios()){btn.hidden=false;btn.textContent='Install Admin App on iPhone';return;}btn.textContent='Install Admin App';btn.hidden=!deferredPrompt||marked();}window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();deferredPrompt=e;if(!standalone())setMarked(false);sync();});window.addEventListener('appinstalled',function(){setMarked(true);deferredPrompt=null;sync();});window.addEventListener('pageshow',sync);document.addEventListener('visibilitychange',function(){if(!document.hidden)sync();});if(btn)btn.addEventListener('click',async function(){if(ios()){showIosGuide();return;}if(!deferredPrompt)return;btn.disabled=true;try{await deferredPrompt.prompt();var c=await deferredPrompt.userChoice;if(c&&c.outcome==='accepted')setMarked(true);}catch(_){}deferredPrompt=null;btn.disabled=false;sync();});if('serviceWorker' in navigator)window.addEventListener('load',function(){navigator.serviceWorker.register('service-worker.js?v=66-premium-tournament',{scope:'./',updateViaCache:'none'}).then(function(reg){return reg.update();}).catch(function(){});});sync();})();
 </script>
 
 </body>

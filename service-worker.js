@@ -1,6 +1,6 @@
-const CACHE = 'pikol-v65-premium-tournament';
+const CACHE = 'pikol-v66-unified-tournament';
 const SHELL = [
-  './tournament-premium.js?v=65','./tournament-command.js?v=65','./tournament-premium.css?v=65','./scoring-premium.css?v=65','./scoring-premium.js?v=65',
+  './tournament-premium.js?v=66','./tournament-command.js?v=66','./tournament-premium.css?v=66','./scoring-premium.css?v=66','./scoring-premium.js?v=66',
   './range-availability.js?v=56-android-native-scroll','./client-upgrades.css?v=56-android-native-scroll',
   './index.html','./admin.html','./scoring.html','./styles.css','./cards.js','./tournament-view.js','./config.js','./qr-lite.js',
   './admin-premium.css?v=33-bookings-schedule-groups','./admin-premium.css','./admin-charts.js','./admin-charts.js?v=28-admin-reference','./booking-premium.css?v=50-profile-credit-v1','./booking-premium.css','./assets/booking/hero-court.jpg','./assets/booking/court-01.jpg','./assets/booking/court-02.jpg','./assets/booking/court-03.jpg',
