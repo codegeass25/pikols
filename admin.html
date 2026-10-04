@@ -79,9 +79,9 @@ body.admin-app.role-ready #view-app{visibility:visible}
 </style>
 <link rel="stylesheet" href="client-upgrades.css?v=56-android-native-scroll">
 <script src="range-availability.js?v=56-android-native-scroll"></script>
-<link rel="stylesheet" href="tournament-premium.css?v=66" />
-<script src="tournament-premium.js?v=66"></script>
-<script src="tournament-command.js?v=66"></script>
+<link rel="stylesheet" href="tournament-premium.css?v=67" />
+<script src="tournament-premium.js?v=67"></script>
+<script src="tournament-command.js?v=67"></script>
 </head>
 <body class="admin-app">
 
@@ -576,12 +576,12 @@ body.admin-app.role-ready #view-app{visibility:visible}
         </form>
 
         <section id="promo-qr-panel" class="settings-section mt-5 admin-only-panel">
-          <h2 class="section-title" style="margin-bottom:6px">Promotional Booking QR Generator</h2>
-          <p class="page-subtitle" style="margin-bottom:14px">Creates a premium 1080 × 1350 Facebook-ready booking poster from the Website saved above. The poster keeps the destination hidden while the QR itself opens the official Booking Site.</p>
-          <div class="row wrap"><button class="btn btn-primary" type="button" id="btn-generate-promo-qr">Generate Preview</button><button class="btn btn-outline" type="button" id="btn-download-promo-qr" disabled>Download PNG</button></div>
-          <canvas id="promo-qr-canvas" width="1080" height="1350" style="width:min(100%,540px);margin-top:16px;border-radius:18px;border:1px solid var(--border);display:none"></canvas>
+          <h2 class="section-title">Promotional QR Generator</h2>
+          <p class="page-subtitle">Use the approved landscape artwork with a QR that opens the selected public section.</p>
+          <div class="promo-controls"><div class="field"><label class="label" for="promo-qr-destination">Destination</label><select class="select" id="promo-qr-destination"><option value="booking">Booking Site</option><option value="tournament">Tournament Registration</option><option value="open-play">Open Play Registration</option></select></div><button class="btn btn-primary" type="button" id="btn-generate-promo-qr">Generate Advertisement</button></div>
+          <p id="promo-qr-status" class="muted" role="status" aria-live="polite">Uses your saved public Website and the approved promotional artwork.</p>
+          <div id="promo-qr-result" hidden><canvas id="promo-qr-canvas" width="1672" height="941" aria-label="Landscape promotional advertisement"></canvas><div class="promo-output"><div><strong id="promo-qr-title"></strong><a id="promo-qr-link" target="_blank" rel="noopener"></a></div><div class="promo-downloads"><button class="btn btn-primary" type="button" id="btn-download-promo-qr" disabled>Download Landscape PNG</button><button class="btn btn-outline" type="button" id="btn-copy-promo-link" disabled>Copy Link</button><button class="btn btn-outline" type="button" id="btn-download-qr-only" disabled>Download QR Only</button></div></div></div>
         </section>
-
         <section class="settings-section mt-5" id="set-branding-assets">
           <h2 class="section-title" style="margin-bottom:6px">Branding assets</h2>
           <p class="page-subtitle" style="margin-bottom:16px">Upload an image file or paste a URL. Empty logos use the main logo; the booking hero uses the included court image.</p>
@@ -930,7 +930,10 @@ body.admin-app.role-ready #view-app{visibility:visible}
 <div class="toast-host" id="toasts" role="status" aria-live="polite"></div>
 <div id="modal-root"></div>
 
-<script src="qr-lite.js"></script>
+<script src="qr-lite.js?v=67"></script>
+<script src="qr-decoder.js?v=67"></script>
+<script src="promo-qr.js?v=67"></script>
+<link rel="stylesheet" href="promo-qr.css?v=67" />
 <script src="admin-charts.js?v=28-admin-reference"></script>
 <script>
 /* ================= admin runtime ================= */
@@ -2109,7 +2112,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
     if ((el = e.target.closest('[data-div-team]'))) { addParticipant(el.dataset.divTeam); return; }
 
     if ((el = e.target.closest('[data-div-prizes]'))) { editPrizes(el.dataset.divPrizes); return; }
-    if ((el = e.target.closest('[data-div-winners]'))) { setWinners(el.dataset.divWinners); return; }
+    if ((el = e.target.closest('[data-div-winners]'))) { showWinners(el.dataset.divWinners); return; }
     if ((el = e.target.closest('[data-div-reset]'))) {
       var resetId=el.dataset.divReset;
       modal({title:'Reset this bracket?',confirmText:'Reset bracket',body:'<p>This removes all division matches, scores and assigned winners. Official participants and registrations are kept. Generate a new bracket after editing participants or rules.</p>',onConfirm:function(){return api('/api/admin/divisions/'+resetId+'/bracket',{method:'DELETE'}).then(function(){toast('Bracket reset. Participants retained.','success');openTournament(TRN_OPEN);});}});
@@ -2224,24 +2227,11 @@ body.admin-app.role-ready #view-app{visibility:visible}
     }).catch(function (e) { toast(e.message, 'error'); });
   }
 
-  function setWinners(divisionId) {
-    api('/api/admin/tournaments/' + TRN_OPEN).then(function (d) {
-      var div = divisionById(d, divisionId);
-      var body = (div.prizes || []).map(function (pz) {
-        return '<div class="field"><label class="label">' + esc(pz.label) + ' (' + esc(money(pz.amount)) + ')</label>' +
-          '<select class="select" data-winner="' + pz.place + '">' + teamOptions(div.teams, pz.winner_team_id) + '</select></div>';
-      }).join('');
-      modal({
-        title: 'Winners — ' + div.name, confirmText: 'Save winners', body: body,
-        onConfirm: function (h) {
-          var winners = $$('[data-winner]', h).map(function (sel) {
-            return { place: Number(sel.dataset.winner), team_id: sel.value || null };
-          });
-          return api('/api/admin/divisions/' + divisionId + '/winners', { method: 'POST', body: { winners: winners } })
-            .then(function () { toast('Winners recorded.', 'success'); openTournament(TRN_OPEN); });
-        }
-      });
-    }).catch(function (e) { toast(e.message, 'error'); });
+  function showWinners(divisionId) {
+    api('/api/admin/tournaments/' + TRN_OPEN).then(function(d) {
+      var div=divisionById(d,divisionId);
+      modal({title:'Winners — '+div.name,wide:true,cancelText:'Close',body:window.PikolPremium.winners(div)});
+    }).catch(function(e){toast(e.message,'error');});
   }
 
   function addMatch(divisionId) {
@@ -3687,7 +3677,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
   };
 
   /* ---------- In-Charge PWA push ---------- */
-  var ADMIN_SW_VERSION='65-premium-tournament';
+  var ADMIN_SW_VERSION='67-scorer-campaigns';
   var PUSH_PREP={reg:null,publicKey:null,serverStatus:null,ready:false,error:null,promise:null};
   function b64ToUint8(s){s=String(s||'').replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';var raw=atob(s),a=new Uint8Array(raw.length);for(var i=0;i<raw.length;i++)a[i]=raw.charCodeAt(i);return a;}
   function bytesEqual(a,b){if(!a||!b)return false;var x=new Uint8Array(a),y=new Uint8Array(b);if(x.length!==y.length)return false;for(var i=0;i<x.length;i++)if(x[i]!==y[i])return false;return true;}
@@ -4333,54 +4323,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
   var addStaff=$('#btn-add-staff-user'); if(addStaff)addStaff.onclick=function(){staffUserModal();};
   document.addEventListener('click',function(e){var b=e.target.closest('[data-staff-edit]');if(!b)return;api('/api/admin/staff-users').then(function(rows){var u=(rows||[]).find(function(x){return Number(x.id)===Number(b.dataset.staffEdit);});if(u)staffUserModal(u);});});
 
-  function svgToImage(svg){
-    return new Promise(function(resolve,reject){var img=new Image(),blob=new Blob([svg],{type:'image/svg+xml'}),url=URL.createObjectURL(blob);img.onload=function(){URL.revokeObjectURL(url);resolve(img)};img.onerror=function(){URL.revokeObjectURL(url);reject(new Error('QR render failed'))};img.src=url;});
-  }
-  function normalizeBookingWebsite(raw){
-    raw=String(raw||'').trim();
-    if(!raw)return '';
-    if(!/^https?:\/\//i.test(raw))raw='https://'+raw;
-    try{var u=new URL(raw);if(!/^https?:$/.test(u.protocol))return '';return u.href;}catch(_){return '';}
-  }
-  function loadPosterImage(src){
-    return new Promise(function(resolve,reject){
-      var img=new Image();img.crossOrigin='anonymous';
-      img.onload=function(){resolve(img)};img.onerror=function(){reject(new Error('Image could not be loaded'))};img.src=src;
-    });
-  }
-  function drawCover(ctx,img,w,h){
-    var scale=Math.max(w/img.naturalWidth,h/img.naturalHeight),sw=w/scale,sh=h/scale,sx=(img.naturalWidth-sw)/2,sy=(img.naturalHeight-sh)/2;
-    ctx.drawImage(img,sx,sy,sw,sh,0,0,w,h);
-  }
-  function roundedRect(ctx,x,y,w,h,r){
-    r=Math.min(r,w/2,h/2);ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();
-  }
-  var promoReady=false;
-  var genQr=$('#btn-generate-promo-qr'); if(genQr)genQr.onclick=function(){
-    var website=normalizeBookingWebsite(SETTINGS&&SETTINGS.website);
-    if(!website)return toast('Set a valid official Booking Site URL under Settings → Club → Website first.','error');
-    if(!window.PIKOL_QR)return toast('QR generator is not available.','error');
-    var c=$('#promo-qr-canvas'),ctx=c.getContext('2d'),name=(SETTINGS.facility_name||'PIKOL Pickleball'),tag=(SETTINGS.tagline||'Reserve your court. Play your game.');
-    var bgSrc=(SETTINGS.hero_image_url?assetUrl(SETTINGS.hero_image_url):'assets/booking/hero-court.jpg');
-    var logoSrc=SETTINGS.logo_url?assetUrl(SETTINGS.logo_url):(SETTINGS.app_logo_url?assetUrl(SETTINGS.app_logo_url):'icons/icon-512.png');
-    promoReady=false;$('#btn-download-promo-qr').disabled=true;busy(genQr,true);
-    var bgPromise=loadPosterImage(bgSrc).catch(function(){return loadPosterImage('assets/booking/hero-court.jpg');});
-    var logoPromise=loadPosterImage(logoSrc).catch(function(){return loadPosterImage('icons/icon-512.png');});
-    var qrPromise;
-    try{qrPromise=svgToImage(window.PIKOL_QR.svg(website,620));}catch(e){busy(genQr,false);return toast(e.message||'QR generation failed.','error');}
-    Promise.all([bgPromise,logoPromise,qrPromise]).then(function(all){
-      var bg=all[0],logo=all[1],qr=all[2];ctx.clearRect(0,0,c.width,c.height);drawCover(ctx,bg,1080,1350);
-      var shade=ctx.createLinearGradient(0,0,0,1350);shade.addColorStop(0,'rgba(1,27,23,.80)');shade.addColorStop(.48,'rgba(1,27,23,.48)');shade.addColorStop(1,'rgba(1,27,23,.88)');ctx.fillStyle=shade;ctx.fillRect(0,0,1080,1350);
-      /* Official logo / club identity */
-      ctx.save();roundedRect(ctx,440,54,200,200,100);ctx.clip();ctx.fillStyle='rgba(255,255,255,.98)';ctx.fillRect(440,54,200,200);var ls=Math.min(170/logo.naturalWidth,170/logo.naturalHeight),lw=logo.naturalWidth*ls,lh=logo.naturalHeight*ls;ctx.drawImage(logo,540-lw/2,154-lh/2,lw,lh);ctx.restore();
-      ctx.textAlign='center';ctx.fillStyle='#fff';ctx.shadowColor='rgba(0,0,0,.45)';ctx.shadowBlur=14;ctx.font='800 40px system-ui';ctx.fillText(name,540,305);ctx.font='900 72px system-ui';ctx.fillText('BOOK YOUR COURT',540,385);ctx.font='600 28px system-ui';ctx.fillText(tag,540,430);ctx.shadowBlur=0;
-      /* The QR is kept square, high-contrast, centered and unobstructed. */
-      ctx.fillStyle='rgba(255,255,255,.98)';roundedRect(ctx,180,470,720,720,34);ctx.fill();ctx.drawImage(qr,230,520,620,620);
-      ctx.fillStyle='#bdfc42';ctx.font='900 44px system-ui';ctx.fillText('SCAN TO BOOK',540,1260);ctx.fillStyle='#fff';ctx.font='600 25px system-ui';ctx.fillText('Choose your court • Pick your time • Play',540,1305);
-      c.style.display='block';promoReady=true;$('#btn-download-promo-qr').disabled=false;toast('Promotional QR is ready. Scan it before posting to confirm the destination.','success');
-    }).catch(function(e){toast(e.message||'Poster generation failed.','error');}).finally(function(){busy(genQr,false);});
-  };
-  var dlQr=$('#btn-download-promo-qr'); if(dlQr)dlQr.onclick=function(){if(!promoReady)return;try{var a=document.createElement('a');a.download='PIKOL-BOOKING-QR-1080x1350.png';a.href=$('#promo-qr-canvas').toDataURL('image/png');a.click();}catch(e){toast('The poster could not be exported. Re-upload the logo/background through Branding Assets, then generate again.','error');}};
+  window.PikolPromo.init({getSettings:function(){return SETTINGS||{};},assetUrl:assetUrl,toast:toast});
 
   $('#form-adminpw').addEventListener('submit', function (e) {
     e.preventDefault();
@@ -4673,7 +4616,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
     var pushParams=new URLSearchParams(location.search),pushPage=pushParams.get('push_page');
     var landing=(pushPage&&LOADERS[pushPage]&&roleAllows(pushPage))?pushPage:roleHomePage();
     var directoryReady=isAdmin()?loadPlayerDirectory():Promise.resolve([]);
-    directoryReady.catch(function(){return [];}).finally(function(){goto(landing);});
+    directoryReady.catch(function(){return [];}).finally(function(){goto(landing);var tournamentId=Number(pushParams.get('tournament')||0);if(tournamentId&&roleAllows('tournaments')){goto('tournaments');openTournament(tournamentId);}});
     var pushRef=pushParams.get('push_ref_id'),pushType=pushParams.get('push_ref_type');
     if(pushRef&&pushType==='booking')setTimeout(function(){var x=document.querySelector('[data-detail="'+CSS.escape(String(pushRef))+'"]');if(x)x.click();},900);
     applyAdminOperationalSettingsUI();
@@ -4697,7 +4640,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
 
 <script>
 /* PIKOL_PWA_INSTALL_RUNTIME */
-(function(){'use strict';var btn=document.getElementById('pwa-install-admin'),deferredPrompt=null,KEY='pikol_admin_installed_v3';function ios(){return /iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);}function standalone(){return window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true;}function marked(){return localStorage.getItem(KEY)==='1';}function setMarked(v){if(v)localStorage.setItem(KEY,'1');else localStorage.removeItem(KEY);}function showIosGuide(){var g=document.getElementById('ios-pwa-guide');if(g)g.hidden=false;if(typeof toast==='function')toast('iPhone: Safari → Share → Add to Home Screen. Then open PIKOL Admin from the Home Screen icon.','error');}function sync(){if(!btn)return;if(standalone()){setMarked(true);btn.hidden=true;return;}if(ios()){btn.hidden=false;btn.textContent='Install Admin App on iPhone';return;}btn.textContent='Install Admin App';btn.hidden=!deferredPrompt||marked();}window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();deferredPrompt=e;if(!standalone())setMarked(false);sync();});window.addEventListener('appinstalled',function(){setMarked(true);deferredPrompt=null;sync();});window.addEventListener('pageshow',sync);document.addEventListener('visibilitychange',function(){if(!document.hidden)sync();});if(btn)btn.addEventListener('click',async function(){if(ios()){showIosGuide();return;}if(!deferredPrompt)return;btn.disabled=true;try{await deferredPrompt.prompt();var c=await deferredPrompt.userChoice;if(c&&c.outcome==='accepted')setMarked(true);}catch(_){}deferredPrompt=null;btn.disabled=false;sync();});if('serviceWorker' in navigator)window.addEventListener('load',function(){navigator.serviceWorker.register('service-worker.js?v=66-premium-tournament',{scope:'./',updateViaCache:'none'}).then(function(reg){return reg.update();}).catch(function(){});});sync();})();
+(function(){'use strict';var btn=document.getElementById('pwa-install-admin'),deferredPrompt=null,KEY='pikol_admin_installed_v3';function ios(){return /iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);}function standalone(){return window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true;}function marked(){return localStorage.getItem(KEY)==='1';}function setMarked(v){if(v)localStorage.setItem(KEY,'1');else localStorage.removeItem(KEY);}function showIosGuide(){var g=document.getElementById('ios-pwa-guide');if(g)g.hidden=false;if(typeof toast==='function')toast('iPhone: Safari → Share → Add to Home Screen. Then open PIKOL Admin from the Home Screen icon.','error');}function sync(){if(!btn)return;if(standalone()){setMarked(true);btn.hidden=true;return;}if(ios()){btn.hidden=false;btn.textContent='Install Admin App on iPhone';return;}btn.textContent='Install Admin App';btn.hidden=!deferredPrompt||marked();}window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();deferredPrompt=e;if(!standalone())setMarked(false);sync();});window.addEventListener('appinstalled',function(){setMarked(true);deferredPrompt=null;sync();});window.addEventListener('pageshow',sync);document.addEventListener('visibilitychange',function(){if(!document.hidden)sync();});if(btn)btn.addEventListener('click',async function(){if(ios()){showIosGuide();return;}if(!deferredPrompt)return;btn.disabled=true;try{await deferredPrompt.prompt();var c=await deferredPrompt.userChoice;if(c&&c.outcome==='accepted')setMarked(true);}catch(_){}deferredPrompt=null;btn.disabled=false;sync();});if('serviceWorker' in navigator)window.addEventListener('load',function(){navigator.serviceWorker.register('service-worker.js?v=67-scorer-campaigns',{scope:'./',updateViaCache:'none'}).then(function(reg){return reg.update();}).catch(function(){});});sync();})();
 </script>
 
 </body>

@@ -277,8 +277,8 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
 </style>
 
 <link rel="stylesheet" href="client-upgrades.css?v=56-android-native-scroll">
-<link rel="stylesheet" href="tournament-premium.css?v=66" />
-<script src="tournament-premium.js?v=66"></script>
+<link rel="stylesheet" href="tournament-premium.css?v=67" />
+<script src="tournament-premium.js?v=67"></script>
 </head>
 <body class="player-app">
 
@@ -3388,6 +3388,17 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
      background-tab throttling and a dropped event without requiring refresh. */
   setInterval(function(){ if(TOKEN && !document.hidden){ loadNotifications({preview:true}); loadPikolCredit(); } }, 30000);
 
+  // URL state restores public destinations on refresh and in an installed PWA.
+  function resolvePublicDestination() {
+    var p=new URLSearchParams(location.search),view=p.get('view'),tab=p.get('tab');
+    if(!view)return;
+    if(view==='booking'){goto('book');return;}
+    if(view==='events'){EV_SUB=tab==='open-play'?'openplay':'tournaments';goto('tournaments');return;}
+    goto('dashboard');
+  }
+  window.addEventListener('popstate',resolvePublicDestination);
+  resolvePublicDestination();
+
   renderDow();
   renderCalendar();
   updateAccountPresentation();
@@ -3422,7 +3433,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
   window.addEventListener('appinstalled',function(){setMarked(true);deferredPrompt=null;sync();});
   window.addEventListener('pageshow',sync);document.addEventListener('visibilitychange',function(){if(!document.hidden)sync();});
   if(btn)btn.addEventListener('click',async function(){if(!deferredPrompt)return;btn.disabled=true;try{await deferredPrompt.prompt();var c=await deferredPrompt.userChoice;if(c&&c.outcome==='accepted')setMarked(true);}catch(_){}deferredPrompt=null;btn.disabled=false;sync();});
-  if('serviceWorker' in navigator)window.addEventListener('load',function(){navigator.serviceWorker.register('service-worker.js?v=66-premium-tournament',{scope:'./',updateViaCache:'none'}).then(function(reg){return reg.update();}).catch(function(){});});
+  if('serviceWorker' in navigator)window.addEventListener('load',function(){navigator.serviceWorker.register('service-worker.js?v=67-scorer-campaigns',{scope:'./',updateViaCache:'none'}).then(function(reg){return reg.update();}).catch(function(){});});
   sync();
 })();
 </script>

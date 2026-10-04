@@ -19,5 +19,23 @@
  function bind(c){q('#sc-brand').addEventListener('error',function(){if(!this.dataset.failed){this.dataset.failed='1';this.src='icons/icon-192.png';}});fetch((root.PIKOL_API_BASE||'')+'/api/branding').then(r=>r.json()).then(b=>{const logo=P.asset(b.app_logo_url||b.logo_url);if(logo)q('#sc-brand').src=logo;q('#sc-brand').alt=b.facility_name||'PIKOL';}).catch(()=>{});const url=new URL('scoring.html',location.href);url.search='?match='+encodeURIComponent(c.matchId)+'&display=1';q('#sc-public-link').href=url.href;q('#sc-share').onclick=async()=>{try{await navigator.clipboard.writeText(url.href);c.toast('Public scoreboard link copied.');}catch(_){prompt('Copy public scoreboard link',url.href);}};q('#sc-fullscreen').onclick=async()=>{try{if(document.fullscreenElement)await document.exitFullscreen();else await document.documentElement.requestFullscreen();}catch(_){c.toast('Fullscreen is not supported on this device.');}};
  ['info','queue'].forEach(name=>q('#sc-'+name+'-tab').onclick=()=>{document.querySelector('.score-side').classList.toggle('sc-queue-only',name==='queue');['info','queue'].forEach(v=>{q('#sc-'+v+'-tab').classList.toggle('is-active',name===v);q('#sc-'+v+'-tab').setAttribute('aria-pressed',String(name===v));});});
  }
- root.PikolScoring={render,bind};
+ function assigned(rows,today){
+   today=today||new Date().toLocaleDateString('en-CA');
+   const groups=[['live','Live now'],['today','Today'],['upcoming','Upcoming'],['completed','Completed']],buckets={live:[],today:[],upcoming:[],completed:[]};
+   rows.forEach(m=>buckets[m.status==='completed'?'completed':m.status==='live'?'live':m.scheduled_date&&m.scheduled_date<=today?'today':'upcoming'].push(m));
+   q('#assigned-summary').innerHTML=groups.map(([key,title])=>`<div><strong>${buckets[key].length}</strong><span>${title}</span></div>`).join('');
+   q('#assigned-list').innerHTML=rows.length?groups.filter(([key])=>buckets[key].length).map(([key,title])=>`<section class="sc-assigned-group"><h3>${title} <span>${buckets[key].length}</span></h3><div class="sc-assigned-grid">${buckets[key].map(m=>`<article class="sc-assigned-card"><header><span>${E(m.tournament_name)}</span>${P.badge(m.status)}</header><h4>${E(m.division_name)}</h4><p class="sc-round">${E(P.label(m.round))} · Match ${m.match_number||m.id}</p><div class="sc-assigned-teams">${['a','b'].map(side=>{const team=m['team_'+side];return `<div>${team?.banner_url?P.picture(team.banner_url,team.name+' banner','sc-assigned-banner'):''}${P.people(team)}<strong>${E(team?.name||m['team_'+side+'_name']||'Awaiting qualifier')}</strong><small>${E((team?.members||[]).map(p=>p.display_name||p.full_name).join(' / '))}</small></div>`;}).join('<span class="sc-vs">vs</span>')}</div><p class="sc-assigned-meta">${P.icon('calendar')}${m.scheduled_date?P.date(m.scheduled_date):'Date TBA'} · ${m.scheduled_time?P.time(m.scheduled_time):'Time TBA'}<br>${P.icon('pin')}${E(m.court_name||'Court TBA')}</p><button class="btn btn-primary" data-open-match="${m.id}">${m.status==='completed'?'View Result':'Open Scoring'} →</button></article>`).join('')}</div></section>`).join(''):'<div class="sc-assigned-empty"><h3>No assigned matches yet</h3><p>Your matches appear here automatically after the administrator runs Auto Schedule.</p></div>';
+ }
+ function installApp(){
+   let pending=null;const button=q('#sc-install'),help=q('#sc-install-help');
+   const installed=()=>matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
+   function sync(){button.hidden=installed();}
+   window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();pending=e;sync();});
+   window.addEventListener('appinstalled',()=>{pending=null;button.hidden=true;help.hidden=true;});
+   button.onclick=async()=>{if(pending){await pending.prompt();await pending.userChoice;pending=null;}else{help.hidden=!help.hidden;help.textContent=(/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1))?'In Safari, open Share → Add to Home Screen to install PIKOL Scorer. On iPad, use the Share button in the toolbar.':'Use your browser’s Install App or Add to Home Screen command. HTTPS and a supported browser are required.';}};
+   window.addEventListener('pageshow',sync);sync();
+   if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('service-worker.js?v=67-scorer-campaigns',{scope:'./',updateViaCache:'none'}).then(reg=>reg.update()).catch(()=>{}));
+ }
+ window.addEventListener('DOMContentLoaded',installApp);
+ root.PikolScoring={render,bind,assigned};
 })(window);
