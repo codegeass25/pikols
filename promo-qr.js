@@ -2,6 +2,7 @@
 (function(root){
   'use strict';
   const base='assets/promo-qr/';
+  const ARTWORK_REV='77-wenjelly-logo-20261009';
   // Native 1672 x 941. Dark/antialiased sample matrix bounds were measured per master:
   // tournament [1116,175,1530,594], open-play [1188,303,1558,662], booking [1159,125,1584,552].
   // official-website [1114,172,1532,592], measured from its separately supplied native master.
@@ -40,7 +41,7 @@
   function resized(canvas,width){const out=document.createElement('canvas');out.width=width;out.height=width;const c=out.getContext('2d');c.imageSmoothingEnabled=true;c.imageSmoothingQuality='high';c.drawImage(canvas,0,0,width,width);return out;}
   async function composite(canvas,type,url,stillCurrent){
     const d=templates[type];if(!root.PIKOL_QR?.canvas||!root.jsQR)throw new Error('The QR generator could not load. Refresh the app and try again.');
-    const [master,logo]=await Promise.all([loadImage(base+d.file+'-master.png'),loadImage(base+d.file+'-qr-logo.png')]);
+    const [master,logo]=await Promise.all([loadImage(base+d.file+'-master.png?v='+ARTWORK_REV),loadImage(base+d.file+'-qr-logo.png?v='+ARTWORK_REV)]);
     if(master.naturalWidth!==1672||master.naturalHeight!==941)throw new Error('The approved master dimensions changed. Restore the supplied artwork.');
     const qr=document.createElement('canvas');qr.width=qr.height=d.size;let metadata=null,width=d.logoWidth;
     // Try the measured sample size first, then reduce only the center emblem one pixel at a time.
