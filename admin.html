@@ -5,17 +5,17 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <meta name="robots" content="noindex" />
 <title>Admin — Court Booking</title>
-<link rel="icon" id="favicon" href="data:," />
+<link rel="icon" id="favicon" href="icons/wenjelly-v73-192.png" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
-<link rel="manifest" href="admin-manifest.json?v=17-ios-push" />
+<link rel="manifest" href="admin-manifest.json?v=73" />
 <meta name="theme-color" content="#0f3d32" />
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="default" />
 <meta name="apple-mobile-web-app-title" content="PIKOL Admin" />
-<link rel="apple-touch-icon" href="icons/icon-192.png" />
+<link rel="apple-touch-icon" href="icons/wenjelly-v73-apple.png" />
 <script src="config.js"></script>
 <script src="tournament-view.js"></script>
 <link rel="stylesheet" href="styles.css" />
@@ -31,7 +31,7 @@
 .admin-app .promo-image-actions .btn{white-space:normal}
 @media(max-width:620px){.admin-app .asset-card.booking-hero-asset{grid-template-columns:minmax(0,1fr)}.admin-app .booking-hero-asset .asset-preview{grid-column:1;grid-row:auto}.admin-app .booking-hero-asset .card-title,.admin-app .booking-hero-asset>p,.admin-app .booking-hero-asset>.input,.admin-app .booking-hero-asset>.row,.admin-app .booking-hero-asset .promo-preview-note{grid-column:1}.admin-app .court-promo-preview{max-height:250px}}
 </style>
-<link rel="stylesheet" href="admin-premium.css?v=33-bookings-schedule-groups" />
+<link rel="stylesheet" href="admin-premium.css?v=73-venue-admin" />
 
 <style id="pikol-role-ui-v33">
 .role-hidden{display:none !important}
@@ -137,7 +137,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
   <aside class="sidebar" aria-label="Admin navigation">
     <div class="admin-sidebar-art" aria-hidden="true"><img src="assets/booking/community.jpg" alt="" /><span>GOOD<br>PLAYERS<br>BRIGHTER<br>DAYS</span></div>
     <div class="brand sidebar-brand">
-      <div class="brand-logo" id="app-logo"><img src="icons/icon-192.png" alt="Club logo" /></div>
+      <div class="brand-logo" id="app-logo"><img src="icons/wenjelly-v73-192.png" alt="Club logo" /></div>
       <div class="brand-text"><strong class="sidebar-product">PIKOL</strong><span class="brand-tagline">Admin Console</span><div class="brand-name" id="app-name">WenJelly Pickleball Zone</div></div>
     </div>
     <nav class="nav" id="nav">
@@ -281,7 +281,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
         <div class="section-shell">
           <div class="card-header">
             <div><h2 class="section-title">Daily schedule</h2><p class="page-subtitle">View and manage the court schedule for your club.</p></div>
-            <div class="row">
+            <div class="row wrap venue-admin-toolbar"><label for="cal-venue" class="tiny muted">Venue</label><select class="select" id="cal-venue" aria-label="Filter calendar by venue"><option value="">All venues</option></select>
               <button class="btn btn-outline btn-sm" id="cal-prev-day" aria-label="Previous day">‹</button>
               <span class="mobile-date-field calendar-date-field">
                 <input class="input" id="cal-date" aria-label="Schedule date" type="date" style="min-width:170px" />
@@ -297,7 +297,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
             <span><strong class="st-blocked">⛔</strong> Blocked</span>
             <span><strong class="st-inactive">⏸</strong> Inactive</span>
           </div>
-          <div class="grid cols-3" id="calendar-courts"></div>
+          <div class="venue-calendar-groups" id="calendar-courts"></div>
         </div>
       </section>
 
@@ -355,8 +355,10 @@ body.admin-app.role-ready #view-app{visibility:visible}
         <div class="grid" style="grid-template-columns:minmax(280px,340px) minmax(0,1fr)">
           <form class="form-section operation-form" id="form-block">
             <h2 class="section-title" style="margin-bottom:16px">Block a schedule</h2>
+            <div class="field"><label class="label" for="bl-venue">Venue</label>
+              <select class="select" id="bl-venue" required><option value="">Choose venue</option></select></div>
             <div class="field"><label class="label" for="bl-court">Court</label>
-              <select class="select" id="bl-court"><option value="">All courts</option></select></div>
+              <select class="select" id="bl-court" disabled><option value="">Choose venue first</option></select><p class="tiny muted">All courts applies ONLY to the selected venue.</p></div>
             <div class="field"><label class="label" for="bl-date">Date</label>
               <input class="input" id="bl-date" type="date" required /></div>
             <div class="grid cols-2" style="gap:0 12px">
@@ -375,7 +377,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
           <section class="section-shell">
             <div class="section-head"><h2 class="section-title">Blocked periods</h2></div>
             <div class="table-wrap"><table class="data" data-mobile-cards="true">
-              <thead><tr><th>Date</th><th>Court</th><th>Time</th><th>Reason</th><th>Notes</th><th></th></tr></thead>
+              <thead><tr><th>Date</th><th>Venue</th><th>Court</th><th>Time</th><th>Reason</th><th>Notes</th><th></th></tr></thead>
               <tbody id="blocks-body"></tbody>
             </table></div>
           </section>
@@ -951,7 +953,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
      once so an old Admin token cannot survive browser/PWA restarts. */
   try { localStorage.removeItem('pb_admin_token'); } catch (_) {}
   var TOKEN = sessionStorage.getItem('pb_admin_token') || '';
-  var USER = null, BRAND = {}, SETTINGS = {}, COURTS = [], PLAYERS = [], PLAYER_DIRECTORY = [], BOOKINGS = [];
+  var USER = null, BRAND = {}, SETTINGS = {}, COURTS = [], VENUES = [], PLAYERS = [], PLAYER_DIRECTORY = [], BOOKINGS = [];
 
   var $ = function (s, r) { return (r || document).querySelector(s); };
   var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
@@ -1069,7 +1071,12 @@ body.admin-app.role-ready #view-app{visibility:visible}
         .catch(function (e) { toast(e.message, 'error'); })
         .finally(function () { busy(cb, false); });
     };
-    if($('#tf-date',host))wireEventRange(host,'tf','tournament',Number($('[data-tournament-form-id]',host).dataset.tournamentFormId)||null);
+    if($('#tf-date',host)){
+      var anchor=$('[data-tournament-form-id]',host);
+      var event={venue_id:Number(anchor.dataset.selectedVenue||0),court_ids:JSON.parse(anchor.dataset.selectedCourts||'[]')};
+      wireEventVenue(host,'tf',event);
+      wireEventRange(host,'tf','tournament',Number(anchor.dataset.tournamentFormId)||null);
+    }
     return host;
   }
 
@@ -1391,7 +1398,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
     var bootLogo = b.boot_logo_url || b.logo_url || '';
     [['#hero-logo', b.logo_url || appLogo], ['#app-logo', appLogo]].forEach(function (pair) {
       var el = $(pair[0]); if (!el) return;
-      el.innerHTML = pair[1] ? '<img src="' + esc(assetUrl(pair[1])) + '" alt="' + esc(name) + ' logo" />' : (pair[0] === '#app-logo' ? '<img src="icons/icon-192.png" alt="Club logo" />' : esc(initials));
+      el.innerHTML = pair[1] ? '<img src="' + esc(assetUrl(pair[1])) + '" alt="' + esc(name) + ' logo" />' : (pair[0] === '#app-logo' ? '<img src="icons/wenjelly-v73-192.png" alt="Club logo" />' : esc(initials));
     });
     var bl = $('#boot-logo');
     if (bl) bl.innerHTML = bootLogo ? '<img src="' + esc(assetUrl(bootLogo)) + '" alt="' + esc(name) + ' logo" />' : esc(initials);
@@ -1793,12 +1800,54 @@ body.admin-app.role-ready #view-app{visibility:visible}
   }
 
   function selectedCourts(host,id){return $$('[type="checkbox"]:checked',$('#'+id,host)).map(function(el){return Number(el.value);});}
-  function multiCourtField(id,event){var selected=event.court_ids||(event.court_id?[event.court_id]:[]);return '<div class="field"><span class="label">Venue Courts</span><div class="court-checks" id="'+id+'">'+COURTS.map(function(c){return '<label><input type="checkbox" value="'+c.id+'"'+(selected.includes(c.id)?' checked':'')+(c.status==='active'?'':' disabled')+'>'+esc(c.name)+'</label>';}).join('')+'</div></div>';}
+  function eventVenueId(event){
+    var ids=event.court_ids||(event.court_id?[event.court_id]:[]);
+    var venues=[...new Set(ids.map(function(id){var c=COURTS.find(function(x){return x.id===Number(id);});return c&&Number(c.venue_id);}).filter(Boolean))];
+    return Number(event.venue_id||0)||(venues.length===1?venues[0]:0);
+  }
+  function multiCourtField(id,event){
+    event=event||{};var sel=eventVenueId(event),prefix=id.split('-')[0];
+    return '<div class="event-venue-select field"><label class="label" for="'+prefix+'-venue">1. Select Venue *</label><select class="select" id="'+prefix+'-venue" required><option value="">Choose venue</option>'+VENUES.filter(function(v){return v.status==='active';}).map(function(v){return '<option value="'+v.id+'"'+(Number(v.id)===sel?' selected':'')+'>'+esc(v.name)+'</option>';}).join('')+'</select></div>'+
+      '<div class="field"><div class="spread"><label class="label">2. Courts at selected venue *</label><button class="btn btn-ghost btn-sm" type="button" data-select-all-courts="'+id+'">Select all</button></div><div class="court-checks venue-court-checks" id="'+id+'"></div><div class="tiny muted">Only courts at the selected venue can be reserved.</div></div>';
+  }
+  function wireEventVenue(host,prefix,event){
+    var sel=$('#'+prefix+'-venue',host),checks=$('#'+prefix+'-court',host),initial=event&&event.court_ids||(event&&event.court_id?[event.court_id]:[]);
+    function render(keep){
+      var current=keep?selectedCourts(host,prefix+'-court'):initial;
+      var allowed=COURTS.filter(function(c){return String(c.venue_id)===sel.value&&(c.status==='active'||current.includes(c.id));});
+      checks.innerHTML=allowed.length?allowed.map(function(c){return '<label><input type="checkbox" value="'+c.id+'"'+(current.includes(c.id)?' checked':'')+(c.status==='active'?'':' disabled')+'>'+esc(c.name)+'</label>';}).join(''):'<p class="tiny muted">Choose a venue to see its courts.</p>';
+      checks.dispatchEvent(new Event('change',{bubbles:true}));
+    }
+    if(!sel)return;
+    render(false);
+    sel.addEventListener('change',function(){initial=[];render(false);});
+    var all=host.querySelector('[data-select-all-courts="'+prefix+'-court"]');
+    if(all)all.onclick=function(){checks.querySelectorAll('input:not(:disabled)').forEach(function(input){input.checked=true;});checks.dispatchEvent(new Event('change',{bubbles:true}));};
+  }
   function asTimeSelect(input){var value=input.value,select=document.createElement('select');select.id=input.id;select.className='select';select.innerHTML='<option value="'+value+'"></option>';input.replaceWith(select);return select;}
   function wireEventRange(host,prefix,type,id){
     var date=$('#'+prefix+'-date',host),until=$('#'+prefix+'-date-to',host),courts=$('#'+prefix+'-court',host),start=asTimeSelect($('#'+prefix+'-start',host)),end=asTimeSelect($('#'+prefix+'-end',host)),box=$('#'+prefix+'-availability',host);
     if(!box){box=document.createElement('div');box.id=prefix+'-availability';date.closest('.grid').after(box);}
     return PikolAvailability.bind({start:start,end:end,box:box,label:humanTime,courts:function(){return selectedCourts(host,prefix+'-court');},watch:[date,courts].concat(until?[until]:[]),load:function(){if(!date.value||!selectedCourts(host,prefix+'-court').length)return Promise.resolve({courts:[]});return api('/api/admin/availability?date='+date.value+(until&&until.value?'&date_to='+until.value:'')+(id?'&event_type='+type+'&event_id='+id:''));}});
+  }
+  function venueCourtMoveFields(prefix,booking){
+    var court=COURTS.find(function(c){return Number(c.id)===Number(booking.court_id);});
+    var current=Number(court&&court.venue_id||booking.venue_id||0);
+    return '<div class="field"><label class="label" for="'+prefix+'-venue">Venue</label><select class="select" id="'+prefix+'-venue">'+VENUES.map(function(v){return '<option value="'+v.id+'"'+(v.id===current?' selected':'')+'>'+esc(v.name)+'</option>';}).join('')+'</select></div>'+
+      '<div class="field"><label class="label" for="'+prefix+'-court">Court</label><select class="select" id="'+prefix+'-court"></select></div>';
+  }
+  function wireMoveCourtVenue(host,prefix,booking){
+    var venue=$('#'+prefix+'-venue',host),court=$('#'+prefix+'-court',host);
+    if(!venue||!court)return;
+    function update(keep){
+      var id=keep?Number(court.value):Number(booking.court_id);
+      var rows=COURTS.filter(function(c){return c.status==='active' && String(c.venue_id)===venue.value;});
+      court.innerHTML=rows.map(function(c){return '<option value="'+c.id+'"'+(c.id===id?' selected':'')+'>'+esc(c.name)+'</option>';}).join('');
+      court.disabled=!rows.length;
+      court.dispatchEvent(new Event('change',{bubbles:true}));
+    }
+    update(false);
+    venue.onchange=function(){update(false);};
   }
   function wireBookingMove(host,prefix,booking){
     var date=$('#'+prefix+'-date',host),court=$('#'+prefix+'-court',host),start=asTimeSelect($('#'+prefix+'-time',host)),end=document.createElement('select'),field=document.createElement('div');end.className='select';end.id=prefix+'-end';field.className='field';field.innerHTML='<label class="label">End time · original duration</label>';field.appendChild(end);start.closest('.field').after(field);
@@ -1807,7 +1856,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
   }
   function tournamentForm(t) {
     t = t || {};
-    return '<div data-tournament-form-id="'+(t.id||'')+'"></div><div class="grid cols-2" style="gap:0 12px">' +
+    return '<div data-tournament-form-id="'+(t.id||'')+'" data-selected-venue="'+eventVenueId(t)+'" data-selected-courts="'+esc(JSON.stringify(t.court_ids|| (t.court_id?[t.court_id]:[])))+'"></div><div class="grid cols-2" style="gap:0 12px">' +
       '<div class="field"><label class="label" for="tf-name">Name</label><input class="input" id="tf-name" maxlength="120" value="' + esc(t.name || '') + '" /></div>' +
       multiCourtField('tf-court', t) +
       '<div class="field"><label class="label" for="tf-date">Date from</label><input class="input" id="tf-date" type="date" value="' + esc(t.tournament_date || '') + '" /></div>' +
@@ -1828,7 +1877,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
   }
   function readTournament(h) {
     return {
-      name: $('#tf-name', h).value.trim(), court_ids: selectedCourts(h,'tf-court'),
+      name: $('#tf-name', h).value.trim(), venue_id:Number($('#tf-venue',h).value), court_ids: selectedCourts(h,'tf-court'),
       date_from: $('#tf-date', h).value,
       date_to: $('#tf-date-to', h).value || $('#tf-date', h).value,
       poster_url: $('#tf-poster', h).value.trim(),
@@ -1841,18 +1890,21 @@ body.admin-app.role-ready #view-app{visibility:visible}
   }
 
   $('#btn-new-tournament').onclick = function () {
-    if (!COURTS.length) { return api('/api/courts').then(function (rows) { COURTS = rows || []; if (!COURTS.length) { toast('Add a court before creating a tournament.', 'error'); goto('courts'); return; } $('#btn-new-tournament').onclick(); }).catch(function (e) { toast(e.message, 'error'); }); }
-    modal({
+    return Promise.all([api('/api/courts'),loadVenueOptions()]).then(function(result){COURTS=result[0]||[];
+    if(!COURTS.length){toast('Add a court before creating a tournament.','error');return;}
+    var host=modal({
       title: 'New tournament', wide: true, confirmText: 'Create tournament', body: tournamentForm(),
       onConfirm: function (h) {
         var body = readTournament(h);
         if (body.name.length < 2) return Promise.reject(new Error('Tournament name is required.'));
+        if(!body.venue_id||!body.court_ids.length)return Promise.reject(new Error('Select a venue and its courts.'));
         return api('/api/admin/tournaments', { method: 'POST', body: body }).then(function (t) {
           toast('Tournament created.', 'success');
           TRN_OPEN = t.id; loadTournaments();
         });
       }
     });
+    }).catch(function(e){toast(e.message,'error');});
   };
 
   $('#btn-manage-scorers').onclick = function () {
@@ -1884,7 +1936,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
   });
   function openTournament(id) {
     TRN_OPEN = id;
-    return Promise.all([api('/api/admin/tournaments/' + id), api('/api/admin/scorers').catch(function(){ return []; }), api('/api/courts')]).then(function (r) {
+    return Promise.all([api('/api/admin/tournaments/' + id), api('/api/admin/scorers').catch(function(){ return []; }), api('/api/courts'),loadVenueOptions()]).then(function (r) {
       if (String(TRN_OPEN) !== String(id)) return;
       var d = r[0]; TOURNAMENT_CURRENT=d; SCORERS = r[1] || []; COURTS = r[2] || [];TOURNAMENT_COURT_IDS=d.tournament.court_ids||[];
       $('#trn-list-view').classList.add('hidden');
@@ -2074,7 +2126,8 @@ body.admin-app.role-ready #view-app{visibility:visible}
     if ((el = e.target.closest('[data-trn-open]')) && (!e.target.closest('button,a,input,select') || e.target.closest('button,a')===el)) { openTournament(el.dataset.trnOpen); return; }
     if ((el = e.target.closest('[data-trn-edit]'))) {
       var tid = el.dataset.trnEdit;
-      api('/api/admin/tournaments/' + tid).then(function (d) {
+      Promise.all([api('/api/admin/tournaments/' + tid),api('/api/courts'),loadVenueOptions()]).then(function (r) {
+        var d=r[0];COURTS=r[1]||[];
         modal({
           title: 'Edit tournament', wide: true, confirmText: 'Save changes', body: tournamentForm(d.tournament),
           onConfirm: function (h) {
@@ -2512,7 +2565,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
     return '<tr><td colspan="9"><div class="empty"><strong>' + esc(title) + '</strong>' + esc(detail) + '</div></td></tr>';
   }
 
-  function fillVenueFilters(){return api('/api/admin/venues?include_retired=1').then(function(vs){['bk-venue','rp-venue'].forEach(function(id){var el=document.getElementById(id),value=el.value;el.innerHTML='<option value="">All venues</option>'+vs.map(v=>'<option value="'+v.id+'">'+esc(v.name)+(v.deleted_at?' · retired':'')+'</option>').join('');el.value=value;});});}
+  function fillVenueFilters(){return api('/api/admin/venues?include_retired=1').then(function(vs){VENUES=vs.filter(function(v){return !v.deleted_at&&v.status!=='archived';});['bk-venue','rp-venue'].forEach(function(id){var el=document.getElementById(id),value=el.value;el.innerHTML='<option value="">All venues</option>'+vs.map(v=>'<option value="'+v.id+'">'+esc(v.name)+(v.deleted_at?' · retired':'')+'</option>').join('');el.value=value;});});}
   function loadBookings() {
     if($('#bk-venue').options.length===1)fillVenueFilters().catch(function(){});
     var p = new URLSearchParams();
@@ -2554,9 +2607,10 @@ body.admin-app.role-ready #view-app{visibility:visible}
         '<div class="alert alert-warning"><strong>No cash refund.</strong> Choose how Management will make the affected player whole.</div>'+ 
         '<div class="field"><label class="label" for="vc-reason">Reason</label><textarea class="textarea" id="vc-reason" maxlength="300" placeholder="e.g. unsafe court condition, maintenance, emergency closure"></textarea></div>'+ 
         '<div class="field"><label class="label" for="vc-resolution">Resolution</label><select class="select" id="vc-resolution">'+(bk.group_id?'':'<option value="rebook">Rebook Player</option>')+'<option value="credit">Issue PIKOL Credit</option></select></div>'+ 
-        '<div id="vc-rebook"><div class="field"><label class="label" for="vc-court">New court</label><select class="select" id="vc-court">'+COURTS.filter(function(c){return c.status==='active';}).map(function(c){return '<option value="'+c.id+'"'+(c.id===bk.court_id?' selected':'')+'>'+esc(c.name)+'</option>';}).join('')+'</select></div>'+ 
+        '<div id="vc-rebook">'+venueCourtMoveFields('vc',bk)+ 
         '<div class="grid cols-2"><div class="field"><label class="label" for="vc-date">New date</label><input class="input" id="vc-date" type="date" value="'+esc(bk.booking_date)+'"></div><div class="field"><label class="label" for="vc-time">New start time</label><input class="input" id="vc-time" type="time" step="900" value="'+esc(bk.start_time)+'"></div></div><p class="tiny muted">The original booking duration is preserved and the new schedule is clash-checked.</p></div>',
         onConfirm:function(h){var reason=$('#vc-reason',h).value.trim(),resolution=$('#vc-resolution',h).value;if(reason.length<3)return Promise.reject(new Error('Enter the venue cancellation reason.'));var body={reason:reason,resolution:resolution};if(resolution==='rebook'){body.court_id=Number($('#vc-court',h).value);body.date=$('#vc-date',h).value;body.start_time=$('#vc-time',h).value;}return api('/api/admin/bookings/'+bk.id+'/venue-cancel',{method:'POST',body:body}).then(function(out){toast(resolution==='credit'?('Venue cancellation saved. '+money(out.credit_issued||0)+' PIKOL Credit issued.'):'Player rebooked successfully.','success');loadBookings();loadDashboard();if(!$('#page-payments').classList.contains('hidden'))loadPayments();});}});
+      wireMoveCourtVenue(host,'vc',bk);
       wireBookingMove(host,'vc',bk);
       function syncVc(){var credit=$('#vc-resolution',host).value==='credit';$('#vc-rebook',host).classList.toggle('hidden',credit);}
       $('#vc-resolution',host).onchange=syncVc;syncVc();return;
@@ -2596,9 +2650,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
       var bk = BOOKINGS.filter(function (x) { return x.id === Number(rs.dataset.resched); })[0];
       var moveHost=modal({
         title: 'Reschedule ' + bk.reference, locked: true,
-        body: '<div class="field"><label class="label" for="rs-court">Court</label><select class="select" id="rs-court">' +
-          COURTS.map(function (c) { return '<option value="' + c.id + '"' + (c.id === bk.court_id ? ' selected' : '') + '>' + esc(c.name) + '</option>'; }).join('') +
-          '</select></div><div class="field"><label class="label" for="rs-date">Date</label>' +
+        body: venueCourtMoveFields('rs',bk) + '<div class="field"><label class="label" for="rs-date">Date</label>' +
           '<input class="input" id="rs-date" type="date" value="' + esc(bk.booking_date) + '" /></div>' +
           '<div class="field"><label class="label" for="rs-time">Start time</label>' +
           '<input class="input" id="rs-time" type="time" step="900" value="' + esc(bk.start_time) + '" /></div>'+ 
@@ -2611,12 +2663,37 @@ body.admin-app.role-ready #view-app{visibility:visible}
           }).then(function () { toast('Booking rescheduled.', 'success'); loadBookings(); });
         }
       });
+      wireMoveCourtVenue(moveHost,'rs',bk);
       wireBookingMove(moveHost,'rs',bk);
     }
   });
 
   /* Manual Admin booking removed: all court bookings originate from the online Booking Site. */
 
+  /* V73 shared Venue -> Court selectors for Calendar, Blocked and Events. */
+  function loadVenueOptions(){
+    return api('/api/admin/venues').then(function(rows){
+      VENUES=(rows||[]).filter(function(v){return !v.deleted_at && v.status!=='archived';});
+      [['cal-venue','All venues'],['bl-venue','Choose venue']].forEach(function(pair){
+        var el=document.getElementById(pair[0]);if(!el)return;
+        var previous=el.value;
+        el.innerHTML='<option value="">'+pair[1]+'</option>'+VENUES.map(function(v){return '<option value="'+v.id+'">'+esc(v.name)+'</option>';}).join('');
+        if(VENUES.some(function(v){return String(v.id)===previous;}))el.value=previous;
+      });
+      syncBlockedCourtOptions();
+      return VENUES;
+    });
+  }
+  function syncBlockedCourtOptions(){
+    var venue=document.getElementById('bl-venue'), court=document.getElementById('bl-court');if(!venue||!court)return;
+    var selected=venue.value,old=court.value;
+    var rows=COURTS.filter(function(c){return String(c.venue_id)===selected && c.status!=='inactive' && !c.retired_at;});
+    court.disabled=!selected||!rows.length;
+    court.innerHTML=rows.length?'<option value="">All courts in this venue ('+rows.length+')</option>'+rows.map(function(c){return '<option value="'+c.id+'">'+esc(c.name)+'</option>';}).join(''):'<option value="">'+(selected?'No eligible courts':'Choose venue first')+'</option>';
+    if(rows.some(function(c){return String(c.id)===old;}))court.value=old;
+  }
+  $('#bl-venue').onchange=syncBlockedCourtOptions;
+  $('#cal-venue').onchange=function(){loadCalendar();};
   /* ---------- calendar ---------- */
   $('#cal-date').value = ymd(new Date());
   syncDateDisplay('cal-date', 'cal-date-display', 'MM/DD/YY');
@@ -2628,34 +2705,28 @@ body.admin-app.role-ready #view-app{visibility:visible}
     d.setDate(d.getDate() + n); $('#cal-date').value = ymd(d); syncDateDisplay('cal-date', 'cal-date-display', 'MM/DD/YY'); loadCalendar();
   }
   function loadCalendar() {
-    var date = $('#cal-date').value || ymd(new Date());
-    return api('/api/availability?date=' + date).then(function (data) {
-      $('#calendar-courts').innerHTML = data.courts.map(function (c) {
-        var events = (c.events || []).map(function (ev) {
-          return '<div class="event-chip event-' + ev.type + '"><strong>' + ev.icon + ' ' + esc(ev.label) + '</strong>' +
-            '<span>' + esc(ev.title) + '</span>' +
-            '<span class="num tiny">' + humanTime(ev.start_time) + ' – ' + humanTime(ev.end_time) + '</span></div>';
-        }).join('');
-        /* COURT-LEVEL indicator: the court is handed over to a tournament. */
-        var excl = c.exclusive_tournament
-          ? '<div class="court-exclusive">' + esc(c.exclusive_label) +
-            '<span>' + esc(c.exclusive_tournament.title) + ' · ' +
-            humanTime(c.exclusive_tournament.start_time) + ' – ' +
-            humanTime(c.exclusive_tournament.end_time) + '</span></div>'
-          : '';
-        return '<div class="card court-card"><div class="spread calendar-court-head"><div class="row"><span class="calendar-court-icon">' + adminIcon('court') + '</span><div><h3 class="card-title">' + esc(c.name) + '</h3><span class="tiny muted">Court schedule</span></div></div>' +
-          badge(c.status) + '</div>' + excl + (events ? '<div class="event-chips">' + events + '</div>' : '') +
-          '<div class="court-preview">' + (c.slots.length ? '' : '<div class="court-preview-row"><span class="tiny muted">No time slots configured for this court yet.</span></div>') + c.slots.map(function (s) {
-            var ico = '<span class="schedule-dot" aria-hidden="true"></span>';
-            /* Same terminology everywhere: AVAILABLE / BOOKED - Regular /
-               BOOKED - Open Play / BOOKED - Tournament. */
-            var text = s.status_label + (s.event ? ' · ' + s.event.title : '');
-            return '<div class="court-preview-row"><span class="num">' + slotRangeLabel(s.start, s.end) + '</span>' +
-              '<span class="st st-' + s.status + (s.booked ? ' is-booked' : '') + '">' + ico + '<span>' + esc(text) + '</span></span></div>';
-          }).join('') + '</div>' + slotEditor(c) + '</div>';
-      }).join('');
+    var date=$('#cal-date').value||ymd(new Date());
+    return Promise.all([api('/api/availability?date='+encodeURIComponent(date)),loadVenueOptions()]).then(function(results){
+      var data=results[0]||{},venues=results[1]||[],selected=$('#cal-venue').value;
+      var courts=data.courts||[];
+      function courtCard(c){
+        var events=(c.events||[]).map(function(ev){return '<div class="event-chip event-'+esc(ev.type)+'"><strong>'+esc(ev.icon||'')+' '+esc(ev.label)+'</strong><span>'+esc(ev.title)+'</span><span class="num tiny">'+humanTime(ev.start_time)+' – '+humanTime(ev.end_time)+'</span></div>';}).join('');
+        var excl=c.exclusive_tournament?'<div class="court-exclusive">'+esc(c.exclusive_label)+'<span>'+esc(c.exclusive_tournament.title)+' · '+humanTime(c.exclusive_tournament.start_time)+' – '+humanTime(c.exclusive_tournament.end_time)+'</span></div>':'';
+        return '<article class="card court-card"><div class="spread calendar-court-head"><div class="row"><span class="calendar-court-icon">'+adminIcon('court')+'</span><div><h3 class="card-title">'+esc(c.name)+'</h3><span class="tiny muted">'+(c.slots||[]).length+' time slots</span></div></div>'+badge(c.status)+'</div>'+excl+(events?'<div class="event-chips">'+events+'</div>':'')+
+          '<div class="court-preview">'+(!(c.slots||[]).length?'<p class="tiny muted">No time slots configured.</p>':'')+(c.slots||[]).map(function(slot){var label=slot.status_label+(slot.event?' · '+slot.event.title:'');return '<div class="court-preview-row"><span class="num">'+slotRangeLabel(slot.start,slot.end)+'</span><span class="st st-'+esc(slot.status)+(slot.booked?' is-booked':'')+'"><span class="schedule-dot"></span><span>'+esc(label)+'</span></span></div>';}).join('')+'</div><details class="calendar-slot-tools"><summary>Manage court time slots</summary>'+slotEditor(c)+'</details></article>';
+      }
+      var groups=venues.filter(function(v){return !selected||String(v.id)===selected;}).map(function(v,index){
+        var related=courts.filter(function(c){return String(c.venue_id)===String(v.id);});
+        return '<details class="calendar-venue-section"'+(selected||index===0?' open':'')+'><summary class="calendar-venue-head"><div><span class="calendar-venue-label">VENUE · CLICK TO EXPAND</span><h3>'+esc(v.name)+'</h3><p>'+related.length+' court'+(related.length===1?'':'s')+' · '+esc(v.address||'Court availability')+'</p></div><span class="calendar-venue-count">'+related.length+' COURTS</span></summary>'+
+          (related.length?'<div class="calendar-venue-courts count-'+Math.min(related.length,3)+'">'+related.map(courtCard).join('')+'</div>':'<p class="tiny muted calendar-empty">No courts configured for this venue.</p>')+'</details>';
+      });
+      // Legacy courts with no venue association are not silently misattributed.
+      var assigned=new Set(venues.map(function(v){return String(v.id);}));
+      var legacy=courts.filter(function(c){return !assigned.has(String(c.venue_id));});
+      if(legacy.length&&!selected)groups.push('<section class="calendar-venue-section"><header class="calendar-venue-head"><h3>Unassigned legacy courts</h3></header><div class="calendar-venue-courts">'+legacy.map(courtCard).join('')+'</div></section>');
+      $('#calendar-courts').innerHTML=groups.join('')||'<div class="empty"><strong>No courts</strong>Choose another venue or configure its courts.</div>';
       wireSlotEditors();
-    }).catch(function (e) { toast(e.message, 'error'); });
+    }).catch(function(e){toast(e.message,'error');});
   }
 
   /* PER-COURT time slot editor: one ADD + one REMOVE control per court,
@@ -2849,7 +2920,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
     renderPreview();
   }
   function loadCourts(){return VENUE_ADMIN.load().then(function(rows){
-    $('#bl-court').innerHTML='<option value="">All courts</option>'+rows.map(c=>'<option value="'+c.id+'">'+esc(c.name)+'</option>').join('');
+    COURTS=rows||[];syncBlockedCourtOptions();return rows;
   }).catch(e=>toast(e.message,'error'));}
   /* Court / Location dropdown shared by Tournament + Open Play forms.
      Options come straight from the courts table - never hard-coded. */
@@ -2958,9 +3029,10 @@ body.admin-app.role-ready #view-app{visibility:visible}
   $('#form-block').addEventListener('submit', function (e) {
     e.preventDefault();
     var btn = e.target.querySelector('button[type=submit]');
+    if (!$('#bl-venue').value || $('#bl-court').disabled) return toast('Select a venue with active courts.','error');
     busy(btn, true);
     api('/api/admin/blocks', { method: 'POST', body: {
-      court_id: $('#bl-court').value || null, block_date: $('#bl-date').value,
+      venue_id: Number($('#bl-venue').value), court_id: $('#bl-court').value || null, block_date: $('#bl-date').value,
       start_time: $('#bl-start').value, end_time: $('#bl-end').value,
       reason: $('#bl-reason').value, notes: $('#bl-notes').value
     }}).then(function () { toast('Schedule blocked.', 'success'); $('#bl-notes').value = ''; loadBlocks(); })
@@ -2968,17 +3040,17 @@ body.admin-app.role-ready #view-app{visibility:visible}
       .finally(function () { busy(btn, false); });
   });
   function loadBlocks() {
-    if (!COURTS.length) loadCourts();
-    return api('/api/admin/blocks').then(function (rows) {
+    return Promise.all([api('/api/admin/blocks'),loadVenueOptions(),api('/api/courts')]).then(function (result) {
+      var rows=result[0]||[];COURTS=result[2]||[];syncBlockedCourtOptions();
       $('#blocks-body').innerHTML = rows.length ? rows.map(function (b) {
-        return '<tr><td>' + humanDate(b.block_date) + '</td><td>' + esc(b.court_name || 'All courts') + '</td><td class="num">' +
+        return '<tr><td>' + humanDate(b.block_date) + '</td><td>' + esc(b.venue_name||'Facility-wide legacy') + '</td><td>' + esc(b.court_name || 'All venues (legacy)') + '</td><td class="num">' +
           window.PikolVenueUI.timeLabel(b,{humanTime}) + '</td><td>' +
           badge(b.reason.replace('_', ' ')) + '</td><td class="muted tiny">' + esc(b.notes || '—') + '</td>' +
           '<td>' + (b.source_type
             ? '<span class="tiny muted">Auto reservation · managed by the event</span>'
             : '<button class="btn btn-ghost btn-sm" data-del-block="' + b.id + '">Remove</button>') +
           '</td></tr>';
-      }).join('') : '<tr><td colspan="6"><div class="empty"><strong>Nothing blocked</strong>Blocked periods disappear from player availability.</div></td></tr>';
+      }).join('') : '<tr><td colspan="7"><div class="empty"><strong>Nothing blocked</strong>Blocked periods disappear from player availability.</div></td></tr>';
     }).catch(function (e) { toast(e.message, 'error'); });
   }
   document.addEventListener('click', function (e) {
@@ -3349,7 +3421,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
     return {
       title: $('#op-title', host).value, entrance_fee: $('#op-fee', host).value || 0,
       event_date: $('#op-date', host).value, start_time: $('#op-start', host).value, end_time: $('#op-end', host).value,
-      capacity: $('#op-capacity', host).value, court_ids: selectedCourts(host,'op-court'),
+      capacity: $('#op-capacity', host).value, venue_id:Number($('#op-venue',host).value), court_ids: selectedCourts(host,'op-court'),
       description: $('#op-description', host).value, poster_url: $('#op-poster', host).value
     };
   }
@@ -3371,14 +3443,14 @@ body.admin-app.role-ready #view-app{visibility:visible}
   }
 
   function loadOpenPlay() {
-    return Promise.all([api('/api/admin/open-play'), api('/api/courts')]).then(function (results) {
+    return Promise.all([api('/api/admin/open-play'), api('/api/courts'),loadVenueOptions()]).then(function (results) {
       var rows = results[0];
       COURTS = results[1] || [];
       $('#openplay-body').innerHTML = rows.map(function (e) {
         var vis = e.published ? badge('Published', 'badge-approved') : badge('Hidden', 'badge-pending');
         return '<tr role="link" tabindex="0" data-card-nav data-op-regs="'+e.id+'" aria-label="Open '+esc(e.title)+'"><td>' + esc(e.title) + (e.capacity ? '<div class="tiny muted">Capacity ' + e.capacity + '</div>' : '') + '</td>' +
           '<td>' + dateCell(e.event_date) + '</td><td>' + timeCell(e.start_time, e.end_time, e.event_date) + '</td>' +
-          '<td class="num">' + esc(money(e.entrance_fee)) + '</td><td>' + esc(e.court_name || e.location || '—') + '</td>' +
+          '<td class="num">' + esc(money(e.entrance_fee)) + '</td><td><strong>' + esc(e.venue_name||e.location||'—') + '</strong><div class="tiny muted">'+esc(e.court_name||'—')+'</div></td>' +
           '<td class="num">' + (e.confirmed || 0) + (e.capacity ? ' / ' + e.capacity : '') + '<div class="tiny muted">'+Number(e.pending||0)+' Pending</div></td>' +
           '<td class="num">' + esc(money(e.collected)) + '</td>' +
           '<td>' + badge(e.status.replace('_', ' '), e.status === 'published' ? 'badge-approved' : e.status === 'cancelled' ? 'badge-rejected' : 'badge-pending') + '</td>' +
@@ -3398,8 +3470,8 @@ body.admin-app.role-ready #view-app{visibility:visible}
   $('#btn-new-openplay').onclick = function () {
     var button = this;
     busy(button, true);
-    return api('/api/courts').then(function (rows) {
-    COURTS = rows || [];
+    return Promise.all([api('/api/courts'),loadVenueOptions()]).then(function (results) {
+    COURTS = results[0] || [];
     var host = modal({
       title: 'New Open Play event', wide: true, confirmText: 'Create event', body: openPlayForm(),
       onConfirm: function (h) {
@@ -3407,6 +3479,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
           .then(function () { toast('Open Play event created.', 'success'); loadOpenPlay(); });
       }
     });
+    wireEventVenue(host,'op',{});
     wirePosterUpload(host);
     wireOpenPlayAvailability(host, null);
     }).catch(function (e) { toast(e.message, 'error'); })
@@ -3428,6 +3501,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
             .then(function () { toast('Open Play event updated.', 'success'); loadOpenPlay(); });
         }
       });
+      wireEventVenue(host,'op',e);
       wirePosterUpload(host);
       return wireOpenPlayAvailability(host, e.id);
     }
@@ -4647,7 +4721,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
 
 <script>
 /* PIKOL_PWA_INSTALL_RUNTIME */
-(function(){'use strict';var btn=document.getElementById('pwa-install-admin'),deferredPrompt=null,KEY='pikol_admin_installed_v3';function ios(){return /iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);}function standalone(){return window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true;}function marked(){return localStorage.getItem(KEY)==='1';}function setMarked(v){if(v)localStorage.setItem(KEY,'1');else localStorage.removeItem(KEY);}function showIosGuide(){var g=document.getElementById('ios-pwa-guide');if(g)g.hidden=false;if(typeof toast==='function')toast('iPhone: Safari → Share → Add to Home Screen. Then open PIKOL Admin from the Home Screen icon.','error');}function sync(){if(!btn)return;if(standalone()){setMarked(true);btn.hidden=true;return;}if(ios()){btn.hidden=false;btn.textContent='Install Admin App on iPhone';return;}btn.textContent='Install Admin App';btn.hidden=!deferredPrompt||marked();}window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();deferredPrompt=e;if(!standalone())setMarked(false);sync();});window.addEventListener('appinstalled',function(){setMarked(true);deferredPrompt=null;sync();});window.addEventListener('pageshow',sync);document.addEventListener('visibilitychange',function(){if(!document.hidden)sync();});if(btn)btn.addEventListener('click',async function(){if(ios()){showIosGuide();return;}if(!deferredPrompt)return;btn.disabled=true;try{await deferredPrompt.prompt();var c=await deferredPrompt.userChoice;if(c&&c.outcome==='accepted')setMarked(true);}catch(_){}deferredPrompt=null;btn.disabled=false;sync();});if('serviceWorker' in navigator)window.addEventListener('load',function(){navigator.serviceWorker.register('service-worker.js?v=71-venue-first',{scope:'./',updateViaCache:'none'}).then(function(reg){return reg.update();}).catch(function(){});});sync();})();
+(function(){'use strict';var btn=document.getElementById('pwa-install-admin'),deferredPrompt=null,KEY='pikol_admin_installed_v3';function ios(){return /iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);}function standalone(){return window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true;}function marked(){return localStorage.getItem(KEY)==='1';}function setMarked(v){if(v)localStorage.setItem(KEY,'1');else localStorage.removeItem(KEY);}function showIosGuide(){var g=document.getElementById('ios-pwa-guide');if(g)g.hidden=false;if(typeof toast==='function')toast('iPhone: Safari → Share → Add to Home Screen. Then open PIKOL Admin from the Home Screen icon.','error');}function sync(){if(!btn)return;if(standalone()){setMarked(true);btn.hidden=true;return;}if(ios()){btn.hidden=false;btn.textContent='Install Admin App on iPhone';return;}btn.textContent='Install Admin App';btn.hidden=!deferredPrompt||marked();}window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();deferredPrompt=e;if(!standalone())setMarked(false);sync();});window.addEventListener('appinstalled',function(){setMarked(true);deferredPrompt=null;sync();});window.addEventListener('pageshow',sync);document.addEventListener('visibilitychange',function(){if(!document.hidden)sync();});if(btn)btn.addEventListener('click',async function(){if(ios()){showIosGuide();return;}if(!deferredPrompt)return;btn.disabled=true;try{await deferredPrompt.prompt();var c=await deferredPrompt.userChoice;if(c&&c.outcome==='accepted')setMarked(true);}catch(_){}deferredPrompt=null;btn.disabled=false;sync();});if('serviceWorker' in navigator)window.addEventListener('load',function(){navigator.serviceWorker.register('service-worker.js?v=73-venue-admin',{scope:'./',updateViaCache:'none'}).then(function(reg){return reg.update();}).catch(function(){});});sync();})();
 </script>
 
 </body>

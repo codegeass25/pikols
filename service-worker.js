@@ -1,4 +1,4 @@
-const CACHE = 'pikol-v72-hero-restoration';
+const CACHE = 'pikol-v73-venue-admin';
 const SHELL = [
   './venue-booking.css?v=72-hero-restore','./venue-ui.js?v=71','./venue-matrix.js?v=72-hero-restore','./venue-admin.js?v=71',
   './assets/promo-qr/official-website-master.png','./assets/promo-qr/official-website-qr-logo.png',
@@ -6,9 +6,9 @@ const SHELL = [
   './tournament-premium.js?v=69','./tournament-command.js?v=67','./tournament-premium.css?v=67','./scoring-premium.css?v=67','./scoring-premium.js?v=67',
   './range-availability.js?v=56-android-native-scroll','./client-upgrades.css?v=56-android-native-scroll',
   './index.html','./admin.html','./scoring.html','./styles.css','./cards.js','./tournament-view.js','./config.js','./qr-lite.js?v=67','./qr-decoder.js?v=67','./promo-qr.js?v=68-official-website','./promo-qr.css?v=67',
-  './admin-premium.css?v=33-bookings-schedule-groups','./admin-premium.css','./admin-charts.js','./admin-charts.js?v=28-admin-reference','./booking-premium.css?v=72-hero-restore','./booking-premium.css','./assets/booking/maps-pin.svg','./assets/booking/hero-court.jpg','./assets/booking/court-01.jpg','./assets/booking/court-02.jpg','./assets/booking/court-03.jpg',
+  './admin-premium.css?v=73-venue-admin','./admin-premium.css','./admin-charts.js','./admin-charts.js?v=28-admin-reference','./booking-premium.css?v=72-hero-restore','./booking-premium.css','./assets/booking/maps-pin.svg','./assets/booking/hero-court.jpg','./assets/booking/court-01.jpg','./assets/booking/court-02.jpg','./assets/booking/court-03.jpg',
   './assets/booking/community.jpg','./assets/booking/membership.jpg','./assets/defaults/venue-default.webp','./assets/defaults/court-default.webp',
-  './manifest.json','./admin-manifest.json','./scoring-manifest.json','./icons/icon-192.png','./icons/icon-512.png'
+  './manifest.json?v=73','./admin-manifest.json?v=73','./scoring-manifest.json?v=73','./icons/wenjelly-v73-192.png','./icons/wenjelly-v73-512.png','./icons/wenjelly-v73-maskable-192.png','./icons/wenjelly-v73-maskable-512.png','./icons/wenjelly-v73-apple.png'
 ];
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE).then(async cache => {
@@ -129,7 +129,7 @@ self.addEventListener('push', event => {
     }
     const options = {
       body: data.body || 'A new item needs your attention.',
-      icon: './icons/icon-192.png', badge: './icons/icon-192.png',
+      icon: './icons/wenjelly-v73-192.png', badge: './icons/wenjelly-v73-192.png',
       tag: data.tag || 'pikol-alert', renotify: true,
       data: { url: data.url || './admin.html', type: data.type || 'alert', alertId: data.alertId || null }
     };

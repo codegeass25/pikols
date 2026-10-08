@@ -6,11 +6,11 @@
 <script>if(/Android/i.test(navigator.userAgent||''))document.documentElement.classList.add('pikol-android');</script>
 <meta name="description" content="Reserve a pickleball court in a few taps." />
 <title>Court Booking</title>
-<link rel="icon" id="favicon" href="data:," />
+<link rel="icon" id="favicon" href="icons/wenjelly-v73-192.png" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
-<link rel="manifest" href="manifest.json" />
+<link rel="manifest" href="manifest.json?v=73" />
 <meta name="theme-color" content="#0f3d32" />
 <script src="config.js"></script>
 <script src="tournament-view.js"></script>
@@ -282,6 +282,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
 <link rel="stylesheet" href="venue-booking.css?v=72-hero-restore">
 <script src="venue-ui.js?v=71"></script>
 <script src="venue-matrix.js?v=72-hero-restore"></script>
+<link rel="apple-touch-icon" href="icons/wenjelly-v73-apple.png" />
 </head>
 <body class="player-app">
 
@@ -3219,7 +3220,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
   window.addEventListener('appinstalled',function(){setMarked(true);deferredPrompt=null;sync();});
   window.addEventListener('pageshow',sync);document.addEventListener('visibilitychange',function(){if(!document.hidden)sync();});
   if(btn)btn.addEventListener('click',async function(){if(!deferredPrompt)return;btn.disabled=true;try{await deferredPrompt.prompt();var c=await deferredPrompt.userChoice;if(c&&c.outcome==='accepted')setMarked(true);}catch(_){}deferredPrompt=null;btn.disabled=false;sync();});
-  if('serviceWorker' in navigator)window.addEventListener('load',function(){navigator.serviceWorker.register('service-worker.js?v=72-hero-restore',{scope:'./',updateViaCache:'none'}).then(function(reg){return reg.update();}).catch(function(){});});
+  if('serviceWorker' in navigator)window.addEventListener('load',function(){navigator.serviceWorker.register('service-worker.js?v=73-venue-admin',{scope:'./',updateViaCache:'none'}).then(function(reg){return reg.update();}).catch(function(){});});
   sync();
 })();
 </script>

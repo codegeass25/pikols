@@ -1,2 +1,2 @@
-/* Compatibility shim: Admin and Player now intentionally share one service-worker scope. */
-importScripts('./service-worker.js?v=67');
+/* Compatibility shim: Admin, Booking and Scorer share one PWA cache. */
+importScripts('./service-worker.js?v=73-venue-admin');

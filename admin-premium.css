@@ -994,3 +994,52 @@ body.admin-app .mobile-date-display { display: none; }
   body.admin-app #page-calendar .calendar-date-field { min-width: 0; width: 100%; }
   body.admin-app #page-calendar .calendar-date-field #cal-date { width: 100%; min-width: 0 !important; }
 }
+
+/* V73 venue-aware operations: scoped calendar, block forms and event court selectors */
+#page-calendar .venue-admin-toolbar{gap:10px;align-items:center}
+#cal-venue{width:clamp(180px,22vw,290px);min-height:42px}
+.venue-calendar-groups{display:grid;gap:22px}
+.calendar-venue-section{padding:20px;border:1px solid var(--border,#e4eaee);border-radius:20px;background:var(--surface,#fff);min-width:0;box-shadow:0 8px 30px rgba(5,40,33,.035)}
+.calendar-venue-head{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-bottom:15px;margin-bottom:16px;border-bottom:1px solid var(--border,#e4eaee)}
+.calendar-venue-head h3{margin:3px 0;font-size:1.24rem;font-weight:800;letter-spacing:-.03em}
+.calendar-venue-head p{margin:0;color:var(--muted,#73808d);font-size:.83rem}
+.calendar-venue-label{font-weight:900;font-size:.67rem;letter-spacing:.12em;color:#00885e}
+.calendar-venue-count{border:1px solid rgba(0,133,84,.15);background:rgba(0,133,84,.06);color:#007d56;border-radius:100px;padding:7px 12px;font-weight:800;font-size:.72rem;white-space:nowrap}
+.calendar-venue-courts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;align-items:start}
+.calendar-venue-courts.count-1{grid-template-columns:minmax(0,440px)}
+.calendar-venue-courts.count-2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.calendar-venue-courts>.card{min-width:0;margin:0}
+.calendar-slot-tools{border-top:1px solid var(--border,#e4eaee);margin-top:12px;padding-top:10px}
+.calendar-slot-tools summary{cursor:pointer;font-weight:700;font-size:.8rem;color:var(--brand,#00664b)}
+.calendar-empty{padding:16px}
+#page-blocks>.grid{min-width:0}
+#page-blocks .operation-form{min-width:0}
+.venue-court-checks{display:grid;grid-template-columns:repeat(auto-fill,minmax(185px,1fr));gap:9px;background:var(--surface-2,#f7faf9);border:1px solid var(--border,#dce7e1);padding:12px;border-radius:14px;max-height:220px;overflow-y:auto}
+.venue-court-checks label{display:flex;gap:8px;align-items:center;background:var(--surface,#fff);border:1px solid var(--border,#dce7e1);border-radius:10px;padding:11px;min-width:0;font-weight:600}
+.event-venue-select{padding:12px;border:1px solid rgba(0,136,91,.18);background:rgba(0,136,91,.045);border-radius:14px}
+@media(max-width:1080px){.calendar-venue-courts{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:720px){#page-blocks>.grid{grid-template-columns:minmax(0,1fr)!important}.calendar-venue-section{padding:13px;border-radius:15px}.calendar-venue-courts,.calendar-venue-courts.count-2{grid-template-columns:minmax(0,1fr)}.calendar-venue-courts.count-1{grid-template-columns:minmax(0,1fr)}.calendar-venue-head{align-items:flex-start}.calendar-venue-count{font-size:.63rem}.calendar-venue-head h3{font-size:1.08rem}#cal-venue{width:100%;max-width:100%}#page-calendar .venue-admin-toolbar{width:100%}}
+
+/* V73 schedule expansion: full-width venue groups, rather than three cramped columns. */
+.venue-calendar-groups{display:flex;flex-direction:column;gap:16px}
+.calendar-venue-section{width:100%;display:block}
+.calendar-venue-head{cursor:pointer;list-style:none}
+.calendar-venue-head::-webkit-details-marker{display:none}
+.calendar-venue-head:after{content:"⌄";color:var(--muted,#73808d);font-size:1.3rem;font-weight:600}
+.calendar-venue-section[open]>.calendar-venue-head:after{content:"⌃"}
+.calendar-venue-courts{grid-template-columns:repeat(3,minmax(0,1fr));max-width:100%}
+.calendar-venue-courts.count-1{grid-template-columns:minmax(0,460px)}
+.calendar-venue-courts.count-2{grid-template-columns:repeat(2,minmax(0,460px))}
+@media(max-width:920px){.calendar-venue-courts.count-2{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:690px){.calendar-venue-courts,.calendar-venue-courts.count-1,.calendar-venue-courts.count-2{grid-template-columns:minmax(0,1fr)}}
+
+/* Mobile calendar: venue row + previous/date/next aligned independently */
+@media(max-width:690px){
+ #page-calendar .venue-admin-toolbar{display:grid!important;grid-template-columns:42px minmax(0,1fr) 42px;gap:9px;width:100%}
+ #page-calendar .venue-admin-toolbar>label{grid-column:1;grid-row:1}
+ #page-calendar .venue-admin-toolbar>#cal-venue{grid-column:2/4;grid-row:1;width:100%;min-width:0}
+ #page-calendar .venue-admin-toolbar>#cal-prev-day{grid-column:1;grid-row:2;width:100%}
+ #page-calendar .venue-admin-toolbar>.calendar-date-field{grid-column:2;grid-row:2;min-width:0;width:100%}
+ #page-calendar .venue-admin-toolbar>.calendar-date-field input{width:100%!important;min-width:0!important}
+ #page-calendar .venue-admin-toolbar>#cal-next-day{grid-column:3;grid-row:2;width:100%}
+}
