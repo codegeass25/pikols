@@ -1,6 +1,6 @@
-const CACHE = 'pikol-v69-venue-multislot';
+const CACHE = 'pikol-v70-venue-multislot';
 const SHELL = [
-  './venue-booking.css?v=69','./venue-ui.js?v=69','./venue-matrix.js?v=69','./venue-admin.js?v=69',
+  './venue-booking.css?v=70','./venue-ui.js?v=70','./venue-matrix.js?v=70','./venue-admin.js?v=70',
   './assets/promo-qr/official-website-master.png','./assets/promo-qr/official-website-qr-logo.png',
   './assets/promo-qr/booking-site-master.png','./assets/promo-qr/booking-site-qr-logo.png','./assets/promo-qr/tournament-registration-master.png','./assets/promo-qr/tournament-registration-qr-logo.png','./assets/promo-qr/open-play-registration-master.png','./assets/promo-qr/open-play-registration-qr-logo.png',
   './tournament-premium.js?v=69','./tournament-command.js?v=67','./tournament-premium.css?v=67','./scoring-premium.css?v=67','./scoring-premium.js?v=67',

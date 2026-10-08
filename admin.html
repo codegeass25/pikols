@@ -82,9 +82,9 @@ body.admin-app.role-ready #view-app{visibility:visible}
 <link rel="stylesheet" href="tournament-premium.css?v=67" />
 <script src="tournament-premium.js?v=69"></script>
 <script src="tournament-command.js?v=67"></script>
-<link rel="stylesheet" href="venue-booking.css?v=69">
-<script src="venue-ui.js?v=69"></script>
-<script src="venue-admin.js?v=69"></script>
+<link rel="stylesheet" href="venue-booking.css?v=70">
+<script src="venue-ui.js?v=70"></script>
+<script src="venue-admin.js?v=70"></script>
 </head>
 <body class="admin-app">
 
@@ -657,8 +657,8 @@ body.admin-app.role-ready #view-app{visibility:visible}
         <form class="settings-section hidden mt-5" id="set-booking"><div id="venue-pricing-editor"></div>
           <h2 class="section-title" style="margin-bottom:16px">Booking rules</h2>
           <div class="grid cols-3" style="gap:0 18px">
-            <div class="field"><label class="label" for="s-maximum_players">Maximum Number of Players</label><input class="input" id="s-maximum_players" data-key="maximum_players" type="number" min="1" max="10000" step="1" required></div><div class="field"><label class="label" for="s-open_time">Opening time</label><input class="input" id="s-open_time" data-key="open_time" type="time" step="900" /></div>
-            <div class="field"><label class="label" for="s-close_time">Closing time</label><input class="input" id="s-close_time" data-key="close_time" type="time" step="900" /></div>
+            <div class="field"><label class="label" for="s-maximum_players">Maximum Number of Players</label><input class="input" id="s-maximum_players" data-key="maximum_players" type="number" min="1" max="10000" step="1" required></div>
+            
             <div class="field"><label class="label" for="s-slot_minutes">Slot length (minutes)</label>
               <select class="select" id="s-slot_minutes" data-key="slot_minutes"><option>30</option><option>60</option><option>90</option><option>120</option></select></div>
           </div>
@@ -2512,7 +2512,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
     return '<tr><td colspan="9"><div class="empty"><strong>' + esc(title) + '</strong>' + esc(detail) + '</div></td></tr>';
   }
 
-  function fillVenueFilters(){return api('/api/admin/venues').then(function(vs){['bk-venue','rp-venue'].forEach(function(id){var el=document.getElementById(id),value=el.value;el.innerHTML='<option value="">All venues</option>'+vs.map(v=>'<option value="'+v.id+'">'+esc(v.name)+'</option>').join('');el.value=value;});});}
+  function fillVenueFilters(){return api('/api/admin/venues?include_retired=1').then(function(vs){['bk-venue','rp-venue'].forEach(function(id){var el=document.getElementById(id),value=el.value;el.innerHTML='<option value="">All venues</option>'+vs.map(v=>'<option value="'+v.id+'">'+esc(v.name)+(v.deleted_at?' · retired':'')+'</option>').join('');el.value=value;});});}
   function loadBookings() {
     if($('#bk-venue').options.length===1)fillVenueFilters().catch(function(){});
     var p = new URLSearchParams();
@@ -3636,7 +3636,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
     });
   }
   saveSettings($('#set-branding'), ['facility_name','short_name','tagline','description','address','contact_number','contact_email','website','social_facebook','social_instagram','brand_primary','brand_secondary','brand_accent','booking_prefix']);
-  saveSettings($('#set-booking'), ['maximum_players','open_time','close_time','slot_minutes','currency','facility_timezone','checkout_hold_minutes']);
+  saveSettings($('#set-booking'), ['maximum_players','slot_minutes','currency','facility_timezone','checkout_hold_minutes']);
   saveSettings($('#set-membership'), ['membership_enabled','membership_sms_enabled','membership_expiry_reminder_days','nonmember_advance_days','nonmember_max_active_bookings','nonmember_cancellation_hours']);
   saveSettings($('#set-payments'), ['payment_note','gcash_enabled','gcash_account_name','gcash_number','gcash_qr_url','gcash_instructions','maya_enabled','maya_account_name','maya_number','maya_qr_url','maya_instructions','gotyme_enabled','gotyme_account_name','gotyme_number','gotyme_qr_url','gotyme_instructions','other_enabled','other_label','other_instructions','other_payment_options']);
   saveSettings($('#set-tournament'), ['tournament_default_format','tournament_default_seeding','tournament_match_duration_minutes','tournament_rest_minutes','tournament_group_size','tournament_group_qualifiers','tournament_scoring_best_of','tournament_scoring_points_to_win','tournament_scoring_win_by','tournament_third_place','tournament_double_reset_final']);
@@ -4647,7 +4647,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
 
 <script>
 /* PIKOL_PWA_INSTALL_RUNTIME */
-(function(){'use strict';var btn=document.getElementById('pwa-install-admin'),deferredPrompt=null,KEY='pikol_admin_installed_v3';function ios(){return /iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);}function standalone(){return window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true;}function marked(){return localStorage.getItem(KEY)==='1';}function setMarked(v){if(v)localStorage.setItem(KEY,'1');else localStorage.removeItem(KEY);}function showIosGuide(){var g=document.getElementById('ios-pwa-guide');if(g)g.hidden=false;if(typeof toast==='function')toast('iPhone: Safari → Share → Add to Home Screen. Then open PIKOL Admin from the Home Screen icon.','error');}function sync(){if(!btn)return;if(standalone()){setMarked(true);btn.hidden=true;return;}if(ios()){btn.hidden=false;btn.textContent='Install Admin App on iPhone';return;}btn.textContent='Install Admin App';btn.hidden=!deferredPrompt||marked();}window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();deferredPrompt=e;if(!standalone())setMarked(false);sync();});window.addEventListener('appinstalled',function(){setMarked(true);deferredPrompt=null;sync();});window.addEventListener('pageshow',sync);document.addEventListener('visibilitychange',function(){if(!document.hidden)sync();});if(btn)btn.addEventListener('click',async function(){if(ios()){showIosGuide();return;}if(!deferredPrompt)return;btn.disabled=true;try{await deferredPrompt.prompt();var c=await deferredPrompt.userChoice;if(c&&c.outcome==='accepted')setMarked(true);}catch(_){}deferredPrompt=null;btn.disabled=false;sync();});if('serviceWorker' in navigator)window.addEventListener('load',function(){navigator.serviceWorker.register('service-worker.js?v=69-venue-groups',{scope:'./',updateViaCache:'none'}).then(function(reg){return reg.update();}).catch(function(){});});sync();})();
+(function(){'use strict';var btn=document.getElementById('pwa-install-admin'),deferredPrompt=null,KEY='pikol_admin_installed_v3';function ios(){return /iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);}function standalone(){return window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true;}function marked(){return localStorage.getItem(KEY)==='1';}function setMarked(v){if(v)localStorage.setItem(KEY,'1');else localStorage.removeItem(KEY);}function showIosGuide(){var g=document.getElementById('ios-pwa-guide');if(g)g.hidden=false;if(typeof toast==='function')toast('iPhone: Safari → Share → Add to Home Screen. Then open PIKOL Admin from the Home Screen icon.','error');}function sync(){if(!btn)return;if(standalone()){setMarked(true);btn.hidden=true;return;}if(ios()){btn.hidden=false;btn.textContent='Install Admin App on iPhone';return;}btn.textContent='Install Admin App';btn.hidden=!deferredPrompt||marked();}window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();deferredPrompt=e;if(!standalone())setMarked(false);sync();});window.addEventListener('appinstalled',function(){setMarked(true);deferredPrompt=null;sync();});window.addEventListener('pageshow',sync);document.addEventListener('visibilitychange',function(){if(!document.hidden)sync();});if(btn)btn.addEventListener('click',async function(){if(ios()){showIosGuide();return;}if(!deferredPrompt)return;btn.disabled=true;try{await deferredPrompt.prompt();var c=await deferredPrompt.userChoice;if(c&&c.outcome==='accepted')setMarked(true);}catch(_){}deferredPrompt=null;btn.disabled=false;sync();});if('serviceWorker' in navigator)window.addEventListener('load',function(){navigator.serviceWorker.register('service-worker.js?v=70-venue-groups',{scope:'./',updateViaCache:'none'}).then(function(reg){return reg.update();}).catch(function(){});});sync();})();
 </script>
 
 </body>

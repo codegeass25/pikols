@@ -279,9 +279,9 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
 <link rel="stylesheet" href="client-upgrades.css?v=56-android-native-scroll">
 <link rel="stylesheet" href="tournament-premium.css?v=67" />
 <script src="tournament-premium.js?v=69"></script>
-<link rel="stylesheet" href="venue-booking.css?v=69">
-<script src="venue-ui.js?v=69"></script>
-<script src="venue-matrix.js?v=69"></script>
+<link rel="stylesheet" href="venue-booking.css?v=70">
+<script src="venue-ui.js?v=70"></script>
+<script src="venue-matrix.js?v=70"></script>
 </head>
 <body class="player-app">
 
@@ -442,7 +442,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
       <button class="sheet-close" data-close-sheet aria-label="Close booking">×</button>
       <div class="booking-page-head"><span class="eyebrow">BOOK YOUR GAME</span><h1 class="page-title" id="booking-title">Book a Court</h1><p class="page-subtitle" data-facility-name>WenJelly Pickleball Zone / PIKOL</p></div>
       <div class="booking-layout">
-        <div class="booking-gallery"><div id="booking-photo" class="court-visual"></div><div class="pick-grid" id="book-courts" aria-label="Choose a court"></div><div id="booking-court-description"></div><p class="field-hint">Select a court above to explore its availability.</p></div>
+
         <div class="booking-controls"><div id="venue-booking"></div>
           <div class="steps" id="steps"><div class="step" data-step="1"><span class="step-n">1</span>Date</div><div class="step" data-step="2"><span class="step-n">2</span>Court</div><div class="step" data-step="3"><span class="step-n">3</span>Time</div><div class="step" data-step="4"><span class="step-n">4</span>Confirm</div></div>
           <div class="vg-step-label">2 · SELECT DATE</div><div class="vg-date-fields booking-inputs"><div class="field"><label class="label" for="booking-date">Select Date</label><input class="input" id="booking-date" type="date" required/></div><div class="field vg-legacy-time"><label class="label" for="booking-time">Start Time</label><select class="select" id="booking-time"><option value="">Choose a court first</option></select></div><div class="field vg-legacy-time"><label class="label" for="booking-end">End Time</label><select class="select" id="booking-end" disabled><option value="">Select start time first</option></select></div></div>
@@ -454,6 +454,8 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
         </div>
       </div>
     </section>
+    <!-- Compatibility nodes for legacy callbacks; excluded from the booking experience. -->
+        <div class="vg-legacy-booking" hidden inert aria-hidden="true" style="display:none!important"><div id="booking-photo" class="court-visual"></div><div class="pick-grid" id="book-courts" aria-label="Choose a court"></div><div id="booking-court-description"></div><p class="field-hint">Select a court above to explore its availability.</p></div>
     <!-- BOOKINGS -->
     <section id="tab-bookings" class="site-sheet hidden stack" role="dialog" aria-modal="true" aria-label="My Bookings" style="gap:20px">
       <button class="sheet-close" data-close-sheet aria-label="Close My Bookings">×</button>
@@ -3211,7 +3213,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
   window.addEventListener('appinstalled',function(){setMarked(true);deferredPrompt=null;sync();});
   window.addEventListener('pageshow',sync);document.addEventListener('visibilitychange',function(){if(!document.hidden)sync();});
   if(btn)btn.addEventListener('click',async function(){if(!deferredPrompt)return;btn.disabled=true;try{await deferredPrompt.prompt();var c=await deferredPrompt.userChoice;if(c&&c.outcome==='accepted')setMarked(true);}catch(_){}deferredPrompt=null;btn.disabled=false;sync();});
-  if('serviceWorker' in navigator)window.addEventListener('load',function(){navigator.serviceWorker.register('service-worker.js?v=69-venue-groups',{scope:'./',updateViaCache:'none'}).then(function(reg){return reg.update();}).catch(function(){});});
+  if('serviceWorker' in navigator)window.addEventListener('load',function(){navigator.serviceWorker.register('service-worker.js?v=70-venue-groups',{scope:'./',updateViaCache:'none'}).then(function(reg){return reg.update();}).catch(function(){});});
   sync();
 })();
 </script>
