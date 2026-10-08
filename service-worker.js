@@ -1,8 +1,9 @@
-const CACHE = 'pikol-v68-official-website';
+const CACHE = 'pikol-v69-venue-multislot';
 const SHELL = [
+  './venue-booking.css?v=69','./venue-ui.js?v=69','./venue-matrix.js?v=69','./venue-admin.js?v=69',
   './assets/promo-qr/official-website-master.png','./assets/promo-qr/official-website-qr-logo.png',
   './assets/promo-qr/booking-site-master.png','./assets/promo-qr/booking-site-qr-logo.png','./assets/promo-qr/tournament-registration-master.png','./assets/promo-qr/tournament-registration-qr-logo.png','./assets/promo-qr/open-play-registration-master.png','./assets/promo-qr/open-play-registration-qr-logo.png',
-  './tournament-premium.js?v=67','./tournament-command.js?v=67','./tournament-premium.css?v=67','./scoring-premium.css?v=67','./scoring-premium.js?v=67',
+  './tournament-premium.js?v=69','./tournament-command.js?v=67','./tournament-premium.css?v=67','./scoring-premium.css?v=67','./scoring-premium.js?v=67',
   './range-availability.js?v=56-android-native-scroll','./client-upgrades.css?v=56-android-native-scroll',
   './index.html','./admin.html','./scoring.html','./styles.css','./cards.js','./tournament-view.js','./config.js','./qr-lite.js?v=67','./qr-decoder.js?v=67','./promo-qr.js?v=68-official-website','./promo-qr.css?v=67',
   './admin-premium.css?v=33-bookings-schedule-groups','./admin-premium.css','./admin-charts.js','./admin-charts.js?v=28-admin-reference','./booking-premium.css?v=50-profile-credit-v1','./booking-premium.css','./assets/booking/hero-court.jpg','./assets/booking/court-01.jpg','./assets/booking/court-02.jpg','./assets/booking/court-03.jpg',

@@ -80,8 +80,11 @@ body.admin-app.role-ready #view-app{visibility:visible}
 <link rel="stylesheet" href="client-upgrades.css?v=56-android-native-scroll">
 <script src="range-availability.js?v=56-android-native-scroll"></script>
 <link rel="stylesheet" href="tournament-premium.css?v=67" />
-<script src="tournament-premium.js?v=67"></script>
+<script src="tournament-premium.js?v=69"></script>
 <script src="tournament-command.js?v=67"></script>
+<link rel="stylesheet" href="venue-booking.css?v=69">
+<script src="venue-ui.js?v=69"></script>
+<script src="venue-admin.js?v=69"></script>
 </head>
 <body class="admin-app">
 
@@ -196,7 +199,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
           <div class="card-header bookings-header">
             <div><h2 class="section-title">Bookings</h2><p class="page-subtitle">Court reservations, payments and status in one place.</p></div>
             <div class="row wrap bookings-filters">
-              <input class="input" id="bk-q" aria-label="Search bookings" placeholder="Search name, email, reference" style="min-width:220px" />
+              <select class="select" id="bk-venue" aria-label="Booking venue"><option value="">All venues</option></select><input class="input" id="bk-q" aria-label="Search bookings" placeholder="Search name, email, reference" style="min-width:220px" />
               <select class="select" id="bk-status" aria-label="Booking status" style="min-width:150px">
                 <option value="all">All statuses</option>
                 <option value="checkout_hold">Checkout hold</option><option value="payment_submitted">Payment under review</option><option value="pending_approval">Pending approval</option><option value="confirmed" selected>Confirmed</option><option value="expired">Hold expired</option><option value="pending_payment">Payment required</option><option value="completed">Completed</option>
@@ -301,7 +304,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
       <!-- COURTS -->
       <section id="page-courts" class="hidden">
         <div class="section-shell">
-          <div class="card-header"><h2 class="section-title">Courts</h2>
+          <div class="card-header"><h2 class="section-title">Venues &amp; Courts</h2>
             <button class="btn btn-primary btn-sm" id="btn-new-court">＋ Add court</button></div>
           <div class="list admin-court-list" id="courts-grid"></div>
         </div>
@@ -453,8 +456,8 @@ body.admin-app.role-ready #view-app{visibility:visible}
 
       <!-- REPORTS -->
       <section id="page-reports" class="hidden">
-        <div class="section-shell report-toolbar"><div class="card-header"><h2 class="section-title">Report date range</h2><div class="row wrap"><label class="tiny" for="rp-from">From</label><input class="input" id="rp-from" type="date" /><label class="tiny" for="rp-to">To</label><input class="input" id="rp-to" type="date" /><button class="btn btn-primary btn-sm" id="rp-run" data-loading="Loading...">Run report</button></div></div></div>
-        <div class="grid cols-4" id="rp-summary"></div><div id="rp-breakdown"></div>
+        <div class="section-shell report-toolbar"><div class="card-header"><h2 class="section-title">Report date range</h2><div class="row wrap"><label class="tiny" for="rp-from">From</label><input class="input" id="rp-from" type="date" /><label class="tiny" for="rp-to">To</label><input class="input" id="rp-to" type="date" /><label class="tiny" for="rp-venue">Venue</label><select class="select" id="rp-venue"><option value="">All venues</option></select><button class="btn btn-primary btn-sm" id="rp-run" data-loading="Loading...">Run report</button></div></div></div>
+        <div class="grid cols-4" id="rp-summary"></div><div id="rp-breakdown"></div><section class="section-shell"><h3 class="section-title">Venue reservations and court utilization</h3><div class="table-wrap"><table class="data"><thead><tr><th>Venue</th><th>Reservations</th><th>Booked court-hours</th><th>Booked value</th><th>Collected cash</th><th>Credit applied</th></tr></thead><tbody id="rp-venues"></tbody></table></div></section>
         <div class="grid cols-2 report-charts">
           <section class="section-shell"><div class="card-header"><h3 class="section-title">Bookings per day</h3></div><div class="chart-bars" id="rp-chart"></div></section>
           <section class="section-shell"><div class="card-header"><h3 class="section-title">Booked value by court</h3></div><div class="stack" id="rp-courts"></div></section>
@@ -588,7 +591,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
           <div class="grid cols-2" style="gap:18px">
             <div class="asset-card booking-hero-asset" data-asset="hero">
               <h3 class="card-title">Booking site hero image</h3>
-              <p class="muted tiny">Shown on the booking welcome screen and main banner. Use a landscape photo, ideally 1600 × 900 or larger. PNG, JPG or WebP, up to 5 MB. Uploads save immediately.</p>
+              <p class="muted tiny">Shown on the booking welcome screen and main banner. Use a landscape photo, ideally 1600 × 900 or larger. PNG, JPG or WebP, up to 12 MB. Uploads save immediately.</p>
               <div class="asset-preview" data-preview></div>
               <label class="sr-only" for="s-hero_image_url">Booking hero image URL</label>
               <input class="input" data-key="hero_image_url" id="s-hero_image_url" placeholder="https://... or /branding/hero.jpg" type="url" autocomplete="off" aria-describedby="hero-image-note" />
@@ -651,7 +654,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
           </div>
         </section>
 
-        <form class="settings-section hidden mt-5" id="set-booking">
+        <form class="settings-section hidden mt-5" id="set-booking"><div id="venue-pricing-editor"></div>
           <h2 class="section-title" style="margin-bottom:16px">Booking rules</h2>
           <div class="grid cols-3" style="gap:0 18px">
             <div class="field"><label class="label" for="s-maximum_players">Maximum Number of Players</label><input class="input" id="s-maximum_players" data-key="maximum_players" type="number" min="1" max="10000" step="1" required></div><div class="field"><label class="label" for="s-open_time">Opening time</label><input class="input" id="s-open_time" data-key="open_time" type="time" step="900" /></div>
@@ -659,7 +662,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
             <div class="field"><label class="label" for="s-slot_minutes">Slot length (minutes)</label>
               <select class="select" id="s-slot_minutes" data-key="slot_minutes"><option>30</option><option>60</option><option>90</option><option>120</option></select></div>
           </div>
-          <div class="grid cols-3"><div class="field"><label class="label" for="s-currency">Currency label</label><input class="input" id="s-currency" data-key="currency" maxlength="6" /></div><div class="field"><label class="label" for="s-facility_timezone">Facility time zone</label><select class="select" id="s-facility_timezone" data-key="facility_timezone"><option value="Asia/Manila">Asia/Manila (UTC+08:00)</option></select></div><div class="field"><label class="label" for="s-evening_rate_start">Evening rate starts</label><input class="input" id="s-evening_rate_start" data-key="evening_rate_start" type="time" step="900" /></div></div>
+          <div class="grid cols-3"><div class="field"><label class="label" for="s-currency">Currency label</label><input class="input" id="s-currency" data-key="currency" maxlength="6" /></div><div class="field"><label class="label" for="s-facility_timezone">Facility time zone</label><select class="select" id="s-facility_timezone" data-key="facility_timezone"><option value="Asia/Manila">Asia/Manila (UTC+08:00)</option></select></div><div class="field hidden"><input class="input" id="s-evening_rate_start" type="time" step="900" /></div></div>
 
           <div class="grid cols-3"><div class="field"><label class="label" for="s-checkout_hold_minutes">Payment processing hold (minutes)</label><input class="input" id="s-checkout_hold_minutes" data-key="checkout_hold_minutes" type="number" min="3" max="30" step="1" /><span class="field-hint">Visible countdown while a client completes payment. Unpaid holds release automatically.</span></div></div>
           <div><button class="btn btn-primary" type="submit" data-loading="Saving...">Save booking rules</button></div>
@@ -678,18 +681,18 @@ body.admin-app.role-ready #view-app{visibility:visible}
               <div class="spread"><div><strong>GCash</strong><div class="tiny muted">QR + number → manual reference → receipt upload → Admin verification.</div></div><label class="switch"><input type="checkbox" id="s-gcash_enabled" data-key="gcash_enabled"><span class="track"></span></label></div>
               <div class="grid cols-2 mt-3"><div class="field"><label class="label">Account name</label><input class="input" id="s-gcash_account_name" data-key="gcash_account_name"></div><div class="field"><label class="label">Mobile number</label><input class="input" id="s-gcash_number" data-key="gcash_number" inputmode="tel"></div></div>
               <div class="field"><label class="label">Instructions</label><input class="input" id="s-gcash_instructions" data-key="gcash_instructions" placeholder="Scan QR, send payment, then upload your receipt."></div>
-              <div class="payment-qr-upload" data-payment-qr="gcash"><strong>Official GCash QR Code</strong><div data-qr-preview></div><input type="hidden" id="s-gcash_qr_url" data-key="gcash_qr_url"><input type="file" data-qr-file accept="image/png,image/jpeg,image/webp" hidden><div class="row wrap"><button type="button" class="btn btn-outline btn-sm" data-qr-upload>Upload / Replace GCash QR</button><button type="button" class="btn btn-ghost btn-sm" data-qr-remove>Remove QR</button></div><p class="tiny muted">Upload the official image from your payment app. PNG, JPG or WebP, up to 5 MB.</p></div>
+              <div class="payment-qr-upload" data-payment-qr="gcash"><strong>Official GCash QR Code</strong><div data-qr-preview></div><input type="hidden" id="s-gcash_qr_url" data-key="gcash_qr_url"><input type="file" data-qr-file accept="image/png,image/jpeg,image/webp" hidden><div class="row wrap"><button type="button" class="btn btn-outline btn-sm" data-qr-upload>Upload / Replace GCash QR</button><button type="button" class="btn btn-ghost btn-sm" data-qr-remove>Remove QR</button></div><p class="tiny muted">Upload the official image from your payment app. PNG, JPG or WebP, up to 12 MB.</p></div>
             </div>
             <div class="payment-channel-section">
               <div class="spread"><div><strong>Maya / PayMaya</strong><div class="tiny muted">QR + number → manual reference → receipt upload → Admin verification.</div></div><label class="switch"><input type="checkbox" id="s-maya_enabled" data-key="maya_enabled"><span class="track"></span></label></div>
               <div class="grid cols-2 mt-3"><div class="field"><label class="label">Account name</label><input class="input" id="s-maya_account_name" data-key="maya_account_name"></div><div class="field"><label class="label">Mobile number</label><input class="input" id="s-maya_number" data-key="maya_number" inputmode="tel"></div></div>
               <div class="field"><label class="label">Instructions</label><input class="input" id="s-maya_instructions" data-key="maya_instructions" placeholder="Scan QR, send payment, then upload your receipt."></div>
-              <div class="payment-qr-upload" data-payment-qr="maya"><strong>Official Maya QR Code</strong><div data-qr-preview></div><input type="hidden" id="s-maya_qr_url" data-key="maya_qr_url"><input type="file" data-qr-file accept="image/png,image/jpeg,image/webp" hidden><div class="row wrap"><button type="button" class="btn btn-outline btn-sm" data-qr-upload>Upload / Replace Maya QR</button><button type="button" class="btn btn-ghost btn-sm" data-qr-remove>Remove QR</button></div><p class="tiny muted">Upload the official image from your payment app. PNG, JPG or WebP, up to 5 MB.</p></div>
+              <div class="payment-qr-upload" data-payment-qr="maya"><strong>Official Maya QR Code</strong><div data-qr-preview></div><input type="hidden" id="s-maya_qr_url" data-key="maya_qr_url"><input type="file" data-qr-file accept="image/png,image/jpeg,image/webp" hidden><div class="row wrap"><button type="button" class="btn btn-outline btn-sm" data-qr-upload>Upload / Replace Maya QR</button><button type="button" class="btn btn-ghost btn-sm" data-qr-remove>Remove QR</button></div><p class="tiny muted">Upload the official image from your payment app. PNG, JPG or WebP, up to 12 MB.</p></div>
             </div>
             <div class="payment-channel-section">
               <div class="spread"><div><strong>GoTyme Bank</strong><div class="tiny muted">Bank transfer → reference → receipt upload → staff verification.</div></div><label class="switch"><input type="checkbox" id="s-gotyme_enabled" data-key="gotyme_enabled"><span class="track"></span></label></div>
               <div class="grid cols-2 mt-3"><div class="field"><label class="label">Account name</label><input class="input" id="s-gotyme_account_name" data-key="gotyme_account_name"></div><div class="field"><label class="label">Account number</label><input class="input" id="s-gotyme_number" data-key="gotyme_number"></div></div>
-              <div class="payment-qr-upload" data-payment-qr="gotyme"><strong>Official GoTyme QR Code</strong><div data-qr-preview></div><input type="hidden" id="s-gotyme_qr_url" data-key="gotyme_qr_url"><input type="file" data-qr-file accept="image/png,image/jpeg,image/webp" hidden><div class="row wrap"><button type="button" class="btn btn-outline btn-sm" data-qr-upload>Upload / Replace GoTyme QR</button><button type="button" class="btn btn-ghost btn-sm" data-qr-remove>Remove QR</button></div><p class="tiny muted">Upload the official image from your payment app. PNG, JPG or WebP, up to 5 MB.</p></div>
+              <div class="payment-qr-upload" data-payment-qr="gotyme"><strong>Official GoTyme QR Code</strong><div data-qr-preview></div><input type="hidden" id="s-gotyme_qr_url" data-key="gotyme_qr_url"><input type="file" data-qr-file accept="image/png,image/jpeg,image/webp" hidden><div class="row wrap"><button type="button" class="btn btn-outline btn-sm" data-qr-upload>Upload / Replace GoTyme QR</button><button type="button" class="btn btn-ghost btn-sm" data-qr-remove>Remove QR</button></div><p class="tiny muted">Upload the official image from your payment app. PNG, JPG or WebP, up to 12 MB.</p></div>
               <div class="field"><label class="label">Instructions</label><input class="input" id="s-gotyme_instructions" data-key="gotyme_instructions" placeholder="Send exact amount, enter reference, upload receipt."></div>
             </div>
             <div class="payment-channel-section payment-channel-section-wide">
@@ -1070,7 +1073,12 @@ body.admin-app.role-ready #view-app{visibility:visible}
     return host;
   }
 
-  function api(pathname, opts) {
+  async function api(pathname,opts) {
+    opts=opts||{};
+    if(opts.body)opts={...opts,body:await window.PikolVenueUI.prepare(pathname,opts.body)};
+    return apiRequest(pathname,opts);
+  }
+  function apiRequest(pathname, opts) {
     opts = opts || {};
     var headers = { 'Content-Type': 'application/json' };
     if (TOKEN) headers.Authorization = 'Bearer ' + TOKEN;
@@ -1243,7 +1251,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
       /* Recovery only for records verified before the auto-confirm update. */
       act.push('<button class="btn btn-outline btn-sm" data-booking-approve="' + b.id + '" title="Legacy paid booking created before automatic confirmation">Finalize legacy booking</button>');
     }
-    if (b.status === 'confirmed' && isAdmin()) {
+    if (b.status === 'confirmed' && isAdmin() && !b.group_id) {
       act.push('<button class="btn btn-ghost btn-sm" data-status="completed" data-id="' + b.id + '">Complete</button>');
       act.push('<button class="btn btn-ghost btn-sm" data-status="no_show" data-id="' + b.id + '">No-show</button>');
       act.push('<button class="btn btn-outline btn-sm" data-venue-cancel="' + b.id + '">Venue Cancel / Resolve</button>');
@@ -1331,7 +1339,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
         actions='<div class="action-panel review-actions"><strong>'+(isCash?'Cash collection':'Payment review')+'</strong><p class="tiny muted mt-2">'+(isCash?'Record only after cash is physically received.':'Compare the uploaded receipt with the manually entered reference before verifying.')+'</p><div class="field"><label class="label">Verification notes</label><textarea class="textarea" id="tx-review-notes" maxlength="400"></textarea></div><div class="row wrap"><button class="btn btn-success" data-tx-verify>'+(isCash?'Mark cash paid':'Mark paid')+'</button><button class="btn btn-danger" data-tx-reject>Reject</button></div></div>';
       } else actions='<p class="tiny muted">Current status: '+esc(TX_STATUS_LABEL[t.unified_status]||t.unified_status)+'</p>';
       var history=(t.client_history||[]).slice(0,8).map(function(h){return '<tr><td>'+esc(h.transaction_key)+'</td><td>'+esc(TX_TYPE_LABEL[h.transaction_type]||h.transaction_type)+'</td><td class="num">'+esc(money(h.amount))+'</td><td>'+esc(h.status)+'</td><td class="tiny">'+esc(txStamp(h.created_at))+'</td></tr>';}).join('');
-      var host=modal({title:'Payment review · '+(TX_TYPE_LABEL[t.transaction_type]||t.transaction_type)+' '+t.transaction_key,wide:true,cancelText:'Close',body:'<div class="grid cols-2 payment-review-grid"><div><div class="receipt-frame" id="tx-receipt"></div></div><div class="stack" style="gap:12px"><table class="data"><tbody><tr><td class="muted">Client</td><td>'+esc(t.client_name||'—')+'<div class="tiny muted">'+esc(t.client_email||'')+'</div></td></tr><tr><td class="muted">Item</td><td>'+esc(t.item_name||'—')+(t.division_name?' · '+esc(t.division_name):'')+'</td></tr><tr><td class="muted">Amount</td><td><strong>'+esc(money(t.amount_due))+'</strong></td></tr><tr><td class="muted">Method</td><td>'+esc(String(t.payment_method||'').toUpperCase())+'</td></tr><tr><td class="muted">Reference</td><td class="num">'+esc(t.reference_number||(isCash?'Cash collection':'—'))+'</td></tr><tr><td class="muted">Submitted</td><td>'+esc(txStamp(t.created_at))+'</td></tr><tr><td class="muted">Status</td><td>'+txBadge(TX_STATUS_LABEL[t.unified_status]||t.unified_status,TX_STATUS_CLASS[t.unified_status]||'badge-pending')+'</td></tr>'+(t.cancellation_source?'<tr><td class="muted">Related service</td><td>Cancelled by '+esc(t.cancellation_source==='venue'?'Management / Venue':'Player')+(t.cancellation_resolution?'<div class="tiny muted">Resolution: '+esc(t.cancellation_resolution==='credit'?'PIKOL Credit issued':t.cancellation_resolution)+'</div>':'')+(t.cancellation_reason?'<div class="tiny muted">'+esc(t.cancellation_reason)+'</div>':'')+'</td></tr>':'')+'</tbody></table>'+txValidationBlock(t)+(history?'<details><summary class="tiny muted">Client payment history</summary><table class="data mt-2"><tbody>'+history+'</tbody></table></details>':'')+actions+'</div></div>'});
+      var host=modal({title:'Payment review · '+(TX_TYPE_LABEL[t.transaction_type]||t.transaction_type)+' '+t.transaction_key,wide:true,cancelText:'Close',body:'<div class="grid cols-2 payment-review-grid"><div><div class="receipt-frame" id="tx-receipt"></div></div><div class="stack" style="gap:12px"><table class="data"><tbody><tr><td class="muted">Client</td><td>'+esc(t.client_name||'—')+'<div class="tiny muted">'+esc(t.client_email||'')+'</div></td></tr><tr><td class="muted">Item</td><td>'+esc(t.item_name||'—')+(t.division_name?' · '+esc(t.division_name):'')+'</td></tr><tr><td class="muted">Amount</td><td><strong>'+esc(money(t.amount_due))+'</strong></td></tr><tr><td class="muted">Method</td><td>'+esc(String(t.payment_method||'').toUpperCase())+'</td></tr><tr><td class="muted">Reference</td><td class="num">'+esc(t.reference_number||(isCash?'Cash collection':'—'))+'</td></tr><tr><td class="muted">Submitted</td><td>'+esc(txStamp(t.created_at))+'</td></tr><tr><td class="muted">Status</td><td>'+txBadge(TX_STATUS_LABEL[t.unified_status]||t.unified_status,TX_STATUS_CLASS[t.unified_status]||'badge-pending')+'</td></tr>'+(t.cancellation_source?'<tr><td class="muted">Related service</td><td>Cancelled by '+esc(t.cancellation_source==='venue'?'Management / Venue':'Player')+(t.cancellation_resolution?'<div class="tiny muted">Resolution: '+esc(t.cancellation_resolution==='credit'?'PIKOL Credit issued':t.cancellation_resolution)+'</div>':'')+(t.cancellation_reason?'<div class="tiny muted">'+esc(t.cancellation_reason)+'</div>':'')+'</td></tr>':'')+'</tbody></table>'+window.PikolVenueUI.segmentsHtml(t.booking_group,{humanTime,money})+txValidationBlock(t)+(history?'<details><summary class="tiny muted">Client payment history</summary><table class="data mt-2"><tbody>'+history+'</tbody></table></details>':'')+actions+'</div></div>'});
       if(isCash) $('#tx-receipt',host).innerHTML='<div class="cash-receipt-placeholder"><span>₱</span><strong>Cash</strong><small>No receipt upload required</small></div>';
       else if(t.has_receipt) txReceiptUrl(t.transaction_key).then(function(url){$('#tx-receipt',host).innerHTML='<a href="'+assetUrl(url)+'" target="_blank" rel="noopener"><img src="'+assetUrl(url)+'" alt="Payment receipt" /></a>';}).catch(function(e){$('#tx-receipt',host).innerHTML='<span class="muted tiny">'+esc(e.message)+'</span>';});
       else $('#tx-receipt',host).innerHTML='<span class="muted tiny">No receipt stored.</span>';
@@ -1866,7 +1874,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
   document.addEventListener('change',function(e){
     var input=e.target.closest&&e.target.closest('[data-tournament-poster-file]'); if(!input)return;
     var f=input.files&&input.files[0]; if(!f)return;
-    if(f.size>5*1024*1024){toast('Image is too large (max 5MB).','error');return;}
+    if(f.size>12*1024*1024){toast('Image is too large (max 12MB).','error');return;}
     var host=input.closest('.modal-host'),fr=new FileReader();
     fr.onload=function(){
       api('/api/admin/events/upload-image',{method:'POST',body:{kind:'poster',mime:f.type,data:fr.result}})
@@ -2383,7 +2391,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
         return '<tr><td class="num">' + esc(b.reference) + '</td><td>' + adminPerson(b.player_name) + '</td><td>' + humanDate(b.booking_date) + '<div class="tiny muted">' + humanTime(b.start_time) + '</div></td><td>' + esc(b.court_name) + '</td><td class="num">' + esc(money(b.amount)) + '</td><td>' + adminStatus(b.status) + '</td></tr>';
       }).join('') || '<tr><td colspan="6"><div class="empty">No bookings yet.</div></td></tr>') + '</tbody></table></div>';
       $('#upcoming-list').innerHTML = (d.upcoming || []).map(function (b) {
-        return '<div class="list-row admin-schedule-row"><span class="admin-schedule-dot" aria-hidden="true"></span><div class="admin-schedule-time"><strong class="num">' + humanTime(b.start_time) + ' – ' + humanTime(b.end_time) + '</strong><span class="tiny muted">' + humanDate(b.booking_date) + '</span></div><span class="badge admin-court-badge">' + esc(b.court_name) + '</span><div class="list-main"><span class="list-title">' + esc(b.player_name) + '</span><span class="list-sub">' + esc(b.reference) + '</span></div><span class="badge badge-confirmed">' + esc(b.players || '—') + ' players</span></div>';
+        return '<div class="list-row admin-schedule-row"><span class="admin-schedule-dot" aria-hidden="true"></span><div class="admin-schedule-time"><strong class="num">' + window.PikolVenueUI.timeLabel(b,{humanTime}) + '</strong><span class="tiny muted">' + humanDate(b.booking_date) + '</span></div><span class="badge admin-court-badge">' + esc(b.court_name) + '</span><div class="list-main"><span class="list-title">' + esc(b.player_name) + '</span><span class="list-sub">' + esc(b.reference) + '</span></div><span class="badge badge-confirmed">' + esc(b.players || '—') + ' players</span></div>';
       }).join('') || '<div class="empty"><strong>All clear</strong>No upcoming bookings scheduled.</div>';
       applyRoleVisibility($('#page-dashboard'));
     }).catch(function (e) { toast(e.message, 'error'); });
@@ -2458,13 +2466,14 @@ body.admin-app.role-ready #view-app{visibility:visible}
     var input = $('#' + inputId), display = $('#' + displayId);
     if (input && display) display.textContent = shortDateDisplay(input.value, emptyText);
   }
-  ['#bk-q', '#bk-status', '#bk-date'].forEach(function (sel) {
+  ['#bk-q', '#bk-status', '#bk-date', '#bk-venue'].forEach(function (sel) {
     $(sel).addEventListener('input', function () {
       if (sel === '#bk-date') syncDateDisplay('bk-date', 'bk-date-display', 'MM/DD/YY');
       clearTimeout(bkTimer); bkTimer = setTimeout(loadBookings, 260);
     });
   });
   $('#bk-clear').onclick = function () {
+    $('#bk-venue').value = '';
     $('#bk-q').value = '';
     $('#bk-status').value = 'confirmed';
     $('#bk-date').value = '';
@@ -2476,23 +2485,23 @@ body.admin-app.role-ready #view-app{visibility:visible}
   function bookingDetailsBody(b) {
     function rows(items) { return '<dl class="summary-list">' + items.map(function (item) { return '<div class="summary-row"><dt>' + esc(item[0]) + '</dt><dd>' + esc(item[1] == null ? '—' : item[1]) + '</dd></div>'; }).join('') + '</dl>'; }
     function section(icon, title, content) { return '<section class="detail-card"><h3 class="detail-card-head">' + adminIcon(icon) + esc(title) + '</h3>' + content + '</section>'; }
-    return '<div class="booking-detail-intro"><span>Reference <strong>' + esc(b.reference) + '</strong></span>' + badge(b.status) + '</div><div class="booking-detail-grid">' +
+    return window.PikolVenueUI.segmentsHtml(b,{humanTime,money})+'<div class="booking-detail-intro"><span>Reference <strong>' + esc(b.reference) + '</strong></span>' + badge(b.status) + '</div><div class="booking-detail-grid">' +
       section('court', 'Booking summary', rows([['Court',b.court_name],['Court amount',money(b.amount)],['PIKOL Credit used',Number(b.credit_used||0)>0?money(b.credit_used):'—'],['Cash payment required',money(Math.max(0,Number(b.amount||0)-Number(b.credit_used||0)))]])) +
       section('user', 'Player information', rows([['Player',b.player_name],['Email',b.player_email],['Mobile',b.player_mobile || '—'],['Players',b.players]])) +
-      section('calendar', 'Schedule details', rows([['Date',humanDate(b.booking_date)],['Time',humanTime(b.start_time) + ' – ' + humanTime(b.end_time)]])) +
+      section('calendar', 'Schedule details', rows([['Date',humanDate(b.booking_date)],['Time',window.PikolVenueUI.timeLabel(b,{humanTime})]])) +
       section('payments', 'Payment information', rows([['Method',String(b.payment_method || '—').toUpperCase()],['Payment status',String(b.payment_record_status || b.payment_status || 'none').replace(/_/g,' ')],['Payment amount',b.payment_amount == null ? '—' : money(b.payment_amount)]])) +
       section('list', 'Booking notes', rows([['Created by',b.created_by || '—'],['Cancelled by',b.cancellation_source==='venue'?'Management / Venue':b.cancellation_source==='player'?'Player':'—'],['Cancellation reason',b.cancellation_reason||'—'],['Resolution',b.cancellation_resolution==='credit'?'PIKOL Credit issued':b.cancellation_resolution==='rebooked'?'Rebooked':b.cancellation_resolution||'—'],['Notes',b.notes || 'No additional notes.']])) + '</div>';
   }
 
   function bookingRowHtml(b) {
     var act = bookingActions(b);
-    if (b.status === 'confirmed' && isAdmin()) {
+    if (!b.group_id && b.status === 'confirmed' && isAdmin()) {
       act.push('<button class="btn btn-outline btn-sm" data-resched="' + b.id + '">Reschedule</button>');
     }
     act.push('<button class="btn btn-ghost btn-sm" data-detail="' + b.id + '">Details</button>');
     return '<tr><td class="num">' + esc(b.reference) + '</td><td>' + esc(b.player_name) + '<div class="tiny muted">' +
-      esc(b.player_email) + '</div></td><td>' + esc(b.court_name) + '</td><td>' + humanDate(b.booking_date) +
-      '<div class="tiny muted num booking-time-range">' + humanTime(b.start_time) + ' – ' + humanTime(b.end_time) + '</div></td><td>' +
+      esc(b.player_email) + '</div></td><td>' + esc(b.court_name) + window.PikolVenueUI.segmentsHtml(b,{humanTime,money}) + '</td><td>' + humanDate(b.booking_date) +
+      '<div class="tiny muted num booking-time-range">' + window.PikolVenueUI.timeLabel(b,{humanTime}) + '</div></td><td>' +
       esc(money(b.amount)) + '</td><td>' + esc(b.payment_method ? b.payment_method.toUpperCase() : '—') +
       '</td><td>' + (b.payment_amount != null ? esc(money(b.payment_amount)) : '—') + '<div class="tiny">' +
       badge(b.payment_record_status || b.payment_status || 'none') + '</div></td><td>' + badge(b.status) +
@@ -2503,12 +2512,15 @@ body.admin-app.role-ready #view-app{visibility:visible}
     return '<tr><td colspan="9"><div class="empty"><strong>' + esc(title) + '</strong>' + esc(detail) + '</div></td></tr>';
   }
 
+  function fillVenueFilters(){return api('/api/admin/venues').then(function(vs){['bk-venue','rp-venue'].forEach(function(id){var el=document.getElementById(id),value=el.value;el.innerHTML='<option value="">All venues</option>'+vs.map(v=>'<option value="'+v.id+'">'+esc(v.name)+'</option>').join('');el.value=value;});});}
   function loadBookings() {
+    if($('#bk-venue').options.length===1)fillVenueFilters().catch(function(){});
     var p = new URLSearchParams();
     var selectedStatus = $('#bk-status').value || 'confirmed';
     if ($('#bk-q').value.trim()) p.set('q', $('#bk-q').value.trim());
     if (selectedStatus !== 'all') p.set('status', selectedStatus);
     if ($('#bk-date').value) p.set('date', $('#bk-date').value);
+    if ($('#bk-venue').value) p.set('venue_id', $('#bk-venue').value);
     return api('/api/admin/bookings?' + p.toString()).then(function (rows) {
       BOOKINGS = rows;
       var confirmedView = selectedStatus === 'confirmed';
@@ -2541,7 +2553,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
       var host=modal({title:'Venue Cancellation — '+bk.reference,locked:true,danger:true,confirmText:'Apply resolution',body:
         '<div class="alert alert-warning"><strong>No cash refund.</strong> Choose how Management will make the affected player whole.</div>'+ 
         '<div class="field"><label class="label" for="vc-reason">Reason</label><textarea class="textarea" id="vc-reason" maxlength="300" placeholder="e.g. unsafe court condition, maintenance, emergency closure"></textarea></div>'+ 
-        '<div class="field"><label class="label" for="vc-resolution">Resolution</label><select class="select" id="vc-resolution"><option value="rebook">Rebook Player</option><option value="credit">Issue PIKOL Credit</option></select></div>'+ 
+        '<div class="field"><label class="label" for="vc-resolution">Resolution</label><select class="select" id="vc-resolution">'+(bk.group_id?'':'<option value="rebook">Rebook Player</option>')+'<option value="credit">Issue PIKOL Credit</option></select></div>'+ 
         '<div id="vc-rebook"><div class="field"><label class="label" for="vc-court">New court</label><select class="select" id="vc-court">'+COURTS.filter(function(c){return c.status==='active';}).map(function(c){return '<option value="'+c.id+'"'+(c.id===bk.court_id?' selected':'')+'>'+esc(c.name)+'</option>';}).join('')+'</select></div>'+ 
         '<div class="grid cols-2"><div class="field"><label class="label" for="vc-date">New date</label><input class="input" id="vc-date" type="date" value="'+esc(bk.booking_date)+'"></div><div class="field"><label class="label" for="vc-time">New start time</label><input class="input" id="vc-time" type="time" step="900" value="'+esc(bk.start_time)+'"></div></div><p class="tiny muted">The original booking duration is preserved and the new schedule is clash-checked.</p></div>',
         onConfirm:function(h){var reason=$('#vc-reason',h).value.trim(),resolution=$('#vc-resolution',h).value;if(reason.length<3)return Promise.reject(new Error('Enter the venue cancellation reason.'));var body={reason:reason,resolution:resolution};if(resolution==='rebook'){body.court_id=Number($('#vc-court',h).value);body.date=$('#vc-date',h).value;body.start_time=$('#vc-time',h).value;}return api('/api/admin/bookings/'+bk.id+'/venue-cancel',{method:'POST',body:body}).then(function(out){toast(resolution==='credit'?('Venue cancellation saved. '+money(out.credit_issued||0)+' PIKOL Credit issued.'):'Player rebooked successfully.','success');loadBookings();loadDashboard();if(!$('#page-payments').classList.contains('hidden'))loadPayments();});}});
@@ -2764,7 +2776,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
   function readPromoFile(file) {
     return new Promise(function (resolve, reject) {
       if (!file || !/^image\/(png|jpeg|webp)$/i.test(file.type)) return reject(new Error('Choose a PNG, JPG or WebP image.'));
-      if (!file.size || file.size > 5 * 1024 * 1024) return reject(new Error('Choose an image between 1 byte and 5 MB.'));
+      if (!file.size || file.size > 12 * 1024 * 1024) return reject(new Error('Choose an image between 1 byte and 5 MB.'));
       var reader = new FileReader();
       reader.onerror = function () { reject(new Error('The file could not be read. Please choose it again.')); };
       reader.onabort = function () { reject(new Error('Reading the image was cancelled.')); };
@@ -2783,7 +2795,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
         '<input type="file" hidden data-court-promo-file accept="image/png,image/jpeg,image/webp" />' +
         '<div class="row wrap promo-image-actions"><button class="btn btn-outline" type="button" data-court-promo-upload>Upload image</button>' +
         '<button class="btn btn-ghost" type="button" data-court-promo-reset>Reset to default</button></div>' +
-        '<p class="tiny muted mt-3">PNG, JPG or WebP, up to 5 MB. Uploads and resets save immediately. Paste an image link and select Save URL to use it.</p>',
+        '<p class="tiny muted mt-3">PNG, JPG or WebP, up to 12 MB. Uploads and resets save immediately. Paste an image link and select Save URL to use it.</p>',
       confirmText: 'Save URL',
       onConfirm: function () {
         if (saving) return Promise.resolve(false);
@@ -2836,25 +2848,9 @@ body.admin-app.role-ready #view-app{visibility:visible}
     };
     renderPreview();
   }
-  function loadCourts() {
-    return api('/api/courts').then(function (rows) {
-      COURTS = rows;
-      var rateLabels = rateWindowLabels();
-      $('#courts-grid').innerHTML = rows.length ? rows.map(function (c) {
-        return '<div class="list-row"><div class="list-main"><div class="list-title">' + esc(c.name) + '</div>' +
-          '<div class="list-sub">' + esc(c.surface || 'Surface not set') + ' · ' + money(c.day_hourly_rate==null?c.hourly_rate:c.day_hourly_rate) + '/hr · ' + esc(rateLabels.day) + ' · ' + money(c.evening_hourly_rate==null?c.hourly_rate:c.evening_hourly_rate) + '/hr · ' + esc(rateLabels.evening) + (c.description ? ' · ' + esc(c.description) : '') + '</div></div>' +
-          '<div class="list-end">' + badge(c.status) + '<button class="btn btn-outline btn-sm" data-edit-court="' + c.id + '">Edit</button>' +
-          '<button class="btn btn-outline btn-sm" data-court-promo="' + esc(c.id) + '">Promotional image</button>' +
-          '<button class="btn btn-outline btn-sm" data-court-status="' + c.id + '" data-to="' + (c.status === 'active' ? 'inactive' : 'active') + '">' +
-          (c.status === 'active' ? 'Deactivate' : 'Activate') + '</button>' +
-          '<button class="btn btn-outline btn-sm" data-court-status="' + c.id + '" data-to="maintenance">Maintenance</button>' +
-          '<button class="btn btn-ghost btn-sm" data-del-court="' + c.id + '">Delete</button></div></div>';
-      }).join('') : '<div class="empty"><strong>No courts yet</strong>Add your first court to start accepting bookings.</div>';
-      var sel = $('#bl-court');
-      sel.innerHTML = '<option value="">All courts</option>' + rows.map(function (c) {
-        return '<option value="' + c.id + '">' + esc(c.name) + '</option>'; }).join('');
-    }).catch(function (e) { toast(e.message, 'error'); });
-  }
+  function loadCourts(){return VENUE_ADMIN.load().then(function(rows){
+    $('#bl-court').innerHTML='<option value="">All courts</option>'+rows.map(c=>'<option value="'+c.id+'">'+esc(c.name)+'</option>').join('');
+  }).catch(e=>toast(e.message,'error'));}
   /* Court / Location dropdown shared by Tournament + Open Play forms.
      Options come straight from the courts table - never hard-coded. */
   function courtOptions(selectedId) {
@@ -2976,7 +2972,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
     return api('/api/admin/blocks').then(function (rows) {
       $('#blocks-body').innerHTML = rows.length ? rows.map(function (b) {
         return '<tr><td>' + humanDate(b.block_date) + '</td><td>' + esc(b.court_name || 'All courts') + '</td><td class="num">' +
-          humanTime(b.start_time) + ' – ' + humanTime(b.end_time) + '</td><td>' +
+          window.PikolVenueUI.timeLabel(b,{humanTime}) + '</td><td>' +
           badge(b.reason.replace('_', ' ')) + '</td><td class="muted tiny">' + esc(b.notes || '—') + '</td>' +
           '<td>' + (b.source_type
             ? '<span class="tiny muted">Auto reservation · managed by the event</span>'
@@ -3119,9 +3115,11 @@ body.admin-app.role-ready #view-app{visibility:visible}
   $('#rp-run').onclick = function () { var b = this; busy(b, true); runReport().finally(function () { busy(b, false); }); };
 
   function runReport() {
+    if($('#rp-venue').options.length===1)fillVenueFilters().catch(function(){});
     var from = $('#rp-from').value, to = $('#rp-to').value;
     if (!from || !to || from > to) { toast('Choose a valid date range, with the start before the end.', 'error'); return Promise.resolve(); }
     var p = new URLSearchParams({ from: from, to: to });
+    if ($('#rp-venue').value) p.set('venue_id',$('#rp-venue').value);
     return api('/api/admin/reports?' + p.toString()).then(function (d) {
       var s = d.summary || {}, f = d.finance || {}, m = d.membershipStats || {};
       $('#rp-summary').innerHTML = [
@@ -3141,6 +3139,8 @@ body.admin-app.role-ready #view-app{visibility:visible}
         ['Cancelled bookings', s.cancelled || 0], ['No-show bookings', s.no_show || 0],
         ['Pending bookings', s.pending || 0], ['Rejected bookings', s.rejected || 0], ['Date range', d.from + ' → ' + d.to]
       ].map(function (item) { return '<div><dt>' + esc(item[0]) + '</dt><dd class="num">' + esc(item[1]) + '</dd></div>'; }).join('') + '</dl></details>';
+      var venueNote=document.getElementById('rp-venue-note');if(!venueNote){venueNote=document.createElement('p');venueNote.id='rp-venue-note';venueNote.className='field-hint';document.getElementById('rp-venues').closest('section').append(venueNote);}venueNote.textContent=d.venue_finance_note||'Customer reservations count once; utilization uses actual court segments. Cash totals use verified payments.';
+      $('#rp-venues').innerHTML=(d.byVenue||[]).map(v=>'<tr><td>'+esc(v.name)+'</td><td>'+v.reservations+'</td><td>'+v.court_hours+'</td><td>'+money(v.booked_value)+'</td><td>'+money(v.cash_collected)+'</td><td>'+money(v.credit_applied)+'</td></tr>').join('')||'<tr><td colspan="6">No bookings in this date range.</td></tr>';
       $('#rp-chart').innerHTML = AdminCharts.bars(d.byDay || [], {from: d.from, to: d.to, label: 'Bookings per day'});
       $('#rp-courts').innerHTML = AdminCharts.donut((d.byCourt || []).map(function (c) { return {name: c.name, total: c.revenue}; }), {label: 'Booked value by court', totalLabel: 'Booked value', format: money});
       var peak = d.peak || [], max = Math.max.apply(null, peak.map(function (x) { return Number(x.total) || 0; }).concat([1]));
@@ -3359,7 +3359,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
     file.onchange = function () {
       var f = this.files && this.files[0]; this.value = '';
       if (!f) return;
-      if (f.size > 5 * 1024 * 1024) return toast('Image is too large (max 5MB).', 'error');
+      if (f.size > 12 * 1024 * 1024) return toast('Image is too large (max 12MB).', 'error');
       var fr = new FileReader();
       fr.onload = function () {
         api('/api/admin/events/upload-image', { method: 'POST', body: { kind: 'poster', mime: f.type, data: fr.result } })
@@ -3636,7 +3636,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
     });
   }
   saveSettings($('#set-branding'), ['facility_name','short_name','tagline','description','address','contact_number','contact_email','website','social_facebook','social_instagram','brand_primary','brand_secondary','brand_accent','booking_prefix']);
-  saveSettings($('#set-booking'), ['maximum_players','open_time','close_time','slot_minutes','currency','facility_timezone','evening_rate_start','checkout_hold_minutes']);
+  saveSettings($('#set-booking'), ['maximum_players','open_time','close_time','slot_minutes','currency','facility_timezone','checkout_hold_minutes']);
   saveSettings($('#set-membership'), ['membership_enabled','membership_sms_enabled','membership_expiry_reminder_days','nonmember_advance_days','nonmember_max_active_bookings','nonmember_cancellation_hours']);
   saveSettings($('#set-payments'), ['payment_note','gcash_enabled','gcash_account_name','gcash_number','gcash_qr_url','gcash_instructions','maya_enabled','maya_account_name','maya_number','maya_qr_url','maya_instructions','gotyme_enabled','gotyme_account_name','gotyme_number','gotyme_qr_url','gotyme_instructions','other_enabled','other_label','other_instructions','other_payment_options']);
   saveSettings($('#set-tournament'), ['tournament_default_format','tournament_default_seeding','tournament_match_duration_minutes','tournament_rest_minutes','tournament_group_size','tournament_group_qualifiers','tournament_scoring_best_of','tournament_scoring_points_to_win','tournament_scoring_win_by','tournament_third_place','tournament_double_reset_final']);
@@ -4082,8 +4082,8 @@ body.admin-app.role-ready #view-app{visibility:visible}
     if(!opt0)return toast('Payment account was not found. Please try again.','error');
     var remaining=Math.max(0,8-(opt0.images||[]).length);if(!remaining)return toast('Maximum of 8 images per payment account.','warning');
     files=files.slice(0,remaining);
-    var bad=files.filter(function(f){return !['image/png','image/jpeg','image/webp'].includes(f.type)||f.size>5*1024*1024;});
-    if(bad.length)return toast('Use PNG, JPG or WebP up to 5 MB per image.','error');
+    var bad=files.filter(function(f){return !['image/png','image/jpeg','image/webp'].includes(f.type)||f.size>12*1024*1024;});
+    if(bad.length)return toast('Use PNG, JPG or WebP up to 12 MB per image.','error');
     /* Show the selected image immediately, then replace the blob preview with
        the persisted /branding/ file returned by the backend. */
     var previews=paintOtherUploadPreview(optionId,files);
@@ -4117,7 +4117,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
     var provider=card.dataset.paymentQr,file=card.querySelector('[data-qr-file]');
     card.querySelector('[data-qr-upload]').onclick=function(){file.click();};
     function save(value){var body={};body[provider+'_qr_url']=value;return api('/api/admin/settings',{method:'PUT',body:body}).then(function(settings){SETTINGS=settings;renderPaymentQr();toast('Official QR saved.','success');});}
-    file.onchange=function(){var f=this.files&&this.files[0];this.value='';if(!f)return;if(!['image/png','image/jpeg','image/webp'].includes(f.type)||f.size>5*1024*1024)return toast('Use PNG, JPG or WebP up to 5 MB.','error');var reader=new FileReader();reader.onload=function(){api('/api/admin/events/upload-image',{method:'POST',body:{kind:'qr',mime:f.type,data:reader.result}}).then(function(r){return save(r.url);}).catch(function(e){toast(e.message,'error');});};reader.readAsDataURL(f);};
+    file.onchange=function(){var f=this.files&&this.files[0];this.value='';if(!f)return;if(!['image/png','image/jpeg','image/webp'].includes(f.type)||f.size>12*1024*1024)return toast('Use PNG, JPG or WebP up to 12 MB.','error');var reader=new FileReader();reader.onload=function(){api('/api/admin/events/upload-image',{method:'POST',body:{kind:'qr',mime:f.type,data:reader.result}}).then(function(r){return save(r.url);}).catch(function(e){toast(e.message,'error');});};reader.readAsDataURL(f);};
     card.querySelector('[data-qr-remove]').onclick=function(){save('').catch(function(e){toast(e.message,'error');});};
   });
   function renderAssetPreviews() {
@@ -4213,7 +4213,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
       var f = this.files && this.files[0];
       this.value = '';
       if (!f) return;
-      if (f.size > 5 * 1024 * 1024) return toast('Image is too large (max 5MB).', 'error');
+      if (f.size > 12 * 1024 * 1024) return toast('Image is too large (max 12MB).', 'error');
       var fr = new FileReader();
       fr.onerror = function () { toast('The file could not be read.', 'error'); };
       fr.onload = function () {
@@ -4604,6 +4604,13 @@ body.admin-app.role-ready #view-app{visibility:visible}
   window.PikolTournamentAdminNavigate=function(id){goto('tournaments');if(id)return openTournament(id);};
   window.PikolPremium.bindCards($('#page-events'));window.PikolPremium.bindCards($('#page-openplay'));
   document.addEventListener('click',function(ev){var row=ev.target.closest('[data-admin-event]');if(!row)return;var parts=row.dataset.adminEvent.split(':');if(parts[0]==='tournaments'){goto('tournaments');openTournament(parts[1]);}else{goto('openplay');loadOpenPlay().then(function(){return loadOpenPlayRegistrations(parts[1]);});}});
+  var VENUE_ADMIN=window.PikolVenueAdmin.install({api,esc,money,humanTime,toast,assetUrl,
+    token:()=>TOKEN,apiBase:()=>API,setCourts:function(rows){COURTS=rows;},signal:signalPublicRefresh,
+    refreshSettings:loadSettings
+  });
+  var loadSettingsOriginal=loadSettings;
+  loadSettings=function(){return loadSettingsOriginal().then(function(r){return VENUE_ADMIN.loadPricing().then(()=>r);});};
+  LOADERS.courts=loadCourts;LOADERS.settings=loadSettings;
   /* ---------- boot ---------- */
   function showApp() {
     $('#view-auth').classList.add('hidden');
@@ -4640,7 +4647,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
 
 <script>
 /* PIKOL_PWA_INSTALL_RUNTIME */
-(function(){'use strict';var btn=document.getElementById('pwa-install-admin'),deferredPrompt=null,KEY='pikol_admin_installed_v3';function ios(){return /iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);}function standalone(){return window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true;}function marked(){return localStorage.getItem(KEY)==='1';}function setMarked(v){if(v)localStorage.setItem(KEY,'1');else localStorage.removeItem(KEY);}function showIosGuide(){var g=document.getElementById('ios-pwa-guide');if(g)g.hidden=false;if(typeof toast==='function')toast('iPhone: Safari → Share → Add to Home Screen. Then open PIKOL Admin from the Home Screen icon.','error');}function sync(){if(!btn)return;if(standalone()){setMarked(true);btn.hidden=true;return;}if(ios()){btn.hidden=false;btn.textContent='Install Admin App on iPhone';return;}btn.textContent='Install Admin App';btn.hidden=!deferredPrompt||marked();}window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();deferredPrompt=e;if(!standalone())setMarked(false);sync();});window.addEventListener('appinstalled',function(){setMarked(true);deferredPrompt=null;sync();});window.addEventListener('pageshow',sync);document.addEventListener('visibilitychange',function(){if(!document.hidden)sync();});if(btn)btn.addEventListener('click',async function(){if(ios()){showIosGuide();return;}if(!deferredPrompt)return;btn.disabled=true;try{await deferredPrompt.prompt();var c=await deferredPrompt.userChoice;if(c&&c.outcome==='accepted')setMarked(true);}catch(_){}deferredPrompt=null;btn.disabled=false;sync();});if('serviceWorker' in navigator)window.addEventListener('load',function(){navigator.serviceWorker.register('service-worker.js?v=67-scorer-campaigns',{scope:'./',updateViaCache:'none'}).then(function(reg){return reg.update();}).catch(function(){});});sync();})();
+(function(){'use strict';var btn=document.getElementById('pwa-install-admin'),deferredPrompt=null,KEY='pikol_admin_installed_v3';function ios(){return /iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);}function standalone(){return window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true;}function marked(){return localStorage.getItem(KEY)==='1';}function setMarked(v){if(v)localStorage.setItem(KEY,'1');else localStorage.removeItem(KEY);}function showIosGuide(){var g=document.getElementById('ios-pwa-guide');if(g)g.hidden=false;if(typeof toast==='function')toast('iPhone: Safari → Share → Add to Home Screen. Then open PIKOL Admin from the Home Screen icon.','error');}function sync(){if(!btn)return;if(standalone()){setMarked(true);btn.hidden=true;return;}if(ios()){btn.hidden=false;btn.textContent='Install Admin App on iPhone';return;}btn.textContent='Install Admin App';btn.hidden=!deferredPrompt||marked();}window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();deferredPrompt=e;if(!standalone())setMarked(false);sync();});window.addEventListener('appinstalled',function(){setMarked(true);deferredPrompt=null;sync();});window.addEventListener('pageshow',sync);document.addEventListener('visibilitychange',function(){if(!document.hidden)sync();});if(btn)btn.addEventListener('click',async function(){if(ios()){showIosGuide();return;}if(!deferredPrompt)return;btn.disabled=true;try{await deferredPrompt.prompt();var c=await deferredPrompt.userChoice;if(c&&c.outcome==='accepted')setMarked(true);}catch(_){}deferredPrompt=null;btn.disabled=false;sync();});if('serviceWorker' in navigator)window.addEventListener('load',function(){navigator.serviceWorker.register('service-worker.js?v=69-venue-groups',{scope:'./',updateViaCache:'none'}).then(function(reg){return reg.update();}).catch(function(){});});sync();})();
 </script>
 
 </body>

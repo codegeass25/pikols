@@ -1,0 +1,67 @@
+(function(global){
+  'use strict';
+  const esc=s=>String(s??'').replace(/[&<>"']/g,x=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[x]));
+  function dialog(title,body) {
+    const d=document.createElement('dialog');d.className='vg-dialog';
+    d.innerHTML='<div class="vg-dialog-head"><h2>'+esc(title)+'</h2><button class="btn btn-ghost" data-close aria-label="Close">×</button></div>'+body;
+    const previous=document.activeElement;document.body.appendChild(d);d.showModal();
+    const close=()=>d.close();d.querySelector('[data-close]').onclick=close;
+    d.addEventListener('click',e=>{if(e.target===d){const r=d.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)close();}});
+    d.addEventListener('close',()=>{d.remove();previous?.focus();},{once:true});return d;
+  }
+  function gallery(court,images,asset) {
+    const rows=(images||[]).filter(i=>i.image_url),reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const d=dialog(court.name,rows.length?'<div class="vg-gallery-frame"><img alt="" decoding="async"><button class="vg-prev" aria-label="Previous image">‹</button><button class="vg-next" aria-label="Next image">›</button></div><div class="vg-gallery-foot"><span aria-live="polite"></span><button class="btn btn-outline btn-sm" data-play>Pause slideshow</button></div><div class="vg-dots"></div>':'<div class="empty"><strong>No photos yet</strong>Court photos will appear here when the venue uploads them.</div>');
+    if(!rows.length)return d;
+    let index=0,timer=null,playing=!reduced,gesture=null;
+    const picture=d.querySelector('img'),count=d.querySelector('.vg-gallery-foot span'),play=d.querySelector('[data-play]');
+    function stop(){if(timer)clearInterval(timer);timer=null;}
+    function schedule(){stop();if(playing&&!document.hidden&&!d.matches(':hover')&&!d.contains(document.activeElement))timer=setInterval(()=>show(index+1),4500);}
+    function show(n){index=(n+rows.length)%rows.length;picture.src=asset(rows[index].image_url);picture.alt=court.name+' — photo '+(index+1);count.textContent=(index+1)+' / '+rows.length;
+      d.querySelectorAll('[data-image]').forEach((b,i)=>{b.setAttribute('aria-pressed',String(i===index));});
+      if(rows.length>1){const next=new Image();next.src=asset(rows[(index+1)%rows.length].image_url);} }
+    d.querySelector('.vg-dots').innerHTML=rows.map((r,i)=>'<button data-image="'+i+'" aria-label="Show image '+(i+1)+'"></button>').join('');
+    d.querySelector('.vg-prev').onclick=()=>show(index-1);d.querySelector('.vg-next').onclick=()=>show(index+1);
+    d.querySelectorAll('[data-image]').forEach(b=>b.onclick=()=>show(Number(b.dataset.image)));
+    play.textContent=playing?'Pause slideshow':'Play slideshow';play.onclick=()=>{playing=!playing;play.textContent=playing?'Pause slideshow':'Play slideshow';stop();if(playing)timer=setInterval(()=>show(index+1),4500);};
+    const frame=d.querySelector('.vg-gallery-frame');frame.addEventListener('touchstart',e=>{gesture={x:e.touches[0].clientX,y:e.touches[0].clientY};},{passive:true});
+    frame.addEventListener('touchend',e=>{if(!gesture)return;const dx=e.changedTouches[0].clientX-gesture.x,dy=e.changedTouches[0].clientY-gesture.y;if(Math.abs(dx)>45&&Math.abs(dx)>Math.abs(dy))show(index+(dx<0?1:-1));gesture=null;},{passive:true});
+    d.addEventListener('keydown',e=>{if(e.key==='ArrowLeft')show(index-1);if(e.key==='ArrowRight')show(index+1);});
+    picture.onerror=()=>{count.textContent='Photo unavailable · '+(index+1)+' / '+rows.length;};
+    const visibility=()=>{stop();if(playing&&!document.hidden)timer=setInterval(()=>show(index+1),4500);};document.addEventListener('visibilitychange',visibility);
+    d.addEventListener('pointerenter',stop);d.addEventListener('pointerleave',schedule);
+    d.addEventListener('close',()=>{stop();document.removeEventListener('visibilitychange',visibility);},{once:true});show(0);if(playing)timer=setInterval(()=>show(index+1),4500);return d;
+  }
+  function maps(venue) {
+    const d=dialog(venue.name,'<p>'+esc(venue.address||'Address not configured')+'</p><p>'+(venue.maps_url?'Open this venue’s official Google Maps location?':'Location is unavailable. Contact the venue for directions.')+'</p><div class="vg-dialog-actions">'+(venue.maps_url?'<a class="btn btn-primary" target="_blank" rel="noopener noreferrer" href="'+esc(venue.maps_url)+'">Open in Google Maps</a>':'')+'<button class="btn btn-outline" data-stay>Stay in App</button></div>');d.querySelector('[data-stay]').onclick=()=>d.close();return d;
+  }
+  async function optimize(data,kind) {
+    if(!data||['receipt','qr'].includes(kind)||!/^data:image\/(jpeg|png|webp);base64,/.test(data)||data.length<500000)return data;
+    try {
+      const b=await (await fetch(data)).blob(),bmp=await createImageBitmap(b,{imageOrientation:'from-image'});
+      if(bmp.width*bmp.height>48000000){bmp.close();return data;}
+      const sizes={profile:[512,512],team:[1600,900],logo:[800,800],app_logo:[800,800],boot_logo:[800,800],favicon:[256,256],court:[1600,1200],venue:[1600,1200],poster:[1600,1600],event:[1600,1600],hero:[1920,1200]};
+      const size=sizes[kind]||sizes.court,scale=Math.min(1,size[0]/bmp.width,size[1]/bmp.height),canvas=document.createElement('canvas');canvas.width=Math.round(bmp.width*scale);canvas.height=Math.round(bmp.height*scale);canvas.getContext('2d').drawImage(bmp,0,0,canvas.width,canvas.height);bmp.close();
+      const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/webp',0.86));if(!blob||blob.size>=b.size)return data;
+      return await new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=reject;r.readAsDataURL(blob);});
+    }catch(_){return data;}
+  }
+  async function prepare(pathname,body) {
+    if(!body)return body;
+    const result={...body};
+    const kind=/\/banner/.test(pathname)?'team':/profile-photo/.test(pathname)?'profile':/\/images/.test(pathname)?'court':/\/venues\//.test(pathname)?'venue':body.asset_type||body.kind;
+    if(!kind||kind==='qr')return body;
+    if(result.data){result.data=await optimize(result.data,kind);if(/^data:image\//.test(result.data))result.mime=result.data.slice(5,result.data.indexOf(';'));}
+    if(result.data_url)result.data_url=await optimize(result.data_url,kind);
+    if(result.images)result.images=await Promise.all(result.images.map(async im=>{const data=await optimize(im.data,'court');return {...im,data,mime:/^data:image\//.test(data)?data.slice(5,data.indexOf(';')):im.mime};}));
+    return result;
+  }
+  function segmentsHtml(booking,c) {
+    if(!booking?.segments?.length)return '';
+    return '<details class="vg-segments"><summary>'+esc(booking.venue_name)+' · '+booking.segments.length+' slots · '+(booking.duration_minutes/60)+' court-hours</summary><ul>'+booking.segments.map(s=>'<li><strong>'+esc(s.court_name)+'</strong><span>'+c.humanTime(s.start_time)+' – '+c.humanTime(s.end_time)+'</span><strong>'+c.money(s.amount)+'</strong></li>').join('')+'</ul><div class="tiny muted">Subtotal '+c.money(booking.base_amount)+' · Discount '+c.money(booking.discount_amount||0)+' · Credit '+c.money(booking.credit_used||0)+' · Payable '+c.money(booking.cash_due||0)+'</div></details>';
+  }
+  function timeLabel(b,c){return b.segments?.length?b.segments.length+' slots · '+(b.duration_minutes/60)+' court-hours':c.humanTime(b.start_time)+' – '+c.humanTime(b.end_time);}
+  function ratesHtml(ct,c){return (ct.pricing_periods||[]).map(p=>'<span><strong>'+c.money(p.rate)+'</strong><small>/hr · '+esc(p.label)+' '+c.humanTime(p.start)+' – '+c.humanTime(p.end)+'</small></span>').join('');}
+  function thumb(url){return /(?:avatar-|team-).*\.webp(?:$|\?)/.test(url||'')?url.replace(/\.webp(?=$|\?)/,'-thumb.webp'):url;}
+  global.PikolVenueUI={timeLabel,ratesHtml,thumb,dialog,gallery,maps,optimize,prepare,segmentsHtml,esc};
+})(window);
