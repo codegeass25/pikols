@@ -2,6 +2,10 @@
   'use strict';
   const esc=s=>String(s??'').replace(/[&<>"']/g,x=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[x]));
   let dialogDepth=0,previousOverflow;
+  const DEFAULT_IMAGES={venue:'assets/defaults/venue-default.webp',court:'assets/defaults/court-default.webp'};
+  function defaultImage(kind){return DEFAULT_IMAGES[kind==='venue'?'venue':'court'];}
+  function photoUrl(url,kind,asset){return url?asset(url):defaultImage(kind);}
+  function fallbackAttr(kind){return 'onerror="this.onerror=null;this.src=\''+defaultImage(kind)+'\'"';}
   function dialog(title,body) {
     const d=document.createElement('dialog');d.className='vg-dialog';
     d.innerHTML='<div class="vg-dialog-head"><h2>'+esc(title)+'</h2><button class="btn btn-ghost" data-close aria-label="Close">×</button></div>'+body;
@@ -11,24 +15,24 @@
     d.addEventListener('close',()=>{d.remove();if(!--dialogDepth)document.body.style.overflow=previousOverflow;previous?.focus({preventScroll:true});},{once:true});return d;
   }
   function gallery(court,images,asset) {
-    const rows=(images||[]).filter(i=>i.image_url),reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const d=dialog(court.name,(court.description||court.surface?'<p class="vg-gallery-description">'+esc(court.description||court.surface)+'</p>':'')+(rows.length?'<div class="vg-gallery-frame"><img alt="" decoding="async"><button class="vg-prev" aria-label="Previous image">‹</button><button class="vg-next" aria-label="Next image">›</button></div><div class="vg-gallery-foot"><span aria-live="polite"></span><button class="btn btn-outline btn-sm" data-play>Pause slideshow</button></div><div class="vg-gallery-thumbnails" aria-label="Court photo thumbnails"></div>':'<div class="empty"><strong>No photos yet</strong>Court photos will appear here when the venue uploads them.</div>'));d.classList.add('vg-photo-dialog');
+    const uploaded=(images||[]).filter(i=>i.image_url),rows=uploaded.length?uploaded:[{image_url:defaultImage('court'),illustrative:true}],reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const d=dialog(court.name,(!uploaded.length?'<p class="vg-illustrative">Illustrative default image · Actual court photos not yet uploaded</p>':'')+(court.description||court.surface?'<p class="vg-gallery-description">'+esc(court.description||court.surface)+'</p>':'')+(rows.length?'<div class="vg-gallery-frame"><img alt="" decoding="async"><button class="vg-prev" aria-label="Previous image">‹</button><button class="vg-next" aria-label="Next image">›</button></div><div class="vg-gallery-foot"><span aria-live="polite"></span><button class="btn btn-outline btn-sm" data-play>Pause slideshow</button></div><div class="vg-gallery-thumbnails" aria-label="Court photo thumbnails"></div>':'<div class="empty"><strong>No photos yet</strong>Court photos will appear here when the venue uploads them.</div>'));d.classList.add('vg-photo-dialog');
     if(!rows.length)return d;
     let index=0,timer=null,playing=!reduced,gesture=null;
     const picture=d.querySelector('img'),count=d.querySelector('.vg-gallery-foot span'),play=d.querySelector('[data-play]');
     function stop(){if(timer)clearInterval(timer);timer=null;}
     function schedule(){stop();if(playing&&!document.hidden&&!d.matches(':hover')&&!d.contains(document.activeElement))timer=setInterval(()=>show(index+1),4500);}
-    function show(n){index=(n+rows.length)%rows.length;picture.src=asset(rows[index].image_url);picture.alt=court.name+' — photo '+(index+1);count.textContent=(index+1)+' / '+rows.length;
+    function show(n){index=(n+rows.length)%rows.length;picture.src=photoUrl(rows[index].illustrative?'':rows[index].image_url,'court',asset);picture.alt=court.name+' — photo '+(index+1);count.textContent=(index+1)+' / '+rows.length;
       d.querySelectorAll('[data-image]').forEach((b,i)=>{b.setAttribute('aria-pressed',String(i===index));if(i===index&&b.scrollIntoView)b.scrollIntoView({block:'nearest',inline:'nearest'});});
-      if(rows.length>1){const next=new Image();next.src=asset(rows[(index+1)%rows.length].image_url);} }
-    d.querySelector('.vg-gallery-thumbnails').innerHTML=rows.map((r,i)=>'<button data-image="'+i+'" aria-label="Show image '+(i+1)+'"><img src="'+esc(asset(r.thumbnail_url||r.image_url))+'" alt="" width="96" height="64" loading="lazy"></button>').join('');
+      if(rows.length>1){const next=new Image();next.src=photoUrl(rows[(index+1)%rows.length].illustrative?'':rows[(index+1)%rows.length].image_url,'court',asset);} }
+    d.querySelector('.vg-gallery-thumbnails').innerHTML=rows.map((r,i)=>'<button data-image="'+i+'" aria-label="Show image '+(i+1)+'"><img src="'+esc(photoUrl(r.illustrative?'':(r.thumbnail_url||r.image_url),'court',asset))+'" alt="" width="96" height="64" loading="lazy"></button>').join('');
     d.querySelector('.vg-prev').onclick=()=>show(index-1);d.querySelector('.vg-next').onclick=()=>show(index+1);
     d.querySelectorAll('[data-image]').forEach(b=>b.onclick=()=>show(Number(b.dataset.image)));
     play.textContent=playing?'Pause slideshow':'Play slideshow';play.onclick=()=>{playing=!playing;play.textContent=playing?'Pause slideshow':'Play slideshow';stop();if(playing)timer=setInterval(()=>show(index+1),4500);};
     const frame=d.querySelector('.vg-gallery-frame');frame.addEventListener('touchstart',e=>{gesture={x:e.touches[0].clientX,y:e.touches[0].clientY};},{passive:true});
     frame.addEventListener('touchend',e=>{if(!gesture)return;const dx=e.changedTouches[0].clientX-gesture.x,dy=e.changedTouches[0].clientY-gesture.y;if(Math.abs(dx)>45&&Math.abs(dx)>Math.abs(dy))show(index+(dx<0?1:-1));gesture=null;},{passive:true});
     d.addEventListener('keydown',e=>{if(e.key==='ArrowLeft'){e.preventDefault();show(index-1);}if(e.key==='ArrowRight'){e.preventDefault();show(index+1);}});
-    picture.onerror=()=>{count.textContent='Photo unavailable · '+(index+1)+' / '+rows.length;};
+    picture.onerror=()=>{picture.onerror=null;picture.src=defaultImage('court');count.textContent='Illustrative photo · '+(index+1)+' / '+rows.length;};
     const visibility=()=>{stop();if(playing&&!document.hidden)timer=setInterval(()=>show(index+1),4500);};document.addEventListener('visibilitychange',visibility);
     d.addEventListener('pointerenter',stop);d.addEventListener('pointerleave',schedule);
     d.addEventListener('close',()=>{stop();document.removeEventListener('visibilitychange',visibility);},{once:true});show(0);if(playing)timer=setInterval(()=>show(index+1),4500);return d;
@@ -72,5 +76,5 @@
   function timeLabel(b,c){return b.segments?.length?b.segments.length+' slots · '+(b.duration_minutes/60)+' court-hours':c.humanTime(b.start_time)+' – '+c.humanTime(b.end_time);}
   function ratesHtml(ct,c){return (ct.pricing_periods||[]).map(p=>'<span><strong>'+c.money(p.rate)+'</strong><small>/hr · '+esc(p.label)+' '+c.humanTime(p.start)+' – '+c.humanTime(p.end)+'</small></span>').join('');}
   function thumb(url){return /(?:avatar-|team-).*\.webp(?:$|\?)/.test(url||'')?url.replace(/\.webp(?=$|\?)/,'-thumb.webp'):url;}
-  global.PikolVenueUI={safeMapsURL,timeLabel,ratesHtml,thumb,dialog,gallery,maps,optimize,prepare,segmentsHtml,esc};
+  global.PikolVenueUI={safeMapsURL,timeLabel,ratesHtml,thumb,dialog,gallery,maps,optimize,prepare,segmentsHtml,esc,defaultImage,photoUrl,fallbackAttr};
 })(window);

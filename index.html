@@ -279,9 +279,9 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
 <link rel="stylesheet" href="client-upgrades.css?v=56-android-native-scroll">
 <link rel="stylesheet" href="tournament-premium.css?v=67" />
 <script src="tournament-premium.js?v=69"></script>
-<link rel="stylesheet" href="venue-booking.css?v=70">
-<script src="venue-ui.js?v=70"></script>
-<script src="venue-matrix.js?v=70"></script>
+<link rel="stylesheet" href="venue-booking.css?v=71">
+<script src="venue-ui.js?v=71"></script>
+<script src="venue-matrix.js?v=71"></script>
 </head>
 <body class="player-app">
 
@@ -392,8 +392,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
       </div>
       <span class="brand-pill">PIKOL</span>
       <nav class="site-nav" id="main-tabs" aria-label="Main navigation">
-        <button class="tab is-active" data-goto="dashboard" aria-current="page">Home</button>
-        <button class="tab" data-goto="courts">Courts</button>
+        <button class="tab is-active" data-goto="book" aria-current="page">Book Courts</button>
         <button class="tab" data-goto="openplay">Open Play</button>
         <button class="tab" data-goto="tournaments">Tournaments</button>
         <button class="tab" data-goto="membership">Membership</button>
@@ -403,43 +402,13 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
         <button class="btn btn-ghost btn-icon hidden" id="btn-help" type="button" aria-label="Help & User Guide" title="Help & User Guide">?</button>
         <button class="btn btn-ghost btn-icon bell" id="btn-bell" aria-label="Notifications" data-goto="notifications"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg><span class="bell-count hidden" id="bell-count"></span></button>
         <button class="btn btn-ghost" id="site-account" data-goto="profile">Sign In</button>
-        <button class="btn btn-lime" data-goto="book"><span aria-hidden="true">▦</span> Book Now</button>
         <button id="btn-logout" class="hidden" type="button">Sign out</button>
       </div>
     </div>
   </header>
   <main class="container app-body">
-    <section id="tab-dashboard">
-      <section class="booking-hero" aria-label="Play, book, compete">
-        <img class="booking-hero-image" src="assets/booking/hero-court.jpg" alt="Tropical blue pickleball court, promotional illustration" width="1672" height="941" fetchpriority="high" decoding="async" />
-        <div class="booking-hero-content">
-          <span class="eyebrow"><span data-facility-name>WENJELLY PICKLEBALL ZONE</span> <b>/ PIKOL</b></span>
-          <h1>PLAY. BOOK.<br><em>COMPETE.</em></h1>
-          <p><strong>Premium pickleball courts with fast online reservation.</strong><br>Dinks, drives, and good times await.</p>
-          <div class="hero-actions"><button class="btn btn-lime btn-lg" data-goto="book"><span aria-hidden="true">▦</span> Book a Court <span aria-hidden="true">→</span></button></div>
-          <div class="hero-features"><span><b aria-hidden="true">♛</b> Premium Facilities</span><span><b aria-hidden="true">♟</b> Vibrant Community</span><span><b aria-hidden="true">▥</b> Play. Improve. Belong.</span></div>
-        </div>
-        <div class="hero-signature">PICKLEBALL<br>LIVES HERE</div>
-        <div class="hero-caption"><span></span><span>Promotional image</span></div>
-      </section>
-      <div class="home-grid">
-        <div class="home-main">
-          <section id="home-courts" aria-labelledby="courts-title">
-            <div class="card-header courts-section-head"><div><h2 class="section-title" id="courts-title">Explore Our Courts</h2><p class="page-subtitle">Find your court. Bring your people. Make it a game.</p><span class="tiny muted" id="today-label"></span></div><button class="btn btn-ghost btn-sm" data-goto="book">View All Courts <span aria-hidden="true">→</span></button></div>
-            <div class="court-gallery" id="today-courts" aria-live="polite"><div class="skeleton" style="height:300px"></div></div>
-          </section>
-          <section class="home-events-section" aria-labelledby="home-events-title"><div class="card-header"><div><h2 class="section-title" id="home-events-title">Upcoming Events &amp; Tournaments</h2><p class="page-subtitle">Join our community events and take your game to the next level.</p></div><button class="btn btn-ghost btn-sm" data-goto="tournaments">View All Events →</button></div><div id="home-events" class="home-events"><div class="skeleton" style="height:160px"></div></div></section>
-        </div>
-        <aside class="home-sidebar">
-          <article class="community-promo"><img src="assets/booking/community.jpg" alt="Pickleball paddle and lime ball, promotional illustration" width="800" height="1000" loading="lazy"/><div class="promo-content"><h2>MORE THAN<br>A GAME.</h2><p>A COMMUNITY THAT PLAYS TOGETHER.</p><ul><li>Find your favourite court</li><li>Events &amp; tournaments</li><li>Membership benefits</li><li>More games. More good people.</li></ul><button class="btn btn-white" data-goto="membership">Join the Community →</button></div></article>
-          <article class="membership-promo"><img src="assets/booking/membership.jpg" alt="Pickleball community, promotional illustration" width="1200" height="600" loading="lazy"/><div class="promo-content"><span class="eyebrow" data-facility-name>WENJELLY PICKLEBALL ZONE</span><h2>Membership</h2><p><em>Play more.</em> Get more.<br>Be part of it all.</p><button class="btn btn-lime" data-goto="membership">View Plans →</button></div></article>
-        </aside>
-      </div>
-      <div class="hidden" aria-hidden="true"><span id="dash-name"></span><span id="dash-sub"></span><span id="st-upcoming"></span><span id="st-played"></span><div id="next-booking-card"></div><div id="recent-bookings"></div></div>
-    </section>
-    <div id="site-overlay" class="site-overlay hidden">
-    <section id="tab-book" class="site-sheet hidden" role="dialog" aria-modal="true" aria-labelledby="booking-title">
-      <button class="sheet-close" data-close-sheet aria-label="Close booking">×</button>
+<section id="tab-dashboard" class="hidden" aria-hidden="true"><span id="today-label"></span><div id="today-courts"></div><div id="home-events"></div><span id="dash-name"></span><span id="dash-sub"></span><span id="st-upcoming"></span><span id="st-played"></span><div id="next-booking-card"></div><div id="recent-bookings"></div></section>
+    <section id="tab-book" class="site-sheet" aria-labelledby="booking-title">
       <div class="booking-page-head"><span class="eyebrow">BOOK YOUR GAME</span><h1 class="page-title" id="booking-title">Book a Court</h1><p class="page-subtitle" data-facility-name>WenJelly Pickleball Zone / PIKOL</p></div>
       <div class="booking-layout">
 
@@ -454,6 +423,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
         </div>
       </div>
     </section>
+    <div id="site-overlay" class="site-overlay hidden">
     <!-- Compatibility nodes for legacy callbacks; excluded from the booking experience. -->
         <div class="vg-legacy-booking" hidden inert aria-hidden="true" style="display:none!important"><div id="booking-photo" class="court-visual"></div><div class="pick-grid" id="book-courts" aria-label="Choose a court"></div><div id="booking-court-description"></div><p class="field-hint">Select a court above to explore its availability.</p></div>
     <!-- BOOKINGS -->
@@ -652,13 +622,12 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
     </section>
     <section id="tab-membership" class="site-sheet hidden" role="dialog" aria-modal="true" aria-labelledby="membership-title"><button class="sheet-close" data-close-sheet aria-label="Close membership">×</button><div class="membership-layout"><aside class="membership-sidebar"><div class="membership-wordmark"><span class="pickleball-mark" aria-hidden="true">●</span><strong data-facility-name>WENJELLY</strong><span>PICKLEBALL COMMUNITY</span><b class="brand-pill">PIKOL</b></div><button class="is-active" data-member-view="plans">Available Plans</button><button data-member-view="current">Current Membership</button><button data-member-view="benefits">Benefits</button><p>Same Passion.<br>Bigger Community.</p></aside><div class="membership-main"><div class="membership-banner"><img src="assets/booking/membership.jpg" alt="Paddle and pickleball, promotional illustration"/><div><span class="eyebrow" data-facility-name>WENJELLY PICKLEBALL ZONE</span><h1 id="membership-title">Membership</h1><p>More than a membership — it's a community.</p></div></div><div class="card summary-card" id="membership-card"></div><section class="section-shell" id="membership-plans-card"></section><div class="membership-note">A community that plays together, grows together.<span>Find your people. Make more time for the game.</span></div></div></div></section>
     </div>
-    <footer class="site-footer"><div class="footer-brand"><span class="pickleball-mark" aria-hidden="true">●</span><strong data-facility-name>WENJELLY PICKLEBALL ZONE</strong> / PIKOL</div><nav aria-label="Footer navigation"><button data-goto="dashboard">Home</button><button data-goto="courts">Courts</button><button data-goto="openplay">Open Play</button><button data-goto="tournaments">Tournaments</button><button data-goto="membership">Membership</button></nav><span>Same Passion. Bigger Community.</span></footer>
+    <footer class="site-footer"><div class="footer-brand"><span class="pickleball-mark" aria-hidden="true">●</span><strong data-facility-name>WENJELLY PICKLEBALL ZONE</strong> / PIKOL</div><nav aria-label="Footer navigation"><button data-goto="book">Book Courts</button><button data-goto="openplay">Open Play</button><button data-goto="tournaments">Tournaments</button><button data-goto="membership">Membership</button></nav><span>Same Passion. Bigger Community.</span></footer>
   </main>
 
   <nav class="bottom-nav" aria-label="Primary">
     <div class="bottom-nav-inner">
-      <button data-tab="dashboard" class="is-active"><span class="ico" aria-hidden="true"><svg class="ui-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m3 10 9-7 9 7v10H3V10Zm6 10v-7h6v7"/></svg></span>Home</button>
-      <button data-tab="book"><span class="ico" aria-hidden="true"><svg class="ui-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M7 3v4m10-4v4M3 11h18m-9 3v4m-2-2h4"/></svg></span>Book</button>
+      <button data-tab="book" class="is-active"><span class="ico" aria-hidden="true"><svg class="ui-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M7 3v4m10-4v4M3 11h18m-9 3v4m-2-2h4"/></svg></span>Courts</button>
       <button data-tab="bookings"><span class="ico" aria-hidden="true"><svg class="ui-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6m-6 4h6m-6 4h3"/></svg></span>My Games</button>
       <button data-tab="tournaments"><span class="ico" aria-hidden="true"><svg class="ui-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h10v6a5 5 0 0 1-10 0V3Zm0 2H3v3a4 4 0 0 0 4 4m10-7h4v3a4 4 0 0 1-4 4m-5 2v6m-4 1h8"/></svg></span>Events</button>
       <button data-tab="profile"><span class="ico" aria-hidden="true"><svg class="ui-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2"/></svg></span>Account</button>
@@ -896,10 +865,10 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
   var GUIDE_SECTIONS = [
     {id:'start',label:'Start Here',html:
       '<span class="guide-kicker">Booking Site User Guide</span><h3>Know your main screens</h3>'+
-      '<div class="guide-status-grid"><div class="guide-status"><strong>Home</strong><span>See club information, featured courts and upcoming activities.</span></div><div class="guide-status"><strong>Courts</strong><span>Review court details and choose <strong>Book Now</strong> when you are ready.</span></div><div class="guide-status"><strong>Book Now / Book a Court</strong><span>Create an online court reservation.</span></div><div class="guide-status"><strong>My Games / My Bookings</strong><span>Check Upcoming reservations, History and Payments.</span></div><div class="guide-status"><strong>Events</strong><span>Open <strong>Tournaments</strong>, <strong>Open Play</strong> and <strong>My registrations</strong>.</span></div><div class="guide-status"><strong>Account</strong><span>Open your profile, rating, membership, password, notifications and settings.</span></div></div>'+
+      '<div class="guide-status-grid"><div class="guide-status"><strong>Book Courts</strong><span>Select a venue directly on the homepage, then use the court availability table to book.</span></div><div class="guide-status"><strong>Venue carousel</strong><span>Swipe or use the arrows, read all three pricing periods, and tap the map pin for directions.</span></div><div class="guide-status"><strong>Court schedule</strong><span>Select date and available court times; tap court names to view photos.</span></div><div class="guide-status"><strong>My Games / My Bookings</strong><span>Check Upcoming reservations, History and Payments.</span></div><div class="guide-status"><strong>Events</strong><span>Open <strong>Tournaments</strong>, <strong>Open Play</strong> and <strong>My registrations</strong>.</span></div><div class="guide-status"><strong>Account</strong><span>Open your profile, rating, membership, password, notifications and settings.</span></div></div>'+
       '<p>The <strong>?</strong> button opens this guide any time you are signed in.</p>' },
     {id:'booking',label:'Book a Court',html:
-      '<span class="guide-kicker">Online Court Reservation</span><h3>How to book</h3><div class="guide-steps"><div class="guide-step"><div><strong>Date</strong>Choose <strong>Select Date</strong> or use <strong>Browse calendar</strong>.</div></div><div class="guide-step"><div><strong>Court</strong>Select a court. Use <strong>View Details</strong> if you want to review the court first.</div></div><div class="guide-step"><div><strong>Time</strong>Choose <strong>Start Time</strong> and <strong>End Time</strong>. The schedule must be a continuous available range.</div></div><div class="guide-step"><div><strong>Confirm</strong>Set the <strong>Number of Players</strong>, add <strong>Additional Notes (Optional)</strong>, check the <strong>Booking Summary</strong>, then choose <strong>Continue to Confirmation</strong>.</div></div></div>'+
+      '<span class="guide-kicker">Online Court Reservation</span><h3>How to book</h3><div class="guide-steps"><div class="guide-step"><div><strong>Venue</strong>Select a venue in Step 1. Use the location pin to open directions.</div></div><div class="guide-step"><div><strong>Date</strong>Choose the date in Step 2 or use <strong>Browse calendar</strong>.</div></div><div class="guide-step"><div><strong>Court &amp; Time</strong>Select available cells in the schedule table. Tap a court name to see images.</div></div><div class="guide-step"><div><strong>Confirm</strong>Set the <strong>Number of Players</strong>, add <strong>Additional Notes (Optional)</strong>, check the <strong>Booking Summary</strong>, then choose <strong>Continue to Confirmation</strong>.</div></div></div>'+
       '<h4>Temporary payment hold</h4><p>When <strong>Complete Your Payment</strong> opens, your selected court and time are temporarily held for you. Finish the payment steps before the countdown reaches zero. If the hold expires, that schedule can become available to other players again.</p>'+
       '<h4>Payment</h4><p>Select the available Payment method, follow the instructions, enter the correct Reference number and upload the requested Receipt / screenshot. A payment marked <strong>under review</strong> is waiting for staff verification.</p>'+
       '<div class="guide-callout"><strong>Cancellation reminder:</strong> player-initiated cancellations and no-shows are non-refundable. PIKOL Credit already used for a confirmed booking or registration is not restored.</div><div class="guide-actions"><button class="btn btn-primary btn-sm" type="button" data-help-goto="book">Open Book a Court</button></div>' },
@@ -1145,13 +1114,13 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
   /* ---------- navigation ---------- */
   var TABS = ['dashboard','book','bookings','tournaments','notifications','profile','membership'];
   function goto(tab) {
-    if(tab==='courts'){closeSheet();$('#home-courts').scrollIntoView({behavior:'smooth',block:'start'});return;}
+    if(tab==='courts'||tab==='dashboard')tab='book';
     if(tab==='openplay'){EV_SUB='openplay';tab='tournaments';}
     if(TABS.indexOf(tab)<0)return;
     if(['bookings','notifications','profile'].indexOf(tab)>=0&&!requirePlayer(function(){goto(tab);}))return;
-    if(tab==='dashboard'){closeSheet();window.scrollTo({top:0,behavior:'smooth'});loadDashboard();return;}
+    if(tab==='book'){if(!$('#site-overlay').classList.contains('hidden'))closeSheet();$('#tab-book').classList.remove('hidden');syncLayers();$$('.bottom-nav button').forEach(function(b){b.classList.toggle('is-active',b.dataset.tab==='book');});window.scrollTo({top:0,behavior:'smooth'});ensureBooking();return;}
     if($('#site-overlay').classList.contains('hidden')){sheetReturnFocus=document.activeElement;sheetReturnScrollY=window.scrollY||0;}
-    TABS.filter(function(t){return t!=='dashboard';}).forEach(function(t){$('#tab-'+t).classList.toggle('hidden',t!==tab);});
+    TABS.filter(function(t){return t!=='dashboard'&&t!=='book';}).forEach(function(t){$('#tab-'+t).classList.toggle('hidden',t!==tab);});
     $('#site-overlay').classList.remove('hidden');syncLayers();
     var panel=$('#tab-'+tab),overlay=$('#site-overlay');overlay.scrollTop=0;panel.scrollTop=0;
     if(IS_ANDROID)window.scrollTo(0,0);
@@ -1434,25 +1403,12 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
   document.addEventListener('change',function(e){var el=e.target.closest('[data-inline-date]');if(!el)return;var state=INLINE_SELECTIONS[el.dataset.inlineDate];state.date=el.value;state.start=state.end=null;paintInline(el.dataset.inlineDate);});
   document.addEventListener('click',function(e){var host=e.target.closest('[data-inline-court]');if(!host)return;var id=host.dataset.inlineCourt,state=INLINE_SELECTIONS[id],button=e.target.closest('[data-inline-time]');if(e.target.closest('[data-inline-clear]')){state.start=state.end=null;return paintInline(id);}if(!button||button.disabled)return;if(!state.start||state.end){state.start=button.dataset.inlineTime;state.end=null;}else{state.end=button.dataset.inlineTime;}paintInline(id);});
   function loadDashboard() {
-    inlineCache.clear();inlineGeneration++;
-    var today=ymd(new Date());
-    $('#today-label').textContent='Live availability · '+humanDate(today);
     if(TOKEN&&USER)loadNotifications({preview:true});
-    loadHomeEvents();
-    return api('/api/availability?date='+today).then(function(data){
-      syncBookingRules(data);
-      var rateLabels=rateWindowLabels(data);
-      PUBLIC_COURTS=data.courts||[];
-      $('#today-courts').innerHTML=PUBLIC_COURTS.length?PUBLIC_COURTS.map(function(c){
-        var free=c.slots.filter(function(slot){return slot.status==='available';}).length;
-        var state=c.status==='active'?(free?'available':'booked'):c.status;
-        var label=state==='available'?'AVAILABLE':state==='booked'?'FULLY BOOKED':String(state).toUpperCase();
-        return '<article class="promo-court"><div class="court-visual">'+courtPhoto(c)+'<span class="court-type">'+esc(c.surface||'Pickleball')+'</span><span class="badge badge-'+esc(state)+'">'+esc(label)+'</span></div><div class="court-info"><h3>'+esc(c.name)+'</h3><p class="court-surface">'+esc(c.description||c.surface||'Your next great game starts here.')+'</p><div class="court-meta"><span>♟ 1–'+Number(BOOKING_RULES.maximum_players||1)+' players</span><span>◷ '+(c.status==='active'?free+' open slots':esc(label))+'</span></div><div class="court-rate" style="display:grid;gap:3px">'+window.PikolVenueUI.ratesHtml(c,{money,humanTime})+'</div>'+inlineShell(c,today)+'<div class="court-card-footer"><button class="btn btn-outline" data-court-details="'+c.id+'">View Details</button><button class="btn btn-primary" data-book-court="'+c.id+'">Book Now</button></div></div></article>';
-      }).join(''):'<div class="empty"><strong>No courts yet</strong>Courts appear here once the facility adds them.</div>';
-      inlineCache.set(today,{at:Date.now(),promise:Promise.resolve(data)});
-      PUBLIC_COURTS.forEach(function(c){paintInline(c.id);});
-      initCourtCarousel($('#today-courts'), {kind:'home'});
-    }).catch(function(e){$('#today-courts').innerHTML='<div class="empty"><strong>Courts could not load</strong><span>'+esc(e.message)+'</span><button class="btn btn-outline" data-goto="dashboard">Try again</button></div>';});
+    // Compatibility court snapshots for historical detail views; no duplicate homepage UI.
+    return api('/api/availability?date='+ymd(new Date())).then(function(data){
+      syncBookingRules(data);PUBLIC_COURTS=data.courts||[];
+      return data;
+    }).catch(function(){return null;});
   }
 
   document.addEventListener('click', function (e) {
@@ -2759,7 +2715,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
     var siteOpen = !overlay.classList.contains('hidden') && !!overlay.querySelector('.site-sheet:not(.hidden)');
     var authOpen = !$('#view-auth').classList.contains('hidden');
     var modalOpen = !!$('#modal-root .modal-host');
-    $$('.appbar,#tab-dashboard,.site-footer,.bottom-nav').forEach(function(el){el.inert=!!layer;});
+    $$('.appbar,#tab-book,#tab-dashboard,.site-footer,.bottom-nav').forEach(function(el){el.inert=!!layer;});
     overlay.inert = authOpen || modalOpen;
     $('#view-auth').inert = modalOpen;
     $$('#modal-root .modal-host').forEach(function(el){el.inert=!!layer && !el.contains(layer);});
@@ -2778,9 +2734,9 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
   }
   function closeSheet() {
     var overlay=$('#site-overlay');overlay.classList.add('hidden');overlay.scrollTop=0;
-    TABS.filter(function(t){return t!=='dashboard';}).forEach(function(t){$('#tab-'+t).classList.add('hidden');});
+    TABS.filter(function(t){return t!=='dashboard'&&t!=='book';}).forEach(function(t){$('#tab-'+t).classList.add('hidden');});
     syncLayers();
-    $$('.bottom-nav button').forEach(function(b){b.classList.toggle('is-active',b.dataset.tab==='dashboard');});
+    $$('.bottom-nav button').forEach(function(b){b.classList.toggle('is-active',b.dataset.tab==='book');});
     if(IS_ANDROID) requestAnimationFrame(function(){window.scrollTo(0,sheetReturnScrollY||0);});
     if(sheetReturnFocus && sheetReturnFocus.isConnected) sheetReturnFocus.focus({preventScroll:true});
   }
@@ -3183,6 +3139,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
   renderCalendar();
   updateAccountPresentation();
   loadDashboard();
+  if(new URLSearchParams(location.search).get('view')!=='booking')ensureBooking();
 
   loadPayCfg().catch(function () {});
 
@@ -3213,7 +3170,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
   window.addEventListener('appinstalled',function(){setMarked(true);deferredPrompt=null;sync();});
   window.addEventListener('pageshow',sync);document.addEventListener('visibilitychange',function(){if(!document.hidden)sync();});
   if(btn)btn.addEventListener('click',async function(){if(!deferredPrompt)return;btn.disabled=true;try{await deferredPrompt.prompt();var c=await deferredPrompt.userChoice;if(c&&c.outcome==='accepted')setMarked(true);}catch(_){}deferredPrompt=null;btn.disabled=false;sync();});
-  if('serviceWorker' in navigator)window.addEventListener('load',function(){navigator.serviceWorker.register('service-worker.js?v=70-venue-groups',{scope:'./',updateViaCache:'none'}).then(function(reg){return reg.update();}).catch(function(){});});
+  if('serviceWorker' in navigator)window.addEventListener('load',function(){navigator.serviceWorker.register('service-worker.js?v=71-venue-first',{scope:'./',updateViaCache:'none'}).then(function(reg){return reg.update();}).catch(function(){});});
   sync();
 })();
 </script>

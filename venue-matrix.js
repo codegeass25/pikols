@@ -35,11 +35,11 @@
       rail.innerHTML=venues.map(v=>{
         const selected=v.id===venueId,photo=v.card_image_url||v.image_url;
         const location=v.location_label||v.address||'View location';
-        // Backend allow-list validates configured Maps URLs. Do not treat this
-        // row as venue selection: it is an independent, real external link.
         const mapsURL=global.PikolVenueUI.safeMapsURL(v.maps_url);
-        const maps=mapsURL?'<a data-location href="'+esc(mapsURL)+'" target="_blank" rel="noopener noreferrer"><span aria-hidden="true">📍</span>'+esc(location)+' <span aria-hidden="true">↗</span></a>':'<span class="vg-location-unset"><span aria-hidden="true">📍</span>'+esc(v.location_label||v.address||'Location unavailable')+'</span>';
-        return '<article class="vg-venue'+(selected?' is-selected':'')+'" data-card="'+v.id+'"><button class="vg-venue-select" data-venue="'+v.id+'" aria-pressed="'+selected+'"'+(v.status==='active'?'':' disabled')+'><span class="vg-venue-photo">'+(photo?'<img src="'+esc(c.assetUrl(photo))+'" alt="'+esc(v.name)+'" width="640" height="360" loading="lazy" decoding="async">':'<span class="vg-no-photo">Venue photo unavailable</span>')+'<span class="vg-venue-badge '+(selected?'vg-badge-selected':'')+'">'+(selected?'✓ SELECTED':esc(v.status.toUpperCase()))+'</span></span><span class="vg-venue-copy"><strong>'+esc(v.name)+'</strong><span>'+esc(v.description||v.court_count+' configured courts')+'</span></span></button><div class="vg-venue-meta">'+maps+'<p class="vg-starting-rate">'+(v.starting_hourly_rate===null||v.starting_hourly_rate===undefined?'Rates unavailable':'From <strong>'+money(v.starting_hourly_rate)+'/hr</strong>')+'</p></div></article>';
+        const maps='<button type="button" class="vg-location-action" data-location="'+v.id+'"'+(mapsURL?'':' disabled')+' title="'+esc(mapsURL?'View venue location':'Location not configured')+'"><span aria-hidden="true">📍</span><span>'+esc(location)+'</span>'+(mapsURL?'<span aria-hidden="true">↗</span>':'')+'</button>';
+        const rates=(v.pricing_summary||[]).map(p=>'<div class="vg-rate-period"><span><strong>'+esc(p.label)+'</strong><small>'+humanTime(p.start)+' – '+humanTime(p.end)+'</small></span><b>'+money(p.min_rate)+(p.max_rate>p.min_rate?'–'+money(p.max_rate):'')+'<em>/hr</em></b></div>').join('');
+        const pricing=rates?'<div class="vg-venue-pricing" aria-label="All configured hourly prices">'+rates+'</div>':'<p class="vg-rate-empty">No bookable court rates configured</p>';
+        return '<article class="vg-venue'+(selected?' is-selected':'')+'" data-card="'+v.id+'"><button type="button" class="vg-venue-select" data-venue="'+v.id+'" aria-pressed="'+selected+'"'+(v.status==='active'?'':' disabled')+'><span class="vg-venue-photo"><img src="'+esc(global.PikolVenueUI.photoUrl(photo,'venue',c.assetUrl))+'" '+global.PikolVenueUI.fallbackAttr('venue')+' alt="'+esc(photo?v.name+' venue':v.name+' illustrative venue image')+'" width="640" height="360" loading="lazy" decoding="async">'+(!photo?'<span class="vg-image-disclaimer">Illustrative image</span>':'')+'<span class="vg-venue-badge '+(selected?'vg-badge-selected':'')+'">'+(selected?'✓ SELECTED':esc(v.status.toUpperCase()))+'</span></span><span class="vg-venue-copy"><strong>'+esc(v.name)+'</strong><span>'+esc(v.description||v.court_count+' configured courts')+'</span></span></button><div class="vg-venue-meta">'+maps+pricing+'</div></article>';
       }).join('')||'<div class="empty">No current venues. Please contact the club.</div>';
       rail.scrollLeft=left;
       host.querySelector('#vg-schedule-title').textContent='Court Schedule'+(v?' at '+v.name:'');
@@ -47,7 +47,7 @@
       const times=[...rows.values()].sort((a,b)=>a.start.localeCompare(b.start)||global.PikolAvailability.duration(a.start,a.end)-global.PikolAvailability.duration(b.start,b.end));
       host.querySelector('.vg-matrix-scroll').innerHTML=courts.length?'<table class="vg-matrix" style="--vg-courts:'+courts.length+'"><caption class="sr-only">'+esc(v?.name)+' · '+humanDate(date)+'</caption><colgroup><col class="vg-time-col">'+courts.map(()=>'<col>').join('')+'</colgroup><thead><tr><th class="vg-time" scope="col">Time</th>'+courts.map(ct=>{
         const photo=ct.thumbnail_url||ct.image_url;
-        return '<th scope="col"><button class="vg-court-header" data-gallery="'+ct.id+'" aria-label="View photos of '+esc(ct.name)+'">'+(photo?'<img src="'+esc(c.assetUrl(photo))+'" width="96" height="64" loading="lazy" alt="">':'<span class="vg-court-placeholder" aria-hidden="true">▧</span>')+'<span><strong>'+esc(ct.name)+' <span class="vg-gallery-icon" aria-hidden="true">▧</span></strong><small>'+esc(ct.description||ct.surface||'Court photos')+'</small></span></button></th>';
+        return '<th scope="col"><button class="vg-court-header" data-gallery="'+ct.id+'" aria-label="View photos of '+esc(ct.name)+'"><img src="'+esc(global.PikolVenueUI.photoUrl(photo,'court',c.assetUrl))+'" '+global.PikolVenueUI.fallbackAttr('court')+' width="96" height="64" loading="lazy" alt=""><span><strong>'+esc(ct.name)+' <span class="vg-gallery-icon" aria-hidden="true">▧</span></strong><small>'+esc(ct.description||ct.surface||'Court photos')+'</small></span></button></th>';
       }).join('')+'</tr></thead><tbody>'+times.map(sl=>'<tr><th class="vg-time" scope="row"><span>'+humanTime(sl.start)+'</span><small>'+humanTime(sl.end)+'</small></th>'+courts.map(ct=>{
         const cell=ct.slots.find(s=>s.start===sl.start&&s.end===sl.end),s={court_id:ct.id,start_time:sl.start,end_time:sl.end},selected=selection.has(token(s)),status=selected?'selected':cell?.status||'unconfigured';
         const allowed=!!cell?.bookable&&ct.status==='active'&&v?.status==='active';
@@ -97,7 +97,7 @@
       }catch(e){toast(e.message,'warning');refresh();}finally{busy=false;renderSummary();}
     }
     host.addEventListener('click',e=>{
-      if(e.target.closest('[data-location]'))return;
+      const locationButton=e.target.closest('[data-location]');if(locationButton){const venue=venues.find(v=>v.id===Number(locationButton.dataset.location));if(venue)global.PikolVenueUI.maps(venue);return;}
       const arrow=e.target.closest('[data-carousel]');if(arrow){moveCarousel(Number(arrow.dataset.carousel));return;}
       const v=e.target.closest('[data-venue]');if(v){selectVenue(Number(v.dataset.venue));return;}
       const b=e.target.closest('[data-cell]');if(b&&!b.disabled){

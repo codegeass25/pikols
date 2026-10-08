@@ -1,5 +1,5 @@
 /* Venue-first booking composition follows the approved desktop/mobile reference. */
-#tab-book.site-sheet{max-width:1280px;width:calc(100% - 32px);background:var(--surface-2,#edf5fa)}
+#tab-book.site-sheet{display:block;position:relative;max-width:1320px;width:100%;max-height:none;min-height:0;overflow:visible;overscroll-behavior:auto;border:0;box-shadow:none;margin:0 auto;padding:22px 0 36px;background:transparent;animation:none}
 #tab-book .booking-layout{display:block!important;min-width:0}
 #tab-book #steps,#tab-book #slot-card,#tab-book #booking-time,#tab-book #booking-end,#tab-book #booking-time-label,#tab-book #booking-end-label,#tab-book .booking-range-help{display:none!important}
 #tab-book .booking-controls{min-width:0;max-width:100%;overflow:visible;padding:0;background:transparent;border:0;box-shadow:none}
@@ -14,7 +14,7 @@
 .vg-section-head p{font-size:.83rem;color:var(--text-secondary,#647594);margin:5px 0 0;line-height:1.4}
 .vg-step-number{width:32px;height:32px;flex:0 0 32px;border-radius:50%;display:grid;place-items:center;background:var(--brand-primary,#00985b);color:white;font-size:1.2rem;font-weight:800}
 .vg-carousel{position:relative;min-width:0;padding:0 12px}
-.vg-venues{display:flex;gap:16px;overflow-x:auto;max-width:100%;padding:4px 4px 12px;scroll-snap-type:x mandatory;scroll-behavior:smooth;overscroll-behavior-x:contain;scrollbar-width:thin;-webkit-overflow-scrolling:touch;touch-action:pan-x pan-y}
+.vg-venues{display:flex;gap:16px;overflow-x:auto;max-width:100%;padding:4px 4px 12px;scroll-snap-type:x mandatory;scroll-behavior:smooth;overscroll-behavior-x:contain;scrollbar-width:none;-webkit-overflow-scrolling:touch;touch-action:pan-x pan-y}
 .vg-venue{flex:0 0 calc((100% - 32px)/3);min-width:0;overflow:hidden;text-align:left;border:2px solid transparent;border-radius:13px;background:var(--surface,#fff);box-shadow:0 4px 16px rgba(31,55,75,.1);scroll-snap-align:center;scroll-snap-stop:normal;cursor:pointer}
 .vg-venue.is-selected{border-color:var(--brand-primary,#00a55b)}
 .vg-venue-select{display:block;width:100%;text-align:left;padding:0;border:0;background:transparent;color:var(--text-primary,#111b3d);font:inherit;cursor:pointer}
@@ -42,7 +42,7 @@
 .vg-legend{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:9px 16px;font-size:.72rem;color:var(--text-secondary,#6a7b9a);margin:0 0 14px}
 .vg-legend>span{display:flex;align-items:center;gap:6px}.vg-legend>span:before{content:'';width:10px;height:10px;border-radius:50%;background:#cad6e5;flex-shrink:0}
 .vg-legend .vg-key-available:before{background:#009e61}.vg-legend .vg-key-selected:before{background:var(--brand-primary,#00643c)}.vg-legend .vg-key-booked:before{background:#ff445c}.vg-legend .vg-key-held:before{background:#ffb000}.vg-legend .vg-key-maintenance:before{background:#a452fc}.vg-legend .vg-key-inactive:before{background:#96a4be}
-.vg-matrix-scroll{max-width:100%;width:100%;overflow:auto;max-height:65vh;overscroll-behavior-x:contain;border:1px solid var(--border,#e3eaf3);border-radius:12px;isolation:isolate;-webkit-overflow-scrolling:touch;touch-action:pan-x pan-y}
+.vg-matrix-scroll{max-width:100%;width:100%;overflow-x:auto;overflow-y:visible;max-height:none;scrollbar-width:none;overscroll-behavior-x:contain;border:1px solid var(--border,#e3eaf3);border-radius:12px;isolation:isolate;-webkit-overflow-scrolling:touch;touch-action:pan-x pan-y}
 .vg-matrix{border-collapse:separate;border-spacing:0;width:100%;min-width:calc(150px + var(--vg-courts)*230px);table-layout:fixed;background:var(--surface,#fff);margin:0}
 .vg-matrix col.vg-time-col{width:150px}
 .vg-matrix th,.vg-matrix td{box-sizing:border-box;border-right:1px solid var(--border,#e3eaf3);border-bottom:1px solid var(--border,#e3eaf3);padding:3px;text-align:center;height:42px;vertical-align:middle}
@@ -66,7 +66,7 @@
 .vg-selection-live{font-size:.75rem;color:var(--text-secondary);padding-top:8px}
 @media(max-width:950px) and (min-width:651px){.vg-venue{flex-basis:calc((100% - 16px)/2)}.vg-court-header{gap:8px}.vg-court-header img{width:64px;flex-basis:64px}}
 @media(max-width:650px){
-  #tab-book.site-sheet{width:100%;max-width:100%;padding:16px 10px}
+  #tab-book.site-sheet{width:100%;max-width:100%;padding:12px 0 24px}
   .vg-booking-section{padding:16px 10px;border-radius:14px;margin-bottom:12px}
   .vg-section-head{gap:10px;margin-bottom:12px;align-items:flex-start;flex-wrap:wrap}
   .vg-step-number{width:27px;height:27px;flex-basis:27px;font-size:1rem}
@@ -104,3 +104,60 @@
 
 .vg-photo-dialog{width:min(560px,calc(100vw - 24px));padding:18px}.vg-photo-dialog .vg-dialog-head{margin-bottom:5px}.vg-gallery-description{color:var(--text-secondary);font-size:.8rem;margin:0 0 12px}.vg-gallery-thumbnails{display:flex;gap:7px;overflow:auto;padding:4px 0;scroll-snap-type:x proximity}.vg-gallery-thumbnails button{flex:0 0 86px;width:86px;height:60px;border:2px solid transparent;border-radius:8px;padding:0;overflow:hidden;cursor:pointer;scroll-snap-align:start;background:var(--surface-2)}.vg-gallery-thumbnails img{width:100%;height:100%;object-fit:cover}.vg-gallery-thumbnails button[aria-pressed=true]{border-color:var(--brand-primary)}.vg-delete-venue{color:#b6233c;border-color:#d9a9b2}.vg-delete-venue.btn-primary{background:#b6233c;color:white}.vg-photo-dialog .vg-gallery-frame{aspect-ratio:16/9}.vg-photo-dialog .vg-gallery-foot{font-size:.75rem;margin:8px 0}
 @media(max-width:650px){.vg-photo-dialog{position:fixed;top:auto;bottom:0;margin:0 auto;width:100%;max-width:100%;max-height:85dvh;border-radius:18px 18px 0 0;padding:16px 14px calc(16px + env(safe-area-inset-bottom))}.vg-gallery-thumbnails button{flex-basis:76px;width:76px;height:54px}}
+
+/* PIKOL v71 premium venue-first: one vertical document scroll; discreet horizontal rails. */
+#tab-book.site-sheet .sheet-close{display:none!important}
+#tab-book .booking-page-head{padding:6px 4px 10px;margin:0}
+#tab-book .booking-page-head .page-title{font-size:clamp(1.45rem,2.8vw,2rem);letter-spacing:-.035em}
+.vg-venues::-webkit-scrollbar,.vg-matrix-scroll::-webkit-scrollbar{display:none;width:0;height:0}
+.vg-venues,.vg-matrix-scroll{scrollbar-width:none}
+.vg-venue{display:flex;flex-direction:column;align-self:stretch;border-color:var(--border,#e8edf0)}
+.vg-venue-select{flex:0 0 auto}
+.vg-venue-meta{margin-top:auto;padding-bottom:16px}
+.vg-venue-pricing{display:grid;gap:5px;padding:10px 0 2px;border-top:1px solid var(--border,#e4eaf0);margin-top:7px}
+.vg-rate-period{display:flex;gap:8px;justify-content:space-between;align-items:center;padding:5px 8px;border-radius:8px;background:var(--surface-2,#f5f9f8);min-width:0}
+.vg-rate-period>span{display:grid;gap:2px;min-width:0}
+.vg-rate-period strong{font-size:.72rem;color:var(--text-primary,#15342d);font-weight:750}
+.vg-rate-period small{font-size:.65rem;line-height:1.25;color:var(--text-secondary,#64748b);overflow-wrap:anywhere}
+.vg-rate-period b{font-size:clamp(.73rem,.94vw,.94rem);font-weight:850;color:var(--text-primary,#063e30);font-variant-numeric:tabular-nums;white-space:nowrap}
+.vg-rate-period em{font-style:normal;font-size:.68rem;font-weight:500;opacity:.68}
+.vg-rate-empty{font-size:.74rem;margin:7px 0 0;color:var(--text-secondary)}
+.vg-location-action{display:flex;gap:6px;align-items:center;text-align:left;border:0;background:none;color:var(--brand-primary,#006f50);font:inherit;line-height:1.4;padding:6px 0;min-height:38px;width:100%;cursor:pointer}
+.vg-location-action>span:nth-child(2){min-width:0;overflow-wrap:anywhere}
+.vg-location-action:not(:disabled):hover{text-decoration:underline}
+.vg-location-action:disabled{color:var(--text-secondary);cursor:default;opacity:.7}
+.vg-location-action:focus-visible{outline:2px solid var(--brand-primary);outline-offset:3px;border-radius:4px}
+.vg-image-disclaimer{position:absolute;left:10px;bottom:9px;padding:3px 7px;background:rgba(0,22,21,.68);color:white;font-size:.6rem;border-radius:6px}
+.vg-illustrative{font-size:.73rem;color:var(--text-secondary);margin:0 0 10px}
+.vg-matrix-scroll{height:auto;max-height:none;overscroll-behavior-y:auto;touch-action:pan-x pan-y}
+.vg-matrix thead th{position:static}
+.vg-matrix .vg-time{position:sticky;left:0}
+.vg-matrix thead .vg-time{z-index:4}
+#tab-book #summary-card{position:relative;bottom:auto;box-shadow:0 3px 15px rgba(10,39,44,.07);margin-top:22px}
+#tab-book #btn-confirm{position:relative;bottom:auto;z-index:auto}
+.vg-admin-venue-title{display:flex;align-items:center;gap:12px;flex:1;min-width:0}
+.vg-admin-venue-title>img{width:86px;height:58px;object-fit:cover;border-radius:9px;flex-shrink:0;background:var(--surface-2)}
+.vg-admin-venue-title>span{min-width:0}
+.vg-form-preview{width:min(360px,100%);aspect-ratio:16/9;object-fit:cover;border:1px solid var(--border,#e4eaf0);border-radius:12px;background:var(--surface-2)}
+.vg-field>small{color:var(--text-secondary);font-weight:400;line-height:1.4}
+#tab-book .vg-booking-section{border:1px solid var(--border,#e4eaf0);box-shadow:0 10px 30px rgba(13,49,46,.045)}
+@media(max-width:950px){.vg-rate-period b{font-size:.8rem}}
+@media(max-width:650px){
+  #tab-book.site-sheet{padding:8px 0 16px!important}
+  .vg-venue{flex-basis:88%;max-width:88%}
+  .vg-venue-meta{padding:4px 13px 14px}
+  .vg-venue-pricing{gap:5px}
+  .vg-rate-period{padding:7px 9px}
+  .vg-rate-period strong{font-size:.72rem}
+  .vg-rate-period small{font-size:.66rem}
+  .vg-rate-period b{font-size:.85rem}
+  .vg-matrix-scroll{overflow-x:auto;overflow-y:visible}
+  #tab-book .booking-page-head{padding-left:8px;padding-right:8px}
+  #tab-book .vg-booking-section{padding:14px 10px}
+  .vg-admin-venue-title>img{width:65px;height:52px}
+}
+
+@media(max-width:767px){body.player-app .bottom-nav-inner{grid-template-columns:repeat(4,minmax(0,1fr))}}
+
+/* The approved mockup starts directly with Step 1, not an extra booking-title block. */
+#tab-book.site-sheet .booking-page-head{display:none!important}
