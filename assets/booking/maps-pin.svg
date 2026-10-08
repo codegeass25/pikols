@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 48" role="img" aria-label="Google Maps location">
+<path fill="#34A853" d="M18 47S4 25.4 4 18C4 8.1 10.4 2 18 2a16 16 0 0 1 0 32c-1 0-1.6 0-2.7-.2L18 47z"/>
+<path fill="#4285F4" d="M4.2 15.7C5.3 8.3 11.5 2 18.5 2.1 26 2.1 31 8 33.2 14L19 27.6c-3.3 0-7-1.9-9.2-5z"/>
+<path fill="#FBBC04" d="M32.8 14.1A16.8 16.8 0 0 1 28 28.6L18 47l-4.5-17.7L32.8 14z"/>
+<path fill="#EA4335" d="M4 18c0 6.3 8.9 19.9 14 29L13.1 27A12.2 12.2 0 0 1 4 18z"/>
+<circle cx="18" cy="17.5" r="7" fill="#fff"/><circle cx="18" cy="17.5" r="4" fill="#34A853"/>
+</svg>
