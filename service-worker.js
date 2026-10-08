@@ -1,13 +1,13 @@
-const CACHE = 'pikol-v77-wenjelly-logo-20261009';
+const CACHE = 'pikol-v77-wenjelly-logo-20261009-v80';
 const SHELL = [
   './mobile-fit.css?v=76-responsive-checkout',
-  './venue-booking.css?v=76-responsive-checkout','./venue-ui.js?v=71','./venue-matrix.js?v=76-responsive-checkout','./venue-admin.js?v=71',
+  './venue-booking.css?v=76-responsive-checkout','./venue-ui.js?v=80-per-slot','./venue-matrix.js?v=76-responsive-checkout','./venue-admin.js?v=71',
   './assets/promo-qr/official-website-master.png?v=77-wenjelly-logo-20261009','./assets/promo-qr/official-website-qr-logo.png?v=77-wenjelly-logo-20261009',
   './assets/promo-qr/booking-site-master.png?v=77-wenjelly-logo-20261009','./assets/promo-qr/booking-site-qr-logo.png?v=77-wenjelly-logo-20261009','./assets/promo-qr/tournament-registration-master.png?v=77-wenjelly-logo-20261009','./assets/promo-qr/tournament-registration-qr-logo.png?v=77-wenjelly-logo-20261009','./assets/promo-qr/open-play-registration-master.png?v=77-wenjelly-logo-20261009','./assets/promo-qr/open-play-registration-qr-logo.png?v=77-wenjelly-logo-20261009',
   './tournament-premium.js?v=74-system-audit','./tournament-command.js?v=67','./tournament-premium.css?v=67','./scoring-premium.css?v=67','./scoring-premium.js?v=75-mobile-fit',
   './range-availability.js?v=56-android-native-scroll','./client-upgrades.css?v=56-android-native-scroll',
   './index.html','./admin.html','./scoring.html','./styles.css','./cards.js','./tournament-view.js','./config.js','./qr-lite.js?v=67','./qr-decoder.js?v=67','./promo-qr.js?v=77-wenjelly-logo-20261009','./promo-qr.css?v=67',
-  './admin-premium.css?v=73-venue-admin','./admin-premium.css','./admin-charts.js','./admin-charts.js?v=28-admin-reference','./booking-premium.css?v=76-responsive-checkout','./booking-premium.css','./assets/booking/maps-pin.svg','./assets/booking/hero-court.jpg','./assets/booking/court-01.jpg','./assets/booking/court-02.jpg','./assets/booking/court-03.jpg',
+  './admin-premium.css?v=80-per-slot','./admin-premium.css','./admin-charts.js','./admin-charts.js?v=80-venue-labels','./booking-premium.css?v=76-responsive-checkout','./booking-premium.css','./assets/booking/maps-pin.svg','./assets/booking/hero-court.jpg','./assets/booking/court-01.jpg','./assets/booking/court-02.jpg','./assets/booking/court-03.jpg',
   './assets/booking/community.jpg','./assets/booking/membership.jpg','./assets/defaults/venue-default.webp','./assets/defaults/court-default.webp',
   './manifest.json?v=73','./admin-manifest.json?v=73','./scoring-manifest.json?v=73','./icons/wenjelly-v73-192.png','./icons/wenjelly-v73-512.png','./icons/wenjelly-v73-maskable-192.png','./icons/wenjelly-v73-maskable-512.png','./icons/wenjelly-v73-apple.png'
 ];

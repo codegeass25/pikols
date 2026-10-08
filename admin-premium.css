@@ -1043,3 +1043,19 @@ body.admin-app .mobile-date-display { display: none; }
  #page-calendar .venue-admin-toolbar>.calendar-date-field input{width:100%!important;min-width:0!important}
  #page-calendar .venue-admin-toolbar>#cal-next-day{grid-column:3;grid-row:2;width:100%}
 }
+
+/* V80: actionable grouped booking segments — mobile-first and keyboard accessible. */
+.vg-segments{min-width:0;max-width:100%;border:1px solid var(--border,#dce7e1);border-radius:14px;background:var(--surface-2,#f7faf9);padding:10px}
+.vg-segments>summary{cursor:pointer;color:var(--brand,#006b50);font-weight:800;line-height:1.5}
+.vg-segments>ul{list-style:none;margin:10px 0 0;padding:0;display:grid;gap:8px}
+.vg-segments .vg-slot-item{display:block;min-width:0;background:var(--surface,#fff);border:1px solid var(--border,#dfe7e3);border-radius:11px;padding:12px}
+.vg-slot-primary{display:flex;gap:9px;align-items:center;flex-wrap:wrap;justify-content:space-between;line-height:1.45}
+.vg-slot-primary>span:nth-of-type(1){color:var(--muted,#60758a);font-size:.81rem}
+.vg-slot-status{text-transform:capitalize;font-weight:800;font-size:.69rem;padding:4px 7px;border-radius:50px;background:#e7f7ed;color:#086847}
+.vg-slot-status-no_show,.vg-slot-status-cancelled{background:#fff0ed;color:#a73435}
+.vg-slot-status-completed{background:#dfedff;color:#164c86}
+.vg-slot-actions{display:flex;flex-wrap:wrap;gap:6px;border-top:1px solid var(--border,#e6ebeb);margin-top:9px;padding-top:9px}
+.vg-slot-actions .btn{font-size:.72rem;min-height:34px;white-space:normal;max-width:100%}
+.vg-slot-actions .btn:focus-visible{outline:2px solid var(--brand,#007b57);outline-offset:2px}
+.vg-slot-total{padding:10px 3px 0;line-height:1.6}
+@media(max-width:680px){.vg-segments{padding:7px}.vg-segments .vg-slot-item{padding:9px}.vg-slot-primary{align-items:flex-start;flex-direction:column;gap:4px}.vg-slot-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.vg-slot-actions .btn{width:100%;padding:6px 4px;min-height:42px}.vg-slot-reschedule .grid.cols-2{grid-template-columns:minmax(0,1fr)}}
