@@ -34,7 +34,7 @@
    window.addEventListener('appinstalled',()=>{pending=null;button.hidden=true;help.hidden=true;});
    button.onclick=async()=>{if(pending){await pending.prompt();await pending.userChoice;pending=null;}else{help.hidden=!help.hidden;help.textContent=(/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1))?'In Safari, open Share → Add to Home Screen to install PIKOL Scorer. On iPad, use the Share button in the toolbar.':'Use your browser’s Install App or Add to Home Screen command. HTTPS and a supported browser are required.';}};
    window.addEventListener('pageshow',sync);sync();
-   if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('service-worker.js?v=74-system-audit',{scope:'./',updateViaCache:'none'}).then(reg=>reg.update()).catch(()=>{}));
+   if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('service-worker.js?v=75-mobile-fit',{scope:'./',updateViaCache:'none'}).then(reg=>reg.update()).catch(()=>{}));
  }
  window.addEventListener('DOMContentLoaded',installApp);
  root.PikolScoring={render,bind,assigned};

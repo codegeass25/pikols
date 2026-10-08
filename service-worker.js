@@ -1,9 +1,10 @@
-const CACHE = 'pikol-v74-system-audit';
+const CACHE = 'pikol-v75-mobile-fit';
 const SHELL = [
+  './mobile-fit.css?v=75-mobile-fit',
   './venue-booking.css?v=72-hero-restore','./venue-ui.js?v=71','./venue-matrix.js?v=72-hero-restore','./venue-admin.js?v=71',
   './assets/promo-qr/official-website-master.png','./assets/promo-qr/official-website-qr-logo.png',
   './assets/promo-qr/booking-site-master.png','./assets/promo-qr/booking-site-qr-logo.png','./assets/promo-qr/tournament-registration-master.png','./assets/promo-qr/tournament-registration-qr-logo.png','./assets/promo-qr/open-play-registration-master.png','./assets/promo-qr/open-play-registration-qr-logo.png',
-  './tournament-premium.js?v=74-system-audit','./tournament-command.js?v=67','./tournament-premium.css?v=67','./scoring-premium.css?v=67','./scoring-premium.js?v=74-system-audit',
+  './tournament-premium.js?v=74-system-audit','./tournament-command.js?v=67','./tournament-premium.css?v=67','./scoring-premium.css?v=67','./scoring-premium.js?v=75-mobile-fit',
   './range-availability.js?v=56-android-native-scroll','./client-upgrades.css?v=56-android-native-scroll',
   './index.html','./admin.html','./scoring.html','./styles.css','./cards.js','./tournament-view.js','./config.js','./qr-lite.js?v=67','./qr-decoder.js?v=67','./promo-qr.js?v=68-official-website','./promo-qr.css?v=67',
   './admin-premium.css?v=73-venue-admin','./admin-premium.css','./admin-charts.js','./admin-charts.js?v=28-admin-reference','./booking-premium.css?v=72-hero-restore','./booking-premium.css','./assets/booking/maps-pin.svg','./assets/booking/hero-court.jpg','./assets/booking/court-01.jpg','./assets/booking/court-02.jpg','./assets/booking/court-03.jpg',

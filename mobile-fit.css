@@ -1,0 +1,116 @@
+/* V75: phone/tablet layouts fit the viewport at the normal initial scale.
+   Keep vertical scrolling and contain wide schedules inside their own panels. */
+@media screen and (max-width: 1024px) {
+  html { width: 100%; max-width: 100%; -webkit-text-size-adjust: 100%; }
+  body:is(.player-app, .admin-app, .scoring-page) {
+    width: 100%; max-width: 100%; min-width: 0;
+  }
+
+  :is(body.player-app, body.admin-app, body.scoring-page)
+  :is(#view-app, .app-body, .admin-shell, .admin-main, .admin-content,
+      .score-shell, .score-main, .score-layout, .arena,
+      .auth-wrap, .auth-panel, .auth-card, .auth-dialog,
+      .site-overlay, .site-sheet, .modal-host, .modal, .modal-body,
+      .grid, .stack, .card, .panel, .section-shell, .settings-section,
+      .form-section, .field, .tp-page, .tp-command, .tp-workspace,
+      .pikol-v72-layout, .pikol-v72-booking-main, #venue-booking) {
+    min-width: 0; max-width: 100%;
+  }
+
+  :is(body.player-app, body.admin-app, body.scoring-page) .grid > *,
+  :is(body.player-app, body.admin-app, body.scoring-page)
+  :is(.row, .spread, .card-header, .vg-section-head, .score-top, .sc-app-bar) > * {
+    min-width: 0;
+  }
+
+  /* The old 280px minimum could exceed a phone card's available content width. */
+  :is(body.player-app, body.admin-app, body.scoring-page) .grid.cols-2 {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+  }
+
+  /* Native date/select fields must shrink even when a form has inline widths. */
+  :is(body.player-app, body.admin-app, body.scoring-page)
+  :is(.input, .select, .textarea, select, textarea,
+      input:not([type=checkbox]):not([type=radio]):not([type=color]):not([type=range]):not([type=hidden])) {
+    box-sizing: border-box;
+    min-width: 0 !important; max-width: 100%;
+    font-size: 16px !important;
+  }
+
+  :is(body.player-app, body.admin-app, body.scoring-page)
+  :is(.table-wrap, .players-table-viewport, .communication-table-viewport,
+      .admin-chart-scroll, .tp-table-scroll, .tp-bracket-viewport,
+      .tp-match-operations, .bracket-board, .vg-matrix-scroll, .vg-venues) {
+    min-width: 0; max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Ordinary table wrappers contain their children in grid/flex cards. */
+  :is(body.player-app, body.admin-app, body.scoring-page)
+  :is(.table-wrap, .players-table-viewport, .communication-table-viewport,
+      .admin-chart-scroll, .tp-table-scroll, .tp-bracket-viewport, .vg-matrix-scroll) {
+    width: 100%;
+  }
+  :is(body.player-app, body.admin-app) .table-wrap:has(> table.data.as-cards) {
+    overflow: visible;
+  }
+
+  :is(body.player-app, body.admin-app, body.scoring-page)
+  :is(.page-title, .page-subtitle, .card-title, .list-title,
+      .auth-card, .modal-head, .field-hint, .vg-venue-copy, .vg-court-title) {
+    overflow-wrap: anywhere;
+  }
+  :is(body.player-app, body.admin-app, body.scoring-page)
+  :is(.btn, .tp-btn, .sc-exit, .sc-install) {
+    max-width: 100%; white-space: normal; overflow-wrap: anywhere;
+  }
+}
+
+@media screen and (max-width: 767px) {
+  :is(body.player-app, body.admin-app, body.scoring-page)
+  :is(.grid.cols-2, .grid.cols-3, .grid.cols-4) {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+  :is(body.player-app, body.admin-app) .bottom-nav-inner {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+  :is(body.player-app, body.admin-app) .modal-foot,
+  :is(body.player-app, body.admin-app) .auth-card .spread {
+    flex-wrap: wrap;
+  }
+  :is(body.player-app, body.admin-app) .modal-foot .btn { min-width: 0; }
+  :is(body.player-app, body.admin-app) .auth-panel { padding-inline: 16px; }
+
+  /* Let long header actions wrap without stretching the page. */
+  body.scoring-page :is(.score-top, .score-toolbar, .score-heading, .sc-app-bar) {
+    flex-wrap: wrap; max-width: 100%;
+  }
+  body.scoring-page .score-top > div:first-child { flex-wrap: wrap; }
+}
+
+@media screen and (max-width: 680px) {
+  body.scoring-page .score-shell,
+  body.scoring-page.display-mode .score-shell { width: 100%; margin-inline: 0; }
+  body.scoring-page .scoreboard {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  body.scoring-page :is(.competitor, .sc-points, .sc-utility, .score-center) {
+    min-width: 0;
+  }
+  body.scoring-page .sc-numbers { padding-inline: 0; gap: 10px; }
+  body.scoring-page .score-num { font-size: clamp(44px, 16vw, 80px); }
+  body.scoring-page.display-mode .score-num { font-size: clamp(48px, 18vw, 100px); }
+  body.scoring-page .sc-assigned-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media screen and (max-width: 360px) {
+  body.player-app .pikol-v72-promo-sidebar { grid-template-columns: minmax(0, 1fr); }
+  :is(body.player-app, body.admin-app) .vg-pricing-hours,
+  :is(body.player-app, body.admin-app) .vg-pricing-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  body.admin-app :is(#stat-grid, #tx-stats, #rp-summary, #ev-hub-stats) {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+}

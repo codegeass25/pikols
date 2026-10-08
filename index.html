@@ -283,6 +283,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
 <script src="venue-ui.js?v=71"></script>
 <script src="venue-matrix.js?v=72-hero-restore"></script>
 <link rel="apple-touch-icon" href="icons/wenjelly-v73-apple.png" />
+<link rel="stylesheet" href="mobile-fit.css?v=75-mobile-fit" />
 </head>
 <body class="player-app">
 
@@ -3220,7 +3221,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
   window.addEventListener('appinstalled',function(){setMarked(true);deferredPrompt=null;sync();});
   window.addEventListener('pageshow',sync);document.addEventListener('visibilitychange',function(){if(!document.hidden)sync();});
   if(btn)btn.addEventListener('click',async function(){if(!deferredPrompt)return;btn.disabled=true;try{await deferredPrompt.prompt();var c=await deferredPrompt.userChoice;if(c&&c.outcome==='accepted')setMarked(true);}catch(_){}deferredPrompt=null;btn.disabled=false;sync();});
-  if('serviceWorker' in navigator)window.addEventListener('load',function(){navigator.serviceWorker.register('service-worker.js?v=74-system-audit',{scope:'./',updateViaCache:'none'}).then(function(reg){return reg.update();}).catch(function(){});});
+  if('serviceWorker' in navigator)window.addEventListener('load',function(){navigator.serviceWorker.register('service-worker.js?v=75-mobile-fit',{scope:'./',updateViaCache:'none'}).then(function(reg){return reg.update();}).catch(function(){});});
   sync();
 })();
 </script>
