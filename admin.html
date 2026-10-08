@@ -31,7 +31,7 @@
 .admin-app .promo-image-actions .btn{white-space:normal}
 @media(max-width:620px){.admin-app .asset-card.booking-hero-asset{grid-template-columns:minmax(0,1fr)}.admin-app .booking-hero-asset .asset-preview{grid-column:1;grid-row:auto}.admin-app .booking-hero-asset .card-title,.admin-app .booking-hero-asset>p,.admin-app .booking-hero-asset>.input,.admin-app .booking-hero-asset>.row,.admin-app .booking-hero-asset .promo-preview-note{grid-column:1}.admin-app .court-promo-preview{max-height:250px}}
 </style>
-<link rel="stylesheet" href="admin-premium.css?v=80-per-slot" />
+<link rel="stylesheet" href="admin-premium.css?v=81-attendance-lock" />
 
 <style id="pikol-role-ui-v33">
 .role-hidden{display:none !important}
@@ -83,7 +83,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
 <script src="tournament-premium.js?v=74-system-audit"></script>
 <script src="tournament-command.js?v=67"></script>
 <link rel="stylesheet" href="venue-booking.css?v=71">
-<script src="venue-ui.js?v=80-per-slot"></script>
+<script src="venue-ui.js?v=81-attendance-lock"></script>
 <script src="venue-admin.js?v=71"></script>
 <link rel="stylesheet" href="mobile-fit.css?v=75-mobile-fit" />
 </head>
@@ -1242,6 +1242,9 @@ body.admin-app.role-ready #view-app{visibility:visible}
       .finally(function(){ busy(ap, false); });
   });
 
+  /* V81: Unlock attendance buttons at the time boundary without a page reload. */
+  setInterval(function(){if(!document.hidden)window.PikolVenueUI.refreshAttendanceButtons(document);},15000);
+  document.addEventListener('visibilitychange',function(){if(!document.hidden)window.PikolVenueUI.refreshAttendanceButtons(document);});
   /* ---------- payments & manual receipt verification ---------- */
   function bookingActions(b) {
     var act = [];
@@ -1260,8 +1263,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
       act.push('<button class="btn btn-outline btn-sm" data-booking-approve="' + b.id + '" title="Legacy paid booking created before automatic confirmation">Finalize legacy booking</button>');
     }
     if (b.status === 'confirmed' && isAdmin() && !b.group_id) {
-      act.push('<button class="btn btn-ghost btn-sm" data-status="completed" data-id="' + b.id + '">Complete</button>');
-      act.push('<button class="btn btn-ghost btn-sm" data-status="no_show" data-id="' + b.id + '">No-show</button>');
+      act.push(window.PikolVenueUI.attendanceButtons(b,false));
       act.push('<button class="btn btn-outline btn-sm" data-venue-cancel="' + b.id + '">Venue Cancel / Resolve</button>');
     }
     return act;
@@ -2618,9 +2620,13 @@ body.admin-app.role-ready #view-app{visibility:visible}
       function syncVc(){var credit=$('#vc-resolution',host).value==='credit';$('#vc-rebook',host).classList.toggle('hidden',credit);}
       $('#vc-resolution',host).onchange=syncVc;syncVc();return;
     }
-    var st = e.target.closest('[data-status]');
+    var st = e.target.closest('[data-status]:not([data-group-slot])');
     if (st) {
       var status = st.dataset.status, id = st.dataset.id;
+      var selected=BOOKINGS.find(function(row){return Number(row.id)===Number(id);});
+      if ((status==='completed'||status==='no_show')&&(!selected||!window.PikolVenueUI.attendanceEnded(selected))) {
+        toast('Available only after the court slot ends (Manila time).','error');return;
+      }
       var labels = { cancelled: 'Cancel', completed: 'Mark completed', no_show: 'Mark no-show' };
       modal({
         title: labels[status] + ' booking', locked: true, danger: status === 'cancelled' || status === 'no_show',
@@ -2687,6 +2693,9 @@ body.admin-app.role-ready #view-app{visibility:visible}
     var found=groupedSlotLookup(button.dataset.slotId);if(!found){toast('Booking list changed. Refresh and retry.','error');return;}
     var slot=found.slot,group=found.group,action=button.dataset.groupSlot;
     if(slot.status!=='confirmed'){toast('Only confirmed slots can be handled','error');return;}
+    if(action==='status'&&!window.PikolVenueUI.attendanceEnded(slot)){
+      toast('Available only after this court slot ends (Manila time).','error');return;
+    }
     var label=(group.venue_name||'Venue')+' — '+slot.court_name+' · '+slot.booking_date+' '+humanTime(slot.start_time)+'–'+humanTime(slot.end_time);
     var endpoint='/api/admin/booking-segments/'+encodeURIComponent(slot.id)+'/'+action;
     function done(message){toast(message,'success');return Promise.all([loadBookings(),loadDashboard()]);}
@@ -3806,7 +3815,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
   };
 
   /* ---------- In-Charge PWA push ---------- */
-  var ADMIN_SW_VERSION='80-group-slots';
+  var ADMIN_SW_VERSION='81-attendance-lock';
   var PUSH_PREP={reg:null,publicKey:null,serverStatus:null,ready:false,error:null,promise:null};
   function b64ToUint8(s){s=String(s||'').replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';var raw=atob(s),a=new Uint8Array(raw.length);for(var i=0;i<raw.length;i++)a[i]=raw.charCodeAt(i);return a;}
   function bytesEqual(a,b){if(!a||!b)return false;var x=new Uint8Array(a),y=new Uint8Array(b);if(x.length!==y.length)return false;for(var i=0;i<x.length;i++)if(x[i]!==y[i])return false;return true;}
@@ -4776,7 +4785,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
 
 <script>
 /* PIKOL_PWA_INSTALL_RUNTIME */
-(function(){'use strict';var btn=document.getElementById('pwa-install-admin'),deferredPrompt=null,KEY='pikol_admin_installed_v3';function ios(){return /iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);}function standalone(){return window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true;}function marked(){return localStorage.getItem(KEY)==='1';}function setMarked(v){if(v)localStorage.setItem(KEY,'1');else localStorage.removeItem(KEY);}function showIosGuide(){var g=document.getElementById('ios-pwa-guide');if(g)g.hidden=false;if(typeof toast==='function')toast('iPhone: Safari → Share → Add to Home Screen. Then open PIKOL Admin from the Home Screen icon.','error');}function sync(){if(!btn)return;if(standalone()){setMarked(true);btn.hidden=true;return;}if(ios()){btn.hidden=false;btn.textContent='Install Admin App on iPhone';return;}btn.textContent='Install Admin App';btn.hidden=!deferredPrompt||marked();}window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();deferredPrompt=e;if(!standalone())setMarked(false);sync();});window.addEventListener('appinstalled',function(){setMarked(true);deferredPrompt=null;sync();});window.addEventListener('pageshow',sync);document.addEventListener('visibilitychange',function(){if(!document.hidden)sync();});if(btn)btn.addEventListener('click',async function(){if(ios()){showIosGuide();return;}if(!deferredPrompt)return;btn.disabled=true;try{await deferredPrompt.prompt();var c=await deferredPrompt.userChoice;if(c&&c.outcome==='accepted')setMarked(true);}catch(_){}deferredPrompt=null;btn.disabled=false;sync();});if('serviceWorker' in navigator)window.addEventListener('load',function(){navigator.serviceWorker.register('service-worker.js?v=80-group-slots',{scope:'./',updateViaCache:'none'}).then(function(reg){return reg.update();}).catch(function(){});});sync();})();
+(function(){'use strict';var btn=document.getElementById('pwa-install-admin'),deferredPrompt=null,KEY='pikol_admin_installed_v3';function ios(){return /iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);}function standalone(){return window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true;}function marked(){return localStorage.getItem(KEY)==='1';}function setMarked(v){if(v)localStorage.setItem(KEY,'1');else localStorage.removeItem(KEY);}function showIosGuide(){var g=document.getElementById('ios-pwa-guide');if(g)g.hidden=false;if(typeof toast==='function')toast('iPhone: Safari → Share → Add to Home Screen. Then open PIKOL Admin from the Home Screen icon.','error');}function sync(){if(!btn)return;if(standalone()){setMarked(true);btn.hidden=true;return;}if(ios()){btn.hidden=false;btn.textContent='Install Admin App on iPhone';return;}btn.textContent='Install Admin App';btn.hidden=!deferredPrompt||marked();}window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();deferredPrompt=e;if(!standalone())setMarked(false);sync();});window.addEventListener('appinstalled',function(){setMarked(true);deferredPrompt=null;sync();});window.addEventListener('pageshow',sync);document.addEventListener('visibilitychange',function(){if(!document.hidden)sync();});if(btn)btn.addEventListener('click',async function(){if(ios()){showIosGuide();return;}if(!deferredPrompt)return;btn.disabled=true;try{await deferredPrompt.prompt();var c=await deferredPrompt.userChoice;if(c&&c.outcome==='accepted')setMarked(true);}catch(_){}deferredPrompt=null;btn.disabled=false;sync();});if('serviceWorker' in navigator)window.addEventListener('load',function(){navigator.serviceWorker.register('service-worker.js?v=81-attendance-lock',{scope:'./',updateViaCache:'none'}).then(function(reg){return reg.update();}).catch(function(){});});sync();})();
 </script>
 
 </body>

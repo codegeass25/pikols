@@ -1059,3 +1059,12 @@ body.admin-app .mobile-date-display { display: none; }
 .vg-slot-actions .btn:focus-visible{outline:2px solid var(--brand,#007b57);outline-offset:2px}
 .vg-slot-total{padding:10px 3px 0;line-height:1.6}
 @media(max-width:680px){.vg-segments{padding:7px}.vg-segments .vg-slot-item{padding:9px}.vg-slot-primary{align-items:flex-start;flex-direction:column;gap:4px}.vg-slot-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.vg-slot-actions .btn{width:100%;padding:6px 4px;min-height:42px}.vg-slot-reschedule .grid.cols-2{grid-template-columns:minmax(0,1fr)}}
+
+/* V81: attendance remains discoverable, but is safely unavailable until slot end. */
+.btn.vg-attendance-btn:disabled,.btn.vg-attendance-btn[aria-disabled="true"]{
+  opacity:.56!important;filter:grayscale(.55);background:#eef1f3!important;
+  color:#5b6873!important;border:1px solid #cdd5da!important;
+  box-shadow:none!important;cursor:not-allowed!important;transform:none!important;
+}
+.vg-attendance-hint{font-size:.69rem;color:var(--muted,#66798a);align-self:center;line-height:1.4;max-width:100%}
+.vg-attendance-hint[hidden]{display:none!important}

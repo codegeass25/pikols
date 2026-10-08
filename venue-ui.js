@@ -69,15 +69,54 @@
     if(result.images)result.images=await Promise.all(result.images.map(async im=>{const data=await optimize(im.data,'court');return {...im,data,mime:/^data:image\//.test(data)?data.slice(5,data.indexOf(';')):im.mime};}));
     return result;
   }
+  /* V81: Manila-time attendance gating shared by grouped and individual bookings. */
+  const attendanceFormatter = new Intl.DateTimeFormat('en-CA', {
+    timeZone:'Asia/Manila',year:'numeric',month:'2-digit',day:'2-digit',
+    hour:'2-digit',minute:'2-digit',hourCycle:'h23'
+  });
+  function manilaNow(date) {
+    const parts=attendanceFormatter.formatToParts(date||new Date()).reduce((a,p)=>{
+      if(p.type!=='literal')a[p.type]=p.value;return a;
+    },{});
+    return {date:parts.year+'-'+parts.month+'-'+parts.day,minutes:Number(parts.hour)*60+Number(parts.minute)};
+  }
+  function attendanceEnded(slot,now) {
+    const d=String(slot&&slot.booking_date||''),start=String(slot&&slot.start_time||'').slice(0,5),end=String(slot&&slot.end_time||'').slice(0,5);
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(d)||!/^\d{2}:\d{2}$/.test(start)||!/^\d{2}:\d{2}$/.test(end))return false;
+    const toMinutes=t=>Number(t.slice(0,2))*60+Number(t.slice(3,5));
+    const startMin=toMinutes(start),endMin=(end==='00:00'&&startMin>0)?1440:toMinutes(end);
+    if(endMin<=startMin)return false;
+    const current=now||manilaNow();return d<current.date||(d===current.date&&current.minutes>=endMin);
+  }
+  function attendanceButtons(slot,grouped) {
+    const unlocked=attendanceEnded(slot),locked=!unlocked;
+    const why='Available only after this court slot ends (Manila time)';
+    return ['completed','no_show'].map(function(status){
+      const label=status==='completed'?'Complete':'No-show';
+      return '<button type="button" class="btn btn-ghost btn-sm vg-attendance-btn" data-attendance-status="'+status+'" data-attendance-date="'+esc(slot.booking_date)+'" data-attendance-start="'+esc(slot.start_time)+'" data-attendance-end="'+esc(slot.end_time)+'" '+
+        (grouped?'data-group-slot="status" data-slot-id="'+Number(slot.id)+'"':'data-status="'+status+'" data-id="'+Number(slot.id)+'"')+
+        (locked?' disabled aria-disabled="true" title="'+esc(why)+'"':'')+'>'+(locked?'🔒 ':'')+label+'</button>';
+    }).join('')+(locked?'<span class="vg-attendance-hint">Available after slot ends (Manila time)</span>':'');
+  }
+  function refreshAttendanceButtons(root) {
+    const current=manilaNow();(root||document).querySelectorAll('[data-attendance-status]').forEach(function(btn){
+      const unlocked=attendanceEnded({booking_date:btn.dataset.attendanceDate,start_time:btn.dataset.attendanceStart,end_time:btn.dataset.attendanceEnd},current);
+      btn.disabled=!unlocked;btn.setAttribute('aria-disabled',String(!unlocked));
+      btn.title=unlocked?'':'Available only after this court slot ends (Manila time)';
+      btn.textContent=(unlocked?'':'🔒 ')+(btn.dataset.attendanceStatus==='completed'?'Complete':'No-show');
+      const hint=btn.parentElement&&btn.parentElement.querySelector('.vg-attendance-hint');
+      if(hint)hint.hidden=unlocked;
+    });
+  }
   function segmentsHtml(booking,c) {
     if(!booking?.segments?.length)return '';
     return '<details class="vg-segments"><summary>'+esc(booking.venue_name)+' · '+booking.segments.length+' slots · '+(booking.duration_minutes/60)+' court-hours</summary><ul>'+booking.segments.map(function(slot){
-      var controls=(c.adminActions&&slot.status==='confirmed')?'<div class="vg-slot-actions" role="group" aria-label="Actions for slot '+esc(slot.start_time)+'"><button type="button" class="btn btn-ghost btn-sm" data-group-slot="status" data-status="completed" data-slot-id="'+slot.id+'">Complete</button><button type="button" class="btn btn-ghost btn-sm" data-group-slot="status" data-status="no_show" data-slot-id="'+slot.id+'">No-show</button><button type="button" class="btn btn-outline btn-sm" data-group-slot="venue-cancel" data-slot-id="'+slot.id+'">Venue Cancel / Resolve</button><button type="button" class="btn btn-outline btn-sm" data-group-slot="reschedule" data-slot-id="'+slot.id+'">Reschedule</button></div>':'';
+      var controls=(c.adminActions&&slot.status==='confirmed')?'<div class="vg-slot-actions" role="group" aria-label="Actions for slot '+esc(slot.start_time)+'">'+attendanceButtons(slot,true)+'<button type="button" class="btn btn-outline btn-sm" data-group-slot="venue-cancel" data-slot-id="'+slot.id+'">Venue Cancel / Resolve</button><button type="button" class="btn btn-outline btn-sm" data-group-slot="reschedule" data-slot-id="'+slot.id+'">Reschedule</button></div>':'';
       return '<li class="vg-slot-item"><div class="vg-slot-primary"><strong>'+esc(slot.court_name)+'</strong><span>'+esc(slot.booking_date)+' · '+c.humanTime(slot.start_time)+' – '+c.humanTime(slot.end_time)+'</span><strong>'+c.money(slot.amount)+'</strong><span class="vg-slot-status vg-slot-status-'+esc(slot.status)+'">'+esc(String(slot.status||'').replace(/_/g,' '))+'</span></div>'+controls+'</li>';
     }).join('')+'</ul><div class="tiny muted vg-slot-total">Subtotal '+c.money(booking.base_amount)+' · Discount '+c.money(booking.discount_amount||0)+' · Credit '+c.money(booking.credit_used||0)+' · Original group payable '+c.money(booking.amount||0)+'<br><strong>One original payment; individual slot actions do not duplicate payments.</strong></div></details>';
   }
   function timeLabel(b,c){return b.segments?.length?b.segments.length+' slots · '+(b.duration_minutes/60)+' court-hours':c.humanTime(b.start_time)+' – '+c.humanTime(b.end_time);}
   function ratesHtml(ct,c){return (ct.pricing_periods||[]).map(p=>'<span><strong>'+c.money(p.rate)+'</strong><small>/hr · '+esc(p.label)+' '+c.humanTime(p.start)+' – '+c.humanTime(p.end)+'</small></span>').join('');}
   function thumb(url){return /(?:avatar-|team-).*\.webp(?:$|\?)/.test(url||'')?url.replace(/\.webp(?=$|\?)/,'-thumb.webp'):url;}
-  global.PikolVenueUI={safeMapsURL,timeLabel,ratesHtml,thumb,dialog,gallery,maps,optimize,prepare,segmentsHtml,esc,defaultImage,photoUrl,fallbackAttr};
+  global.PikolVenueUI={safeMapsURL,timeLabel,ratesHtml,thumb,dialog,gallery,maps,optimize,prepare,segmentsHtml,attendanceEnded,attendanceButtons,refreshAttendanceButtons,esc,defaultImage,photoUrl,fallbackAttr};
 })(window);
