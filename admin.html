@@ -80,7 +80,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
 <link rel="stylesheet" href="client-upgrades.css?v=56-android-native-scroll">
 <script src="range-availability.js?v=56-android-native-scroll"></script>
 <link rel="stylesheet" href="tournament-premium.css?v=67" />
-<script src="tournament-premium.js?v=69"></script>
+<script src="tournament-premium.js?v=74-system-audit"></script>
 <script src="tournament-command.js?v=67"></script>
 <link rel="stylesheet" href="venue-booking.css?v=71">
 <script src="venue-ui.js?v=71"></script>
@@ -2204,14 +2204,14 @@ body.admin-app.role-ready #view-app{visibility:visible}
 
   function addParticipant(divisionId) {
     Promise.all([
-      PLAYERS.length ? Promise.resolve(PLAYERS) : api('/api/admin/players'),
+      PLAYERS.length ? Promise.resolve(PLAYERS) : api(isAdmin() ? '/api/admin/players' : '/api/admin/events/player-directory'),
       api('/api/admin/tournaments/' + TRN_OPEN)
     ]).then(function (r) {
       PLAYERS = r[0];
       var div = divisionById(r[1], divisionId);
       var slots = div.match_type === 'singles' ? 1 : 2;
       var opts = '<option value="">— Guest / not registered —</option>' + PLAYERS.map(function (p) {
-        return '<option value="' + p.id + '">' + esc(p.full_name) + ' (' + esc(p.email) + ')</option>';
+        return '<option value="' + p.id + '">' + esc(p.full_name) + ' (' + esc(p.email || p.player_division || 'Player') + ')</option>';
       }).join('');
       var fields = '';
       for (var i = 1; i <= slots; i++) {
@@ -2565,7 +2565,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
     return '<tr><td colspan="9"><div class="empty"><strong>' + esc(title) + '</strong>' + esc(detail) + '</div></td></tr>';
   }
 
-  function fillVenueFilters(){return api('/api/admin/venues?include_retired=1').then(function(vs){VENUES=vs.filter(function(v){return !v.deleted_at&&v.status!=='archived';});['bk-venue','rp-venue'].forEach(function(id){var el=document.getElementById(id),value=el.value;el.innerHTML='<option value="">All venues</option>'+vs.map(v=>'<option value="'+v.id+'">'+esc(v.name)+(v.deleted_at?' · retired':'')+'</option>').join('');el.value=value;});});}
+  function fillVenueFilters(){return api(isAdmin()?'/api/admin/venues?include_retired=1':'/api/venues').then(function(vs){VENUES=vs.filter(function(v){return !v.deleted_at&&v.status!=='archived';});['bk-venue','rp-venue'].forEach(function(id){var el=document.getElementById(id),value=el.value;el.innerHTML='<option value="">All venues</option>'+vs.map(v=>'<option value="'+v.id+'">'+esc(v.name)+(v.deleted_at?' · retired':'')+'</option>').join('');el.value=value;});});}
   function loadBookings() {
     if($('#bk-venue').options.length===1)fillVenueFilters().catch(function(){});
     var p = new URLSearchParams();
@@ -2672,7 +2672,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
 
   /* V73 shared Venue -> Court selectors for Calendar, Blocked and Events. */
   function loadVenueOptions(){
-    return api('/api/admin/venues').then(function(rows){
+    return api(isAdmin()?'/api/admin/venues':'/api/venues').then(function(rows){
       VENUES=(rows||[]).filter(function(v){return !v.deleted_at && v.status!=='archived';});
       [['cal-venue','All venues'],['bl-venue','Choose venue']].forEach(function(pair){
         var el=document.getElementById(pair[0]);if(!el)return;
@@ -3346,7 +3346,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
             (r.rejection_reason ? ' — ' + esc(r.rejection_reason) : '') + '</span>'
           : r.status === 'pending'
             ? '<button class="btn btn-primary btn-sm" data-treg-approve="' + r.id + '"' +
-              (r.approvable ? '' : ' disabled title="Payment must be verified first"') + '>Approve</button> ' +
+              (r.approvable ? '' : ' disabled title="'+esc(r.approval_block_reason||'Payment must be verified first')+'"') + '>Approve</button> ' +
               '<button class="btn btn-outline btn-sm" data-treg-reject="' + r.id + '">Disapprove</button>'
             : '<span class="muted tiny">' + esc(r.rejection_reason || '—') + '</span>';
         return '<tr><td>' + esc(r.full_name) + '<div class="tiny muted">' + esc(r.email || '') + '</div></td>' +
@@ -3360,7 +3360,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
   }
   $('#treg-status').onchange = loadTournamentRegistrations;
   document.addEventListener('click', function (e) {
-    var review=e.target.closest('[data-treg-review]');if(review){return api('/api/admin/tournament-registrations?status=all').then(function(rows){var r=rows.find(function(x){return String(x.id)===review.dataset.tregReview;});if(!r)return;var pay=(r.payments||[]).slice(-1)[0],P=window.PikolPremium;var reviewHost=modal({title:'Review registration #'+r.id,cancelText:'Close',body:P.memberRow(r)+'<div class="tp-rule-card"><div>'+esc(r.tournament_name)+' · '+esc(r.division_name)+'</div><div>Team: '+esc(r.team_name||'—')+'</div><div>Partner: '+esc(r.partner_name||'Singles')+'</div><div>Registration: '+esc(r.status)+'</div><div>Payment: '+esc(r.payment_status)+'</div><div>Gross: '+money(r.gross_amount||r.amount_due)+' · Credit: '+money(r.credit_used)+' · Cash due: '+money(r.amount_due)+'</div></div><div class="tp-actions mt-4">'+(pay?'<button class="btn btn-outline" data-treg-receipt="'+pay.id+'">Review payment receipt</button>':'')+(r.status==='pending'&&!r.payment_rejected?'<button class="btn btn-primary" data-treg-approve="'+r.id+'"'+(r.approvable?'':' disabled title="Verify payment first"')+'>Approve</button><button class="btn btn-outline" data-treg-reject="'+r.id+'">Reject</button>':'')+'</div>'});reviewHost.dataset.tregReviewModal=r.id;}).catch(function(err){toast(err.message,'error');});}
+    var review=e.target.closest('[data-treg-review]');if(review){return api('/api/admin/tournament-registrations?status=all').then(function(rows){var r=rows.find(function(x){return String(x.id)===review.dataset.tregReview;});if(!r)return;var pay=(r.payments||[]).slice(-1)[0],P=window.PikolPremium;var reviewHost=modal({title:'Review registration #'+r.id,cancelText:'Close',body:P.memberRow(r)+'<div class="tp-rule-card"><div>'+esc(r.tournament_name)+' · '+esc(r.division_name)+'</div><div>Team: '+esc(r.team_name||'—')+'</div><div>Partner: '+esc(r.partner_name||'Singles')+'</div><div>Registration: '+esc(r.status)+'</div><div>Payment: '+esc(r.payment_status)+'</div><div>Gross: '+money(r.gross_amount||r.amount_due)+' · Credit: '+money(r.credit_used)+' · Cash due: '+money(r.amount_due)+'</div></div><div class="tp-actions mt-4">'+(pay?'<button class="btn btn-outline" data-treg-receipt="'+pay.id+'">Review payment receipt</button>':'')+(r.status==='pending'&&!r.payment_rejected?'<button class="btn btn-primary" data-treg-approve="'+r.id+'"'+(r.approvable?'':' disabled title="'+esc(r.approval_block_reason||'Verify payment first')+'"')+'>Approve</button><button class="btn btn-outline" data-treg-reject="'+r.id+'">Reject</button>':'')+'</div>'});reviewHost.dataset.tregReviewModal=r.id;}).catch(function(err){toast(err.message,'error');});}
     var ap = e.target.closest('[data-treg-approve]');
     var rj = e.target.closest('[data-treg-reject]');
     var rc = e.target.closest('[data-treg-receipt]');
@@ -3751,7 +3751,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
   };
 
   /* ---------- In-Charge PWA push ---------- */
-  var ADMIN_SW_VERSION='71-venue-first';
+  var ADMIN_SW_VERSION='74-system-audit';
   var PUSH_PREP={reg:null,publicKey:null,serverStatus:null,ready:false,error:null,promise:null};
   function b64ToUint8(s){s=String(s||'').replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';var raw=atob(s),a=new Uint8Array(raw.length);for(var i=0;i<raw.length;i++)a[i]=raw.charCodeAt(i);return a;}
   function bytesEqual(a,b){if(!a||!b)return false;var x=new Uint8Array(a),y=new Uint8Array(b);if(x.length!==y.length)return false;for(var i=0;i<x.length;i++)if(x[i]!==y[i])return false;return true;}
@@ -4683,7 +4683,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
     refreshSettings:loadSettings
   });
   var loadSettingsOriginal=loadSettings;
-  loadSettings=function(){return loadSettingsOriginal().then(function(r){return VENUE_ADMIN.loadPricing().then(()=>r);});};
+  loadSettings=function(){if(!isAdmin()){applyAdminOperationalSettingsUI();return Promise.resolve();}return loadSettingsOriginal().then(function(r){return VENUE_ADMIN.loadPricing().then(()=>r);});};
   LOADERS.courts=loadCourts;LOADERS.settings=loadSettings;
   /* ---------- boot ---------- */
   function showApp() {
@@ -4721,7 +4721,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
 
 <script>
 /* PIKOL_PWA_INSTALL_RUNTIME */
-(function(){'use strict';var btn=document.getElementById('pwa-install-admin'),deferredPrompt=null,KEY='pikol_admin_installed_v3';function ios(){return /iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);}function standalone(){return window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true;}function marked(){return localStorage.getItem(KEY)==='1';}function setMarked(v){if(v)localStorage.setItem(KEY,'1');else localStorage.removeItem(KEY);}function showIosGuide(){var g=document.getElementById('ios-pwa-guide');if(g)g.hidden=false;if(typeof toast==='function')toast('iPhone: Safari → Share → Add to Home Screen. Then open PIKOL Admin from the Home Screen icon.','error');}function sync(){if(!btn)return;if(standalone()){setMarked(true);btn.hidden=true;return;}if(ios()){btn.hidden=false;btn.textContent='Install Admin App on iPhone';return;}btn.textContent='Install Admin App';btn.hidden=!deferredPrompt||marked();}window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();deferredPrompt=e;if(!standalone())setMarked(false);sync();});window.addEventListener('appinstalled',function(){setMarked(true);deferredPrompt=null;sync();});window.addEventListener('pageshow',sync);document.addEventListener('visibilitychange',function(){if(!document.hidden)sync();});if(btn)btn.addEventListener('click',async function(){if(ios()){showIosGuide();return;}if(!deferredPrompt)return;btn.disabled=true;try{await deferredPrompt.prompt();var c=await deferredPrompt.userChoice;if(c&&c.outcome==='accepted')setMarked(true);}catch(_){}deferredPrompt=null;btn.disabled=false;sync();});if('serviceWorker' in navigator)window.addEventListener('load',function(){navigator.serviceWorker.register('service-worker.js?v=73-venue-admin',{scope:'./',updateViaCache:'none'}).then(function(reg){return reg.update();}).catch(function(){});});sync();})();
+(function(){'use strict';var btn=document.getElementById('pwa-install-admin'),deferredPrompt=null,KEY='pikol_admin_installed_v3';function ios(){return /iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);}function standalone(){return window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true;}function marked(){return localStorage.getItem(KEY)==='1';}function setMarked(v){if(v)localStorage.setItem(KEY,'1');else localStorage.removeItem(KEY);}function showIosGuide(){var g=document.getElementById('ios-pwa-guide');if(g)g.hidden=false;if(typeof toast==='function')toast('iPhone: Safari → Share → Add to Home Screen. Then open PIKOL Admin from the Home Screen icon.','error');}function sync(){if(!btn)return;if(standalone()){setMarked(true);btn.hidden=true;return;}if(ios()){btn.hidden=false;btn.textContent='Install Admin App on iPhone';return;}btn.textContent='Install Admin App';btn.hidden=!deferredPrompt||marked();}window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();deferredPrompt=e;if(!standalone())setMarked(false);sync();});window.addEventListener('appinstalled',function(){setMarked(true);deferredPrompt=null;sync();});window.addEventListener('pageshow',sync);document.addEventListener('visibilitychange',function(){if(!document.hidden)sync();});if(btn)btn.addEventListener('click',async function(){if(ios()){showIosGuide();return;}if(!deferredPrompt)return;btn.disabled=true;try{await deferredPrompt.prompt();var c=await deferredPrompt.userChoice;if(c&&c.outcome==='accepted')setMarked(true);}catch(_){}deferredPrompt=null;btn.disabled=false;sync();});if('serviceWorker' in navigator)window.addEventListener('load',function(){navigator.serviceWorker.register('service-worker.js?v=74-system-audit',{scope:'./',updateViaCache:'none'}).then(function(reg){return reg.update();}).catch(function(){});});sync();})();
 </script>
 
 </body>
