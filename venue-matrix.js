@@ -32,18 +32,21 @@
     function render(){
       const v=currentVenue(),rail=host.querySelector('.vg-venues'),left=rail.scrollLeft;
       const focused=document.activeElement,focusKey=focused?.dataset?.cell,focusVenue=focused?.dataset?.venue;
+      rail.dataset.count=String(venues.length);
+      rail.closest('.vg-carousel').dataset.venueCount=String(venues.length);
       rail.innerHTML=venues.map(v=>{
         const selected=v.id===venueId,photo=v.card_image_url||v.image_url;
         const location=v.location_label||v.address||'View location';
         const mapsURL=global.PikolVenueUI.safeMapsURL(v.maps_url);
-        const maps='<button type="button" class="vg-location-action" data-location="'+v.id+'"'+(mapsURL?'':' disabled')+' title="'+esc(mapsURL?'View venue location':'Location not configured')+'"><span aria-hidden="true">📍</span><span>'+esc(location)+'</span>'+(mapsURL?'<span aria-hidden="true">↗</span>':'')+'</button>';
+        const maps='<button type="button" class="vg-location-action" data-location="'+v.id+'"'+(mapsURL?'':' disabled')+' title="'+esc(mapsURL?'View venue location':'Location not configured')+'"><img class="vg-google-pin" src="assets/booking/maps-pin.svg" alt="" aria-hidden="true" width="20" height="26"><span>'+esc(location)+'</span>'+(mapsURL?'<span aria-hidden="true">↗</span>':'')+'</button>';
         const rates=(v.pricing_summary||[]).map(p=>'<div class="vg-rate-period"><span><strong>'+esc(p.label)+'</strong><small>'+humanTime(p.start)+' – '+humanTime(p.end)+'</small></span><b>'+money(p.min_rate)+(p.max_rate>p.min_rate?'–'+money(p.max_rate):'')+'<em>/hr</em></b></div>').join('');
         const pricing=rates?'<div class="vg-venue-pricing" aria-label="All configured hourly prices">'+rates+'</div>':'<p class="vg-rate-empty">No bookable court rates configured</p>';
         return '<article class="vg-venue'+(selected?' is-selected':'')+'" data-card="'+v.id+'"><button type="button" class="vg-venue-select" data-venue="'+v.id+'" aria-pressed="'+selected+'"'+(v.status==='active'?'':' disabled')+'><span class="vg-venue-photo"><img src="'+esc(global.PikolVenueUI.photoUrl(photo,'venue',c.assetUrl))+'" '+global.PikolVenueUI.fallbackAttr('venue')+' alt="'+esc(photo?v.name+' venue':v.name+' illustrative venue image')+'" width="640" height="360" loading="lazy" decoding="async">'+(!photo?'<span class="vg-image-disclaimer">Illustrative image</span>':'')+'<span class="vg-venue-badge '+(selected?'vg-badge-selected':'')+'">'+(selected?'✓ SELECTED':esc(v.status.toUpperCase()))+'</span></span><span class="vg-venue-copy"><strong>'+esc(v.name)+'</strong><span>'+esc(v.description||v.court_count+' configured courts')+'</span></span></button><div class="vg-venue-meta">'+maps+pricing+'</div></article>';
       }).join('')||'<div class="empty">No current venues. Please contact the club.</div>';
       rail.scrollLeft=left;
       host.querySelector('#vg-schedule-title').textContent='Court Schedule'+(v?' at '+v.name:'');
-      const courts=eligible(),rows=new Map();courts.forEach(ct=>ct.slots.forEach(sl=>rows.set(sl.start+'|'+sl.end,sl)));
+      const courts=eligible(),rows=new Map();
+      host.querySelector('.vg-schedule-section').dataset.courtCount=String(courts.length);courts.forEach(ct=>ct.slots.forEach(sl=>rows.set(sl.start+'|'+sl.end,sl)));
       const times=[...rows.values()].sort((a,b)=>a.start.localeCompare(b.start)||global.PikolAvailability.duration(a.start,a.end)-global.PikolAvailability.duration(b.start,b.end));
       host.querySelector('.vg-matrix-scroll').innerHTML=courts.length?'<table class="vg-matrix" style="--vg-courts:'+courts.length+'"><caption class="sr-only">'+esc(v?.name)+' · '+humanDate(date)+'</caption><colgroup><col class="vg-time-col">'+courts.map(()=>'<col>').join('')+'</colgroup><thead><tr><th class="vg-time" scope="col">Time</th>'+courts.map(ct=>{
         const photo=ct.thumbnail_url||ct.image_url;

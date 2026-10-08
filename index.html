@@ -15,7 +15,7 @@
 <script src="config.js"></script>
 <script src="tournament-view.js"></script>
 <link rel="stylesheet" href="styles.css" />
-<link rel="stylesheet" href="booking-premium.css?v=50-profile-credit-v1" />
+<link rel="stylesheet" href="booking-premium.css?v=72-hero-restore" />
 <link rel="preload" as="image" href="assets/booking/hero-court.jpg" fetchpriority="high" />
 
 <style id="checkout-hold-style">
@@ -279,9 +279,9 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
 <link rel="stylesheet" href="client-upgrades.css?v=56-android-native-scroll">
 <link rel="stylesheet" href="tournament-premium.css?v=67" />
 <script src="tournament-premium.js?v=69"></script>
-<link rel="stylesheet" href="venue-booking.css?v=71">
+<link rel="stylesheet" href="venue-booking.css?v=72-hero-restore">
 <script src="venue-ui.js?v=71"></script>
-<script src="venue-matrix.js?v=71"></script>
+<script src="venue-matrix.js?v=72-hero-restore"></script>
 </head>
 <body class="player-app">
 
@@ -408,6 +408,21 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
   </header>
   <main class="container app-body">
 <section id="tab-dashboard" class="hidden" aria-hidden="true"><span id="today-label"></span><div id="today-courts"></div><div id="home-events"></div><span id="dash-name"></span><span id="dash-sub"></span><span id="st-upcoming"></span><span id="st-played"></span><div id="next-booking-card"></div><div id="recent-bookings"></div></section>
+    <!-- V72: Restore the configured hero and real community/membership artwork.
+         Venue-first booking stays primary; old per-court cards remain retired. -->
+    <section class="booking-hero pikol-v72-hero" aria-label="Pickleball community and booking">
+      <img class="booking-hero-image" src="assets/booking/hero-court.jpg" data-fallback-src="assets/booking/hero-court.jpg" alt="Pickleball club featured court" width="1672" height="941" fetchpriority="high" decoding="async" />
+      <div class="booking-hero-content">
+        <span class="eyebrow"><span data-facility-name>WENJELLY PICKLEBALL ZONE</span> <b>/ PIKOL</b></span>
+        <h1>PLAY. BOOK.<br><em>COMPETE.</em></h1>
+        <p><strong>Premium pickleball courts. One effortless booking.</strong><br>Find your venue, choose a court, and make every game count.</p>
+        <div class="hero-actions"><button type="button" class="btn btn-lime btn-lg" data-v72-scroll-booking>Explore Venues <span aria-hidden="true">→</span></button></div>
+        <div class="hero-features"><span><b aria-hidden="true">✓</b> Premium Facilities</span><span><b aria-hidden="true">✓</b> Vibrant Community</span><span><b aria-hidden="true">✓</b> Play. Improve. Belong.</span></div>
+      </div>
+      <div class="hero-signature">PICKLEBALL<br>LIVES HERE</div>
+      <div class="hero-caption"><span></span><span>Promotional image</span></div>
+    </section>
+    <div class="pikol-v72-layout"><div class="pikol-v72-booking-main">
     <section id="tab-book" class="site-sheet" aria-labelledby="booking-title">
       <div class="booking-page-head"><span class="eyebrow">BOOK YOUR GAME</span><h1 class="page-title" id="booking-title">Book a Court</h1><p class="page-subtitle" data-facility-name>WenJelly Pickleball Zone / PIKOL</p></div>
       <div class="booking-layout">
@@ -423,6 +438,25 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
         </div>
       </div>
     </section>
+    </div>
+    <aside class="home-sidebar pikol-v72-promo-sidebar" aria-label="Membership and community promotions">
+      <article class="community-promo">
+        <img src="assets/booking/community.jpg" alt="Pickleball community promotional artwork" width="800" height="1000" loading="eager" decoding="async" />
+        <div class="promo-content">
+          <h2>MORE THAN<br>A GAME.</h2>
+          <p>A COMMUNITY THAT PLAYS TOGETHER.</p>
+          <ul><li>Find your favourite court</li><li>Events &amp; tournaments</li><li>Membership benefits</li><li>More games. More good people.</li></ul>
+          <button type="button" class="btn btn-white" data-goto="membership">Join the Community →</button>
+        </div>
+      </article>
+      <article class="membership-promo">
+        <img src="assets/booking/membership.jpg" alt="Membership benefits promotional artwork" width="1200" height="600" loading="eager" decoding="async" />
+        <div class="promo-content"><span class="eyebrow" data-facility-name>WENJELLY PICKLEBALL ZONE</span>
+          <h2>Membership</h2><p><em>Play more.</em> Get more.<br>Be part of it all.</p>
+          <button type="button" class="btn btn-lime" data-goto="membership">View Plans →</button>
+        </div>
+      </article>
+    </aside></div>
     <div id="site-overlay" class="site-overlay hidden">
     <!-- Compatibility nodes for legacy callbacks; excluded from the booking experience. -->
         <div class="vg-legacy-booking" hidden inert aria-hidden="true" style="display:none!important"><div id="booking-photo" class="court-visual"></div><div class="pick-grid" id="book-courts" aria-label="Choose a court"></div><div id="booking-court-description"></div><p class="field-hint">Select a court above to explore its availability.</p></div>
@@ -980,12 +1014,22 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
       img.alt = b.hero_image_url ? name + ' featured court image' : 'Promotional pickleball court illustration';
       img.src = heroSource;
     });
-    $('.hero-caption span:last-child').textContent = b.hero_image_url ? 'Featured court image' : 'Promotional image';
+    var heroCaption = $('.hero-caption span:last-child');
+    if (heroCaption) heroCaption.textContent = b.hero_image_url ? 'Featured court image' : 'Promotional image';
     $('.auth-hero-bottom > span').textContent = b.hero_image_url ? 'FEATURED COURT IMAGE' : 'COURT INSPIRATION · PROMOTIONAL IMAGE';
     var contact = [b.address, b.contact_number, b.contact_email].filter(Boolean).join(' \u00b7 ');
     $('#hero-contact').textContent = contact;
     var fc = $('#facility-contact'); if (fc) fc.textContent = contact;
   }
+
+  document.querySelectorAll('.booking-hero-image').forEach(function(img){
+    img.addEventListener('load', function(){ img.hidden = false; });
+  });
+  document.addEventListener('click', function(e) {
+    if (!e.target.closest('[data-v72-scroll-booking]')) return;
+    var target=document.getElementById('vg-venue-title') || document.getElementById('venue-booking');
+    if (target) target.scrollIntoView({behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth', block:'start'});
+  });
 
   function hideSplash() {
     var el = $('#boot-splash');
@@ -3144,9 +3188,14 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
   loadPayCfg().catch(function () {});
 
   RT.connect();
-  api('/api/branding').then(applyBranding).catch(function () {
-    toast('Cannot reach the booking server. Please try again later.', 'error');
-  }).then(function () { setTimeout(hideSplash, 700); }, function () { setTimeout(hideSplash, 700); });
+  api('/api/branding').then(function (branding) {
+    // Branding is optional. Rendering an unavailable DOM node must never be misreported as an API outage.
+    try { applyBranding(branding); }
+    catch (renderError) { console.error('[branding] Unable to render optional brand element:', renderError); }
+  }).catch(function (networkError) {
+    // A branding fetch failure is not proof that reservations/availability endpoints are offline.
+    console.warn('[branding] Optional branding unavailable; retaining the local hero:', networkError);
+  }).finally(function () { setTimeout(hideSplash, 700); });
   setTimeout(hideSplash, 6000);
 
   if (TOKEN) {
@@ -3170,7 +3219,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
   window.addEventListener('appinstalled',function(){setMarked(true);deferredPrompt=null;sync();});
   window.addEventListener('pageshow',sync);document.addEventListener('visibilitychange',function(){if(!document.hidden)sync();});
   if(btn)btn.addEventListener('click',async function(){if(!deferredPrompt)return;btn.disabled=true;try{await deferredPrompt.prompt();var c=await deferredPrompt.userChoice;if(c&&c.outcome==='accepted')setMarked(true);}catch(_){}deferredPrompt=null;btn.disabled=false;sync();});
-  if('serviceWorker' in navigator)window.addEventListener('load',function(){navigator.serviceWorker.register('service-worker.js?v=71-venue-first',{scope:'./',updateViaCache:'none'}).then(function(reg){return reg.update();}).catch(function(){});});
+  if('serviceWorker' in navigator)window.addEventListener('load',function(){navigator.serviceWorker.register('service-worker.js?v=72-hero-restore',{scope:'./',updateViaCache:'none'}).then(function(reg){return reg.update();}).catch(function(){});});
   sync();
 })();
 </script>
