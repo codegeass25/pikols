@@ -72,7 +72,10 @@
   :is(.grid.cols-2, .grid.cols-3, .grid.cols-4) {
     grid-template-columns: minmax(0, 1fr) !important;
   }
-  :is(body.player-app, body.admin-app) .bottom-nav-inner {
+  body.player-app .bottom-nav-inner {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  body.admin-app .bottom-nav-inner {
     grid-template-columns: repeat(5, minmax(0, 1fr));
   }
   :is(body.player-app, body.admin-app) .modal-foot,
@@ -112,5 +115,19 @@
   }
   body.admin-app :is(#stat-grid, #tx-stats, #rp-summary, #ev-hub-stats) {
     grid-template-columns: minmax(0, 1fr) !important;
+  }
+}
+
+/* V76 player mobile navigation: four real tabs, four equal cells, no ghost fifth slot. */
+@media (max-width:767px){
+  body.player-app .bottom-nav{padding-inline:max(7px,env(safe-area-inset-left)) max(7px,env(safe-area-inset-right))}
+  body.player-app .bottom-nav-inner{
+    display:grid;grid-template-columns:repeat(4,minmax(0,1fr))!important;
+    width:100%;max-width:100%;gap:4px;box-sizing:border-box;
+  }
+  body.player-app .bottom-nav-inner > button{
+    min-width:0;width:100%;max-width:100%;box-sizing:border-box;
+    display:flex;justify-content:center;align-items:center;
+    text-align:center;gap:4px;white-space:nowrap;font-size:clamp(.61rem,2.65vw,.74rem);
   }
 }
