@@ -3166,7 +3166,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
         load(function () {
           if (!window.io) return setStatus('off');
           if (socket) { socket.auth = { token: TOKEN || null }; socket.disconnect(); return socket.connect(); }
-          socket = window.io(API || undefined, { auth: { token: TOKEN || null }, transports: ['websocket', 'polling'] });
+          socket = window.io(API || undefined, { auth: { token: TOKEN || null }, transports: ['polling', 'websocket'], tryAllTransports: true });
           bind();
         });
       },

@@ -1288,7 +1288,20 @@ body.admin-app.role-ready #view-app{visibility:visible}
   var TX_REASONS = {};
 
   function txBadge(text, cls) { return '<span class="badge ' + (cls || 'badge-pending') + '">' + esc(text) + '</span>'; }
-  function txStamp(v) { return v ? String(v).replace('T', ' ').slice(0, 16) : '—'; }
+  function txStamp(v) {
+    var raw = v == null ? '' : String(v).trim();
+    var match = /^(\d{4}-\d{2}-\d{2})[T ](\d{2}:\d{2})(?::(\d{2})(?:\.\d+)?)?(Z|[+-]\d{2}:?\d{2})?$/.exec(raw);
+    if (!match) return '—';
+    var wall = match[1] + 'T' + match[2] + ':' + (match[3] || '00');
+    var checked = new Date(wall + 'Z');
+    if (!Number.isFinite(checked.getTime()) || checked.toISOString().slice(0, 19) !== wall) return '—';
+    // Legacy timestamps without an offset retain their recorded wall time.
+    if (!match[4]) return match[1] + ' ' + match[2];
+    var parsed = new Date(raw.replace(' ', 'T'));
+    if (!Number.isFinite(parsed.getTime())) return '—';
+    var parts = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Manila', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).formatToParts(parsed).reduce(function (out, part) { out[part.type] = part.value; return out; }, {});
+    return parts.year + '-' + parts.month + '-' + parts.day + ' ' + parts.hour + ':' + parts.minute;
+  }
 
   function loadPayments() {
     var qs = '?type=' + encodeURIComponent($('#tx-type').value) +
@@ -4719,7 +4732,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
         load(function () {
           if (!window.io) return setStatus('off');
           if (socket) { socket.auth = { token: TOKEN || null }; socket.disconnect(); return socket.connect(); }
-          socket = window.io(API || undefined, { auth: { token: TOKEN || null }, transports: ['websocket', 'polling'] });
+          socket = window.io(API || undefined, { auth: { token: TOKEN || null }, transports: ['polling', 'websocket'], tryAllTransports: true });
           bind();
         });
       },

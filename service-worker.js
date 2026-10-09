@@ -1,4 +1,4 @@
-const CACHE = 'pikol-v81-attendance-lock';
+const CACHE = 'pikol-v82-codex-ultra-20261009';
 const SHELL = [
   './mobile-fit.css?v=76-responsive-checkout',
   './venue-booking.css?v=76-responsive-checkout','./venue-ui.js?v=81-attendance-lock','./venue-matrix.js?v=76-responsive-checkout','./venue-admin.js?v=71',
@@ -13,7 +13,12 @@ const SHELL = [
 ];
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE).then(async cache => {
-    await Promise.all(SHELL.map(async url => { try { await cache.add(url); } catch (_) {} }));
+    await Promise.all(SHELL.map(async url => {
+      try {
+        // Get fresh assets on deploy, including when the browser has an older HTTP cache.
+        await cache.add(new Request(new URL(url, self.registration.scope).href, { cache: 'reload' }));
+      } catch (_) {}
+    }));
   }));
   self.skipWaiting();
 });
