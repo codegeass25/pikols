@@ -1,8 +1,8 @@
-const CACHE = 'pikol-v86-safe-remove-hide-inactive-20261011';
+const CACHE = 'pikol-v88-socket-live-20261011';
 const SHELL = [
   './occasion-promotions.css?v=86-safe-remove','./occasion-admin.js?v=86-safe-remove',
   './mobile-fit.css?v=76-responsive-checkout',
-  './venue-booking.css?v=76-responsive-checkout','./venue-ui.js?v=81-attendance-lock','./venue-matrix.js?v=86-hide-inactive','./venue-admin.js?v=71',
+  './venue-booking.css?v=76-responsive-checkout','./venue-ui.js?v=81-attendance-lock','./venue-matrix.js?v=88-socket-live','./venue-admin.js?v=71',
   './assets/promo-qr/official-website-master.png?v=77-wenjelly-logo-20261009','./assets/promo-qr/official-website-qr-logo.png?v=77-wenjelly-logo-20261009',
   './assets/promo-qr/booking-site-master.png?v=77-wenjelly-logo-20261009','./assets/promo-qr/booking-site-qr-logo.png?v=77-wenjelly-logo-20261009','./assets/promo-qr/tournament-registration-master.png?v=77-wenjelly-logo-20261009','./assets/promo-qr/tournament-registration-qr-logo.png?v=77-wenjelly-logo-20261009','./assets/promo-qr/open-play-registration-master.png?v=77-wenjelly-logo-20261009','./assets/promo-qr/open-play-registration-qr-logo.png?v=77-wenjelly-logo-20261009',
   './tournament-premium.js?v=74-system-audit','./tournament-command.js?v=67','./tournament-premium.css?v=67','./scoring-premium.css?v=67','./scoring-premium.js?v=75-mobile-fit',

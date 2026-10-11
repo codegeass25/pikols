@@ -282,7 +282,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
 <script src="tournament-premium.js?v=74-system-audit"></script>
 <link rel="stylesheet" href="venue-booking.css?v=76-responsive-checkout">
 <script src="venue-ui.js?v=71"></script>
-<script src="venue-matrix.js?v=86-hide-inactive"></script>
+<script src="venue-matrix.js?v=88-socket-live"></script>
 <link rel="apple-touch-icon" href="icons/wenjelly-v73-apple.png" />
 <link rel="stylesheet" href="mobile-fit.css?v=76-responsive-checkout" />
 </head>
@@ -3067,7 +3067,19 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
     }
 
     function visible(tab) { return !$('#tab-' + tab).classList.contains('hidden'); }
-    function refreshAvailability() { if (visible('book')) run('availability', loadAvailability); if (visible('dashboard')) run('dashboard', loadDashboard); }
+    var facilityDirty = false;
+    // Facility management changes are critical even while another player tab
+    // is active. Never require a hard refresh after a court/venue status edit.
+    function refreshAvailability(force) {
+      if (force) facilityDirty = true;
+      if (document.hidden) return; // mobile background: re-sync on foreground
+      if (facilityDirty || visible('book')) {
+        facilityDirty = false;
+        run('availability', loadAvailability);
+      }
+      if (visible('dashboard')) run('dashboard', loadDashboard);
+    }
+    function refreshFacilityViews() { refreshAvailability(true); }
     function refreshEvents() {
       if (visible('dashboard') || visible('book')) run('home-events', loadHomeEvents);
       if (!visible('tournaments')) return;
@@ -3095,10 +3107,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
       if (TOKEN) { run('bookings', loadBookings); run('dashboard', loadDashboard); refreshNotifications(); refreshCredit(); }
       refreshAvailability();
     }
-    function refreshCourtViews() {
-      refreshAvailability();
-      if (visible('dashboard')) run('dashboard', loadDashboard);
-    }
+    function refreshCourtViews() { refreshFacilityViews(); }
 
     var MAP = {
       'booking:created': bookingChange,
@@ -3116,10 +3125,16 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
       'player:profile_updated': function (payload) { if (!TOKEN || !USER || (payload&&payload.userId&&Number(payload.userId)!==Number(USER.id))) return; run('profile-self', function(){api('/api/auth/me').then(function(d){USER=d.user;updateAccountPresentation();if($('#pf-name'))$('#pf-name').value=USER.full_name||'';if($('#pf-mobile'))$('#pf-mobile').value=USER.mobile||'';}).catch(function(){});}); },
       'membership:updated': function () { if (!TOKEN) return; run('membership', loadMembership); run('dashboard', loadDashboard); refreshNotifications(); },
       'membership:plans_updated': function () { if(visible('membership'))run('membership', loadMembership); },
+      'venue:created': refreshCourtViews,
+      'venue:updated': refreshCourtViews,
+      'venue:deleted': refreshCourtViews,
+      'pricing:updated': refreshCourtViews,
+      'occasion:changed': function () { refreshFacilityViews(); run('occasion-banner', loadOccasionPromos); },
       'court:created': refreshCourtViews,
       'court:updated': refreshCourtViews,
       'court:status_changed': refreshCourtViews,
       'court:deleted': refreshCourtViews,
+      'court:gallery_updated': refreshCourtViews,
       'block:created': refreshAvailability,
       'block:removed': refreshAvailability,
       'availability:changed': refreshAvailability,
@@ -3158,14 +3173,16 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
       });
       socket.on('connect', function () {
         setStatus('live');
-        if (everConnected) refreshCurrent();   /* re-sync after a dropout */
+        if (everConnected) { refreshCurrent(); refreshFacilityViews(); }
         everConnected = true;
       });
+      // Join acknowledgement closes the initial GET -> socket-connect race.
+      socket.on('realtime:ready', refreshFacilityViews);
       socket.on('disconnect', function () { setStatus('down'); });
       socket.on('connect_error', function () { setStatus('down'); });
       if (socket.io) {
         socket.io.on('reconnect_attempt', function () { setStatus('down'); });
-        socket.io.on('reconnect', function () { setStatus('live'); refreshCurrent(); });
+        socket.io.on('reconnect', function () { setStatus('live'); refreshCurrent(); refreshFacilityViews(); });
       }
     }
 
@@ -3270,7 +3287,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
   window.addEventListener('appinstalled',function(){setMarked(true);deferredPrompt=null;sync();});
   window.addEventListener('pageshow',sync);document.addEventListener('visibilitychange',function(){if(!document.hidden)sync();});
   if(btn)btn.addEventListener('click',async function(){if(!deferredPrompt)return;btn.disabled=true;try{await deferredPrompt.prompt();var c=await deferredPrompt.userChoice;if(c&&c.outcome==='accepted')setMarked(true);}catch(_){}deferredPrompt=null;btn.disabled=false;sync();});
-  if('serviceWorker' in navigator)window.addEventListener('load',function(){navigator.serviceWorker.register('service-worker.js?v=76-responsive-checkout',{scope:'./',updateViaCache:'none'}).then(function(reg){return reg.update();}).catch(function(){});});
+  if('serviceWorker' in navigator)window.addEventListener('load',function(){navigator.serviceWorker.register('service-worker.js?v=88-socket-live',{scope:'./',updateViaCache:'none'}).then(function(reg){return reg.update();}).catch(function(){});});
   sync();
 })();
 </script>

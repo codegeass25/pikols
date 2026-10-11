@@ -13,9 +13,12 @@
     function changeDate(next){if(next===date)return true;if(selection.size&&!confirm('Changing date clears your selected court times. Continue?'))return false;clear();date=next;return true;}
     function selectVenue(id){if(id===venueId||venues.find(v=>v.id===id)?.status!=='active')return;if(selection.size&&!confirm('Changing venue clears your selected court times. Continue?'))return;selection.clear();quote=null;key=null;quoteSerial++;clearTimeout(quoteTimer);venueId=id;render();}
     function currentVenue(){return venues.find(v=>v.id===venueId);}
-    // Inactive courts remain stored for Admin/history but must not appear to players.
-    // Maintenance courts remain visible (unbookable), as before.
-    function eligible(){return (data?.courts||[]).filter(ct=>ct.venue_id===venueId&&ct.status!=='inactive');}
+    // Public listing: never show inactive venues or inactive/retired courts.
+    // Maintenance courts remain visible (but unbookable). Admin retains every record.
+    function courtVisible(ct){return ct.status==='active'||ct.status==='maintenance';}
+    function visibleCourts(venue){return (data?.courts||[]).filter(ct=>ct.venue_id===venue.id&&courtVisible(ct));}
+    function eligible(){const venue=currentVenue();return venue?visibleCourts(venue):[];}
+    function visibleVenues(rows){return (Array.isArray(rows)?rows:[]).filter(v=>v.status==='active'&&visibleCourts(v).length>0);}
     function expected(){return {date,venue_id:venueId,selections:selections().map(s=>({court_id:s.court_id,start_time:s.start_time,end_time:s.end_time}))};}
     function totals(){const list=selections();return {amount:quote?.amount??list.reduce((n,s)=>n+s.price,0),minutes:list.reduce((n,s)=>n+global.PikolAvailability.duration(s.start_time,s.end_time),0),base:quote?.base_amount??list.reduce((n,s)=>n+s.price,0),discount:quote?.discount_amount||0};}
     async function refreshQuote(){
@@ -43,7 +46,7 @@
         const maps='<button type="button" class="vg-location-action" data-location="'+v.id+'"'+(mapsURL?'':' disabled')+' title="'+esc(mapsURL?'View venue location':'Location not configured')+'"><img class="vg-google-pin" src="assets/booking/maps-pin.svg" alt="" aria-hidden="true" width="20" height="26"><span>'+esc(location)+'</span>'+(mapsURL?'<span aria-hidden="true">↗</span>':'')+'</button>';
         const rates=(v.pricing_summary||[]).map(p=>'<div class="vg-rate-period"><span><strong>'+esc(p.label)+'</strong><small>'+humanTime(p.start)+' – '+humanTime(p.end)+'</small></span><b>'+money(p.min_rate)+(p.max_rate>p.min_rate?'–'+money(p.max_rate):'')+'<em>/hr</em></b></div>').join('');
         const pricing=rates?'<div class="vg-venue-pricing" aria-label="All configured hourly prices">'+rates+'</div>':'<p class="vg-rate-empty">No bookable court rates configured</p>';
-        return '<article class="vg-venue'+(selected?' is-selected':'')+'" data-card="'+v.id+'"><button type="button" class="vg-venue-select" data-venue="'+v.id+'" aria-pressed="'+selected+'"'+(v.status==='active'?'':' disabled')+'><span class="vg-venue-photo"><img src="'+esc(global.PikolVenueUI.photoUrl(photo,'venue',c.assetUrl))+'" '+global.PikolVenueUI.fallbackAttr('venue')+' alt="'+esc(photo?v.name+' venue':v.name+' illustrative venue image')+'" width="640" height="360" loading="lazy" decoding="async">'+(!photo?'<span class="vg-image-disclaimer">Illustrative image</span>':'')+'<span class="vg-venue-badge '+(selected?'vg-badge-selected':'')+'">'+(selected?'✓ SELECTED':esc(v.status.toUpperCase()))+'</span></span><span class="vg-venue-copy"><strong>'+esc(v.name)+'</strong><span>'+esc(v.description||v.court_count+' configured courts')+'</span></span></button><div class="vg-venue-meta">'+maps+pricing+'</div></article>';
+        return '<article class="vg-venue'+(selected?' is-selected':'')+'" data-card="'+v.id+'"><button type="button" class="vg-venue-select" data-venue="'+v.id+'" aria-pressed="'+selected+'"'+(v.status==='active'?'':' disabled')+'><span class="vg-venue-photo"><img src="'+esc(global.PikolVenueUI.photoUrl(photo,'venue',c.assetUrl))+'" '+global.PikolVenueUI.fallbackAttr('venue')+' alt="'+esc(photo?v.name+' venue':v.name+' illustrative venue image')+'" width="640" height="360" loading="lazy" decoding="async">'+(!photo?'<span class="vg-image-disclaimer">Illustrative image</span>':'')+'<span class="vg-venue-badge '+(selected?'vg-badge-selected':'')+'">'+(selected?'✓ SELECTED':esc(v.status.toUpperCase()))+'</span></span><span class="vg-venue-copy"><strong>'+esc(v.name)+'</strong><span>'+esc(v.description||visibleCourts(v).length+' listed courts')+'</span></span></button><div class="vg-venue-meta">'+maps+pricing+'</div></article>';
       }).join('')||'<div class="empty">No current venues. Please contact the club.</div>';
       rail.scrollLeft=left;
       host.querySelector('#vg-schedule-title').textContent='Court Schedule'+(v?' at '+v.name:'');
@@ -75,9 +78,14 @@
       host.setAttribute('aria-busy','true');button.disabled=true;
       try {
         const [vs,availability]=await Promise.all([api('/api/venues'),api('/api/availability?date='+encodeURIComponent(date))]);
-        if(ticket!==request)return;venues=vs;data=availability;c.received(data);c.scheduleExpiry(data);
-        if(requestedCourt!==null){const target=data.courts.find(ct=>ct.id===requestedCourt);requestedCourt=null;if(target&&target.status!=='inactive'&&venues.some(v=>v.id===target.venue_id))selectVenue(target.venue_id);}
-        if(!venues.some(v=>v.id===venueId&&v.status==='active')){venueId=venues.find(v=>v.status==='active')?.id||null;selection.clear();}
+        if(ticket!==request)return;data=availability;venues=visibleVenues(vs);c.received(data);c.scheduleExpiry(data);
+        if(requestedCourt!==null){const target=data.courts.find(ct=>ct.id===requestedCourt);requestedCourt=null;if(target&&courtVisible(target)&&venues.some(v=>v.id===target.venue_id))selectVenue(target.venue_id);}
+        if(!venues.some(v=>v.id===venueId&&v.status==='active')){
+          const hadVenue=venueId!=null,hadSelection=selection.size>0;
+          venueId=venues.find(v=>v.status==='active')?.id||null;
+          selection.clear();quote=null;key=null;quoteSerial++;clearTimeout(quoteTimer);
+          if(hadVenue&&hadSelection)toast('The selected venue is no longer available. Your selected times were cleared.','warning');
+        }
         let lost=0;
         for(const [k,s] of selection){const ct=eligible().find(ct=>ct.id===s.court_id),cell=ct?.slots.find(sl=>sl.start===s.start_time&&sl.end===s.end_time&&sl.bookable);if(!cell){selection.delete(k);lost++;}else{s.price=cell.price;s.court_name=ct.name;}}
         if(lost){quote=null;key=null;quoteSerial++;clearTimeout(quoteTimer);toast(lost+' selected time'+(lost===1?' is':'s are')+' no longer available. Your selection has been updated.','warning');}
@@ -113,7 +121,7 @@
       if(e.target.closest('[data-vg-retry]'))refresh();
     });
     summary.addEventListener('click',e=>{if(e.target.closest('[data-vg-clear]'))clear();});button.onclick=checkout;
-    return {refresh,render,changeDate,clear,chooseCourt:id=>{const ct=(data?.courts||[]).find(c=>c.id===Number(id));if(ct?.status==='inactive')return;if(ct)selectVenue(ct.venue_id);else requestedCourt=Number(id);},getData:()=>data};
+    return {refresh,render,changeDate,clear,chooseCourt:id=>{const ct=(data?.courts||[]).find(c=>c.id===Number(id));if(ct&&!courtVisible(ct))return;if(ct)selectVenue(ct.venue_id);else requestedCourt=Number(id);},getData:()=>data};
   }
   global.PikolVenueMatrix={install};
 })(window);
