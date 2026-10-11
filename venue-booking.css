@@ -379,3 +379,85 @@ body.player-app .pikol-v72-promo-sidebar .membership-promo .btn{min-height:38px;
   body.player-app .pikol-v72-promo-sidebar #summary-card .summary-row dt,
   body.player-app .pikol-v72-promo-sidebar #summary-card .summary-row dd{font-size:.71rem}
 }
+
+
+/* V4.3 · RESPONSIVE VENUE CAROUSEL + ADMIN THREE-PERIOD EDITOR
+   Do not change venue/court eligibility, pricing calculations or booking state. */
+body.player-app .vg-venues{box-sizing:border-box;align-items:stretch}
+body.player-app .vg-venues .vg-venue{box-sizing:border-box;min-width:0;max-width:100%}
+body.player-app .vg-venue-meta{min-width:0}
+body.player-app .vg-rate-period{display:grid;grid-template-columns:minmax(0,1fr) max-content;align-items:center;gap:8px;min-width:0}
+body.player-app .vg-rate-period>span{min-width:0;overflow-wrap:normal}
+body.player-app .vg-rate-period strong{overflow-wrap:normal;word-break:normal}
+body.player-app .vg-rate-period small{overflow-wrap:normal;word-break:normal}
+body.player-app .vg-rate-period b{white-space:nowrap;text-align:right;font-size:clamp(.75rem,.92vw,.93rem)}
+body.player-app .vg-venue-copy strong{overflow-wrap:break-word;word-break:normal}
+body.player-app .vg-location-action>span:nth-child(2){overflow-wrap:break-word;word-break:normal}
+/* 1-2 venues on desktop: fixed reasonable width, centered together. */
+@media (min-width:768px){
+  body.player-app .vg-venues[data-count="1"],
+  body.player-app .vg-venues[data-count="2"]{justify-content:center}
+  body.player-app .vg-venues[data-count="1"] .vg-venue,
+  body.player-app .vg-venues[data-count="2"] .vg-venue{flex:0 0 min(350px,calc((100% - 16px)/2));max-width:350px}
+  body.player-app .vg-venues[data-count="1"] .vg-venue{flex-basis:min(350px,100%)}
+  body.player-app .vg-carousel[data-venue-count="2"] .vg-carousel-arrow{display:none}
+}
+/* Three cards fit evenly without stretching beyond a useful max width. */
+@media (min-width:1120px){
+  body.player-app .vg-venues[data-count="3"]{justify-content:center}
+  body.player-app .vg-venues[data-count="3"] .vg-venue{flex:0 0 min(340px,calc((100% - 32px)/3));max-width:340px}
+  body.player-app .vg-carousel[data-venue-count="3"] .vg-carousel-arrow{display:none}
+}
+/* Mobile: count-independent one-card carousel, including exactly two venues.
+   The more-specific data-count=2 rule above must never squeeze two cards into one row. */
+@media (max-width:767px){
+  body.player-app .vg-venues{justify-content:flex-start!important;gap:12px;scroll-padding-inline:4px}
+  body.player-app .vg-venues[data-count="1"]{justify-content:center!important}
+  body.player-app .vg-venues .vg-venue,
+  body.player-app .vg-venues[data-count="1"] .vg-venue,
+  body.player-app .vg-venues[data-count="2"] .vg-venue{
+    flex:0 0 min(390px,100%)!important;width:min(390px,100%);max-width:min(390px,100%)!important;
+    scroll-snap-align:start;align-self:stretch;
+  }
+  body.player-app .vg-venues[data-count="1"] .vg-venue{scroll-snap-align:center}
+  body.player-app .vg-venue-meta{padding-inline:12px}
+  body.player-app .vg-rate-period{grid-template-columns:minmax(0,1fr) max-content;gap:6px;padding:9px}
+  body.player-app .vg-rate-period b{font-size:clamp(.76rem,3vw,.92rem)}
+  body.player-app .vg-venue-copy>span{overflow-wrap:break-word}
+}
+/* Admin: avoid overlapping native time inputs, keep 3 original periods/IDs. */
+body.admin-app #venue-pricing-editor,body.admin-app #venue-pricing-editor *{box-sizing:border-box}
+body.admin-app #venue-pricing-editor .vg-pricing-hours,
+body.admin-app #venue-pricing-editor .vg-pricing-row{min-width:0;max-width:100%}
+body.admin-app #venue-pricing-editor .vg-field{min-width:0;margin:0}
+body.admin-app #venue-pricing-editor .vg-field>span{line-height:1.4;overflow-wrap:break-word}
+body.admin-app #venue-pricing-editor .vg-field :is(input,select){width:100%;max-width:100%;min-width:0;display:block}
+body.admin-app #venue-pricing-editor .vg-pricing-hours{gap:12px;margin-bottom:20px}
+body.admin-app #venue-pricing-editor .vg-pricing-table{min-width:0}
+@media (max-width:1150px){
+  body.admin-app #venue-pricing-editor .vg-pricing-heading{display:none}
+  body.admin-app #venue-pricing-editor .vg-pricing-row:not(.vg-pricing-heading){
+    display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;
+    padding:16px;margin:0 0 12px;border:1px solid var(--border,#dce7e1);
+    background:var(--surface-2,#f7faf9);border-radius:13px;
+  }
+  body.admin-app #venue-pricing-editor .vg-pricing-row:not(.vg-pricing-heading) .vg-field:first-child,
+  body.admin-app #venue-pricing-editor .vg-pricing-row:not(.vg-pricing-heading) .vg-field:last-child{grid-column:1/-1}
+  body.admin-app #venue-pricing-editor .vg-pricing-row .vg-field>span{display:block}
+}
+@media (max-width:600px){
+  body.admin-app #venue-pricing-editor{padding:14px 12px}
+  body.admin-app #venue-pricing-editor .vg-pricing-hours{grid-template-columns:minmax(0,1fr);gap:10px}
+  body.admin-app #venue-pricing-editor .vg-pricing-row:not(.vg-pricing-heading){gap:10px;padding:12px}
+  body.admin-app #venue-pricing-editor .vg-field :is(input,select){font-size:16px}
+  body.admin-app #venue-pricing-editor [data-save-pricing]{width:100%;min-height:44px}
+}
+@media (max-width:350px){
+  body.admin-app #venue-pricing-editor .vg-pricing-row:not(.vg-pricing-heading){grid-template-columns:minmax(0,1fr)}
+  body.admin-app #venue-pricing-editor .vg-pricing-row:not(.vg-pricing-heading) .vg-field{grid-column:1/-1}
+}
+
+/* Navigation arrows stay over the photo, never over venue titles or rate rows. */
+body.player-app .vg-carousel-arrow{top:clamp(70px,8vw,96px)}
+@media(min-width:951px){body.player-app .vg-carousel[data-venue-count="3"] .vg-carousel-arrow{display:none}}
+@media(max-width:767px){body.player-app .vg-carousel-arrow{top:clamp(64px,16vw,80px)}}

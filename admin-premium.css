@@ -1068,3 +1068,25 @@ body.admin-app .mobile-date-display { display: none; }
 }
 .vg-attendance-hint{font-size:.69rem;color:var(--muted,#66798a);align-self:center;line-height:1.4;max-width:100%}
 .vg-attendance-hint[hidden]{display:none!important}
+
+
+/* V4.3: accessible responsive Report date range toolbar.
+   Preserve #rp-from/#rp-to/#rp-venue/#rp-run and their existing API handlers. */
+body.admin-app #page-reports .report-toolbar .report-filter-grid{
+  display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,1.2fr) auto;
+  align-items:end;gap:12px;width:100%;min-width:0;
+}
+body.admin-app #page-reports .report-filter-field{display:flex;flex-direction:column;gap:6px;min-width:0;margin:0;color:var(--text-primary);font-size:.8rem;font-weight:700;line-height:1.4}
+body.admin-app #page-reports .report-filter-field>span{display:block}
+body.admin-app #page-reports .report-filter-field :is(input,select){box-sizing:border-box;width:100%;max-width:100%;min-width:0;min-height:44px;margin:0}
+body.admin-app #page-reports .report-filter-grid #rp-run{min-height:44px;max-width:100%;white-space:normal;grid-column:auto;align-self:end}
+@media(max-width:1100px){
+  body.admin-app #page-reports .report-toolbar .report-filter-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  body.admin-app #page-reports .report-filter-grid #rp-run{width:100%;grid-column:auto}
+}
+@media(max-width:767px){
+  body.admin-app #page-reports .report-toolbar .report-filter-grid{grid-template-columns:minmax(0,1fr);gap:12px}
+  body.admin-app #page-reports .report-filter-grid #rp-run{grid-column:1/-1;width:100%}
+  body.admin-app #page-reports .report-filter-field :is(input,select){font-size:16px}
+  body.admin-app #page-reports > .section-shell > .card-header{padding:16px}
+}
