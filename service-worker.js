@@ -1,6 +1,6 @@
-const CACHE = 'pikol-v84-occasion-promotions-tested-20261011';
+const CACHE = 'pikol-v85-occasion-sql-venue-fix-20261011';
 const SHELL = [
-  './occasion-promotions.css?v=83','./occasion-admin.js?v=84-tested',
+  './occasion-promotions.css?v=85-sql-venue-fix','./occasion-admin.js?v=85-sql-venue-fix',
   './mobile-fit.css?v=76-responsive-checkout',
   './venue-booking.css?v=76-responsive-checkout','./venue-ui.js?v=81-attendance-lock','./venue-matrix.js?v=76-responsive-checkout','./venue-admin.js?v=71',
   './assets/promo-qr/official-website-master.png?v=77-wenjelly-logo-20261009','./assets/promo-qr/official-website-qr-logo.png?v=77-wenjelly-logo-20261009',

@@ -18,3 +18,12 @@
 .oc-banner strong{display:block;font-size:1.06rem}.oc-banner p{margin:4px 0 0;color:#d5eee3;font-size:.79rem}.oc-chips{display:flex;flex-wrap:wrap;gap:7px}.oc-chip{display:inline-flex;align-items:center;font-weight:750;font-size:.73rem;padding:6px 10px;color:#e9ffec;background:#ffffff22;border:1px solid #ffffff32;border-radius:20px}
 .oc-price{border:1px solid #afd9c1;padding:12px;border-radius:12px;background:#eef9f1;color:#193e2c}.oc-price .oc-amount{font-size:1.3rem;font-weight:900}.oc-price del{opacity:.65;margin-right:8px}.oc-price small{display:block;font-size:.72rem;margin-top:5px}.oc-price .oc-save{font-weight:800;color:#066f40}
 @media(max-width:660px){.oc-form-grid{grid-template-columns:1fr}.oc-panel{padding:14px}.oc-list{grid-template-columns:1fr}.oc-banner{margin-top:10px}.oc-form .oc-pick{grid-template-columns:1fr 1fr}.oc-head .btn{width:100%}}
+
+/* V3: venue-dependent court selection: easier to scan on iPhone and desktop. */
+.oc-location-fields{display:grid;gap:16px}
+.oc-court-groups{display:grid;gap:10px}
+.oc-court-set{padding:12px;border:1px solid var(--line,#dae2de);border-radius:12px;background:var(--surface-2,#f8faf9)}
+.oc-court-set h4{font-size:.84rem;margin:0 0 10px;font-weight:800}
+.oc-court-set .oc-pick{max-height:220px;background:var(--surface,#fff)}
+.oc-empty-courts{background:var(--surface-2,#f8faf9);border:1px dashed var(--line,#cddbd2);border-radius:12px;padding:17px 14px;text-align:center;color:var(--muted,#6a8175);font-size:.82rem;line-height:1.55}
+@media(max-width:660px){.oc-location-fields{gap:14px}.oc-court-set{padding:10px}.oc-court-set .oc-pick{grid-template-columns:1fr 1fr}}
