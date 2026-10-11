@@ -675,6 +675,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
           <div class="oc-head"><div><span class="oc-eyebrow">🎁 SPECIAL OFFERS</span><h2>Promotions &amp; Special Occasions</h2><p>Automatically reward eligible players during birthdays, anniversaries and family celebrations. Court Booking and Open Play are managed together here.</p></div>
             <button class="btn btn-primary" type="button" id="occasion-promo-create">+ New Promotion</button></div>
           <div class="spread" style="margin-bottom:12px;gap:8px;flex-wrap:wrap"><span class="badge" id="occasion-promo-count">Loading…</span><p class="tiny muted">Best discount wins · No promo codes · Manila play dates · Original bookings protected</p></div>
+          <label class="oc-archived-toggle"><input type="checkbox" id="occasion-promo-show-archived"> Show archived promotions</label>
           <p id="occasion-promo-scope-alert" class="tiny muted" role="status"></p>
           <div class="oc-list" id="occasion-promo-list" aria-live="polite"><div class="oc-empty">Loading promotions…</div></div>
         </section>
@@ -949,8 +950,8 @@ body.admin-app.role-ready #view-app{visibility:visible}
 <script src="promo-qr.js?v=77-wenjelly-logo-20261009"></script>
 <link rel="stylesheet" href="promo-qr.css?v=67" />
 <script src="admin-charts.js?v=80-venue-labels"></script>
-<link rel="stylesheet" href="occasion-promotions.css?v=85-sql-venue-fix">
-<script src="occasion-admin.js?v=85-sql-venue-fix"></script>
+<link rel="stylesheet" href="occasion-promotions.css?v=86-safe-remove">
+<script src="occasion-admin.js?v=86-safe-remove"></script>
 <script>
 /* ================= admin runtime ================= */
 (function () {

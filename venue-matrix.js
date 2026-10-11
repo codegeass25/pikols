@@ -3,7 +3,7 @@
   function install(c) {
     const {esc,money,humanTime,humanDate,api,toast}=c,host=document.getElementById('venue-booking');
     let venues=[],venueId=null,data=null,selection=new Map(),quote=null,quoteSerial=0,request=0,date=c.date(),busy=false,key=null,quoteTimer=null,requestedCourt=null;
-    host.innerHTML='<section class="vg-booking-section vg-venue-section" aria-labelledby="vg-venue-title"><div class="vg-section-head"><span class="vg-step-number" aria-hidden="true">1</span><div><h2 id="vg-venue-title">Select a Venue</h2><p>Choose a venue to see available courts and times.</p></div></div><div class="vg-carousel"><button class="vg-carousel-arrow vg-carousel-prev" data-carousel="-1" aria-label="Previous venues">‹</button><div class="vg-venues" tabindex="0" role="region" aria-label="Venue carousel. Use left and right arrow keys."></div><button class="vg-carousel-arrow vg-carousel-next" data-carousel="1" aria-label="Next venues">›</button></div></section><section class="vg-booking-section vg-schedule-section" aria-labelledby="vg-schedule-title"><div class="vg-section-head"><span class="vg-step-number" aria-hidden="true">2</span><div><h2 id="vg-schedule-title">Court Schedule</h2><p>Select court times. Click a court name or photo to view its gallery.</p></div><div class="vg-date-host"></div></div><div class="vg-legend" aria-label="Availability legend"><span class="vg-key-available">Available</span><span class="vg-key-selected">Selected</span><span class="vg-key-booked">Booked / Event</span><span class="vg-key-held">Held / Pending</span><span class="vg-key-maintenance">Maintenance</span><span class="vg-key-inactive">Inactive</span><span class="vg-key-past">Unavailable</span></div><div class="vg-matrix-scroll" role="region" tabindex="0" aria-label="Court availability. Scroll horizontally for more courts."></div><div class="vg-selection-live" aria-live="polite"></div></section>';
+    host.innerHTML='<section class="vg-booking-section vg-venue-section" aria-labelledby="vg-venue-title"><div class="vg-section-head"><span class="vg-step-number" aria-hidden="true">1</span><div><h2 id="vg-venue-title">Select a Venue</h2><p>Choose a venue to see available courts and times.</p></div></div><div class="vg-carousel"><button class="vg-carousel-arrow vg-carousel-prev" data-carousel="-1" aria-label="Previous venues">‹</button><div class="vg-venues" tabindex="0" role="region" aria-label="Venue carousel. Use left and right arrow keys."></div><button class="vg-carousel-arrow vg-carousel-next" data-carousel="1" aria-label="Next venues">›</button></div></section><section class="vg-booking-section vg-schedule-section" aria-labelledby="vg-schedule-title"><div class="vg-section-head"><span class="vg-step-number" aria-hidden="true">2</span><div><h2 id="vg-schedule-title">Court Schedule</h2><p>Select court times. Click a court name or photo to view its gallery.</p></div><div class="vg-date-host"></div></div><div class="vg-legend" aria-label="Availability legend"><span class="vg-key-available">Available</span><span class="vg-key-selected">Selected</span><span class="vg-key-booked">Booked / Event</span><span class="vg-key-held">Held / Pending</span><span class="vg-key-maintenance">Maintenance</span><span class="vg-key-past">Unavailable</span></div><div class="vg-matrix-scroll" role="region" tabindex="0" aria-label="Court availability. Scroll horizontally for more courts."></div><div class="vg-selection-live" aria-live="polite"></div></section>';
     const dateHost=host.querySelector('.vg-date-host'),fields=document.querySelector('.vg-date-fields'),calendar=document.querySelector('.booking-calendar-details');
     if(fields){fields.previousElementSibling?.remove();dateHost.append(fields);}if(calendar)dateHost.append(calendar);
     const summary=document.getElementById('summary-list'),button=document.getElementById('btn-confirm');
@@ -13,7 +13,9 @@
     function changeDate(next){if(next===date)return true;if(selection.size&&!confirm('Changing date clears your selected court times. Continue?'))return false;clear();date=next;return true;}
     function selectVenue(id){if(id===venueId||venues.find(v=>v.id===id)?.status!=='active')return;if(selection.size&&!confirm('Changing venue clears your selected court times. Continue?'))return;selection.clear();quote=null;key=null;quoteSerial++;clearTimeout(quoteTimer);venueId=id;render();}
     function currentVenue(){return venues.find(v=>v.id===venueId);}
-    function eligible(){return (data?.courts||[]).filter(ct=>ct.venue_id===venueId);}
+    // Inactive courts remain stored for Admin/history but must not appear to players.
+    // Maintenance courts remain visible (unbookable), as before.
+    function eligible(){return (data?.courts||[]).filter(ct=>ct.venue_id===venueId&&ct.status!=='inactive');}
     function expected(){return {date,venue_id:venueId,selections:selections().map(s=>({court_id:s.court_id,start_time:s.start_time,end_time:s.end_time}))};}
     function totals(){const list=selections();return {amount:quote?.amount??list.reduce((n,s)=>n+s.price,0),minutes:list.reduce((n,s)=>n+global.PikolAvailability.duration(s.start_time,s.end_time),0),base:quote?.base_amount??list.reduce((n,s)=>n+s.price,0),discount:quote?.discount_amount||0};}
     async function refreshQuote(){
@@ -57,7 +59,7 @@
         const labels={available:'Available',selected:'✓ Selected',booked:'Booked',held:'Held / Pending',pending:'Pending',maintenance:'Maintenance',inactive:'Inactive',past:'Unavailable',unconfigured:'Unavailable',blocked:'Blocked'};
         const label=labels[status]||cell?.status_label||'Unavailable';
         return '<td><button class="vg-cell vg-'+esc(status)+'" data-cell="'+esc(token(s))+'" aria-pressed="'+selected+'" aria-label="'+esc(ct.name)+' '+humanTime(sl.start)+' to '+humanTime(sl.end)+', '+esc(label)+(allowed?', '+money(cell.price):'')+'" title="'+esc(label)+(allowed?' · '+money(cell.price):'')+'"'+(allowed?'':' disabled')+'><span>'+esc(label)+'</span></button></td>';
-      }).join('')+'</tr>').join('')+'</tbody></table>':'<div class="empty"><strong>No configured courts</strong>Choose another venue or ask staff to configure its courts.</div>';
+      }).join('')+'</tr>').join('')+'</tbody></table>':'<div class="empty"><strong>No courts currently available</strong>Choose another venue or check back when courts become available.</div>';
       if(courts.length&&!times.length)host.querySelector('.vg-matrix-scroll').innerHTML='<div class="empty">No time slots are configured for this venue.</div>';
       renderSummary();
       if(focusKey)host.querySelector('[data-cell="'+focusKey+'"]')?.focus({preventScroll:true});
@@ -74,7 +76,7 @@
       try {
         const [vs,availability]=await Promise.all([api('/api/venues'),api('/api/availability?date='+encodeURIComponent(date))]);
         if(ticket!==request)return;venues=vs;data=availability;c.received(data);c.scheduleExpiry(data);
-        if(requestedCourt!==null){const target=data.courts.find(ct=>ct.id===requestedCourt);requestedCourt=null;if(target&&venues.some(v=>v.id===target.venue_id))selectVenue(target.venue_id);}
+        if(requestedCourt!==null){const target=data.courts.find(ct=>ct.id===requestedCourt);requestedCourt=null;if(target&&target.status!=='inactive'&&venues.some(v=>v.id===target.venue_id))selectVenue(target.venue_id);}
         if(!venues.some(v=>v.id===venueId&&v.status==='active')){venueId=venues.find(v=>v.status==='active')?.id||null;selection.clear();}
         let lost=0;
         for(const [k,s] of selection){const ct=eligible().find(ct=>ct.id===s.court_id),cell=ct?.slots.find(sl=>sl.start===s.start_time&&sl.end===s.end_time&&sl.bookable);if(!cell){selection.delete(k);lost++;}else{s.price=cell.price;s.court_name=ct.name;}}
@@ -111,7 +113,7 @@
       if(e.target.closest('[data-vg-retry]'))refresh();
     });
     summary.addEventListener('click',e=>{if(e.target.closest('[data-vg-clear]'))clear();});button.onclick=checkout;
-    return {refresh,render,changeDate,clear,chooseCourt:id=>{const ct=(data?.courts||[]).find(c=>c.id===Number(id));if(ct)selectVenue(ct.venue_id);else requestedCourt=Number(id);},getData:()=>data};
+    return {refresh,render,changeDate,clear,chooseCourt:id=>{const ct=(data?.courts||[]).find(c=>c.id===Number(id));if(ct?.status==='inactive')return;if(ct)selectVenue(ct.venue_id);else requestedCourt=Number(id);},getData:()=>data};
   }
   global.PikolVenueMatrix={install};
 })(window);

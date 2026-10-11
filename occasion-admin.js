@@ -2,7 +2,7 @@
    Deliberately separate from existing Settings forms to prevent accidental
    promo saves when editing payment configuration. */
 (function(global){'use strict';
- let api,toast,modal,rows=[],venues=[],courts=[];
+ let api,toast,modal,rows=[],venues=[],courts=[],showArchived=false;
  const $=(s,r=document)=>r.querySelector(s);
  const $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
  const esc=x=>String(x??'').replace(/[&<>"']/g,k=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[k]));
@@ -11,8 +11,16 @@
  const status=p=>p.status!=='published'?p.status:(p.repeat_annually?'Annual':p.start_date>today()?'Scheduled':p.end_date<today()?'Published':'Active');
  const formatted=(type,value)=>Number(value)>0?(type==='percent'?Number(value)+'% OFF':money(value)+' OFF'):'Not included';
  function render(){const host=$('#occasion-promo-list');if(!host)return;
-   $('#occasion-promo-count').textContent=rows.length+' configured';
-   host.innerHTML=rows.map(p=>'<article class="oc-card"><div class="oc-card-head"><div><span class="oc-eyebrow">SPECIAL OCCASION</span><h3>'+esc(p.public_title)+'</h3><p>'+esc(p.occasion_name)+'</p></div><span class="oc-badge oc-'+esc(p.status)+'">'+esc(status(p))+'</span></div><p>📅 '+esc(p.start_date)+(p.start_date!==p.end_date?' → '+esc(p.end_date):'')+(Number(p.repeat_annually)?' · Every year':'')+'</p><div class="oc-metrics"><div class="oc-metric"><span>Court Booking</span><strong>'+esc(formatted(p.court_discount_type,p.court_discount_value))+'</strong></div><div class="oc-metric"><span>Open Play</span><strong>'+esc(formatted(p.open_play_discount_type,p.open_play_discount_value))+'</strong></div></div><div class="oc-foot"><span class="oc-stat">'+Number(p.active_redemptions||0)+' redemptions · '+money(p.usage_total?.savings||0)+' savings</span><button type="button" class="btn btn-outline btn-sm" data-oc-edit="'+p.id+'">Edit</button></div></article>').join('')||'<div class="oc-empty">No promotions yet. Create a family birthday, anniversary or community celebration discount.</div>';
+   const archived=rows.filter(p=>p.status==='archived').length;
+   $('#occasion-promo-count').textContent=(rows.length-archived)+' promotions'+(archived?' · '+archived+' archived':'');
+   const toggle=$('#occasion-promo-show-archived');if(toggle)toggle.checked=showArchived;
+   const display=rows.filter(p=>showArchived||p.status!=='archived');
+   host.innerHTML=display.map(p=>{
+     const archived=p.status==='archived',used=Number(p.usage_total?.c||0)>0;
+     const actions=archived?'<span class="oc-history-note">Archived · history preserved</span>':
+       '<div class="oc-actions"><button type="button" class="btn btn-outline btn-sm" data-oc-edit="'+p.id+'">Edit</button><button type="button" class="btn btn-outline btn-sm oc-delete" data-oc-delete="'+p.id+'" aria-label="'+(used?'Archive':'Delete')+' promotion '+esc(p.public_title)+'">'+(used?'Archive':'Delete')+'</button></div>';
+     return '<article class="oc-card"><div class="oc-card-head"><div><span class="oc-eyebrow">SPECIAL OCCASION</span><h3>'+esc(p.public_title)+'</h3><p>'+esc(p.occasion_name)+'</p></div><span class="oc-badge oc-'+esc(p.status)+'">'+esc(status(p))+'</span></div><p>📅 '+esc(p.start_date)+(p.start_date!==p.end_date?' → '+esc(p.end_date):'')+(Number(p.repeat_annually)?' · Every year':'')+'</p><div class="oc-metrics"><div class="oc-metric"><span>Court Booking</span><strong>'+esc(formatted(p.court_discount_type,p.court_discount_value))+'</strong></div><div class="oc-metric"><span>Open Play</span><strong>'+esc(formatted(p.open_play_discount_type,p.open_play_discount_value))+'</strong></div></div><div class="oc-foot"><span class="oc-stat">'+Number(p.active_redemptions||0)+' active · '+money(p.usage_total?.savings||0)+' savings</span>'+actions+'</div></article>';
+   }).join('')||'<div class="oc-empty">'+(showArchived?'No promotions to display.':'No current promotions. Create a special occasion or choose Show archived to review history.')+'</div>';
  }
  function field(id,label,inner){return '<div class="field"><label class="label" for="oc-'+id+'">'+label+'</label>'+inner+'</div>';}
  function input(id,value,type='text',rest=''){return '<input class="input" id="oc-'+id+'" type="'+type+'" value="'+esc(value??'')+'" '+rest+' required>';}
@@ -96,9 +104,28 @@
      const note=$('#occasion-promo-scope-alert');if(note)note.textContent=locationOptionsReady?'':'Venue/court options could not load. Promotions are read-only until you refresh Settings.';
    }catch(e){const host=$('#occasion-promo-list');if(host)host.innerHTML='<div class="oc-empty">Could not load promotions. '+esc(e.message)+'</div>';}
  }
+ async function removePromotion(p){
+   if(!p||p.status==='archived')return;
+   const used=Number(p.usage_total?.c||0)>0;
+   const message=used
+     ?'Archive "'+p.public_title+'"? This offer has recorded usage, so it cannot be permanently deleted. It will stop applying to new bookings and its payment/discount history will be preserved.'
+     :'Permanently delete "'+p.public_title+'"? This cannot be undone. Promotions that have recorded usage will be archived automatically instead.';
+   if(!global.confirm(message))return;
+   const button=$('[data-oc-delete="'+p.id+'"]');if(button)button.disabled=true;
+   try{
+     const result=await api('/api/admin/occasion-promotions/'+p.id,{method:'DELETE'});
+     toast(result.action==='archived'?'Promotion archived; transaction history preserved.':'Unused promotion permanently deleted.','success');
+     await refresh();
+   }catch(e){toast(e.message||'Unable to remove the promotion.','error');if(button?.isConnected)button.disabled=false;}
+ }
  function init(opts){api=opts.api;toast=opts.toast;modal=opts.modal;
    const create=$('#occasion-promo-create'),host=$('#occasion-promo-list');if(!create||!host)return;
-   create.addEventListener('click',()=>edit());host.addEventListener('click',e=>{const b=e.target.closest('[data-oc-edit]');if(b){const p=rows.find(p=>p.id===Number(b.dataset.ocEdit));if(p)edit(p);}});
+   create.addEventListener('click',()=>edit());
+   $('#occasion-promo-show-archived')?.addEventListener('change',e=>{showArchived=!!e.target.checked;render();});
+   host.addEventListener('click',e=>{
+     const deleting=e.target.closest('[data-oc-delete]');if(deleting){const p=rows.find(p=>p.id===Number(deleting.dataset.ocDelete));if(p)removePromotion(p);return;}
+     const editing=e.target.closest('[data-oc-edit]');if(editing){const p=rows.find(p=>p.id===Number(editing.dataset.ocEdit));if(p&&p.status!=='archived')edit(p);}
+   });
  }
  global.PikolOccasionAdmin={init,refresh};
 })(window);
