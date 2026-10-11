@@ -1,0 +1,20 @@
+/* Occasion promotions: mobile-first, uses PIKOL's existing design tokens. */
+.oc-panel{padding:clamp(15px,2vw,24px);border:1px solid var(--line,#dce4e3);border-radius:18px;background:var(--surface,var(--card,#fff));margin:0 0 20px;box-shadow:0 8px 28px #061c1710}
+.oc-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:20px}
+.oc-eyebrow{display:inline-flex;align-items:center;gap:6px;font-size:.69rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted,#738378);font-weight:800}
+.oc-panel h2{font-size:clamp(1.14rem,2vw,1.45rem);margin:5px 0 5px}.oc-panel p{margin:0;color:var(--muted,#738378);font-size:.84rem;line-height:1.55}
+.oc-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:12px}
+.oc-card{padding:16px;border:1px solid var(--line,#dce4e3);border-radius:15px;background:var(--surface-2,#f8faf9);display:flex;flex-direction:column;gap:10px;min-height:210px}
+.oc-card h3{margin:0;font-size:1.04rem;line-height:1.32;overflow-wrap:anywhere}.oc-card p{font-size:.78rem}
+.oc-card-head{display:flex;align-items:start;justify-content:space-between;gap:8px}.oc-badge{display:inline-flex;align-items:center;flex-shrink:0;padding:4px 9px;border-radius:20px;background:#e4ede7;color:#33664b;font-size:.66rem;font-weight:800;text-transform:uppercase;letter-spacing:.03em}
+.oc-badge.oc-published{background:#d9f6e8;color:#086640}.oc-badge.oc-paused,.oc-badge.oc-ended{background:#ede9e4;color:#766a5b}.oc-badge.oc-draft{background:#e8edf4;color:#516178}
+.oc-metrics{display:grid;grid-template-columns:1fr 1fr;gap:8px}.oc-metric{padding:10px;border-radius:12px;background:var(--surface,var(--card,#fff));border:1px solid var(--line,#e3e9e6)}.oc-metric span{font-size:.68rem;display:block;color:var(--muted,#697975)}.oc-metric strong{font-size:1rem;display:block;margin-top:2px}
+.oc-foot{margin-top:auto;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}.oc-stat{font-size:.74rem;color:var(--muted,#708279)}.oc-empty{padding:25px;text-align:center;border:1px dashed var(--line,#d1ddd5);border-radius:12px;color:var(--muted,#708279)}
+.oc-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.oc-form .field{min-width:0}.oc-form .oc-hint{font-size:.71rem;color:var(--muted,#75837e);line-height:1.4;margin:5px 0}
+.oc-form .oc-pick{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;max-height:158px;overflow:auto;padding:10px;border:1px solid var(--line,#dae2de);border-radius:10px}
+.oc-check{display:flex;align-items:center;gap:8px;min-width:0;font-size:.78rem}.oc-check input{accent-color:#149364;flex-shrink:0}
+.oc-form hr{border:0;border-top:1px solid var(--line,#e0e5df);margin:16px 0}.oc-form .oc-section-title{font-size:.91rem;font-weight:800;margin:0 0 9px}
+.oc-banner{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:14px 18px;margin:14px 0 18px;background:linear-gradient(120deg,#062d24,#14593f 68%,#20744c);color:#f7fff6;border:1px solid #318159;border-radius:14px;box-shadow:0 6px 18px #122b1c28}
+.oc-banner strong{display:block;font-size:1.06rem}.oc-banner p{margin:4px 0 0;color:#d5eee3;font-size:.79rem}.oc-chips{display:flex;flex-wrap:wrap;gap:7px}.oc-chip{display:inline-flex;align-items:center;font-weight:750;font-size:.73rem;padding:6px 10px;color:#e9ffec;background:#ffffff22;border:1px solid #ffffff32;border-radius:20px}
+.oc-price{border:1px solid #afd9c1;padding:12px;border-radius:12px;background:#eef9f1;color:#193e2c}.oc-price .oc-amount{font-size:1.3rem;font-weight:900}.oc-price del{opacity:.65;margin-right:8px}.oc-price small{display:block;font-size:.72rem;margin-top:5px}.oc-price .oc-save{font-weight:800;color:#066f40}
+@media(max-width:660px){.oc-form-grid{grid-template-columns:1fr}.oc-panel{padding:14px}.oc-list{grid-template-columns:1fr}.oc-banner{margin-top:10px}.oc-form .oc-pick{grid-template-columns:1fr 1fr}.oc-head .btn{width:100%}}

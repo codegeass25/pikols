@@ -13,6 +13,7 @@
 <link rel="manifest" href="manifest.json?v=73" />
 <meta name="theme-color" content="#0f3d32" />
 <script src="config.js"></script>
+<link rel="stylesheet" href="occasion-promotions.css?v=83">
 <script src="tournament-view.js"></script>
 <link rel="stylesheet" href="styles.css" />
 <link rel="stylesheet" href="booking-premium.css?v=76-responsive-checkout" />
@@ -424,6 +425,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
       <div class="hero-signature">PICKLEBALL<br>LIVES HERE</div>
       <div class="hero-caption"><span></span><span>Promotional image</span></div>
     </section>
+    <section id="occasion-promo-banner" class="oc-banner" hidden aria-live="polite"></section>
     <div class="pikol-v72-layout"><div class="pikol-v72-booking-main">
     <section id="tab-book" class="site-sheet" aria-labelledby="booking-title">
       <div class="booking-page-head"><span class="eyebrow">BOOK YOUR GAME</span><h1 class="page-title" id="booking-title">Book a Court</h1><p class="page-subtitle" data-facility-name>WenJelly Pickleball Zone / PIKOL</p></div>
@@ -2376,6 +2378,19 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
   }
 
   /* --------------------------------- open play --------------------------------- */
+  function loadOccasionPromos() {
+    return api('/api/occasion-promotions').then(function (promos) {
+      var host=document.getElementById('occasion-promo-banner');if(!host)return;
+      var now=new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Manila',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+      var p=(promos||[]).find(function(x){return x.repeat_annually || x.end_date>=now;});
+      if(!p){host.hidden=true;host.innerHTML='';return;}
+      var date=p.repeat_annually?'Every year · '+p.start_date.slice(5):p.start_date+(p.end_date!==p.start_date?' to '+p.end_date:'');
+      var parts=[];if(Number(p.court_discount_value)>0)parts.push('<span class="oc-chip">Court · '+esc(p.court_discount_type==='percent'?p.court_discount_value+'% OFF':money(p.court_discount_value)+' OFF')+'</span>');
+      if(Number(p.open_play_discount_value)>0)parts.push('<span class="oc-chip">Open Play · '+esc(p.open_play_discount_type==='percent'?p.open_play_discount_value+'% OFF':money(p.open_play_discount_value)+' OFF')+'</span>');
+      host.innerHTML='<div><span class="oc-eyebrow">🎉 SPECIAL OCCASION OFFER</span><strong>'+esc(p.title)+'</strong><p>Special prices on eligible play dates · '+esc(date)+' · No promo code needed</p></div><div class="oc-chips">'+parts.join('')+'</div>';
+      host.hidden=false;
+    }).catch(function () { var h=document.getElementById('occasion-promo-banner');if(h)h.hidden=true; });
+  }
   function loadOpenPlay() {
     return api('/api/open-play').then(function (rows) {
       PUBLIC_OPENPLAY=rows;renderPublicEvents('openplay');
@@ -2387,20 +2402,22 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
     if (!join) return;
     if(!requirePlayer(function(){goto('openplay');var resume=document.createElement('button');resume.dataset.opJoin=join.dataset.opJoin;document.body.appendChild(resume);resume.click();resume.remove();}))return;
     var id = join.dataset.opJoin;
-    Promise.all([api('/api/open-play/' + id),loadPikolCredit()]).then(function (parts) { var e=parts[0];
+    Promise.all([api('/api/open-play/' + id),loadPikolCredit(),api('/api/open-play/'+id+'/quote')]).then(function (parts) { var e=parts[0],q=parts[2];
       if (eventEnded(e)) return toast('This Open Play event has already ended', 'error');
       modal({
         title: 'Join ' + e.title,
         confirmText: 'Confirm registration',
         body: '<div class="stack" style="gap:10px">' +
           '<div class="s">' + esc(whenText(e.event_date, e.start_time, e.end_time)) + (e.location ? ' · ' + esc(e.location) : '') + '</div>' +
-          '<div class="s">Entrance fee: <strong>' + money(e.entrance_fee) + '</strong></div>' +
+          '<div class="oc-price"><span class="oc-eyebrow">FINAL ENTRANCE FEE</span><div class="oc-amount">'+
+          (Number(q.discount_amount)>0?'<del>'+money(q.base_amount)+'</del>':'')+money(q.amount)+'</div>'+
+          (Number(q.discount_amount)>0?'<small class="oc-save">You save '+money(q.discount_amount)+' with '+esc(q.discount_source==='occasion'?q.promotion.title:'your membership')+'</small>':'<small>Regular entrance fee</small>')+'</div>' +
           (e.capacity ? '<div class="s muted">' + e.slots_left + ' slot(s) left</div>' : '') +
-          creditChoiceHtml(Number(e.entrance_fee||0),'op-use-credit') +
+          creditChoiceHtml(Number(q.amount||0),'op-use-credit') +
           '<div class="field"><label class="label" for="op-notes">Notes (optional)</label><textarea class="textarea" id="op-notes" maxlength="300"></textarea></div>' +
           '</div>',
         onConfirm: function (host) {
-          return api('/api/open-play/' + e.id + '/register', { method: 'POST', body: { notes: $('#op-notes', host).value, use_credit: !!($('#op-use-credit',host)&&$('#op-use-credit',host).checked) } })
+          return api('/api/open-play/' + e.id + '/register', { method: 'POST', body: { notes: $('#op-notes', host).value, expected_amount:q.amount, use_credit: !!($('#op-use-credit',host)&&$('#op-use-credit',host).checked) } })
             .then(function (r) {
               toast(r.payment_retry
                 ? 'Your previous payment attempt was not completed. Choose a payment method to keep your slot.'
@@ -3216,6 +3233,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
   updateAccountPresentation();
   loadDashboard();
   loadHomeEvents();
+  loadOccasionPromos();
   if(new URLSearchParams(location.search).get('view')!=='booking')ensureBooking();
 
   loadPayCfg().catch(function () {});
