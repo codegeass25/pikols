@@ -279,12 +279,14 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
 
 <link rel="stylesheet" href="client-upgrades.css?v=56-android-native-scroll">
 <link rel="stylesheet" href="tournament-premium.css?v=67" />
-<script src="tournament-premium.js?v=74-system-audit"></script>
+<script src="event-carousel.js?v=90-event-peek"></script>
+<script src="tournament-premium.js?v=90-event-peek"></script>
 <link rel="stylesheet" href="venue-booking.css?v=89-responsive-v43">
 <script src="venue-ui.js?v=71"></script>
 <script src="venue-matrix.js?v=88-socket-live"></script>
 <link rel="apple-touch-icon" href="icons/wenjelly-v73-apple.png" />
 <link rel="stylesheet" href="mobile-fit.css?v=76-responsive-checkout" />
+<link rel="stylesheet" href="event-carousel.css?v=90-event-peek" />
 </head>
 <body class="player-app">
 
@@ -513,7 +515,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
       <div id="ev-view-openplay" class="hidden stack" style="gap:20px">
         <div>
           <div class="list-head"><h2 class="section-title">Open Play sessions</h2></div>
-          <div class="events-browser"><div class="list" id="op-events"></div><aside class="event-spotlight" id="openplay-spotlight"></aside></div>
+          <div class="events-browser"><div class="pikol-event-selector" id="op-event-selector"><div class="list" id="op-events"></div></div><aside class="event-spotlight" id="openplay-spotlight"></aside></div>
         </div>
       </div>
 
@@ -2969,7 +2971,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
   document.addEventListener('click',function(e){var b=e.target.closest('[data-select-booking]');if(b){selectedBookingId=Number(b.dataset.selectBooking);renderBookings();}});
   function eventListCard(e,type,selected){
     var isTournament=type==='tournament',open=isTournament?e.registration_open:e.status==='published'&&!e.full&&!eventEnded(e);
-    return '<article class="event-list-card'+(selected?' is-selected':'')+'" role="link" tabindex="0" data-card-nav data-select-event="'+type+':'+e.id+'" aria-label="Open '+esc(e.name||e.title)+'">'+eventArtwork(e,type)+'<div class="event-list-info"><span class="badge">'+(isTournament?'TOURNAMENT':'OPEN PLAY')+'</span><h3>'+esc(e.name||e.title)+(type==='openplay'?openPlayCapacity(e):'')+'</h3><p>'+esc(isTournament?tnWhen(e):whenText(e.event_date,e.start_time,e.end_time))+'</p><p>'+esc(e.venue||e.location||BRAND.facility_name||'')+'</p><span class="tiny muted">'+(isTournament?Number(e.division_count||0)+' divisions · '+Number(e.team_count||0)+' participants':Number(e.registered||0)+' registered'+(e.capacity?' / '+Number(e.capacity)+' slots':''))+'</span><div class="event-card-actions">'+(open?'<button class="btn btn-lime btn-sm" '+(isTournament?'data-tn-register="'+e.id+'" data-tn-name="'+esc(e.name)+'"':'data-op-join="'+e.id+'"')+'>Register →</button>':'<span class="badge">'+esc(isTournament?(TN_STATUS[e.status]||'Registration closed'):(e.full?'Full':eventEnded(e)?'Ended':e.status))+'</span>')+'</div></div></article>';
+    return '<article class="event-list-card'+(selected?' is-selected':'')+'" role="link" tabindex="0" data-card-nav data-peek-id="'+e.id+'" data-select-event="'+type+':'+e.id+'" aria-label="Open '+esc(e.name||e.title)+'">'+eventArtwork(e,type)+'<div class="event-list-info"><span class="badge">'+(isTournament?'TOURNAMENT':'OPEN PLAY')+'</span><h3>'+esc(e.name||e.title)+(type==='openplay'?openPlayCapacity(e):'')+'</h3><p>'+esc(isTournament?tnWhen(e):whenText(e.event_date,e.start_time,e.end_time))+'</p><p>'+esc(e.venue||e.location||BRAND.facility_name||'')+'</p><span class="tiny muted">'+(isTournament?Number(e.division_count||0)+' divisions · '+Number(e.team_count||0)+' participants':Number(e.registered||0)+' registered'+(e.capacity?' / '+Number(e.capacity)+' slots':''))+'</span><div class="event-card-actions">'+(open?'<button class="btn btn-lime btn-sm" '+(isTournament?'data-tn-register="'+e.id+'" data-tn-name="'+esc(e.name)+'"':'data-op-join="'+e.id+'"')+'>Register →</button>':'<span class="badge">'+esc(isTournament?(TN_STATUS[e.status]||'Registration closed'):(e.full?'Full':eventEnded(e)?'Ended':e.status))+'</span>')+'</div></div></article>';
   }
   function openPlayCapacity(e){return '<strong class="slots-available">'+(e.slots_left==null?'OPEN CAPACITY':Number(e.slots_left)+' SLOTS AVAILABLE')+'</strong><span class="tiny">'+Number(e.confirmed||0)+' Registered'+(e.capacity?' / '+Number(e.capacity)+' Capacity':'')+' · '+Number(e.pending||0)+' Pending</span>';}
   function renderEventSpotlight(e,type){
@@ -2982,10 +2984,22 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
     var isTournament=type==='tournament',rows=isTournament?PUBLIC_EVENTS:PUBLIC_OPENPLAY,id=isTournament?selectedEventId:selectedOpenPlayId;
     var selected=rows.filter(function(e){return Number(e.id)===Number(id);})[0]||rows[0];
     if(selected){if(isTournament)selectedEventId=Number(selected.id);else selectedOpenPlayId=Number(selected.id);}
-    $(isTournament?'#tn-events':'#op-events').innerHTML=rows.length?rows.map(function(e){return eventListCard(e,type,e===selected);}).join(''):'<div class="empty"><strong>'+(isTournament?'No tournaments yet':'No Open Play sessions yet')+'</strong>Published events will appear here.</div>';
+    var track=$(isTournament?'#tn-events':'#op-events');
+    track.innerHTML=rows.length?rows.map(function(e){return eventListCard(e,type,e===selected);}).join(''):'<div class="empty"><strong>'+(isTournament?'No tournaments yet':'No Open Play sessions yet')+'</strong>Published events will appear here.</div>';
     renderEventSpotlight(selected,type);
+    if(!isTournament&&window.PikolEventPeek){
+      window.PikolEventPeek.mount({track:track,cardSelector:'.event-list-card',selectedId:selected&&selected.id,label:'Open Play session',onSelect:function(id){
+        var found=PUBLIC_OPENPLAY.find(function(e){return String(e.id)===String(id);});
+        if(!found)return;
+        selectedOpenPlayId=Number(found.id);renderEventSpotlight(found,'openplay');
+      }});
+    }
   }
-  document.addEventListener('click',function(e){var b=e.target.closest('[data-select-event]');if(!b||e.target.closest('button,a,input,select'))return;var bits=b.dataset.selectEvent.split(':');if(bits[0]==='tournament')selectedEventId=Number(bits[1]);else selectedOpenPlayId=Number(bits[1]);renderPublicEvents(bits[0]);});
+  document.addEventListener('click',function(e){var b=e.target.closest('[data-select-event]');if(!b||e.target.closest('button,a,input,select'))return;var bits=b.dataset.selectEvent.split(':');if(bits[0]==='tournament'){selectedEventId=Number(bits[1]);renderPublicEvents(bits[0]);return;}
+    selectedOpenPlayId=Number(bits[1]);var event=PUBLIC_OPENPLAY.find(function(row){return Number(row.id)===selectedOpenPlayId;});
+    if(event)renderEventSpotlight(event,'openplay');
+    var track=$('#op-events');if(track._pikolEventPeek)track._pikolEventPeek.select(selectedOpenPlayId,false);
+  });
 
   function enhanceDialog(host,opts){
     var body=$('.modal-body',host),dlg=$('.modal',host);
@@ -3287,7 +3301,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
   window.addEventListener('appinstalled',function(){setMarked(true);deferredPrompt=null;sync();});
   window.addEventListener('pageshow',sync);document.addEventListener('visibilitychange',function(){if(!document.hidden)sync();});
   if(btn)btn.addEventListener('click',async function(){if(!deferredPrompt)return;btn.disabled=true;try{await deferredPrompt.prompt();var c=await deferredPrompt.userChoice;if(c&&c.outcome==='accepted')setMarked(true);}catch(_){}deferredPrompt=null;btn.disabled=false;sync();});
-  if('serviceWorker' in navigator)window.addEventListener('load',function(){navigator.serviceWorker.register('service-worker.js?v=89-responsive-v43',{scope:'./',updateViaCache:'none'}).then(function(reg){return reg.update();}).catch(function(){});});
+  if('serviceWorker' in navigator)window.addEventListener('load',function(){navigator.serviceWorker.register('service-worker.js?v=90-event-peek',{scope:'./',updateViaCache:'none'}).then(function(reg){return reg.update();}).catch(function(){});});
   sync();
 })();
 </script>

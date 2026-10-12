@@ -1,11 +1,11 @@
-const CACHE = 'pikol-v89-responsive-v43-20261011';
+const CACHE = 'pikol-v90-events-peek-20261013';
 const SHELL = [
   './occasion-promotions.css?v=86-safe-remove','./occasion-admin.js?v=86-safe-remove',
   './mobile-fit.css?v=76-responsive-checkout',
   './venue-booking.css?v=89-responsive-v43','./venue-ui.js?v=81-attendance-lock','./venue-matrix.js?v=88-socket-live','./venue-admin.js?v=71',
   './assets/promo-qr/official-website-master.png?v=77-wenjelly-logo-20261009','./assets/promo-qr/official-website-qr-logo.png?v=77-wenjelly-logo-20261009',
   './assets/promo-qr/booking-site-master.png?v=77-wenjelly-logo-20261009','./assets/promo-qr/booking-site-qr-logo.png?v=77-wenjelly-logo-20261009','./assets/promo-qr/tournament-registration-master.png?v=77-wenjelly-logo-20261009','./assets/promo-qr/tournament-registration-qr-logo.png?v=77-wenjelly-logo-20261009','./assets/promo-qr/open-play-registration-master.png?v=77-wenjelly-logo-20261009','./assets/promo-qr/open-play-registration-qr-logo.png?v=77-wenjelly-logo-20261009',
-  './tournament-premium.js?v=74-system-audit','./tournament-command.js?v=67','./tournament-premium.css?v=67','./scoring-premium.css?v=67','./scoring-premium.js?v=75-mobile-fit',
+  './event-carousel.js?v=90-event-peek','./event-carousel.css?v=90-event-peek','./tournament-premium.js?v=90-event-peek','./tournament-command.js?v=67','./tournament-premium.css?v=67','./scoring-premium.css?v=67','./scoring-premium.js?v=75-mobile-fit',
   './range-availability.js?v=56-android-native-scroll','./client-upgrades.css?v=56-android-native-scroll',
   './index.html','./admin.html','./scoring.html','./styles.css','./cards.js','./tournament-view.js','./config.js','./qr-lite.js?v=67','./qr-decoder.js?v=67','./promo-qr.js?v=77-wenjelly-logo-20261009','./promo-qr.css?v=67',
   './admin-premium.css?v=89-responsive-v43','./admin-premium.css','./admin-charts.js','./admin-charts.js?v=80-venue-labels','./booking-premium.css?v=76-responsive-checkout','./booking-premium.css','./assets/booking/maps-pin.svg','./assets/booking/hero-court.jpg','./assets/booking/court-01.jpg','./assets/booking/court-02.jpg','./assets/booking/court-03.jpg',

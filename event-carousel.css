@@ -1,0 +1,76 @@
+/* v90 Event selectors — native Android/iPhone peek carousel; no registration UI changes. */
+.player-app .pikol-event-selector{min-width:0;max-width:100%;}
+.player-app .pikol-peek-nav{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:11px 2px 3px;color:var(--text-primary,#163427);}
+.player-app .pikol-peek-total{font-size:.77rem;font-weight:750;}
+.player-app .pikol-peek-position{font-size:.76rem;font-weight:750;font-variant-numeric:tabular-nums;color:var(--text-secondary,#64748b);}
+.player-app .pikol-peek-controls{display:none;align-items:center;justify-content:center;gap:8px;}
+.player-app .pikol-peek-controls[hidden]{display:none!important;}
+.player-app .pikol-peek-arrow{display:grid;place-items:center;width:36px;height:36px;min-width:36px;min-height:36px;padding:0;border:1px solid var(--border,#dce5e0);border-radius:50%;background:var(--surface,#fff);color:var(--brand-primary,#004537);font-size:25px;line-height:1;cursor:pointer;}
+.player-app .pikol-peek-arrow:disabled{opacity:.35;cursor:default;}
+.player-app .pikol-peek-arrow:focus-visible,.player-app .pikol-peek-dot:focus-visible{outline:2px solid var(--brand-primary,#004537);outline-offset:2px;}
+.player-app .pikol-peek-dots{display:flex;align-items:center;justify-content:center;gap:6px;max-width:130px;flex-wrap:wrap;}
+.player-app .pikol-peek-dot{border:0;padding:0;min-width:9px;width:9px;height:9px;border-radius:999px;background:#bac5bc;cursor:pointer;transition:width .15s ease,background .15s ease;}
+.player-app .pikol-peek-dot[aria-current=true]{width:22px;background:var(--brand-primary,#004537);}
+.player-app .tp-event-card.is-selected{border-color:var(--brand-primary,#004537);}
+/* Desktop: open-play cards alone scroll; adjacent dynamic checkout remains stationary. */
+@media(min-width:768px){
+  .player-app #ev-view-openplay .events-browser{align-items:start;min-width:0;}
+  .player-app #op-event-selector{min-width:0;}
+  .player-app #op-events{max-height:clamp(320px,58dvh,700px);overflow-x:hidden;overflow-y:auto;overscroll-behavior-y:contain;-webkit-overflow-scrolling:touch;scrollbar-gutter:stable;}
+  .player-app #openplay-spotlight{position:sticky;top:8px;min-width:0;max-height:clamp(320px,65dvh,740px);overflow-y:auto;overscroll-behavior:contain;}
+}
+@media(max-width:767px){
+  /* The outer sheet handles page scrolling; only this selector scrolls horizontally. */
+  body.player-app.pikol-event-peek-active{touch-action:auto!important;}
+  body.player-app #site-overlay.pikol-event-peek-active:not(.hidden){touch-action:auto!important;}
+  html.pikol-android body.player-app #site-overlay.pikol-event-peek-active:not(.hidden){touch-action:auto!important;}
+  body.player-app #tab-tournaments:not(.hidden){touch-action:auto!important;}
+  .player-app .pikol-event-selector,.player-app .tp-discovery-events{min-width:0;max-width:100%;overflow:hidden;}
+  .player-app #op-events.pikol-peek-track,
+  .player-app #tn-list-view .tp-event-grid.pikol-peek-track{
+    display:flex!important;flex-direction:row!important;flex-wrap:nowrap!important;grid-template-columns:none!important;
+    gap:11px!important;width:100%;max-width:100%;min-width:0;
+    margin:0!important;padding:2px 0 8px!important;
+    overflow-x:auto!important;overflow-y:hidden!important;
+    -webkit-overflow-scrolling:touch;
+    scroll-snap-type:x mandatory;scroll-padding-inline-start:0;
+    overscroll-behavior-x:contain;
+    touch-action:pan-x pan-y pinch-zoom!important;
+    scrollbar-width:none;
+  }
+  .player-app #op-events.pikol-peek-track::-webkit-scrollbar,
+  .player-app #tn-list-view .tp-event-grid.pikol-peek-track::-webkit-scrollbar{display:none;}
+  .player-app #op-events.pikol-peek-track::after,
+  .player-app #tn-list-view .tp-event-grid.pikol-peek-track::after{content:'';display:block;flex:0 0 13%;pointer-events:none;}
+  .player-app #op-events.pikol-peek-track>.event-list-card,
+  .player-app #tn-list-view .tp-event-grid.pikol-peek-track>.tp-event-card{
+    flex:0 0 85%!important;width:85%!important;max-width:85%!important;min-width:0!important;
+    box-sizing:border-box;scroll-snap-align:start;scroll-snap-stop:always;
+    touch-action:pan-x pan-y pinch-zoom!important;
+  }
+  /* Selector cards should be comfortably tappable even on 320px Android screens. */
+  .player-app #op-events.pikol-peek-track>.event-list-card{display:flex;flex-direction:column;gap:9px;padding:10px;}
+  .player-app #op-events.pikol-peek-track>.event-list-card>.event-artwork{
+    width:100%;height:auto;min-height:0;aspect-ratio:16/9;max-height:220px;object-fit:cover;
+  }
+  .player-app #op-events .event-list-info{width:100%;min-width:0;align-items:stretch;gap:7px;}
+  .player-app #op-events .event-list-info h3{font-size:1rem;overflow-wrap:anywhere;}
+  .player-app #op-events .event-card-actions{margin-top:8px;}
+  .player-app #op-events .event-card-actions .btn{min-height:44px;}
+  .player-app #tn-list-view .tp-event-grid.pikol-peek-track>.tp-event-card[hidden]{display:none!important;}
+  .player-app #tn-list-view .tp-event-grid .tp-card-image{height:auto;aspect-ratio:16/9;}
+  .player-app #tn-list-view .tp-event-grid .tp-card-body{padding:13px;}
+  .player-app #tn-list-view .tp-event-grid .tp-card-body h3{font-size:1rem;}
+  .player-app #tn-list-view .tp-event-grid .tp-event-meta{font-size:.75rem;}
+  .player-app #tn-list-view .tp-event-grid .tp-btn{width:100%;min-height:44px;}
+  .player-app .pikol-peek-nav{gap:8px;padding:10px 2px 13px;}
+  .player-app .pikol-peek-controls{display:flex;order:3;width:100%;}
+  .player-app .pikol-peek-arrow{width:42px;height:42px;min-width:42px;min-height:42px;}
+  .player-app .pikol-peek-total{order:1;}
+  .player-app .pikol-peek-position{order:2;margin-left:auto;}
+  /* Open Play preview stays below the selector; registration logic is untouched. */
+  .player-app #ev-view-openplay .events-browser{grid-template-columns:minmax(0,1fr)!important;}
+  .player-app #op-events{max-height:none;}
+  .player-app #openplay-spotlight{position:static;overflow:visible;max-height:none;}
+}
+@media(prefers-reduced-motion:reduce){.player-app .pikol-peek-dot{transition:none;}}
