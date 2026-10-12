@@ -461,3 +461,23 @@ body.admin-app #venue-pricing-editor .vg-pricing-table{min-width:0}
 body.player-app .vg-carousel-arrow{top:clamp(70px,8vw,96px)}
 @media(min-width:951px){body.player-app .vg-carousel[data-venue-count="3"] .vg-carousel-arrow{display:none}}
 @media(max-width:767px){body.player-app .vg-carousel-arrow{top:clamp(64px,16vw,80px)}}
+
+/* v91 — step 2 date stepper: native date picker remains available on every phone. */
+#tab-book .vg-date-host{flex-basis:272px;min-width:0}
+#tab-book .vg-date-nav{display:grid;grid-template-columns:38px minmax(0,1fr) 38px;align-items:center;gap:6px;min-width:0;width:100%}
+#tab-book .vg-date-nav #booking-date{display:block;box-sizing:border-box;min-width:0;width:100%;max-width:100%;height:42px;padding:7px 5px;font-size:.8rem;text-align:center}
+#tab-book .vg-date-arrow{display:grid;place-items:center;box-sizing:border-box;width:38px;height:42px;min-width:38px;padding:0;border:1px solid var(--border,#dce5e0);border-radius:10px;background:var(--surface,#fff);color:var(--brand-primary,#00643c);font:inherit;font-size:1.6rem;font-weight:650;line-height:1;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+#tab-book .vg-date-arrow:not(:disabled):active{background:var(--surface-2,#f4f8f5)}
+#tab-book .vg-date-arrow:focus-visible{outline:2px solid var(--brand-primary,#00643c);outline-offset:2px}
+#tab-book .vg-date-arrow:disabled{opacity:.35;cursor:not-allowed}
+@media(max-width:767px){
+  #tab-book .vg-date-host{flex:0 0 calc(100% - 37px);max-width:calc(100% - 37px)}
+  #tab-book .vg-date-nav{grid-template-columns:40px minmax(0,1fr) 40px;gap:7px}
+  #tab-book .vg-date-arrow{width:40px;min-width:40px;min-height:44px;height:44px}
+  #tab-book .vg-date-nav #booking-date{height:44px;font-size:.83rem}
+}
+@media(max-width:350px){
+  #tab-book .vg-date-nav{grid-template-columns:36px minmax(0,1fr) 36px;gap:4px}
+  #tab-book .vg-date-arrow{width:36px;min-width:36px}
+  #tab-book .vg-date-nav #booking-date{font-size:.73rem}
+}

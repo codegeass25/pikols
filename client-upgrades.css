@@ -191,7 +191,15 @@ html.pikol-android body.player-app.sheet-open{
   -webkit-overflow-scrolling:touch;
 }
 @media(max-width:1024px){
-  /* Site sections behave like native pages on Android: no fixed nested scroller. */
+  /* v91: Android's document-flow Events sheet was below the Booking hero/layout.
+     Hiding the background ensures scrollTo(0,0) shows the Events sheet, not Home.
+     Applied consistently to all site sheets without changing iOS fixed overlays. */
+  html.pikol-android body.player-app.site-layer-open #view-app .booking-hero,
+  html.pikol-android body.player-app.site-layer-open #view-app #occasion-promo-banner,
+  html.pikol-android body.player-app.site-layer-open #view-app .pikol-v72-layout{
+    display:none!important;
+  }
+    /* Site sections behave like native pages on Android: no fixed nested scroller. */
   html.pikol-android body.player-app.site-layer-open .appbar,
   html.pikol-android body.player-app.site-layer-open #tab-dashboard,
   html.pikol-android body.player-app.site-layer-open .site-footer,

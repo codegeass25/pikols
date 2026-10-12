@@ -277,11 +277,11 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
 }
 </style>
 
-<link rel="stylesheet" href="client-upgrades.css?v=56-android-native-scroll">
+<link rel="stylesheet" href="client-upgrades.css?v=91-android-events-date-nav">
 <link rel="stylesheet" href="tournament-premium.css?v=67" />
 <script src="event-carousel.js?v=90-event-peek"></script>
-<script src="tournament-premium.js?v=90-event-peek"></script>
-<link rel="stylesheet" href="venue-booking.css?v=89-responsive-v43">
+<script src="tournament-premium.js?v=91-android-events-date-nav"></script>
+<link rel="stylesheet" href="venue-booking.css?v=91-android-events-date-nav">
 <script src="venue-ui.js?v=71"></script>
 <script src="venue-matrix.js?v=88-socket-live"></script>
 <link rel="apple-touch-icon" href="icons/wenjelly-v73-apple.png" />
@@ -435,7 +435,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
 
         <div class="booking-controls"><div id="venue-booking"></div>
           <div class="steps" id="steps"><div class="step" data-step="1"><span class="step-n">1</span>Date</div><div class="step" data-step="2"><span class="step-n">2</span>Court</div><div class="step" data-step="3"><span class="step-n">3</span>Time</div><div class="step" data-step="4"><span class="step-n">4</span>Confirm</div></div>
-          <div class="vg-step-label">2 · SELECT DATE</div><div class="vg-date-fields booking-inputs"><div class="field"><label class="label" for="booking-date">Select Date</label><input class="input" id="booking-date" type="date" required/></div><div class="field vg-legacy-time"><label class="label" for="booking-time">Start Time</label><select class="select" id="booking-time"><option value="">Choose a court first</option></select></div><div class="field vg-legacy-time"><label class="label" for="booking-end">End Time</label><select class="select" id="booking-end" disabled><option value="">Select start time first</option></select></div></div>
+          <div class="vg-step-label">2 · SELECT DATE</div><div class="vg-date-fields booking-inputs"><div class="field"><label class="label" for="booking-date">Select Date</label><div class="vg-date-nav" role="group" aria-label="Booking date navigation"><button type="button" class="vg-date-arrow" id="book-date-prev" aria-label="Previous booking day" title="Previous day">&#8249;</button><input class="input" id="booking-date" type="date" aria-label="Select booking date" required/><button type="button" class="vg-date-arrow" id="book-date-next" aria-label="Next booking day" title="Next day">&#8250;</button></div></div><div class="field vg-legacy-time"><label class="label" for="booking-time">Start Time</label><select class="select" id="booking-time"><option value="">Choose a court first</option></select></div><div class="field vg-legacy-time"><label class="label" for="booking-end">End Time</label><select class="select" id="booking-end" disabled><option value="">Select start time first</option></select></div></div>
           <details class="booking-calendar-details"><summary>Browse calendar <span id="book-date-label"></span></summary><div class="card calendar" id="calendar"><div class="calendar-head"><button class="btn btn-ghost btn-icon" id="cal-prev" aria-label="Previous month">‹</button><span class="calendar-month" id="cal-month"></span><button class="btn btn-ghost btn-icon" id="cal-next" aria-label="Next month">›</button></div><div class="calendar-grid" id="cal-dow"></div><div class="calendar-grid" id="cal-days" role="grid"></div><button class="btn btn-outline btn-sm btn-block" id="cal-today">Today</button></div></details>
           <details id="slot-card" class="booking-times-details"><summary>View all time slots</summary><div class="slot-grid" id="slot-grid"></div></details>
         </div>
@@ -1530,36 +1530,68 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
   function renderDow() {
     $('#cal-dow').innerHTML = DOW.map(function (d) { return '<div class="calendar-dow">' + d.charAt(0) + '</div>'; }).join('');
   }
-  function renderCalendar() {
-    var y = calCursor.getFullYear(), m = calCursor.getMonth();
-    $('#cal-month').textContent = MONTHS[m] + ' ' + y;
-    var first = new Date(y, m, 1).getDay();
-    var days = new Date(y, m + 1, 0).getDate();
-    var today = ymd(new Date());
-    var maxDate = ymd(new Date(Date.now() + 60 * 86400000));
-    var html = '';
-    for (var i = 0; i < first; i++) html += '<div class="day is-empty"></div>';
-    for (var d = 1; d <= days; d++) {
-      var val = y + '-' + String(m + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0');
-      var disabled = val < today || val > maxDate;
-      html += '<button type="button" class="day' + (val === today ? ' is-today' : '') +
-        (val === sel.date ? ' is-selected' : '') + '" data-date="' + val + '"' +
-        (disabled ? ' disabled aria-disabled="true"' : '') + ' aria-pressed="' + String(val === sel.date) + '" aria-label="' + humanDate(val) + '">' + d + '</button>';
-    }
-    $('#cal-days').innerHTML = html;
+  // The venue API supplies the authoritative facility date (Asia/Manila). The
+  // membership API supplies the configured advance window, not a fixed 60 days.
+  // Zero advance days means the backend has not set an upper day limit.
+  var bookingWindowReady = false;
+  function bookingMinDate(){return (AVAIL && AVAIL.facility_date) || ymd(new Date());}
+  function bookingAddDays(value,n){var d=new Date(value+'T12:00:00');d.setDate(d.getDate()+n);return ymd(d);}
+  function bookingMaxDate(){
+    if(!bookingWindowReady)return '';
+    var days=Number(CURRENT_MEMBERSHIP && CURRENT_MEMBERSHIP.advance_booking_days != null
+      ? CURRENT_MEMBERSHIP.advance_booking_days : STANDARD_PLAYER_RULES.advance_booking_days);
+    return Number.isFinite(days) && days>0 ? bookingAddDays(bookingMinDate(),Math.floor(days)) : '';
   }
-  $('#cal-prev').onclick = function () { calCursor.setDate(1); calCursor.setMonth(calCursor.getMonth() - 1); renderCalendar(); };
-  $('#cal-next').onclick = function () { calCursor.setDate(1); calCursor.setMonth(calCursor.getMonth() + 1); renderCalendar(); };
-  $('#cal-today').onclick = function () {
-    if(!MULTI.changeDate(ymd(new Date())))return;
-    calCursor = new Date(); sel.date = ymd(new Date()); sel.start = null; sel.end = null; sel.end = null; renderCalendar(); loadAvailability();
-  };
-  $('#cal-days').addEventListener('click', function (e) {
-    var b = e.target.closest('[data-date]');
-    if (!b || b.disabled) return;
-    if(!MULTI.changeDate(b.dataset.date))return;
-    sel.date = b.dataset.date; sel.start = null; sel.end = null; sel.end = null;
-    renderCalendar(); loadAvailability();
+  function bookingDateAllowed(value){
+    var max=bookingMaxDate();
+    return /^\d{4}-\d{2}-\d{2}$/.test(value) && value>=bookingMinDate() && (!max || value<=max);
+  }
+  function syncBookingDateControls(){
+    var min=bookingMinDate(),max=bookingMaxDate(),input=$('#booking-date');
+    input.min=min;input.max=max;input.value=sel.date;
+    $('#book-date-label').textContent=humanDate(sel.date);
+    var prev=$('#book-date-prev'),next=$('#book-date-next');
+    prev.disabled=bookingAddDays(sel.date,-1)<min;
+    next.disabled=!!max && bookingAddDays(sel.date,1)>max;
+    prev.setAttribute('aria-disabled',String(prev.disabled));
+    next.setAttribute('aria-disabled',String(next.disabled));
+    prev.title=prev.disabled?'No earlier booking dates':'Previous day';
+    next.title=next.disabled?'Booking limit reached':'Next day';
+  }
+  function renderCalendar() {
+    var y=calCursor.getFullYear(),m=calCursor.getMonth();
+    $('#cal-month').textContent=MONTHS[m]+' '+y;
+    var first=new Date(y,m,1).getDay(),days=new Date(y,m+1,0).getDate();
+    var today=bookingMinDate(),maxDate=bookingMaxDate(),html='';
+    $('#cal-prev').disabled=ymd(new Date(y,m,0))<today;
+    $('#cal-next').disabled=!!maxDate && ymd(new Date(y,m+1,1))>maxDate;
+    for(var i=0;i<first;i++)html+='<div class="day is-empty"></div>';
+    for(var d=1;d<=days;d++){
+      var val=y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+      var disabled=val<today || (!!maxDate && val>maxDate);
+      html+='<button type="button" class="day'+(val===today?' is-today':'')+
+        (val===sel.date?' is-selected':'')+'" data-date="'+val+'"'+
+        (disabled?' disabled aria-disabled="true"':'')+' aria-pressed="'+String(val===sel.date)+'" aria-label="'+humanDate(val)+'">'+d+'</button>';
+    }
+    $('#cal-days').innerHTML=html;
+    $('#cal-today').disabled=!bookingDateAllowed(today);
+    syncBookingDateControls();
+  }
+  function selectBookingDate(next){
+    if(!bookingDateAllowed(next)){syncBookingDateControls();return;}
+    // Retain the existing venue-matrix confirmation when times were selected.
+    if(!MULTI.changeDate(next)){syncBookingDateControls();return;}
+    sel.date=next;sel.start=null;sel.end=null;
+    calCursor=new Date(next+'T12:00:00');
+    renderCalendar();loadAvailability();
+  }
+  $('#book-date-prev').onclick=function(){selectBookingDate(bookingAddDays(sel.date,-1));};
+  $('#book-date-next').onclick=function(){selectBookingDate(bookingAddDays(sel.date,1));};
+  $('#cal-prev').onclick=function(){if(this.disabled)return;calCursor.setDate(1);calCursor.setMonth(calCursor.getMonth()-1);renderCalendar();};
+  $('#cal-next').onclick=function(){if(this.disabled)return;calCursor.setDate(1);calCursor.setMonth(calCursor.getMonth()+1);renderCalendar();};
+  $('#cal-today').onclick=function(){selectBookingDate(bookingMinDate());};
+  $('#cal-days').addEventListener('click',function(e){
+    var b=e.target.closest('[data-date]');if(b&&!b.disabled)selectBookingDate(b.dataset.date);
   });
 
   function ensureBooking() { updateBookingPresentation(); if(!PAYCFG)loadPayCfg().catch(function(){$('#booking-fee-status').classList.remove('hidden');}); loadAvailability(); }
@@ -1577,10 +1609,19 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
   }
   var MULTI = window.PikolVenueMatrix.install({
     api,esc,money,humanTime,humanDate,toast,assetUrl,modal,goto,
-    date:()=>sel.date,setDate:function(d){sel.date=d;$('#booking-date').value=d;renderCalendar();},
+    date:()=>sel.date,setDate:function(d){sel.date=d;calCursor=new Date(d+'T12:00:00');renderCalendar();},
     signedIn:()=>!!TOKEN,requirePlayer,loadCredit:loadPikolCredit,creditHtml:creditChoiceHtml,
     loadBookings,paymentDialog,
-    received:function(data){AVAIL=data;syncBookingRules(data);$('#booking-date').value=sel.date;$('#booking-date').min=data.facility_date;$('#book-date-label').textContent=humanDate(sel.date);},
+    received:function(data){
+      AVAIL=data;syncBookingRules(data);
+      // A traveller's phone may still be on yesterday while the Manila venue
+      // has crossed midnight. Never leave the booking matrix on a past day.
+      if(data.facility_date && sel.date<data.facility_date && MULTI.changeDate(data.facility_date)){
+        sel.date=data.facility_date;calCursor=new Date(sel.date+'T12:00:00');
+        renderCalendar();setTimeout(loadAvailability,0);return;
+      }
+      renderCalendar();
+    },
     scheduleExpiry:scheduleHeldAvailabilityRefresh
   });
   function loadAvailability(){return MULTI.refresh();}
@@ -1808,7 +1849,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
     return Promise.all([TOKEN?api('/api/my/membership'):Promise.resolve({}),api('/api/membership/plans'),api('/api/membership/config')]).then(function(r){
       if(memberToken!==TOKEN||request!==membershipRequest)return;
       applyStandardPlayerConfig(r[2]);
-      var resp=r[0]||{},m=resp.membership,pending=resp.pending_membership,plans=r[1]||[],card=$('#membership-card'),ph=$('#membership-plans-card'); CURRENT_MEMBERSHIP=(m&&m.status==='active')?m:null; if(!card||!ph)return;
+      var resp=r[0]||{},m=resp.membership,pending=resp.pending_membership,plans=r[1]||[],card=$('#membership-card'),ph=$('#membership-plans-card'); CURRENT_MEMBERSHIP=(m&&m.status==='active')?m:null; bookingWindowReady=true;renderCalendar();if(!card||!ph)return;
       if(AVAIL)renderBooking();
       if(m&&m.status==='active'){
         card.innerHTML='<div class="active-membership-head"><div><span class="badge badge-approved">ACTIVE MEMBER</span><h2 class="section-title mt-3">'+esc(m.plan_name||'Club Member')+'</h2><p class="muted">Valid until '+esc(m.expires_at?humanDate(m.expires_at.slice(0,10)):'—')+'</p></div><div class="cutoff-hero"><span>SELF-CANCELLATION</span><strong>'+pluralHours(m.cancellation_hours)+'</strong><small>before booking start</small></div></div>'+membershipBenefits(m,false)+'<div class="member-policy-note"><strong>Your active plan is applied automatically.</strong><span>Discounts and booking limits above are enforced by the system. Player cancellations remain non-refundable.</span></div><p class="tiny muted mt-3">Renewing before expiry extends your membership from the current expiry date.</p>'+(pending?'<div class="alert alert-info mt-3"><strong>Renewal: '+esc(membershipStatusLabel(pending.status))+'</strong><br><span class="tiny">'+(pending.status==='payment_review'?'Your renewal payment is for review.':'Complete the renewal payment below.')+'</span></div>':'');
@@ -2111,7 +2152,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
   }
   function loadTournaments() {
     TN_OPEN=null;++TN_REQUEST;
-    return window.PikolPremium.load(tournamentPremiumContext());
+    return window.PikolPremium.load(Object.assign(tournamentPremiumContext(),{selectedTournamentId:selectedEventId}));
   }
   $('#tn-refresh').onclick = function () { evGoto(EV_SUB); loadMyRegistrations(); toast('Refreshed.', 'info'); };
   /* ================== EVENTS: open play, registration, payments ================= */
@@ -2937,9 +2978,8 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
     $('#booking-title').textContent='Book Your Game';
   }
   $('#booking-date').onchange=function(){
-    if(!this.value||!this.validity.valid)return;
-    if(!MULTI.changeDate(this.value)){this.value=sel.date;return;}
-    sel.date=this.value;calCursor=new Date(sel.date+'T00:00:00');renderCalendar();loadAvailability();
+    if(!this.value || !this.validity.valid || !bookingDateAllowed(this.value)){syncBookingDateControls();return;}
+    selectBookingDate(this.value);
   };
   $('#bk-players').onchange=function(){if(AVAIL)renderBooking();};
   function bookingCourt(b){return PUBLIC_COURTS.filter(function(c){return Number(c.id)===Number(b.court_id);})[0]||{id:b.court_id||b.id,name:b.court_name};}
@@ -3261,6 +3301,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
 
   renderDow();
   renderCalendar();
+  api('/api/membership/config').then(function(cfg){if(!USER){applyStandardPlayerConfig(cfg);bookingWindowReady=true;renderCalendar();}}).catch(function(){});
   updateAccountPresentation();
   loadDashboard();
   loadHomeEvents();
@@ -3301,7 +3342,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
   window.addEventListener('appinstalled',function(){setMarked(true);deferredPrompt=null;sync();});
   window.addEventListener('pageshow',sync);document.addEventListener('visibilitychange',function(){if(!document.hidden)sync();});
   if(btn)btn.addEventListener('click',async function(){if(!deferredPrompt)return;btn.disabled=true;try{await deferredPrompt.prompt();var c=await deferredPrompt.userChoice;if(c&&c.outcome==='accepted')setMarked(true);}catch(_){}deferredPrompt=null;btn.disabled=false;sync();});
-  if('serviceWorker' in navigator)window.addEventListener('load',function(){navigator.serviceWorker.register('service-worker.js?v=90-event-peek',{scope:'./',updateViaCache:'none'}).then(function(reg){return reg.update();}).catch(function(){});});
+  if('serviceWorker' in navigator)window.addEventListener('load',function(){navigator.serviceWorker.register('service-worker.js?v=91-android-events-date-nav',{scope:'./',updateViaCache:'none'}).then(function(reg){return reg.update();}).catch(function(){});});
   sync();
 })();
 </script>
