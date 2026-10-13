@@ -1,2 +1,2 @@
 /* Compatibility shim: Admin, Booking and Scorer share one PWA cache. */
-importScripts('./service-worker.js?v=96-unified-payment-fraud');
+importScripts('./service-worker.js?v=97-offline-imports');
