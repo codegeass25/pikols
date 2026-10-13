@@ -1292,12 +1292,12 @@ body.admin-app.role-ready #view-app{visibility:visible}
   var TX_TYPE_LABEL = { booking: 'Booking', tournament: 'Tournament', open_play: 'Open Play', membership: 'Membership' };
   var TX_STATUS_LABEL = {
     AWAITING_PAYMENT: 'Payment due', PAYMENT_SUBMITTED: 'For review', UNDER_REVIEW: 'For review',
-    VERIFIED: 'Paid', APPROVED: 'Paid', REJECTED: 'Rejected',
+    VERIFIED: 'Paid', APPROVED: 'Paid', REJECTED: 'Rejected', REJECTED_FRAUD: 'Fraud rejected',
     CANCELLED: 'Cancelled', COMPLETED: 'Completed'
   };
   var TX_STATUS_CLASS = {
     VERIFIED: 'badge-approved', APPROVED: 'badge-approved', COMPLETED: 'badge-approved',
-    REJECTED: 'badge-rejected', CANCELLED: 'badge-rejected'
+    REJECTED: 'badge-rejected', REJECTED_FRAUD: 'badge-rejected', CANCELLED: 'badge-rejected'
   };
   var TX_REASONS = {};
 
@@ -1375,6 +1375,12 @@ body.admin-app.role-ready #view-app{visibility:visible}
       if(!closed && ['submitted','under_review'].indexOf(String(t.status||'').toLowerCase())>=0){
         actions='<div class="action-panel review-actions"><strong>'+(isCash?'Cash collection':'Payment review')+'</strong><p class="tiny muted mt-2">'+(isCash?'Record only after cash is physically received.':'Compare the uploaded receipt with the manually entered reference before verifying.')+'</p><div class="field"><label class="label">Verification notes</label><textarea class="textarea" id="tx-review-notes" maxlength="400"></textarea></div><div class="row wrap"><button class="btn btn-success" data-tx-verify>'+(isCash?'Mark cash paid':'Mark paid')+'</button><button class="btn btn-danger" data-tx-reject>Reject</button></div></div>';
       } else actions='<p class="tiny muted">Current status: '+esc(TX_STATUS_LABEL[t.unified_status]||t.unified_status)+'</p>';
+      if(isAdmin() && String(t.status).toLowerCase()==='verified'){
+        actions+='<section class="payment-fraud-action mt-3"><div class="alert alert-warning"><strong>Payment verification override</strong><p class="tiny">Super Admin only. Independently verify the real payment records before invalidating a Paid transaction. This can restrict the player account, retain the original receipt and preserve existing transaction history.</p></div><button type="button" class="btn btn-danger" data-tx-fraud-open>Reject this payment</button><div data-tx-fraud-panel hidden><div class="field mt-3"><label class="label" for="tx-fraud-reason">Reason / verified findings</label><textarea id="tx-fraud-reason" class="textarea" rows="4" minlength="20" maxlength="800" placeholder="Explain the payment account verification and why this receipt is invalid."></textarea></div><label class="payment-fraud-check"><input type="checkbox" id="tx-fraud-confirm"><span>I independently checked management payment records, confirm payment was not received, and understand the player account will be banned.</span></label><div class="row wrap mt-3"><button type="button" class="btn btn-danger" data-tx-fraud-apply>Confirm rejection &amp; ban account</button><button type="button" class="btn btn-outline" data-tx-fraud-back>Back</button></div></div></section>';
+      }
+      if(isAdmin() && String(t.status).toLowerCase()==='rejected_fraud'){
+        actions+='<section class="payment-fraud-action mt-3"><div class="alert alert-warning"><strong>Fraud decision recorded</strong><p class="tiny">The original payment remains invalidated. An authorized appeal can restore account access without marking an invalid payment as paid.</p></div><button type="button" class="btn btn-outline" data-tx-fraud-appeal>Review / overturn account ban</button></section>';
+      }
       var history=(t.client_history||[]).slice(0,8).map(function(h){return '<tr><td>'+esc(h.transaction_key)+'</td><td>'+esc(TX_TYPE_LABEL[h.transaction_type]||h.transaction_type)+'</td><td class="num">'+esc(money(h.amount))+'</td><td>'+esc(h.status)+'</td><td class="tiny">'+esc(txStamp(h.created_at))+'</td></tr>';}).join('');
       var host=modal({title:'Payment review · '+(TX_TYPE_LABEL[t.transaction_type]||t.transaction_type)+' '+t.transaction_key,wide:true,cancelText:'Close',body:'<div class="grid cols-2 payment-review-grid"><div><div class="receipt-frame" id="tx-receipt"></div></div><div class="stack" style="gap:12px"><table class="data"><tbody><tr><td class="muted">Client</td><td>'+esc(t.client_name||'—')+'<div class="tiny muted">'+esc(t.client_email||'')+'</div></td></tr><tr><td class="muted">Item</td><td>'+esc(t.item_name||'—')+(t.division_name?' · '+esc(t.division_name):'')+'</td></tr><tr><td class="muted">Amount</td><td><strong>'+esc(money(t.amount_due))+'</strong></td></tr><tr><td class="muted">Method</td><td>'+esc(String(t.payment_method||'').toUpperCase())+'</td></tr><tr><td class="muted">Reference</td><td class="num">'+esc(t.reference_number||(isCash?'Cash collection':'—'))+'</td></tr><tr><td class="muted">Submitted</td><td>'+esc(txStamp(t.created_at))+'</td></tr><tr><td class="muted">Status</td><td>'+txBadge(TX_STATUS_LABEL[t.unified_status]||t.unified_status,TX_STATUS_CLASS[t.unified_status]||'badge-pending')+'</td></tr>'+(t.cancellation_source?'<tr><td class="muted">Related service</td><td>Cancelled by '+esc(t.cancellation_source==='venue'?'Management / Venue':'Player')+(t.cancellation_resolution?'<div class="tiny muted">Resolution: '+esc(t.cancellation_resolution==='credit'?'PIKOL Credit issued':t.cancellation_resolution)+'</div>':'')+(t.cancellation_reason?'<div class="tiny muted">'+esc(t.cancellation_reason)+'</div>':'')+'</td></tr>':'')+'</tbody></table>'+window.PikolVenueUI.segmentsHtml(t.booking_group,{humanTime,money})+txValidationBlock(t)+(history?'<details><summary class="tiny muted">Client payment history</summary><table class="data mt-2"><tbody>'+history+'</tbody></table></details>':'')+actions+'</div></div>'});
       if(isCash) $('#tx-receipt',host).innerHTML='<div class="cash-receipt-placeholder"><span>₱</span><strong>Cash</strong><small>No receipt upload required</small></div>';
@@ -1382,6 +1388,34 @@ body.admin-app.role-ready #view-app{visibility:visible}
       else $('#tx-receipt',host).innerHTML='<span class="muted tiny">No receipt stored.</span>';
       function done(msg){toast(msg,'success');host.remove();loadPayments();refreshEventBadges();loadDashboard();if(after)after();}
       host.addEventListener('click',function(ev){
+        var fo=ev.target.closest('[data-tx-fraud-open]');
+        if(fo){var panel=host.querySelector('[data-tx-fraud-panel]');if(panel){panel.hidden=false;fo.hidden=true;var ta=$('#tx-fraud-reason',host);if(ta)ta.focus();}return;}
+        var fb=ev.target.closest('[data-tx-fraud-back]');
+        if(fb){var pane=host.querySelector('[data-tx-fraud-panel]');if(pane)pane.hidden=true;var open=host.querySelector('[data-tx-fraud-open]');if(open)open.hidden=false;return;}
+        var fa=ev.target.closest('[data-tx-fraud-apply]');
+        if(fa){
+          var reason=String(($('#tx-fraud-reason',host)||{}).value||'').trim();
+          if(reason.length<20){toast('Enter a detailed reason (at least 20 characters).','warning');return;}
+          if(!($('#tx-fraud-confirm',host)||{}).checked){toast('Confirm that the actual receiving account was independently checked.','warning');return;}
+          if(!confirm('FINAL FRAUD OVERRIDE: Invalidate '+t.transaction_key+', restrict the player account and revoke active sessions? This cannot be reversed by simply marking the payment Paid.'))return;
+          busy(fa,true);
+          api('/api/admin/transactions/'+encodeURIComponent(t.transaction_key)+'/fraud-invalidate',{method:'POST',body:{reason:reason,confirmation:'PAYMENT NOT RECEIVED - CONFIRMED'}})
+            .then(function(){if(t.transaction_type==='booking')loadBookings();done('Fraud rejection saved and account restricted.');})
+            .catch(function(err){toast(err.message,'error');}).finally(function(){busy(fa,false);});return;
+        }
+        var appeal=ev.target.closest('[data-tx-fraud-appeal]');
+        if(appeal){
+          busy(appeal,true);
+          api('/api/admin/transactions/'+encodeURIComponent(t.transaction_key)+'/fraud-case').then(function(c){
+            if(c.decision==='overturned')throw Error('This fraud decision was already overturned.');
+            var reason=prompt('Document the verified reason for overturning this account ban (20+ characters):','');
+            if(reason===null)return;
+            if(reason.trim().length<20)throw Error('A detailed appeal reason is required.');
+            if(!confirm('Restore player access if no other active fraud restriction exists? Payment will remain invalidated.'))return;
+            var endpoint=c.legacy?'/api/admin/fraud-cases/'+c.id+'/overturn':'/api/admin/transaction-fraud-cases/'+c.id+'/overturn';
+            return api(endpoint,{method:'POST',body:{reason:reason.trim()}}).then(function(data){done(data.account_restored?'Account restored. Payment remains invalidated.':'Appeal recorded; other active bans remain.');});
+          }).catch(function(err){toast(err.message,'error');}).finally(function(){busy(appeal,false);});return;
+        }
         var vf=ev.target.closest('[data-tx-verify]'); if(vf){busy(vf,true);api('/api/admin/transactions/'+encodeURIComponent(t.transaction_key)+'/verify',{method:'POST',body:{verification_notes:($('#tx-review-notes',host)||{}).value||''}}).then(function(){if(t.transaction_type==='booking'){loadBookings();done('Payment verified. Booking confirmed automatically.');}else{done(isCash?'Cash received and recorded.':'Payment marked paid.');}}).catch(function(e){toast(e.message,'error');}).finally(function(){busy(vf,false);});return;}
         var rj=ev.target.closest('[data-tx-reject]'); if(rj){var reason=prompt('Reason for rejection:','Reference/receipt could not be verified');if(!reason)return;busy(rj,true);api('/api/admin/transactions/'+encodeURIComponent(t.transaction_key)+'/reject',{method:'POST',body:{reason:reason,rejection_reason:reason}}).then(function(){done('Payment rejected.');}).catch(function(e){toast(e.message,'error');}).finally(function(){busy(rj,false);});}
       });
@@ -3879,7 +3913,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
   };
 
   /* ---------- In-Charge PWA push ---------- */
-  var ADMIN_SW_VERSION='95-android-admin-global-scroll';
+  var ADMIN_SW_VERSION='96-unified-payment-fraud';
   var PUSH_PREP={reg:null,publicKey:null,serverStatus:null,ready:false,error:null,promise:null};
   function b64ToUint8(s){s=String(s||'').replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';var raw=atob(s),a=new Uint8Array(raw.length);for(var i=0;i<raw.length;i++)a[i]=raw.charCodeAt(i);return a;}
   function bytesEqual(a,b){if(!a||!b)return false;var x=new Uint8Array(a),y=new Uint8Array(b);if(x.length!==y.length)return false;for(var i=0;i<x.length;i++)if(x[i]!==y[i])return false;return true;}

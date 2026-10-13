@@ -1,4 +1,4 @@
-const CACHE = 'pikol-v95-android-admin-global-scroll-20261013';
+const CACHE = 'pikol-v96-unified-payment-fraud-20261013';
 const SHELL = [
   './occasion-promotions.css?v=86-safe-remove','./occasion-admin.js?v=86-safe-remove',
   './mobile-fit.css?v=95-android-admin-global-scroll',
