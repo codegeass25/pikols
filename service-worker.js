@@ -1,7 +1,7 @@
-const CACHE = 'pikol-v94-android-login-native-scroll-20261013';
+const CACHE = 'pikol-v92-fraud-android-20261013';
 const SHELL = [
   './occasion-promotions.css?v=86-safe-remove','./occasion-admin.js?v=86-safe-remove',
-  './mobile-fit.css?v=94-android-login-native-scroll',
+  './mobile-fit.css?v=92-fraud-android',
   './venue-booking.css?v=91-android-events-date-nav','./venue-ui.js?v=81-attendance-lock','./venue-matrix.js?v=92-event-labels','./venue-admin.js?v=71',
   './assets/promo-qr/official-website-master.png?v=77-wenjelly-logo-20261009','./assets/promo-qr/official-website-qr-logo.png?v=77-wenjelly-logo-20261009',
   './assets/promo-qr/booking-site-master.png?v=77-wenjelly-logo-20261009','./assets/promo-qr/booking-site-qr-logo.png?v=77-wenjelly-logo-20261009','./assets/promo-qr/tournament-registration-master.png?v=77-wenjelly-logo-20261009','./assets/promo-qr/tournament-registration-qr-logo.png?v=77-wenjelly-logo-20261009','./assets/promo-qr/open-play-registration-master.png?v=77-wenjelly-logo-20261009','./assets/promo-qr/open-play-registration-qr-logo.png?v=77-wenjelly-logo-20261009',

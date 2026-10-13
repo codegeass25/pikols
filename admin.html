@@ -3,9 +3,6 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<script>/* V94: Android-specific native login scrolling; preserve original hero/layout. */
-if (/Android/i.test(navigator.userAgent || '')) document.documentElement.classList.add('pikol-admin-android');
-</script>
 <meta name="robots" content="noindex" />
 <title>Admin — Court Booking</title>
 <link rel="icon" id="favicon" href="icons/wenjelly-v73-192.png" />
@@ -88,7 +85,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
 <link rel="stylesheet" href="venue-booking.css?v=89-responsive-v43">
 <script src="venue-ui.js?v=81-attendance-lock"></script>
 <script src="venue-admin.js?v=71"></script>
-<link rel="stylesheet" href="mobile-fit.css?v=94-android-login-native-scroll" />
+<link rel="stylesheet" href="mobile-fit.css?v=92-fraud-android" />
 </head>
 <body class="admin-app">
 
@@ -1504,7 +1501,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
     TOKEN = ''; USER = null; sessionStorage.removeItem('pb_admin_token');
     if (RT) RT.disconnect();
     COURTS=[]; PLAYERS=[]; BOOKINGS=[]; SETTINGS={};
-    var mr=$('#modal-root');if(mr){if(mr.children.length||Object.prototype.hasOwnProperty.call(mr.dataset,'previousOverflow')){document.body.style.overflow=mr.dataset.previousOverflow||'';delete mr.dataset.previousOverflow;}mr.innerHTML='';}
+    var mr=$('#modal-root');if(mr)mr.innerHTML='';
     resetRoleUiState();
     PAGES.forEach(function(p){var el=$('#page-'+p);if(el)el.classList.toggle('hidden',p!=='dashboard');});
     $('#view-app').classList.add('hidden'); $('#view-auth').classList.remove('hidden');
@@ -3872,7 +3869,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
   };
 
   /* ---------- In-Charge PWA push ---------- */
-  var ADMIN_SW_VERSION='94-android-login-native-scroll';
+  var ADMIN_SW_VERSION='92-fraud-android';
   var PUSH_PREP={reg:null,publicKey:null,serverStatus:null,ready:false,error:null,promise:null};
   function b64ToUint8(s){s=String(s||'').replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';var raw=atob(s),a=new Uint8Array(raw.length);for(var i=0;i<raw.length;i++)a[i]=raw.charCodeAt(i);return a;}
   function bytesEqual(a,b){if(!a||!b)return false;var x=new Uint8Array(a),y=new Uint8Array(b);if(x.length!==y.length)return false;for(var i=0;i<x.length;i++)if(x[i]!==y[i])return false;return true;}

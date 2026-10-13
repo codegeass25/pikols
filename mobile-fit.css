@@ -171,30 +171,3 @@
 .fraud-ban-help { font-size:.88rem; line-height:1.5; color:#526076; }
 .fraud-ban-footer { padding:12px 20px; border-top:1px solid #e9eef4; display:flex; justify-content:flex-end; }
 @media (max-width:480px) { .fraud-ban-heading,.fraud-ban-body { padding:14px; } .fraud-ban-footer { padding:12px 14px max(12px,env(safe-area-inset-bottom)); } }
-
-/* V94 Android Admin LOGIN SCROLL ONLY.
-   Preserve original .auth-hero sizes, padding, fonts and responsive layout.
-   Android Chromium/Brave can trap root body scroll with a tall grid auth page,
-   especially after returning from a body-scroll-locked dialog. Make only the
-   visible unauthenticated auth view its own native, touch-scrollable surface.
-   iOS, desktop, and the authenticated Admin shell retain their prior layout. */
-@media screen and (max-width: 1024px) {
-  html.pikol-admin-android body.admin-app #view-auth.auth-wrap:not(.hidden) {
-    display: grid;
-    height: auto;
-    min-height: 100dvh;
-    max-height: 100dvh;
-    overflow-x: hidden;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-    overscroll-behavior-y: auto;
-    touch-action: pan-y pinch-zoom;
-  }
-  /* The inner sections remain naturally sized and do not become scroll traps. */
-  html.pikol-admin-android body.admin-app #view-auth:not(.hidden) > .auth-hero,
-  html.pikol-admin-android body.admin-app #view-auth:not(.hidden) > .auth-panel {
-    min-height: 0;
-    overflow: visible;
-    touch-action: pan-y pinch-zoom;
-  }
-}
