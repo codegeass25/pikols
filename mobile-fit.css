@@ -171,3 +171,55 @@
 .fraud-ban-help { font-size:.88rem; line-height:1.5; color:#526076; }
 .fraud-ban-footer { padding:12px 20px; border-top:1px solid #e9eef4; display:flex; justify-content:flex-end; }
 @media (max-width:480px) { .fraud-ban-heading,.fraud-ban-body { padding:14px; } .fraud-ban-footer { padding:12px 14px max(12px,env(safe-area-inset-bottom)); } }
+
+/* V94 Android Admin LOGIN SCROLL ONLY.
+   Preserve original .auth-hero sizes, padding, fonts and responsive layout.
+   Android Chromium/Brave can trap root body scroll with a tall grid auth page,
+   especially after returning from a body-scroll-locked dialog. Make only the
+   visible unauthenticated auth view its own native, touch-scrollable surface.
+   iOS, desktop, and the authenticated Admin shell retain their prior layout. */
+@media screen and (max-width: 1024px) {
+  html.pikol-admin-android body.admin-app #view-auth.auth-wrap:not(.hidden) {
+    display: grid;
+    height: auto;
+    min-height: 100dvh;
+    max-height: 100dvh;
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: auto;
+    touch-action: pan-y pinch-zoom;
+  }
+  /* The inner sections remain naturally sized and do not become scroll traps. */
+  html.pikol-admin-android body.admin-app #view-auth:not(.hidden) > .auth-hero,
+  html.pikol-admin-android body.admin-app #view-auth:not(.hidden) > .auth-panel {
+    min-height: 0;
+    overflow: visible;
+    touch-action: pan-y pinch-zoom;
+  }
+}
+
+/* V95 Android Admin AUTHENTICATED CONTENT SCROLL.
+   V94 only isolated #view-auth, so the dashboard and tabs still depended on
+   body scrolling. If any dialog had left the root overflow locked, all Admin
+   tabs became effectively unscrollable on Android Chromium/Brave. Give only
+   the authenticated Admin shell an independent native document-length scroller.
+   Keep all hero/card/font dimensions and all iOS/desktop rules unchanged.
+   Do not force pan-y: nested horizontally swipeable tables must keep pan-x. */
+@media screen and (max-width: 1024px) {
+  html.pikol-admin-android body.admin-app #view-app.admin-shell:not(.hidden) {
+    height: 100dvh;
+    max-height: 100dvh;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: auto;
+    touch-action: auto;
+  }
+  html.pikol-admin-android body.admin-app #view-app.admin-shell:not(.hidden) > .admin-main {
+    min-height: 100dvh;
+    height: auto;
+    overflow: visible;
+  }
+}
