@@ -283,9 +283,9 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
 <script src="tournament-premium.js?v=91-android-events-date-nav"></script>
 <link rel="stylesheet" href="venue-booking.css?v=91-android-events-date-nav">
 <script src="venue-ui.js?v=71"></script>
-<script src="venue-matrix.js?v=88-socket-live"></script>
+<script src="venue-matrix.js?v=92-event-labels"></script>
 <link rel="apple-touch-icon" href="icons/wenjelly-v73-apple.png" />
-<link rel="stylesheet" href="mobile-fit.css?v=76-responsive-checkout" />
+<link rel="stylesheet" href="mobile-fit.css?v=92-fraud-android" />
 <link rel="stylesheet" href="event-carousel.css?v=90-event-peek" />
 </head>
 <body class="player-app">
@@ -834,6 +834,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
       return res.json().catch(function () { return {}; }).then(function (data) {
         if (requestToken && requestToken !== TOKEN) throw new Error('Your session changed. Please try again.');
         if (!res.ok) {
+          if (res.status === 423 && data.banned && data.notice_token) { signOutLocal(); setTimeout(function(){ showBanNotice(data.notice_token); },0); }
           if (res.status === 401 && requestToken && requestToken === TOKEN) { signOutLocal(); }
           if (res.status === 403 && USER && /accept the Booking Terms/i.test(String(data.error||''))) { USER.terms_required=true; setTimeout(function(){showTermsGate();},0); }
           throw new Error(data.error || ('Request failed (' + res.status + ')'));
@@ -1150,6 +1151,8 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
   function onAuth(data) {
     TOKEN = data.token; USER = data.user;
     localStorage.setItem('pb_token', TOKEN);
+    try{sessionStorage.removeItem('pikol_restricted_notice');}catch(_){ }
+    var old=document.getElementById('fraud-ban-overlay');if(old)old.remove();
     showApp();
   }
   function signOutLocal() {
@@ -1160,6 +1163,28 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
     $('#bookings-list').innerHTML='';$('#booking-detail').innerHTML='';$('#notif-list').innerHTML='';
     if(RT)RT.connect();showGuest();
   }
+  /* Restricted player notice: no normal session can see this private evidence. */
+  function showBanNotice(noticeToken) {
+    if(!/^[a-f0-9]{64}$/.test(String(noticeToken||'')))return;
+    try{sessionStorage.setItem('pikol_restricted_notice',noticeToken);}catch(_){ }
+    var old=document.getElementById('fraud-ban-overlay');if(old)old.remove();
+    var overlay=document.createElement('section');overlay.id='fraud-ban-overlay';
+    overlay.setAttribute('role','alertdialog');overlay.setAttribute('aria-modal','true');
+    overlay.setAttribute('aria-label','Account access restricted');
+    overlay.innerHTML='<div class="fraud-ban-card"><div class="fraud-ban-heading"><span class="fraud-ban-symbol">⚠</span><div><h2>ACCOUNT ACCESS RESTRICTED</h2><p>WENJELLY SPORTS CENTER · PIKOL</p></div></div><div class="fraud-ban-body"><p class="fraud-ban-warning"><strong>Your payment was rejected by management after a fraud review.</strong><span>Your normal PIKOL account access has been disabled.</span></p><div id="fraud-ban-detail">Loading management findings…</div><h3>Your originally submitted payment receipt</h3><div id="fraud-ban-proof" class="fraud-ban-proof">Loading original receipt…</div><p class="fraud-ban-help">If you believe this is a mistake, contact the sports center management and request a review. You may not make bookings or register for events while restricted.</p></div><div class="fraud-ban-footer"><button type="button" class="btn btn-outline" id="fraud-ban-close">Close notice</button></div></div>';
+    document.body.appendChild(overlay);
+    overlay.querySelector('#fraud-ban-close').onclick=function(){overlay.remove();};
+    var headers={Authorization:'Bearer '+noticeToken};
+    fetch(API+'/api/auth/ban-notice',{headers:headers,cache:'no-store'}).then(function(r){if(!r.ok)throw Error('Notice expired. Sign in again to renew access.');return r.json();}).then(function(c){
+      var detail=overlay.querySelector('#fraud-ban-detail');if(!detail)return;
+      detail.innerHTML='<div class="fraud-ban-fact"><span>Payment reference</span><strong>#'+esc(c.payment_id)+'</strong></div><div class="fraud-ban-fact"><span>Management review date</span><strong>'+esc(c.created_at||'—')+'</strong></div><div class="fraud-ban-reason"><strong>Management reason:</strong><p>'+esc(c.reason||'Contact management for details.')+'</p></div>';
+      var proof=overlay.querySelector('#fraud-ban-proof');if(!proof)return;
+      if(!c.has_original_receipt){proof.textContent='No original screenshot was provided with this payment.';return;}
+      return fetch(API+'/api/auth/ban-notice/receipt',{headers:headers,cache:'no-store'}).then(function(r){if(!r.ok)throw Error('Receipt unavailable');return r.blob();}).then(function(blob){if(!proof.isConnected)return;var u=URL.createObjectURL(blob);var img=document.createElement('img');img.src=u;img.alt='Your original submitted payment receipt';img.onload=function(){URL.revokeObjectURL(u);};img.onerror=function(){URL.revokeObjectURL(u);};proof.replaceChildren(img);}).catch(function(e){proof.textContent=e.message;});
+    }).catch(function(e){var n=overlay.querySelector('#fraud-ban-detail');if(n)n.textContent=e.message;});
+  }
+  try{var oldBanToken=sessionStorage.getItem('pikol_restricted_notice');if(oldBanToken&&!TOKEN)setTimeout(function(){showBanNotice(oldBanToken);},250);}catch(_){ }
+
   $('#btn-logout').onclick = function () {
     api('/api/auth/logout', { method: 'POST' }).catch(function () {}).finally(function () {
       signOutLocal(); toast('Signed out.', 'info');
@@ -3232,6 +3257,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
       });
       // Join acknowledgement closes the initial GET -> socket-connect race.
       socket.on('realtime:ready', refreshFacilityViews);
+      socket.on('account:banned', function(info){ if(info&&info.notice_token){signOutLocal();showBanNotice(info.notice_token);} });
       socket.on('disconnect', function () { setStatus('down'); });
       socket.on('connect_error', function () { setStatus('down'); });
       if (socket.io) {
@@ -3342,7 +3368,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
   window.addEventListener('appinstalled',function(){setMarked(true);deferredPrompt=null;sync();});
   window.addEventListener('pageshow',sync);document.addEventListener('visibilitychange',function(){if(!document.hidden)sync();});
   if(btn)btn.addEventListener('click',async function(){if(!deferredPrompt)return;btn.disabled=true;try{await deferredPrompt.prompt();var c=await deferredPrompt.userChoice;if(c&&c.outcome==='accepted')setMarked(true);}catch(_){}deferredPrompt=null;btn.disabled=false;sync();});
-  if('serviceWorker' in navigator)window.addEventListener('load',function(){navigator.serviceWorker.register('service-worker.js?v=91-android-events-date-nav',{scope:'./',updateViaCache:'none'}).then(function(reg){return reg.update();}).catch(function(){});});
+  if('serviceWorker' in navigator)window.addEventListener('load',function(){navigator.serviceWorker.register('service-worker.js?v=92-fraud-android',{scope:'./',updateViaCache:'none'}).then(function(reg){return reg.update();}).catch(function(){});});
   sync();
 })();
 </script>

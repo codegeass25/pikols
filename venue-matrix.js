@@ -60,7 +60,8 @@
         const cell=ct.slots.find(s=>s.start===sl.start&&s.end===sl.end),s={court_id:ct.id,start_time:sl.start,end_time:sl.end},selected=selection.has(token(s)),status=selected?'selected':cell?.status||'unconfigured';
         const allowed=!!cell?.bookable&&ct.status==='active'&&v?.status==='active';
         const labels={available:'Available',selected:'✓ Selected',booked:'Booked',held:'Held / Pending',pending:'Pending',maintenance:'Maintenance',inactive:'Inactive',past:'Unavailable',unconfigured:'Unavailable',blocked:'Blocked'};
-        const label=labels[status]||cell?.status_label||'Unavailable';
+        const eventKind=String(cell?.booking_status||cell?.event?.source_type||'').toLowerCase();
+        const label=eventKind==='open_play'||status==='open_play'?'Open Play':eventKind==='tournament'||status==='tournament'?'Tournament':(cell?.status_label||labels[status]||'Unavailable');
         return '<td><button class="vg-cell vg-'+esc(status)+'" data-cell="'+esc(token(s))+'" aria-pressed="'+selected+'" aria-label="'+esc(ct.name)+' '+humanTime(sl.start)+' to '+humanTime(sl.end)+', '+esc(label)+(allowed?', '+money(cell.price):'')+'" title="'+esc(label)+(allowed?' · '+money(cell.price):'')+'"'+(allowed?'':' disabled')+'><span>'+esc(label)+'</span></button></td>';
       }).join('')+'</tr>').join('')+'</tbody></table>':'<div class="empty"><strong>No courts currently available</strong>Choose another venue or check back when courts become available.</div>';
       if(courts.length&&!times.length)host.querySelector('.vg-matrix-scroll').innerHTML='<div class="empty">No time slots are configured for this venue.</div>';

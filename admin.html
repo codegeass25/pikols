@@ -85,7 +85,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
 <link rel="stylesheet" href="venue-booking.css?v=89-responsive-v43">
 <script src="venue-ui.js?v=81-attendance-lock"></script>
 <script src="venue-admin.js?v=71"></script>
-<link rel="stylesheet" href="mobile-fit.css?v=75-mobile-fit" />
+<link rel="stylesheet" href="mobile-fit.css?v=92-fraud-android" />
 </head>
 <body class="admin-app">
 
@@ -1398,7 +1398,36 @@ body.admin-app.role-ready #view-app{visibility:visible}
       var isCash=String(pmt.payment_method||'').toLowerCase()==='cash';
       var body='<dl class="summary-list"><div class="summary-row"><dt>Method</dt><dd>'+esc(String(pmt.payment_method||'').toUpperCase())+'</dd></div><div class="summary-row"><dt>Amount</dt><dd>'+esc(money(pmt.amount))+'</dd></div><div class="summary-row"><dt>Reference</dt><dd>'+esc(pmt.reference_number||(isCash?'Cash collection':'—'))+'</dd></div><div class="summary-row"><dt>Status</dt><dd>'+badge(pmt.status)+'</dd></div></dl>'+(pmt.duplicate_warning?'<div class="alert alert-warning">Possible duplicate reference or receipt. Inspect carefully before verifying.</div>':'')+'<div id="pv-receipt" class="receipt-frame mt-3"></div>';
       if(['submitted','under_review'].indexOf(String(pmt.status||'').toLowerCase())>=0) body+='<div class="field mt-3"><label class="label">Verification notes</label><textarea class="textarea" id="pv-notes"></textarea></div><button class="btn btn-success" id="pv-verify">'+(isCash?'Mark cash paid':'Mark paid')+'</button>';
+      if(isAdmin()&&String(pmt.status||'').toLowerCase()==='verified')body+='<div class="payment-fraud-action mt-3"><div class="alert alert-warning"><strong>Payment verification override</strong><p class="tiny">Only the Owner / Super Admin may reject an already verified payment after checking the real transaction history. This action cancels unplayed linked bookings, restricts the player account and preserves the original receipt.</p></div><button type="button" class="btn btn-danger" id="pv-fraud-open">Reject this payment</button><div id="pv-fraud-panel" hidden><div class="field mt-3"><label class="label" for="pv-fraud-reason">Reason / verified findings (required)</label><textarea id="pv-fraud-reason" class="textarea" rows="4" minlength="20" maxlength="800" placeholder="Describe what you checked in the actual GCash / Maya / bank / cash account, and why no valid payment exists."></textarea></div><label class="payment-fraud-check"><input type="checkbox" id="pv-fraud-confirm"><span>I independently checked management payment records, confirm this is not a real received payment and understand that the player account will be banned.</span></label><div class="row wrap mt-3"><button type="button" class="btn btn-danger" id="pv-fraud-apply">Confirm rejection &amp; ban account</button><button type="button" class="btn btn-outline" id="pv-fraud-cancel">Back</button></div></div></div>';
+      if(isAdmin()&&String(pmt.status||'').toLowerCase()==='rejected_fraud')body+='<div class="payment-fraud-action mt-3"><div class="alert alert-warning"><strong>Fraud decision recorded.</strong><p class="tiny">The rejected payment remains invalidated. A separate appeal review may restore account access without falsely marking a payment as collected.</p></div><button type="button" class="btn btn-outline" id="pv-fraud-appeal">Review / overturn account ban</button></div>';
       var host=modal({title:'Payment details — '+(r.booking?r.booking.reference:'#'+pmt.id),locked:true,body:body,cancelText:'Close'});
+      host.classList.add('fraud-payment-host');
+      var appealButton=$('#pv-fraud-appeal',host);
+      if(appealButton)appealButton.onclick=function(){
+        busy(appealButton,true);
+        api('/api/admin/fraud-cases/payment/'+pmt.id).then(function(c){
+          if(c.decision==='overturned')throw Error('This fraud case is already overturned.');
+          var reason=window.prompt('Why should management overturn this account ban? Payment will remain rejected:','');
+          if(reason===null)return;
+          if(reason.trim().length<20)throw Error('Provide at least 20 characters explaining the appeal review.');
+          return api('/api/admin/fraud-cases/'+c.id+'/overturn',{method:'POST',body:{reason:reason.trim()}}).then(function(outcome){toast(outcome.account_restored?'Account access restored; payment remains invalidated.':'Case overturned. Another active restriction still applies.','success');host.remove();refreshWorkflow();});
+        }).catch(function(e){toast(e.message,'error');}).finally(function(){busy(appealButton,false);});
+      };
+      var openFraud=$('#pv-fraud-open',host), fraudPanel=$('#pv-fraud-panel',host);
+      if(openFraud&&fraudPanel){
+        openFraud.onclick=function(){fraudPanel.hidden=false;openFraud.hidden=true;$('#pv-fraud-reason',host).focus();};
+        $('#pv-fraud-cancel',host).onclick=function(){fraudPanel.hidden=true;openFraud.hidden=false;};
+        $('#pv-fraud-apply',host).onclick=function(){
+          var button=this,reason=String($('#pv-fraud-reason',host).value||'').trim();
+          if(reason.length<20){toast('Explain the verified findings in at least 20 characters.','warning');return;}
+          if(!$('#pv-fraud-confirm',host).checked){toast('You must confirm the real payment records were independently checked.','warning');return;}
+          if(!window.confirm('FINAL CONFIRMATION: Reject verified payment #'+pmt.id+', cancel affected unplayed reservations, ban the player and revoke all their sessions?'))return;
+          busy(button,true);
+          api('/api/admin/payments/'+pmt.id+'/fraud-invalidate',{method:'POST',body:{reason:reason,confirmation:'PAYMENT NOT RECEIVED - CONFIRMED'}})
+            .then(function(result){toast('Fraud case #'+result.case_id+' recorded. Payment rejected and player access restricted.','success');host.remove();refreshWorkflow();loadBookings();})
+            .catch(function(e){toast(e.message,'error');}).finally(function(){busy(button,false);});
+        };
+      }
       if(isCash) $('#pv-receipt',host).innerHTML='<div class="cash-receipt-placeholder"><span>₱</span><strong>Cash</strong><small>No receipt required</small></div>'; else if(pmt.has_proof) fetch(API+'/api/payments/'+pmt.id+'/proof',{headers:{Authorization:'Bearer '+TOKEN}}).then(function(x){if(!x.ok)throw new Error('Receipt unavailable');return x.blob();}).then(function(blob){var u=URL.createObjectURL(blob);$('#pv-receipt',host).innerHTML='<img src="'+u+'" alt="Receipt" />';}).catch(function(e){$('#pv-receipt',host).innerHTML='<span class="muted tiny">'+esc(e.message)+'</span>';});
       var vb=$('#pv-verify',host);if(vb)vb.onclick=function(){busy(vb,true);api('/api/payments/'+pmt.id+'/verify',{method:'POST',body:{verification_notes:($('#pv-notes',host)||{}).value||''}}).then(function(){toast('Payment verified. Booking confirmed automatically.','success');host.remove();refreshWorkflow();}).catch(function(e){toast(e.message,'error');}).finally(function(){busy(vb,false);});};
     }).catch(function(e){toast(e.message,'error');});
@@ -3840,7 +3869,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
   };
 
   /* ---------- In-Charge PWA push ---------- */
-  var ADMIN_SW_VERSION='89-responsive-v43';
+  var ADMIN_SW_VERSION='92-fraud-android';
   var PUSH_PREP={reg:null,publicKey:null,serverStatus:null,ready:false,error:null,promise:null};
   function b64ToUint8(s){s=String(s||'').replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';var raw=atob(s),a=new Uint8Array(raw.length);for(var i=0;i<raw.length;i++)a[i]=raw.charCodeAt(i);return a;}
   function bytesEqual(a,b){if(!a||!b)return false;var x=new Uint8Array(a),y=new Uint8Array(b);if(x.length!==y.length)return false;for(var i=0;i<x.length;i++)if(x[i]!==y[i])return false;return true;}
@@ -4811,7 +4840,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
 
 <script>
 /* PIKOL_PWA_INSTALL_RUNTIME */
-(function(){'use strict';var btn=document.getElementById('pwa-install-admin'),deferredPrompt=null,KEY='pikol_admin_installed_v3';function ios(){return /iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);}function standalone(){return window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true;}function marked(){return localStorage.getItem(KEY)==='1';}function setMarked(v){if(v)localStorage.setItem(KEY,'1');else localStorage.removeItem(KEY);}function showIosGuide(){var g=document.getElementById('ios-pwa-guide');if(g)g.hidden=false;if(typeof toast==='function')toast('iPhone: Safari → Share → Add to Home Screen. Then open PIKOL Admin from the Home Screen icon.','error');}function sync(){if(!btn)return;if(standalone()){setMarked(true);btn.hidden=true;return;}if(ios()){btn.hidden=false;btn.textContent='Install Admin App on iPhone';return;}btn.textContent='Install Admin App';btn.hidden=!deferredPrompt||marked();}window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();deferredPrompt=e;if(!standalone())setMarked(false);sync();});window.addEventListener('appinstalled',function(){setMarked(true);deferredPrompt=null;sync();});window.addEventListener('pageshow',sync);document.addEventListener('visibilitychange',function(){if(!document.hidden)sync();});if(btn)btn.addEventListener('click',async function(){if(ios()){showIosGuide();return;}if(!deferredPrompt)return;btn.disabled=true;try{await deferredPrompt.prompt();var c=await deferredPrompt.userChoice;if(c&&c.outcome==='accepted')setMarked(true);}catch(_){}deferredPrompt=null;btn.disabled=false;sync();});if('serviceWorker' in navigator)window.addEventListener('load',function(){navigator.serviceWorker.register('service-worker.js?v=89-responsive-v43',{scope:'./',updateViaCache:'none'}).then(function(reg){return reg.update();}).catch(function(){});});sync();})();
+(function(){'use strict';var btn=document.getElementById('pwa-install-admin'),deferredPrompt=null,KEY='pikol_admin_installed_v3';function ios(){return /iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);}function standalone(){return window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true;}function marked(){return localStorage.getItem(KEY)==='1';}function setMarked(v){if(v)localStorage.setItem(KEY,'1');else localStorage.removeItem(KEY);}function showIosGuide(){var g=document.getElementById('ios-pwa-guide');if(g)g.hidden=false;if(typeof toast==='function')toast('iPhone: Safari → Share → Add to Home Screen. Then open PIKOL Admin from the Home Screen icon.','error');}function sync(){if(!btn)return;if(standalone()){setMarked(true);btn.hidden=true;return;}if(ios()){btn.hidden=false;btn.textContent='Install Admin App on iPhone';return;}btn.textContent='Install Admin App';btn.hidden=!deferredPrompt||marked();}window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();deferredPrompt=e;if(!standalone())setMarked(false);sync();});window.addEventListener('appinstalled',function(){setMarked(true);deferredPrompt=null;sync();});window.addEventListener('pageshow',sync);document.addEventListener('visibilitychange',function(){if(!document.hidden)sync();});if(btn)btn.addEventListener('click',async function(){if(ios()){showIosGuide();return;}if(!deferredPrompt)return;btn.disabled=true;try{await deferredPrompt.prompt();var c=await deferredPrompt.userChoice;if(c&&c.outcome==='accepted')setMarked(true);}catch(_){}deferredPrompt=null;btn.disabled=false;sync();});/* The primary Admin PWA runtime owns worker registration (no duplicate installs). */sync();})();
 </script>
 
 </body>
