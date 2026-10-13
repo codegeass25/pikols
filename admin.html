@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" data-theme="light">
+<html lang="en" data-theme="light" class="admin-login-mode">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
@@ -85,9 +85,9 @@ body.admin-app.role-ready #view-app{visibility:visible}
 <link rel="stylesheet" href="venue-booking.css?v=89-responsive-v43">
 <script src="venue-ui.js?v=81-attendance-lock"></script>
 <script src="venue-admin.js?v=71"></script>
-<link rel="stylesheet" href="mobile-fit.css?v=92-fraud-android" />
+<link rel="stylesheet" href="mobile-fit.css?v=93-admin-login-scroll" />
 </head>
-<body class="admin-app">
+<body class="admin-app admin-login">
 
 <!-- ===================== BOOT SPLASH ==================== -->
 <div id="boot-splash" class="boot-splash" role="status" aria-live="polite">
@@ -1065,7 +1065,8 @@ body.admin-app.role-ready #view-app{visibility:visible}
       if (host.isConnected) return;
       observer.disconnect(); document.removeEventListener('keydown', onKey);
       if (!modalRoot.children.length) {
-        document.body.style.overflow = modalRoot.dataset.previousOverflow || '';
+        // A modal resolving after a forced logout must not re-lock Admin sign-in.
+        document.body.style.overflow = document.body.classList.contains('admin-login') ? '' : (modalRoot.dataset.previousOverflow || '');
         $('#view-app').inert = false;
       }
       if (previousFocus && previousFocus.isConnected && (!modalRoot.children.length || modalRoot.lastElementChild.contains(previousFocus))) previousFocus.focus();
@@ -1103,13 +1104,17 @@ body.admin-app.role-ready #view-app{visibility:visible}
     if (TOKEN) headers.Authorization = 'Bearer ' + TOKEN;
     return fetch(API + pathname, {
       method: opts.method || 'GET', headers: headers,
-      body: opts.body ? JSON.stringify(opts.body) : undefined
+      body: opts.body ? JSON.stringify(opts.body) : undefined,
+      signal: opts.signal
     }).then(function (res) {
       return res.json().catch(function () { return {}; }).then(function (data) {
         if (!res.ok) { if (res.status === 401 && TOKEN) signOutLocal(); throw new Error(data.error || ('Request failed (' + res.status + ')')); }
         return data;
       });
-    }, function () { throw new Error('Cannot reach the booking server. Please try again later.'); });
+    }, function (err) {
+      if (err && err.name === 'AbortError') throw new Error('Sign in timed out. Check your connection and try again.');
+      throw new Error('Cannot reach the booking server. Please try again later.');
+    });
   }
 
   function applyTheme(t) { document.documentElement.setAttribute('data-theme', t); localStorage.setItem('pb_theme', t); }
@@ -1487,21 +1492,31 @@ body.admin-app.role-ready #view-app{visibility:visible}
   $('#form-login').addEventListener('submit', function (e) {
     e.preventDefault();
     var btn = e.target.querySelector('button[type=submit]');
+    if (btn.disabled) return;
+    // Bounded sign-in on unstable Android mobile networks. Keep the form usable
+    // after timeouts instead of leaving the action permanently in "Signing in".
+    var controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    var timeout = controller ? setTimeout(function () { controller.abort(); }, 15000) : null;
     busy(btn, true);
-    api('/api/auth/login', { method: 'POST', body: { email: $('#li-email').value.trim(), password: $('#li-pass').value } })
+    api('/api/auth/login', { method: 'POST', signal: controller ? controller.signal : undefined,
+      body: { email: $('#li-email').value.trim(), password: $('#li-pass').value } })
       .then(function (d) {
-        if (['admin','booking_manager','event_manager'].indexOf(d.user.role)<0) throw new Error('This account is not authorized for the Staff System');
+        if (!d || !d.user || ['admin','booking_manager','event_manager'].indexOf(d.user.role)<0) throw new Error('This account is not authorized for the Staff System');
         TOKEN = d.token; USER = d.user; sessionStorage.setItem('pb_admin_token', TOKEN);
-        showApp(); toast('Welcome back, ' + d.user.full_name.split(' ')[0] + '.', 'success');
+        showApp(); toast('Welcome back, ' + String(d.user.full_name || d.user.email || 'Staff').split(' ')[0] + '.', 'success');
       })
       .catch(function (err) { toast(err.message, 'error'); })
-      .finally(function () { busy(btn, false); });
+      .finally(function () { if (timeout) clearTimeout(timeout); busy(btn, false); });
   });
   function signOutLocal() {
     TOKEN = ''; USER = null; sessionStorage.removeItem('pb_admin_token');
     if (RT) RT.disconnect();
     COURTS=[]; PLAYERS=[]; BOOKINGS=[]; SETTINGS={};
     var mr=$('#modal-root');if(mr)mr.innerHTML='';
+    // Previous Admin modal scroll locks must never persist on the login page.
+    document.body.style.overflow = '';
+    document.documentElement.classList.add('admin-login-mode');
+    document.body.classList.add('admin-login');
     resetRoleUiState();
     PAGES.forEach(function(p){var el=$('#page-'+p);if(el)el.classList.toggle('hidden',p!=='dashboard');});
     $('#view-app').classList.add('hidden'); $('#view-auth').classList.remove('hidden');
@@ -3869,7 +3884,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
   };
 
   /* ---------- In-Charge PWA push ---------- */
-  var ADMIN_SW_VERSION='92-fraud-android';
+  var ADMIN_SW_VERSION='93-admin-login-scroll';
   var PUSH_PREP={reg:null,publicKey:null,serverStatus:null,ready:false,error:null,promise:null};
   function b64ToUint8(s){s=String(s||'').replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';var raw=atob(s),a=new Uint8Array(raw.length);for(var i=0;i<raw.length;i++)a[i]=raw.charCodeAt(i);return a;}
   function bytesEqual(a,b){if(!a||!b)return false;var x=new Uint8Array(a),y=new Uint8Array(b);if(x.length!==y.length)return false;for(var i=0;i<x.length;i++)if(x[i]!==y[i])return false;return true;}
@@ -4806,6 +4821,8 @@ body.admin-app.role-ready #view-app{visibility:visible}
   LOADERS.courts=loadCourts;LOADERS.settings=loadSettings;
   /* ---------- boot ---------- */
   function showApp() {
+    document.documentElement.classList.remove('admin-login-mode');
+    document.body.classList.remove('admin-login');
     $('#view-auth').classList.add('hidden');
     $('#view-app').classList.remove('hidden');
     $('#admin-email').textContent = USER.full_name || USER.email;
