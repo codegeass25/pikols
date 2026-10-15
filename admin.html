@@ -89,7 +89,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
 <script src="venue-ui.js?v=81-attendance-lock"></script>
 <script src="venue-admin.js?v=71"></script>
 <link rel="stylesheet" href="mobile-fit.css?v=95-android-admin-global-scroll" />
-<link rel="stylesheet" href="universal-responsive.css?v=96-universal-review" />
+<link rel="stylesheet" href="universal-responsive.css?v=100-responsive-audit-20261015" />
 </head>
 <body class="admin-app">
 
@@ -2799,7 +2799,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
     var endpoint='/api/admin/booking-segments/'+encodeURIComponent(slot.id)+'/'+action;
     function done(message){toast(message,'success');return Promise.all([loadBookings(),loadDashboard()]);}
     if(action==='status'){
-      var status=button.dataset.status,word=status==='completed'?'Complete':'No-show';
+      var status=button.dataset.attendanceStatus,word=status==='completed'?'Complete':'No-show';
       modal({title:word+' — individual court slot',locked:true,danger:status==='no_show',
         body:'<p><strong>'+esc(label)+'</strong></p><p class="tiny muted">This changes only this court-hour. Other slots and the original group payment stay unchanged.</p>',
         confirmText:word+' this slot',onConfirm:function(){return api(endpoint,{method:'PUT',body:{status:status}}).then(function(){return done('Slot marked '+word+'.');});}});
@@ -3915,7 +3915,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
   };
 
   /* ---------- In-Charge PWA push ---------- */
-  var ADMIN_SW_VERSION='96-unified-payment-fraud';
+  var ADMIN_SW_VERSION='100-responsive-audit-20261015';
   var PUSH_PREP={reg:null,publicKey:null,serverStatus:null,ready:false,error:null,promise:null};
   function b64ToUint8(s){s=String(s||'').replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';var raw=atob(s),a=new Uint8Array(raw.length);for(var i=0;i<raw.length;i++)a[i]=raw.charCodeAt(i);return a;}
   function bytesEqual(a,b){if(!a||!b)return false;var x=new Uint8Array(a),y=new Uint8Array(b);if(x.length!==y.length)return false;for(var i=0;i<x.length;i++)if(x[i]!==y[i])return false;return true;}

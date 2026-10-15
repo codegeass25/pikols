@@ -287,7 +287,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
 <link rel="apple-touch-icon" href="icons/wenjelly-v73-apple.png" />
 <link rel="stylesheet" href="mobile-fit.css?v=92-fraud-android" />
 <link rel="stylesheet" href="event-carousel.css?v=90-event-peek" />
-<link rel="stylesheet" href="universal-responsive.css?v=99-iphone-date-align" />
+<link rel="stylesheet" href="universal-responsive.css?v=100-responsive-audit-20261015" />
 </head>
 <body class="player-app">
 
@@ -3381,7 +3381,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
   window.addEventListener('appinstalled',function(){setMarked(true);deferredPrompt=null;sync();});
   window.addEventListener('pageshow',sync);document.addEventListener('visibilitychange',function(){if(!document.hidden)sync();});
   if(btn)btn.addEventListener('click',async function(){if(!deferredPrompt)return;btn.disabled=true;try{await deferredPrompt.prompt();var c=await deferredPrompt.userChoice;if(c&&c.outcome==='accepted')setMarked(true);}catch(_){}deferredPrompt=null;btn.disabled=false;sync();});
-  if('serviceWorker' in navigator)window.addEventListener('load',function(){navigator.serviceWorker.register('service-worker.js?v=99-iphone-date-align',{scope:'./',updateViaCache:'none'}).then(function(reg){return reg.update();}).catch(function(){});});
+  if('serviceWorker' in navigator)window.addEventListener('load',function(){navigator.serviceWorker.register('service-worker.js?v=100-responsive-audit-20261015',{scope:'./',updateViaCache:'none'}).then(function(reg){return reg.update();}).catch(function(){});});
   sync();
 })();
 </script>
