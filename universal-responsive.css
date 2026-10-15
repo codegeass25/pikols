@@ -7,6 +7,9 @@
 :where(.player-app,.admin-app,.scoring-page) :is(.page-title,.page-subtitle,.card-title,.list-title,.field-hint,.tp-title,.tp-muted) {overflow-wrap:break-word}
 :where(.player-app,.admin-app,.scoring-page) :is(button,input,select,textarea) {font-family:inherit}
 :where(.player-app,.admin-app,.scoring-page) :is(button,a,input,select,textarea):focus-visible{outline:2px solid var(--brand-primary,#078456);outline-offset:2px}
+/* Player has four destinations at every width where its bottom bar is shown.
+   Admin uses its independent five-button #admin-mobile-nav. */
+body.player-app .bottom-nav-inner{grid-template-columns:repeat(4,minmax(0,1fr))}
 /* Grouped court bookings are NOT nested into the Court column of a nine-column table. */
 body.admin-app .bookings-table .booking-segments-row>td { padding:0 12px 16px;vertical-align:top;max-width:100%; }
 body.admin-app .bookings-table .booking-segments-row .vg-segments { width:100%; margin:0; }
@@ -60,6 +63,9 @@ body.scoring-page :is(.score-shell,.score-main,.score-layout,.arena,.scoreboard,
  body.player-app #tab-book .vg-date-host{flex-basis:auto;max-width:100%;min-width:0}
 }
 @media(max-width:767px){
+ /* Match the date host's full-row breakpoint. The older header only wrapped
+    at 650px, leaving the title a zero-width flex item between 651 and 767px. */
+ body.player-app #tab-book .vg-schedule-section>.vg-section-head{flex-wrap:wrap;align-items:flex-start}
  body.admin-app .bookings-table.as-cards>tbody>tr.is-card{grid-template-columns:repeat(2,minmax(0,1fr));}
  body.admin-app .bookings-table.as-cards>tbody>tr.is-card>td:nth-child(2){grid-column:1/-1}
  body.admin-app .bookings-table.as-cards>tbody>tr.is-card>td:nth-child(3){grid-column:1/-1}

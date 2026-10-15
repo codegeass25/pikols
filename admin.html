@@ -89,7 +89,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
 <script src="venue-ui.js?v=81-attendance-lock"></script>
 <script src="venue-admin.js?v=71"></script>
 <link rel="stylesheet" href="mobile-fit.css?v=95-android-admin-global-scroll" />
-<link rel="stylesheet" href="universal-responsive.css?v=100-responsive-audit-20261015" />
+<link rel="stylesheet" href="universal-responsive.css?v=101-responsive-v2-rotation-20261015" />
 </head>
 <body class="admin-app">
 
@@ -3915,7 +3915,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
   };
 
   /* ---------- In-Charge PWA push ---------- */
-  var ADMIN_SW_VERSION='100-responsive-audit-20261015';
+  var ADMIN_SW_VERSION='101-responsive-v2-rotation-20261015';
   var PUSH_PREP={reg:null,publicKey:null,serverStatus:null,ready:false,error:null,promise:null};
   function b64ToUint8(s){s=String(s||'').replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';var raw=atob(s),a=new Uint8Array(raw.length);for(var i=0;i<raw.length;i++)a[i]=raw.charCodeAt(i);return a;}
   function bytesEqual(a,b){if(!a||!b)return false;var x=new Uint8Array(a),y=new Uint8Array(b);if(x.length!==y.length)return false;for(var i=0;i<x.length;i++)if(x[i]!==y[i])return false;return true;}
