@@ -89,6 +89,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
 <script src="venue-ui.js?v=81-attendance-lock"></script>
 <script src="venue-admin.js?v=71"></script>
 <link rel="stylesheet" href="mobile-fit.css?v=95-android-admin-global-scroll" />
+<link rel="stylesheet" href="universal-responsive.css?v=96-universal-review" />
 </head>
 <body class="admin-app">
 
@@ -1047,6 +1048,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
     dialog.setAttribute('tabindex', '-1');
     if ($('#tx-receipt', host)) dialog.classList.add('admin-payment-dialog');
     if ($('#mp-name', host)) dialog.classList.add('admin-membership-dialog');
+    if (opts.kind === 'more') dialog.classList.add('admin-more-dialog');
     if ($('.booking-detail-grid', host)) dialog.classList.add('admin-booking-dialog');
     if (!modalRoot.children.length) modalRoot.dataset.previousOverflow = document.body.style.overflow;
     modalRoot.appendChild(host);
@@ -2655,12 +2657,12 @@ body.admin-app.role-ready #view-app{visibility:visible}
     if(b.group_id && USER && ['admin','booking_manager'].includes(USER.role))act.push('<span class="tiny muted">Expand slots for individual actions</span>');
     act.push('<button class="btn btn-ghost btn-sm" data-detail="' + b.id + '">Details</button>');
     return '<tr><td class="num">' + esc(b.reference) + '</td><td>' + esc(b.player_name) + '<div class="tiny muted">' +
-      esc(b.player_email) + '</div></td><td>' + esc(b.court_name) + window.PikolVenueUI.segmentsHtml(b,{humanTime,money,adminActions:!!(USER&&['admin','booking_manager'].includes(USER.role))}) + '</td><td>' + humanDate(b.booking_date) +
+      esc(b.player_email) + '</div></td><td>' + esc(b.court_name) + '</td><td>' + humanDate(b.booking_date) +
       '<div class="tiny muted num booking-time-range">' + window.PikolVenueUI.timeLabel(b,{humanTime}) + '</div></td><td>' +
       esc(money(b.amount)) + '</td><td>' + esc(b.payment_method ? b.payment_method.toUpperCase() : '—') +
       '</td><td>' + (b.payment_amount != null ? esc(money(b.payment_amount)) : '—') + '<div class="tiny">' +
       badge(b.payment_record_status || b.payment_status || 'none') + '</div></td><td>' + badge(b.status) +
-      '</td><td><div class="row wrap" style="gap:6px">' + act.join('') + '</div></td></tr>';
+      '</td><td><div class="row wrap" style="gap:6px">' + act.join('') + '</div></td></tr>' + (b.segments && b.segments.length ? '<tr class="booking-segments-row"><td colspan="9">' + window.PikolVenueUI.segmentsHtml(b,{humanTime,money,adminActions:!!(USER&&['admin','booking_manager'].includes(USER.role))}) + '</td></tr>' : '');
   }
 
   function bookingEmptyRow(title, detail) {
@@ -4835,7 +4837,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
   window.addEventListener('online',resyncInChargeBadge);
 
   /* ---------- mobile-first admin navigation ---------- */
-  $('#admin-mobile-nav').addEventListener('click',function(e){var b=e.target.closest('[data-mobile-page]');if(!b)return;var page=b.dataset.mobilePage;if(page==='calendar'&&staffRole()==='booking_manager')page='bookings';if(page==='more'){var rows=[];[['players','Players & Membership'],['notifications','Communications'],['reports','Reports'],['settings',isAdmin()?'Settings':'Change Password']].forEach(function(x){if(roleAllows(x[0]))rows.push('<button class="list-row is-clickable" data-more-page="'+x[0]+'"><span class="list-main"><span class="list-title">'+x[1]+'</span></span><span class="list-chevron">›</span></button>');});rows.push('<button class="list-row is-clickable" data-mobile-action="theme"><span class="list-main"><span class="list-title">Toggle theme</span></span></button><button class="list-row is-clickable" data-mobile-action="logout"><span class="list-main"><span class="list-title">Logout</span></span></button>');modal({title:'More',cancelText:'Close',body:'<div class="list">'+rows.join('')+'</div>'});return;}if(!roleAllows(page))return;goto(page);});
+  $('#admin-mobile-nav').addEventListener('click',function(e){var b=e.target.closest('[data-mobile-page]');if(!b)return;var page=b.dataset.mobilePage;if(page==='calendar'&&staffRole()==='booking_manager')page='bookings';if(page==='more'){var rows=[];[['players','Players & Membership'],['notifications','Communications'],['reports','Reports'],['settings',isAdmin()?'Settings':'Change Password']].forEach(function(x){if(roleAllows(x[0]))rows.push('<button class="list-row is-clickable" data-more-page="'+x[0]+'"><span class="list-main"><span class="list-title">'+x[1]+'</span></span><span class="list-chevron">›</span></button>');});rows.push('<button class="list-row is-clickable" data-mobile-action="theme"><span class="list-main"><span class="list-title">Toggle theme</span></span></button><button class="list-row is-clickable" data-mobile-action="logout"><span class="list-main"><span class="list-title">Logout</span></span></button>');modal({title:'More',kind:'more',cancelText:'Close',body:'<nav class="list admin-more-list" aria-label="More navigation">'+rows.join('')+'</nav>'});return;}if(!roleAllows(page))return;goto(page);});
   document.addEventListener('click',function(e){var b=e.target.closest('[data-more-page]');if(b){var root=b.closest('.modal-host');if(root)root.remove();goto(b.dataset.morePage);return;}var a=e.target.closest('[data-mobile-action]');if(!a)return;var root2=a.closest('.modal-host');if(root2)root2.remove();if(a.dataset.mobileAction==='logout'){$('#btn-logout').click();return;}if(a.dataset.mobileAction==='theme'){var t=document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark';applyTheme(t);}});
 
   window.PikolTournamentAdminNavigate=function(id){goto('tournaments');if(id)return openTournament(id);};

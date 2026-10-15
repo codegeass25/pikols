@@ -35,6 +35,7 @@
       Array.prototype.forEach.call(body.rows, function (row) {
         if (row.cells.length === 1 && row.cells[0].colSpan > 1) {
           row.classList.add('is-fullwidth');
+          row.classList.remove('is-card');
           return;
         }
         row.classList.add('is-card');
