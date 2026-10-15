@@ -287,7 +287,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
 <link rel="apple-touch-icon" href="icons/wenjelly-v73-apple.png" />
 <link rel="stylesheet" href="mobile-fit.css?v=92-fraud-android" />
 <link rel="stylesheet" href="event-carousel.css?v=90-event-peek" />
-<link rel="stylesheet" href="universal-responsive.css?v=96-universal-review" />
+<link rel="stylesheet" href="universal-responsive.css?v=99-iphone-date-align" />
 </head>
 <body class="player-app">
 
@@ -436,7 +436,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
 
         <div class="booking-controls"><div id="venue-booking"></div>
           <div class="steps" id="steps"><div class="step" data-step="1"><span class="step-n">1</span>Date</div><div class="step" data-step="2"><span class="step-n">2</span>Court</div><div class="step" data-step="3"><span class="step-n">3</span>Time</div><div class="step" data-step="4"><span class="step-n">4</span>Confirm</div></div>
-          <div class="vg-step-label">2 · SELECT DATE</div><div class="vg-date-fields booking-inputs"><div class="field"><label class="label" for="booking-date">Select Date</label><div class="vg-date-nav" role="group" aria-label="Booking date navigation"><button type="button" class="vg-date-arrow" id="book-date-prev" aria-label="Previous booking day" title="Previous day">&#8249;</button><input class="input" id="booking-date" type="date" aria-label="Select booking date" required/><button type="button" class="vg-date-arrow" id="book-date-next" aria-label="Next booking day" title="Next day">&#8250;</button></div></div><div class="field vg-legacy-time"><label class="label" for="booking-time">Start Time</label><select class="select" id="booking-time"><option value="">Choose a court first</option></select></div><div class="field vg-legacy-time"><label class="label" for="booking-end">End Time</label><select class="select" id="booking-end" disabled><option value="">Select start time first</option></select></div></div>
+          <div class="vg-step-label">2 · SELECT DATE</div><div class="vg-date-fields booking-inputs"><div class="field"><label class="label" for="booking-date">Select Date</label><div class="vg-date-nav" role="group" aria-label="Booking date navigation"><button type="button" class="vg-date-arrow" id="book-date-prev" aria-label="Previous booking day" title="Previous day">&#8249;</button><span class="vg-date-picker"><span class="vg-date-visual" id="booking-date-visual" aria-hidden="true">Select date</span><input class="input" id="booking-date" type="date" aria-label="Select booking date" required/></span><button type="button" class="vg-date-arrow" id="book-date-next" aria-label="Next booking day" title="Next day">&#8250;</button></div></div><div class="field vg-legacy-time"><label class="label" for="booking-time">Start Time</label><select class="select" id="booking-time"><option value="">Choose a court first</option></select></div><div class="field vg-legacy-time"><label class="label" for="booking-end">End Time</label><select class="select" id="booking-end" disabled><option value="">Select start time first</option></select></div></div>
           <details class="booking-calendar-details"><summary>Browse calendar <span id="book-date-label"></span></summary><div class="card calendar" id="calendar"><div class="calendar-head"><button class="btn btn-ghost btn-icon" id="cal-prev" aria-label="Previous month">‹</button><span class="calendar-month" id="cal-month"></span><button class="btn btn-ghost btn-icon" id="cal-next" aria-label="Next month">›</button></div><div class="calendar-grid" id="cal-dow"></div><div class="calendar-grid" id="cal-days" role="grid"></div><button class="btn btn-outline btn-sm btn-block" id="cal-today">Today</button></div></details>
           <details id="slot-card" class="booking-times-details"><summary>View all time slots</summary><div class="slot-grid" id="slot-grid"></div></details>
         </div>
@@ -1572,9 +1572,20 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
     var max=bookingMaxDate();
     return /^\d{4}-\d{2}-\d{2}$/.test(value) && value>=bookingMinDate() && (!max || value<=max);
   }
+  // The visible label is independent from the platform's native date-input text.
+  // The original input remains the real accessible/tappable date picker.
+  function syncBookingVisibleDate(){
+    var display=$('#booking-date-visual');
+    if(!display)return;
+    var parts=String(sel.date||'').split('-');
+    var day=Number(parts[2]),month=Number(parts[1]);
+    display.textContent=(parts.length===3&&month>=1&&month<=12&&day>=1&&day<=31)
+      ?MONTHS[month-1].slice(0,3)+' '+day+', '+parts[0]:'Select date';
+  }
   function syncBookingDateControls(){
     var min=bookingMinDate(),max=bookingMaxDate(),input=$('#booking-date');
     input.min=min;input.max=max;input.value=sel.date;
+    syncBookingVisibleDate();
     $('#book-date-label').textContent=humanDate(sel.date);
     var prev=$('#book-date-prev'),next=$('#book-date-next');
     prev.disabled=bookingAddDays(sel.date,-1)<min;
@@ -3001,6 +3012,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
   });
   function updateBookingPresentation(){
     $('#booking-date').value=sel.date;
+    syncBookingVisibleDate();
     $('#booking-title').textContent='Book Your Game';
   }
   $('#booking-date').onchange=function(){
@@ -3369,7 +3381,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
   window.addEventListener('appinstalled',function(){setMarked(true);deferredPrompt=null;sync();});
   window.addEventListener('pageshow',sync);document.addEventListener('visibilitychange',function(){if(!document.hidden)sync();});
   if(btn)btn.addEventListener('click',async function(){if(!deferredPrompt)return;btn.disabled=true;try{await deferredPrompt.prompt();var c=await deferredPrompt.userChoice;if(c&&c.outcome==='accepted')setMarked(true);}catch(_){}deferredPrompt=null;btn.disabled=false;sync();});
-  if('serviceWorker' in navigator)window.addEventListener('load',function(){navigator.serviceWorker.register('service-worker.js?v=92-fraud-android',{scope:'./',updateViaCache:'none'}).then(function(reg){return reg.update();}).catch(function(){});});
+  if('serviceWorker' in navigator)window.addEventListener('load',function(){navigator.serviceWorker.register('service-worker.js?v=99-iphone-date-align',{scope:'./',updateViaCache:'none'}).then(function(reg){return reg.update();}).catch(function(){});});
   sync();
 })();
 </script>
