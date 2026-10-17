@@ -949,6 +949,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
 <div class="toast-host" id="toasts" role="status" aria-live="polite"></div>
 <div id="modal-root"></div>
 
+<link rel="stylesheet" href="openplay-smart.css?v=105">
 <script src="qr-lite.js?v=67"></script>
 <script src="qr-decoder.js?v=67"></script>
 <script src="promo-qr.js?v=77-wenjelly-logo-20261009"></script>
@@ -3554,6 +3555,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
   });
 
   /* --------------------------------- open play -------------------------------- */
+  function op3Opts(rows,current){return rows.map(function(x){return '<option value="'+x[0]+'"'+(x[0]===String(current)?' selected':'')+'>'+x[1]+'</option>';}).join('');}
   function openPlayForm(e) {
     e = e || {};
     return '<div class="grid cols-2" style="gap:0 18px">' +
@@ -3570,6 +3572,18 @@ body.admin-app.role-ready #view-app{visibility:visible}
       '<input class="input" id="op-poster" maxlength="400" value="' + esc(e.poster_url || '') + '" />' +
       '<button class="btn btn-outline btn-sm mt-4" type="button" id="op-poster-upload">Upload poster</button>' +
       '<input type="file" id="op-poster-file" accept="image/png,image/jpeg,image/webp" class="hidden" /></div>' +
+      '<section class="op3-settings"><h3>🏓 Smart Open Play — Division-Based Rules</h3>'+
+      '<div class="op3-label">Allowed official divisions</div>'+['Beginner','Novice Low','Novice High','Intermediate','Expert'].map(function(n){return '<label class="op3-chip"><input type="checkbox" data-op-division="'+n+'" '+((Array.isArray(e.allowed_divisions)?e.allowed_divisions:String(e.allowed_divisions||'Beginner|Novice Low|Novice High|Intermediate|Expert').split('|')).indexOf(n)>=0?'checked':'')+'>'+n+'</label>';}).join('')+
+      '<div class="op3-grid">'+
+      '<div><label class="op3-label" for="op-playing-mode">Playing Mode</label><select class="op3-select" id="op-playing-mode">'+op3Opts([['division','Division-Based'],['mix','Open Mix']],e.playing_mode||'division')+'</select></div>'+
+      '<div><label class="op3-label" for="op-division-matching">Division Matching</label><select class="op3-select" id="op-division-matching">'+op3Opts([['strict','Same Division Only'],['adjacent','Same/Adjacent Divisions'],['flexible','Flexible (up to 2 levels)']],e.division_matching||'adjacent')+'</select></div>'+
+      '<div><label class="op3-label" for="op-reg-mode">Registration Mode</label><select class="op3-select" id="op-reg-mode">'+op3Opts([['both','Individual + Fixed Pair'],['individual','Individual Only'],['pair','Fixed Pair Only']],e.registration_mode||'both')+'</select></div>'+
+      '<div><label class="op3-label" for="op-pair-div">Fixed Partner Divisions</label><select class="op3-select" id="op-pair-div">'+op3Opts([['approval','Host Approval for Large Gaps'],['same','Same Division Only'],['adjacent','Same/Adjacent Divisions'],['any','Any Eligible Divisions']],e.pair_divisions||'approval')+'</select></div>'+
+      '<div><label class="op3-label" for="op-rotation">Court Rotation</label><select class="op3-select" id="op-rotation">'+op3Opts([['fair','Fair Smart Rotation'],['four_off','Four On / Four Off'],['winners_stay','Winners Stay (host controlled)']],e.rotation_mode||'fair')+'</select></div>'+
+      '<div><label class="op3-label" for="op-warmup">Advance Warm-up Alert</label><select class="op3-select" id="op-warmup">'+op3Opts([['0','Disabled'],['1','One game ahead'],['2','Two games ahead']],String(e.warmup_games??1))+'</select></div>'+
+      '<div><label class="op3-label" for="op-grace">Court Call Grace</label><select class="op3-select" id="op-grace">'+op3Opts([['2','2 minutes'],['3','3 minutes'],['5','5 minutes']],String(e.call_grace_minutes??3))+'</select></div>'+
+      '<div><label class="op3-label" for="op-auto-dispatch">Next Court Dispatch</label><select class="op3-select" id="op-auto-dispatch">'+op3Opts([['1','Automatic when ready'],['0','Host assigns manually']],String(e.auto_dispatch??1))+'</select></div>'+
+      '</div><p class="op3-small">Official DIVISION only. Verified star ratings stay exclusively with existing promotion/demotion logic.</p></section>'+ 
       /* SCHEDULE-AWARE PICKER: Open Play is a SINGLE-DAY event, so the admin
          sees the live court schedule for the chosen date and court before
          picking a time. Booked slots are shown but not selectable. */
@@ -3585,7 +3599,11 @@ body.admin-app.role-ready #view-app{visibility:visible}
       title: $('#op-title', host).value, entrance_fee: $('#op-fee', host).value || 0,
       event_date: $('#op-date', host).value, start_time: $('#op-start', host).value, end_time: $('#op-end', host).value,
       capacity: $('#op-capacity', host).value, venue_id:Number($('#op-venue',host).value), court_ids: selectedCourts(host,'op-court'),
-      description: $('#op-description', host).value, poster_url: $('#op-poster', host).value
+      description: $('#op-description', host).value, poster_url: $('#op-poster', host).value,
+      allowed_divisions:$$('[data-op-division]:checked',host).map(function(x){return x.dataset.opDivision;}),
+      playing_mode:$('#op-playing-mode',host).value,division_matching:$('#op-division-matching',host).value,
+      registration_mode:$('#op-reg-mode',host).value,pair_divisions:$('#op-pair-div',host).value,
+      rotation_mode:$('#op-rotation',host).value,warmup_games:Number($('#op-warmup',host).value),call_grace_minutes:Number($('#op-grace',host).value),auto_dispatch:Number($('#op-auto-dispatch',host).value)
     };
   }
   function wirePosterUpload(host) {
@@ -3620,6 +3638,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
           '<td>' + vis + '</td>' +
           '<td class="row-actions">' +
           '' +
+          '<button class="btn btn-ghost btn-sm" data-op-live="' + e.id + '">Live Courts</button> ' +
           '<button class="btn btn-ghost btn-sm" data-op-edit="' + e.id + '">Edit</button> ' +
           '<button class="btn btn-ghost btn-sm" data-op-status="' + e.id + '">Status</button> ' +
           '<button class="btn btn-ghost btn-sm" data-op-delete="' + e.id + '">Delete</button>' +
@@ -3650,6 +3669,8 @@ body.admin-app.role-ready #view-app{visibility:visible}
   };
 
   $('#openplay-body').addEventListener('click', function (ev) {
+    var live = ev.target.closest('[data-op-live]');
+    if(live){ev.stopPropagation();return op3AdminBoard(live.dataset.opLive);}
     var edit = ev.target.closest('[data-op-edit]');
     var st = ev.target.closest('[data-op-status]');
     var del = ev.target.closest('[data-op-delete]');
@@ -3915,7 +3936,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
   };
 
   /* ---------- In-Charge PWA push ---------- */
-  var ADMIN_SW_VERSION='101-responsive-v2-rotation-20261015';
+  var ADMIN_SW_VERSION='105-smart-openplay-safe-20261018';
   var PUSH_PREP={reg:null,publicKey:null,serverStatus:null,ready:false,error:null,promise:null};
   function b64ToUint8(s){s=String(s||'').replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';var raw=atob(s),a=new Uint8Array(raw.length);for(var i=0;i<raw.length;i++)a[i]=raw.charCodeAt(i);return a;}
   function bytesEqual(a,b){if(!a||!b)return false;var x=new Uint8Array(a),y=new Uint8Array(b);if(x.length!==y.length)return false;for(var i=0;i<x.length;i++)if(x[i]!==y[i])return false;return true;}
@@ -4850,6 +4871,58 @@ body.admin-app.role-ready #view-app{visibility:visible}
   var loadSettingsOriginal=loadSettings;
   loadSettings=function(){if(!isAdmin()){applyAdminOperationalSettingsUI();return Promise.resolve();}return loadSettingsOriginal().then(function(r){return VENUE_ADMIN.loadPricing().then(()=>r);});};
   LOADERS.courts=loadCourts;LOADERS.settings=loadSettings;
+
+  /* Open Play 3.0 actual authenticated operational console */
+  function op3Person(p){
+    var name=p&&p.full_name||'Waiting';var initials=name.split(/\s+/).map(function(x){return x[0]||'';}).slice(0,2).join('');
+    return '<div class="op3-mark"><span class="op3-avatar">'+(p&&p.profile_photo_url?'<img alt="" src="'+esc(p.profile_photo_url)+'">':esc(initials))+'</span><span class="op3-name">'+esc(name)+'</span><span class="op3-div">'+esc(p&&p.player_division||'')+'</span></div>';
+  }
+  function op3Court(c,game){
+    var team1=game?(game.players||[]).filter(function(x){return x.team===1;}):[],team2=game?(game.players||[]).filter(function(x){return x.team===2;}):[];
+    var ps=[team1[0],team1[1],team2[0],team2[1]];
+    return '<article class="op3-court-card"><div class="op3-court-head">'+esc(c.name||('Court '+c.id))+'<span>'+(game?esc(game.state.toUpperCase()):'AVAILABLE')+'</span></div>'+
+       '<div class="op3-pitch"><i class="op3-line net"></i><i class="op3-line center-top"></i><i class="op3-line center-bottom"></i><i class="op3-line kitchen-top"></i><i class="op3-line kitchen-bottom"></i>'+ps.map(op3Person).join('')+'</div>'+
+       (game?'<div class="op3-score">'+(game.score_a??'—')+' : '+(game.score_b??'—')+(game.started_at?' · '+Math.max(0,Math.floor((Date.now()-Date.parse(game.started_at))/60000))+' min':'')+'</div>':'<p class="op3-small">Ready for the next compatible group.</p>')+
+       (game?'<div class="op3-inline-actions">'+(game.state==='called'?'<button class="op3-btn" data-op3-action="start" data-game="'+game.id+'">Start Game</button><button class="op3-btn secondary" data-op3-action="skip" data-game="'+game.id+'">Skip No-show</button>':'<button class="op3-btn" data-op3-action="finish" data-game="'+game.id+'">Finish / Score</button>')+'</div>':'<button class="op3-btn" data-op3-dispatch="'+c.id+'">Call Next Group</button>')+'</article>';
+  }
+  function op3VenueQR(base){
+    var host=modal({title:'Permanent Venue Check-in QR',body:'<div class="op3-shell op3-modal" id="op3-venue-display"><div class="op3-empty">Loading venue check-in...</div></div>'}),root=$('#op3-venue-display',host),timer;
+    function update(){if(!host.isConnected)return;return api(base+'/check-in').then(function(info){if(!host.isConnected)return;
+      var target=info.qr_path?new URL(info.qr_path.replace(/^\//,''),new URL('./',location.href)).href:info.qr_target;
+      var qr=window.PIKOL_QR?PIKOL_QR.svg(target,230):'<p>'+esc(target)+'</p>';
+      root.innerHTML='<div class="op3-qr">'+qr+'</div><p class="op3-meta">'+esc(info.venue.name)+'</p><p>Rotating attendance code: <strong style="font-size:27px;letter-spacing:.12em">'+esc(info.code)+'</strong></p><p class="op3-small">The attendance code updates automatically. Keep this window open at the venue.</p><p class="op3-small">'+esc(target)+'</p><button class="op3-btn secondary" data-op3-code-refresh="1">Refresh attendance code</button>';
+      clearTimeout(timer);timer=setTimeout(update,Math.max(1000,Math.min(120000,Math.ceil(Number(info.expires_in_seconds)||30)*1000)));
+    }).catch(function(e){if(!host.isConnected)return;root.innerHTML='<div class="op3-alert">'+esc(e.message)+'. Reconnect to get a current attendance code.</div><button class="op3-btn secondary" data-op3-code-refresh="1">Retry</button>';clearTimeout(timer);timer=setTimeout(update,15000);});}
+    host.addEventListener('click',function(ev){var b=ev.target.closest('[data-op3-code-refresh]');if(b&&!b.disabled){b.disabled=true;update();}});update();
+  }
+  function op3AdminBoard(id){
+    var host=modal({title:'Open Play · Live Court Control',wide:true,body:'<div id="op3-admin-live" class="op3-shell op3-live-mount"><div class="op3-empty">Loading real court status...</div></div>'});
+    var root=$('#op3-admin-live',host),base='/api/admin/open-play/'+id+'/smart',loading=false;
+    function refresh(){if(!host.isConnected||loading)return Promise.resolve();loading=true;var scroll=$('.modal-body',host).scrollTop;return api('/api/open-play/'+id+'/smart/live').then(function(v){
+      if(!host.isConnected)return;
+      var games=v.games||[],waiting=v.waiting||[],courts=v.courts||[],warmed=waiting.filter(function(p){return p.state==='on_deck';}).length;
+      root.innerHTML='<div class="op3-top"><div><h2>'+esc(v.event.title)+'</h2><p class="op3-meta">'+esc(v.event.playing_mode==='division'?'Division-Based':'Open Mix')+' · '+esc(v.event.division_matching)+' matching</p></div><span class="op3-pulse">● LIVE</span></div>'+
+      '<div class="op3-stats"><div class="op3-stat"><b>'+courts.length+'</b><small>Courts</small></div><div class="op3-stat"><b>'+waiting.filter(function(x){return x.state==='ready';}).length+'</b><small>Ready</small></div><div class="op3-stat"><b>'+games.length+'</b><small>Playing / Called</small></div></div>'+
+      '<p class="op3-small op3-auto-status">'+(Number(v.event.auto_dispatch)===1&&v.event.rotation_mode!=='winners_stay'?'⚡ Automatic next-court calling is enabled during this session.':'Host-controlled calling is enabled. Tap Call Next Group for each free court.')+'</p>'+
+      '<div class="op3-inline-actions op3-admin-ops"><button class="op3-btn" data-op3-warmup="1">🔔 Warm-up Next Group</button><button class="op3-btn secondary" data-op3-qr="1">⌗ Venue QR Check-in</button><button class="op3-btn secondary" data-op3-refresh="1">↻ Refresh</button></div>'+
+      '<h3 class="op3-section">Partner Approval Requests</h3>'+(v.pending_pairs||[]).map(function(p){return '<div class="op3-row"><span>'+esc(p.inviter_name)+' + '+esc(p.invitee_name)+' · Mixed Division</span><button class="op3-btn" data-op3-approve="'+Number(p.id)+'">Approve Pair</button></div>';}).join('')+
+      '<h3 class="op3-section">Live Playing Courts</h3><div class="op3-courts">'+courts.map(function(c){return op3Court(c,games.find(function(g){return Number(g.court_id)===Number(c.id);}));}).join('')+'</div>'+
+      '<h3 class="op3-section">Waiting Players & Fixed Pairs</h3>'+(waiting.length?waiting.map(function(p){return '<div class="op3-row"><span><strong>'+esc(p.full_name)+'</strong><small> · '+esc(p.player_division)+' · '+Number(p.games_played)+' games</small></span><b>'+esc(p.state)+'</b></div>';}).join(''):'<div class="op3-empty">No checked-in waiting players yet.</div>');
+      $('.modal-body',host).scrollTop=scroll;
+    }).catch(function(e){if(host.isConnected)root.innerHTML='<div class="op3-alert">'+esc(e.message)+'</div><button class="op3-btn secondary" data-op3-refresh="1">Retry</button>';}).finally(function(){loading=false;});}
+    host.addEventListener('click',function(ev){var b=ev.target.closest('[data-op3-dispatch],[data-op3-action],[data-op3-warmup],[data-op3-qr],[data-op3-refresh],[data-op3-approve]');if(!b||b.disabled)return;
+      if(b.dataset.op3Refresh)return refresh();
+      if(b.dataset.op3Approve){b.disabled=true;return api(base+'/pairs/'+Number(b.dataset.op3Approve)+'/approve',{method:'POST',body:{}}).then(function(){toast('Fixed pair approved. Invitee may accept now.','success');return refresh();}).catch(function(e){toast(e.message,'error');}).finally(function(){b.disabled=false;});}
+      if(b.dataset.op3Qr)return op3VenueQR(base);
+      var action=b.dataset.op3Action,url=action?base+'/games/'+b.dataset.game+'/'+action:b.dataset.op3Warmup?base+'/warmup':base+'/dispatch';var body={};
+      if(b.dataset.op3Dispatch)body.court_id=Number(b.dataset.op3Dispatch);
+      if(action==='finish'){var a=prompt('Team A final score (blank = no score):','');if(a===null)return;var z=prompt('Team B final score (blank = no score):','');if(z===null)return;body={score_a:a,score_b:z};}
+      if(action==='skip'&&!confirm('Skip the unstarted group and pause all four players?'))return;
+      b.disabled=true;api(url,{method:'POST',body:body}).then(function(){toast('Open Play queue updated.','success');return refresh();}).catch(function(e){toast(e.message,'error');}).finally(function(){b.disabled=false;});
+    });
+    refresh();var timer=setInterval(function(){if(!host.isConnected){clearInterval(timer);return;}if(!loading&&!host.querySelector('button:disabled')&&$('#modal-root').lastElementChild===host)refresh();},12000);
+  }
+
   /* ---------- boot ---------- */
   function showApp() {
     // V95: only a live modal may retain an Admin body scroll lock/inert state.

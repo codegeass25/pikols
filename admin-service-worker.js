@@ -1,2 +1,2 @@
 /* Compatibility shim: Admin, Booking and Scorer share one PWA cache. */
-importScripts('./service-worker.js?v=101-responsive-v2-rotation-20261015');
+importScripts('./service-worker.js?v=105-smart-openplay-safe-20261018');
