@@ -2,7 +2,7 @@
 (function(root){
   'use strict';
   const base='assets/promo-qr/';
-  const ARTWORK_REV='77-wenjelly-logo-20261009';
+  const ARTWORK_REV='107-official-logo-20261102';
   // Native 1672 x 941. Dark/antialiased sample matrix bounds were measured per master:
   // tournament [1116,175,1530,594], open-play [1188,303,1558,662], booking [1159,125,1584,552].
   // official-website [1114,172,1532,592], measured from its separately supplied native master.
