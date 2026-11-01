@@ -1090,3 +1090,24 @@ body.admin-app #page-reports .report-filter-grid #rp-run{min-height:44px;max-wid
   body.admin-app #page-reports .report-filter-field :is(input,select){font-size:16px}
   body.admin-app #page-reports > .section-shell > .card-header{padding:16px}
 }
+/* Account verification stays inside Players and System & Security. */
+body.admin-app .registration-review-section { margin-bottom: 22px; }
+body.admin-app .registration-settings { padding: 18px 0 24px; margin-bottom: 24px; border-bottom: 1px solid var(--border); }
+body.admin-app .registration-settings .switch { margin: 16px 0 10px; }
+body.admin-app .registration-settings .field-hint { max-width: 820px; line-height: 1.65; }
+body.admin-app .registration-applicant { display: flex; align-items: center; gap: 10px; min-width: 180px; }
+body.admin-app .registration-avatar { width: 42px; height: 42px; border-radius: 50%; object-fit: cover; background: var(--surface-soft,#f1f5f9); }
+body.admin-app .registration-review-grid { display: grid; grid-template-columns: minmax(180px,.7fr) minmax(0,1.3fr); gap: 24px; }
+body.admin-app .registration-review-grid section { min-width: 0; overflow-wrap: anywhere; }
+body.admin-app .registration-review-profile { width: 120px; height: 120px; object-fit: contain; border-radius: 12px; margin: 14px 0; }
+body.admin-app .registration-review-id { width: 100%; max-height: 65dvh; object-fit: contain; border: 1px solid var(--border); border-radius: 10px; }
+body.admin-app .registration-review-id[hidden] { display: none; }
+body.admin-app .registration-rejection { margin-top: 24px; border-top: 1px solid var(--border); padding-top: 20px; }
+body.admin-app .registration-rejection .label { display: block; margin-top: 12px; }
+body.admin-app .registration-error { color: var(--danger,#b91c1c); }
+body.admin-app #nav-registration-count { margin-left: auto; }
+@media(max-width:650px) {
+  body.admin-app .registration-review-grid { grid-template-columns: minmax(0,1fr); gap: 18px; }
+  body.admin-app .registration-review-section .card-header { align-items: flex-start; flex-direction: column; }
+  body.admin-app .registration-review-section .select { max-width: 100%; }
+}

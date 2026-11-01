@@ -1054,3 +1054,19 @@ body.player-app .booking-inputs .player-stepper .select { min-height: 31px; }
   .player-app #panel-credit-box #credit-history .list-row { grid-template-columns: auto minmax(0,1fr); }
   .player-app #panel-credit-box #credit-history .list-end { grid-column: 2; justify-self: start; padding-top: 3px; }
 }
+/* Required registration attachments use the existing authentication form. */
+.player-app .registration-section-title { margin: 20px 0 12px; color: var(--text); font-size: .82rem; font-weight: 800; letter-spacing: .04em; }
+.player-app .registration-uploads { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 14px; margin-top: 12px; }
+.player-app .registration-upload { min-width: 0; }
+.player-app .registration-upload input[type=file] { max-width: 100%; min-height: 44px; padding: 9px; font-size: .72rem; }
+.player-app .registration-upload input[aria-invalid=true] { border-color: var(--danger,#b91c1c); }
+.player-app .registration-required { display: inline-block; color: var(--text-secondary); font-size: .63rem; font-weight: 500; }
+.player-app .registration-preview { display: block; width: 100%; max-height: 140px; object-fit: contain; margin: 10px 0; border-radius: 9px; background: var(--bg); }
+.player-app .registration-preview[hidden], .player-app [data-registration-remove][hidden] { display: none; }
+.player-app .registration-result { margin: 14px 0; padding: 15px; border: 1px solid var(--brand-primary,#1f7a5a); border-radius: 10px; color: var(--text); background: var(--surface); font-size: .8rem; line-height: 1.6; }
+.player-app .registration-result p { margin: 7px 0 0; }
+.player-app .registration-error { color: var(--danger,#b91c1c); font-size: .8rem; line-height: 1.5; }
+@media(max-width:600px) {
+  .player-app .registration-uploads { grid-template-columns: minmax(0,1fr); gap: 0; }
+  .player-app .registration-preview { max-height: 160px; }
+}

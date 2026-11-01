@@ -17,7 +17,7 @@
 <script src="tournament-view.js"></script>
 <link rel="stylesheet" href="styles.css" />
 <link rel="stylesheet" href="openplay-smart.css?v=105" />
-<link rel="stylesheet" href="booking-premium.css?v=76-responsive-checkout" />
+<link rel="stylesheet" href="booking-premium.css?v=106-registration-receipts" />
 <link rel="preload" as="image" href="assets/booking/hero-court.jpg" fetchpriority="high" />
 
 <style id="checkout-hold-style">
@@ -354,7 +354,9 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
         <button class="btn btn-primary btn-block" type="submit" data-loading="Signing in...">Login</button>
       </form>
 
+      <div id="registration-result" class="registration-result hidden" role="status" aria-live="polite"></div>
       <form id="form-register" class="hidden" novalidate>
+        <h4 class="registration-section-title">Personal information</h4>
         <div class="field">
           <label class="label" for="rg-name">Full name</label>
           <input class="input" id="rg-name" required autocomplete="name" placeholder="Juan Dela Cruz" />
@@ -368,6 +370,26 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
           <input class="input" id="rg-mobile" required autocomplete="tel" placeholder="+63 917 000 0000" />
           <span class="field-hint">Used for booking confirmations.</span>
         </div>
+        <h4 class="registration-section-title">Identity</h4>
+        <p class="field-hint" id="registration-image-help">Both images are required. JPEG, PNG or WebP, up to 12 MB each.</p>
+        <div class="registration-uploads">
+          <div class="field registration-upload">
+            <label class="label" for="rg-profile">Profile Picture <span class="registration-required">Required</span></label>
+            <input class="input" id="rg-profile" type="file" accept="image/jpeg,image/png,image/webp" required aria-describedby="registration-image-help rg-profile-state" />
+            <span class="field-hint" id="rg-profile-state" role="status">This becomes your player profile photo.</span>
+            <img class="registration-preview" id="rg-profile-preview" alt="Selected profile picture preview" hidden />
+            <button class="btn btn-ghost btn-sm" type="button" data-registration-remove="profile" hidden>Remove profile picture</button>
+          </div>
+          <div class="field registration-upload">
+            <label class="label" for="rg-id">Valid ID <span class="registration-required">Required</span></label>
+            <input class="input" id="rg-id" type="file" accept="image/jpeg,image/png,image/webp" required aria-describedby="registration-image-help rg-id-state registration-id-help" />
+            <span class="field-hint" id="rg-id-state" role="status">Choose a clear, readable image.</span>
+            <img class="registration-preview registration-id-preview" id="rg-id-preview" alt="Selected private Valid ID preview" hidden />
+            <button class="btn btn-ghost btn-sm" type="button" data-registration-remove="id" hidden>Remove Valid ID</button>
+          </div>
+        </div>
+        <p class="field-hint" id="registration-id-help">Your Valid ID is used only for account verification and is accessible to authorized Management staff.</p>
+        <h4 class="registration-section-title">Security</h4>
         <div class="grid cols-2" style="gap:0 14px">
           <div class="field">
             <label class="label" for="rg-pass">Password</label>
@@ -378,7 +400,9 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
             <input class="input" id="rg-pass2" type="password" required autocomplete="new-password" minlength="8" />
           </div>
         </div>
-        <button class="btn btn-primary btn-block" type="submit" data-loading="Creating account...">Create account</button>
+        <p id="registration-error" class="registration-error hidden" role="alert"></p>
+        <p class="field-hint" id="registration-mode-help">Your registration will be reviewed by Management before you can log in.</p>
+        <button class="btn btn-primary btn-block" id="rg-submit" type="submit" data-loading="Submitting registration...">Submit Registration</button>
       </form>
       <div class="auth-assurance"><span aria-hidden="true">↗</span> Pick a date. Find your court. Get out and play.</div>
     </div>
@@ -854,7 +878,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
     { id:'booking', label:'Booking & Payment', html:
       '<h3>Booking &amp; Payment</h3>'+
       '<p>Use <strong>Book a Court</strong> to choose your <strong>Select Date</strong>, court, <strong>Start Time</strong> and <strong>End Time</strong>. Review the <strong>Booking Summary</strong> before you continue.</p>'+
-      '<ul><li>Choose only the court and time that you intend to use.</li><li>The full court fee shown by the Booking Site is paid online before staff approval.</li><li>When you reach <strong>Complete Your Payment</strong>, your selected schedule is temporarily held. Finish the payment steps before the countdown expires.</li><li>Enter the correct payment reference and upload a clear receipt or screenshot when requested.</li><li>A payment marked <strong>under review</strong> is waiting for staff verification. Your booking becomes secured according to the status shown in <strong>My Bookings</strong>.</li><li>Arriving late does not extend the reserved ending time. Extra playing time needs another available booking.</li></ul>' },
+      '<ul><li>Choose only the court and time that you intend to use.</li><li>The full court fee shown by the Booking Site is paid online before staff approval.</li><li>When you reach <strong>Complete Your Payment</strong>, your selected schedule is temporarily held. Finish the payment steps before the countdown expires.</li><li>Complete the payment and upload a clear receipt or payment screenshot for staff verification.</li><li>A payment marked <strong>under review</strong> is waiting for staff verification. Your booking becomes secured according to the status shown in <strong>My Bookings</strong>.</li><li>Arriving late does not extend the reserved ending time. Extra playing time needs another available booking.</li></ul>' },
     { id:'refund', label:'Cancellation & No Refund', html:
       '<h3>Cancellation &amp; No-Refund Policy</h3>'+
       '<div class="terms-callout"><strong>Player-initiated cancellations and no-shows are non-refundable.</strong> If you cancel a confirmed reservation or do not appear for your booked schedule, payments already made will not be refunded.</div>'+
@@ -918,7 +942,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
     {id:'booking',label:'Book a Court',html:
       '<span class="guide-kicker">Online Court Reservation</span><h3>How to book</h3><div class="guide-steps"><div class="guide-step"><div><strong>Venue</strong>Select a venue in Step 1. Use the location pin to open directions.</div></div><div class="guide-step"><div><strong>Date</strong>Choose the date in Step 2 or use <strong>Browse calendar</strong>.</div></div><div class="guide-step"><div><strong>Court &amp; Time</strong>Select available cells in the schedule table. Tap a court name to see images.</div></div><div class="guide-step"><div><strong>Confirm</strong>Set the <strong>Number of Players</strong>, add <strong>Additional Notes (Optional)</strong>, check the <strong>Booking Summary</strong>, then choose <strong>Continue to Confirmation</strong>.</div></div></div>'+
       '<h4>Temporary payment hold</h4><p>When <strong>Complete Your Payment</strong> opens, your selected court and time are temporarily held for you. Finish the payment steps before the countdown reaches zero. If the hold expires, that schedule can become available to other players again.</p>'+
-      '<h4>Payment</h4><p>Select the available Payment method, follow the instructions, enter the correct Reference number and upload the requested Receipt / screenshot. A payment marked <strong>under review</strong> is waiting for staff verification.</p>'+
+      '<h4>Payment</h4><p>Select the available Payment method, follow the instructions, complete the payment and upload a clear receipt / payment screenshot. A payment marked <strong>under review</strong> is waiting for staff verification.</p>'+
       '<div class="guide-callout"><strong>Cancellation reminder:</strong> player-initiated cancellations and no-shows are non-refundable. PIKOL Credit already used for a confirmed booking or registration is not restored.</div><div class="guide-actions"><button class="btn btn-primary btn-sm" type="button" data-help-goto="book">Open Book a Court</button></div>' },
     {id:'games',label:'My Games',html:
       '<span class="guide-kicker">My Games / My Bookings</span><h3>Track your reservations</h3><p>On mobile, the navigation says <strong>My Games</strong>. Inside the page, the title is <strong>My Bookings</strong>.</p><ul><li><strong>Upcoming</strong> shows active or future reservations.</li><li><strong>History</strong> shows previous, completed or cancelled bookings.</li><li><strong>Payments</strong> helps you review payment-related booking information.</li><li>Open a booking to review its court, schedule, booking reference and current status.</li><li>If the site shows <strong>Complete payment</strong>, follow the payment screen before the temporary hold expires.</li><li>Use <strong>Cancel Booking</strong> only when you really want to release the reservation. Non-members follow the self-cancellation cutoff configured by Management in <strong>Settings &gt; Membership</strong>; active membership plans may provide a shorter cutoff. The No-Refund Policy still applies: verified payments remain collected and PIKOL Credit already used is not restored.</li></ul><div class="guide-actions"><button class="btn btn-primary btn-sm" type="button" data-help-goto="bookings">Open My Bookings</button></div>' },
@@ -995,6 +1019,9 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
   /* ---------- white-label branding ---------- */
   function applyBranding(b) {
     BRAND = b || {};
+    var manual=String(BRAND.require_admin_registration_approval)!=='0';
+    $('#rg-submit').textContent=manual?'Submit Registration':'Create Account';
+    $('#registration-mode-help').textContent=manual?'Your registration will be reviewed by Management before you can log in.':'Your account will be activated automatically after both required images are received.';
     var r = document.documentElement.style;
     if (b.brand_primary) { r.setProperty('--brand-primary', b.brand_primary); document.body.style.setProperty('--booking-brand-primary', b.brand_primary); }
     if (b.brand_secondary) r.setProperty('--brand-secondary', b.brand_secondary);
@@ -1101,6 +1128,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
       $$('[data-authtab]').forEach(function (t) { t.setAttribute('aria-selected', String(t === tab)); });
       $('#form-login').classList.toggle('hidden', tab.dataset.authtab !== 'login');
       $('#form-register').classList.toggle('hidden', tab.dataset.authtab !== 'register');
+      if(tab.dataset.authtab==='register')$('#registration-result').classList.add('hidden');
     };
   });
 
@@ -1122,18 +1150,55 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
     }).then(function (data) { onAuth(data); toast('Welcome back!', 'success'); });
   });
 
+  function registrationImagePayload(file,label) {
+    return new Promise(function(resolve,reject){
+      if(!file)return reject(new Error(label+' is required.'));
+      if(!['image/jpeg','image/png','image/webp'].includes(file.type))return reject(new Error(label+' must be a JPEG, PNG or WebP image.'));
+      if(file.size>12*1024*1024)return reject(new Error(label+' is too large (max 12 MB).'));
+      var reader=new FileReader();reader.onerror=function(){reject(new Error(label+' could not be read.'));};
+      reader.onload=function(){var image=new Image();image.onload=function(){resolve({mime:file.type,data:String(reader.result).split(',').pop(),preview:reader.result});};image.onerror=function(){reject(new Error(label+' could not be decoded. Choose a valid image.'));};image.src=reader.result;};
+      reader.readAsDataURL(file);
+    });
+  }
+  function clearRegistrationUpload(key) {
+    var input=$('#rg-'+key),preview=$('#rg-'+key+'-preview');input.value='';input.removeAttribute('aria-invalid');
+    preview.hidden=true;preview.removeAttribute('src');$('[data-registration-remove="'+key+'"]').hidden=true;
+    $('#rg-'+key+'-state').textContent=key==='profile'?'This becomes your player profile photo.':'Choose a clear, readable image.';
+  }
+  ['profile','id'].forEach(function(key){
+    var input=$('#rg-'+key),revision=0;
+    input.addEventListener('change',function(){
+      var current=++revision,label=key==='profile'?'Profile Picture':'Valid ID';
+      $('#rg-'+key+'-state').textContent='Reading image…';
+      $('#rg-'+key+'-preview').hidden=true;
+      registrationImagePayload(input.files[0],label).then(function(image){
+        if(current!==revision)return;input.removeAttribute('aria-invalid');
+        var preview=$('#rg-'+key+'-preview');preview.src=image.preview;preview.hidden=false;
+        $('#rg-'+key+'-state').textContent='Ready to submit · Choose another image to replace.';
+        $('[data-registration-remove="'+key+'"]').hidden=false;
+      }).catch(function(error){if(current!==revision)return;input.setAttribute('aria-invalid','true');$('#rg-'+key+'-state').textContent=error.message;});
+    });
+    $('[data-registration-remove="'+key+'"]').onclick=function(){++revision;clearRegistrationUpload(key);input.focus();};
+  });
   submitHandler($('#form-register'), function () {
-    if ($('#rg-pass').value !== $('#rg-pass2').value) throw new Error('Passwords do not match');
-    return api('/api/auth/register', {
-      method: 'POST',
-      body: {
-        full_name: $('#rg-name').value.trim(),
-        email: $('#rg-email').value.trim(),
-        mobile: $('#rg-mobile').value.trim(),
-        password: $('#rg-pass').value,
-        confirm_password: $('#rg-pass2').value
-      }
-    }).then(function (data) { onAuth(data); toast('Account created. Welcome!', 'success'); });
+    $('#registration-error').classList.add('hidden');
+    return Promise.resolve().then(function(){
+      if(!$('#form-register').reportValidity())throw new Error('Please complete all required registration fields and images.');
+      if($('#rg-pass').value!==$('#rg-pass2').value)throw new Error('Passwords do not match');
+      return Promise.all([registrationImagePayload($('#rg-profile').files[0],'Profile Picture'),registrationImagePayload($('#rg-id').files[0],'Valid ID')]);
+    }).then(function(images){
+      return api('/api/auth/register',{method:'POST',body:{full_name:$('#rg-name').value.trim(),email:$('#rg-email').value.trim(),mobile:$('#rg-mobile').value.trim(),password:$('#rg-pass').value,confirm_password:$('#rg-pass2').value,
+        profile_picture:{mime:images[0].mime,data:images[0].data},valid_id:{mime:images[1].mime,data:images[1].data}}});
+    }).then(function(data){
+      var email=$('#rg-email').value.trim();$('#form-register').reset();clearRegistrationUpload('profile');clearRegistrationUpload('id');
+      if(data.pending_verification){
+        TOKEN='';USER=null;localStorage.removeItem('pb_token');
+        $('#li-email').value=email;$('#li-pass').value='';
+        $('[data-authtab="login"]').click();
+        var result=$('#registration-result');result.innerHTML='<strong>Registration submitted successfully.</strong><p>Your Profile Picture and Valid ID were received. Your registration is pending Management verification. You will be notified once your account has been approved.</p>';result.classList.remove('hidden');
+        result.setAttribute('tabindex','-1');result.focus();
+      }else{onAuth(data);toast('Account created. Welcome!','success');}
+    }).catch(function(error){$('#registration-error').textContent=error.message;$('#registration-error').classList.remove('hidden');throw error;});
   });
 
   function renderPikolCredit() {
@@ -1179,7 +1244,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
     var headers={Authorization:'Bearer '+noticeToken};
     fetch(API+'/api/auth/ban-notice',{headers:headers,cache:'no-store'}).then(function(r){if(!r.ok)throw Error('Notice expired. Sign in again to renew access.');return r.json();}).then(function(c){
       var detail=overlay.querySelector('#fraud-ban-detail');if(!detail)return;
-      detail.innerHTML='<div class="fraud-ban-fact"><span>Payment reference</span><strong>#'+esc(c.payment_id)+'</strong></div><div class="fraud-ban-fact"><span>Management review date</span><strong>'+esc(c.created_at||'—')+'</strong></div><div class="fraud-ban-reason"><strong>Management reason:</strong><p>'+esc(c.reason||'Contact management for details.')+'</p></div>';
+      detail.innerHTML='<div class="fraud-ban-fact"><span>Payment record</span><strong>#'+esc(c.payment_id)+'</strong></div><div class="fraud-ban-fact"><span>Management review date</span><strong>'+esc(c.created_at||'—')+'</strong></div><div class="fraud-ban-reason"><strong>Management reason:</strong><p>'+esc(c.reason||'Contact management for details.')+'</p></div>';
       var proof=overlay.querySelector('#fraud-ban-proof');if(!proof)return;
       if(!c.has_original_receipt){proof.textContent='No original screenshot was provided with this payment.';return;}
       return fetch(API+'/api/auth/ban-notice/receipt',{headers:headers,cache:'no-store'}).then(function(r){if(!r.ok)throw Error('Receipt unavailable');return r.blob();}).then(function(blob){if(!proof.isConnected)return;var u=URL.createObjectURL(blob);var img=document.createElement('img');img.src=u;img.alt='Your original submitted payment receipt';img.onload=function(){URL.revokeObjectURL(u);};img.onerror=function(){URL.revokeObjectURL(u);};proof.replaceChildren(img);}).catch(function(e){proof.textContent=e.message;});
@@ -1719,8 +1784,8 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
     var account = m.key==='other'?'':((m.account_name || m.account_number) ? '<div class="payment-account"><strong>' + esc(m.account_name || m.label) + '</strong><button type="button" class="copy-payment-number" data-copy-number="' + esc(m.account_number || '') + '">' + esc(m.account_number || '') + ' ⧉</button></div>' : '');
     return '<div class="payment-method-panel premium-pay-panel">' + qr + account + '<p class="s muted">' + esc(m.instructions || '') + '</p>' +
       (m.key === 'other' ? otherPaymentOptionsPanel(m,'pm') : '') +
-      '<div class="grid cols-2 payment-entry-grid"><div class="field"><label class="label">Reference number</label><input class="input" id="pm-reference" autocomplete="off" placeholder="Enter transaction reference" /></div>' +
-      '<div class="field"><label class="label">Receipt / screenshot</label><input class="input" id="pm-receipt" type="file" accept="image/png,image/jpeg,image/webp" /></div></div>' +
+      '<div class="payment-entry-grid">' +
+      '<div class="field"><label class="label" for="pm-receipt">Receipt / screenshot (required)</label><input required class="input" id="pm-receipt" type="file" accept="image/png,image/jpeg,image/webp" /></div></div>' +
       '<div id="pm-receipt-preview" class="receipt-preview hidden"></div></div>';
   }
   function paymentDialog(bookingId,sourceBtn) {
@@ -1751,10 +1816,9 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
         onConfirm:function(h){
           if(holdExpired)return Promise.reject(new Error('Payment timer expired. Please secure the time slot again.'));
           var method=$('#pm-method',h).value; var info=methodInfo(method); if(!info) return Promise.reject(new Error('Select a payment method.'));
-          var ref=($('#pm-reference',h)||{}).value||''; var other=method==='other'?selectedOtherPayment(h,'pm'):{id:'',provider:''}; var provider=other.provider; var file=($('#pm-receipt',h)||{}).files&&$('#pm-receipt',h).files[0];
-          if(ref.trim().length<4) return Promise.reject(new Error('Enter the payment reference number.'));
+          var other=method==='other'?selectedOtherPayment(h,'pm'):{id:'',provider:''}; var provider=other.provider; var file=($('#pm-receipt',h)||{}).files&&$('#pm-receipt',h).files[0];
           if(method==='other'&&provider.trim().length<2) return Promise.reject(new Error('Select the payment destination.'));
-          return filePayload(file).then(function(receipt){return api('/api/bookings/'+b.id+'/payment',{method:'POST',body:{payment_method:method,reference_number:ref.trim(),other_option_id:other.id,other_provider:provider.trim(),receipt:receipt}});}).then(function(r){submitted=true;stopTicker();toast(r.reused?'Payment is already pending.':(r.duplicate_warning?'Payment submitted with a duplicate warning for Admin review.':'Payment submitted. Your time is protected while staff reviews it.'),'success');loadBookings();loadDashboard();loadAvailability();}).catch(function(err){
+          return filePayload(file).then(function(receipt){return api('/api/bookings/'+b.id+'/payment',{method:'POST',body:{payment_method:method,other_option_id:other.id,other_provider:provider.trim(),receipt:receipt}});}).then(function(r){submitted=true;stopTicker();toast(r.reused?'Payment is already pending.':(r.duplicate_warning?'Payment submitted with a duplicate warning for Admin review.':'Payment submitted. Your time is protected while staff reviews it.'),'success');loadBookings();loadDashboard();loadAvailability();}).catch(function(err){
             if(/time range|time slot|timer expired|already processing|already secured/i.test(err.message||'')){toast(err.message||'Someone is already processing this time. Please select another time slot.','warning');loadAvailability();}
             throw err;
           });
@@ -1864,11 +1928,10 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
       var method=$('#mb-method',h).value;
       
       var other=method==='other'?selectedOtherPayment(h,'mb'):{id:'',provider:''};
-      var ref=(($('#mb-ref',h)||{}).value||'').trim(),provider=other.provider,file=($('#mb-receipt',h)||{}).files&&$('#mb-receipt',h).files[0];
-      if(ref.length<4) return Promise.reject(new Error('Enter the payment reference number.'));
+      var provider=other.provider,file=($('#mb-receipt',h)||{}).files&&$('#mb-receipt',h).files[0];
       if(method==='other'&&provider.length<2) return Promise.reject(new Error('Select the payment destination.'));
       if(!file) return Promise.reject(new Error('Upload the payment receipt.'));
-      return filePayload(file).then(function(receipt){return api('/api/membership/'+membershipId+'/payment',{method:'POST',body:{payment_method:method,reference_number:ref,other_option_id:other.id,other_provider:provider,receipt:receipt}})}).then(function(out){submitted=true;toast(out.reused?'Payment is already pending.':'Membership payment submitted for review.','success');return loadMembership();});
+      return filePayload(file).then(function(receipt){return api('/api/membership/'+membershipId+'/payment',{method:'POST',body:{payment_method:method,other_option_id:other.id,other_provider:provider,receipt:receipt}})}).then(function(out){submitted=true;toast(out.reused?'Payment is already pending.':'Membership payment submitted for review.','success');return loadMembership();});
     }});
     var h=dlg.host,sel=$('#mb-method',h),pay=$('#mb-pay',h);
     function render(){
@@ -1876,7 +1939,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
       
       var qr=sel.value==='other'?'':officialPaymentQr(info);
       var acct=sel.value==='other'?'':('<div class="payment-account"><strong>'+esc(info.account_name||'')+'</strong><div>'+esc(info.account_number||'')+'</div>'+(info.account_number?'<button type="button" class="btn btn-outline btn-sm" data-copy-member-number>Copy number</button>':'')+'</div>');
-      pay.innerHTML=qr+acct+(info.instructions?'<p class="tiny muted">'+esc(info.instructions)+'</p>':'')+(sel.value==='other'?otherPaymentOptionsPanel(info,'mb'):'')+'<div class="grid cols-2"><div class="field"><label class="label">Reference number</label><input class="input" id="mb-ref"></div><div class="field"><label class="label">Receipt</label><input class="input" id="mb-receipt" type="file" accept="image/png,image/jpeg,image/webp"></div></div>';
+      pay.innerHTML=qr+acct+(info.instructions?'<p class="tiny muted">'+esc(info.instructions)+'</p>':'')+(sel.value==='other'?otherPaymentOptionsPanel(info,'mb'):'')+'<div><div class="field"><label class="label" for="mb-receipt">Receipt / screenshot (required)</label><input required class="input" id="mb-receipt" type="file" accept="image/png,image/jpeg,image/webp"></div></div>';
       if(sel.value==='other')bindOtherPaymentChoices(pay,'mb');
       var cp=$('[data-copy-member-number]',h); if(cp)cp.onclick=function(){navigator.clipboard&&navigator.clipboard.writeText(info.account_number||'').then(function(){toast('Payment number copied.','success')});};
     }
@@ -2267,16 +2330,16 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
           var method=$('#pf-method',host).value, info=methods.filter(function(x){return x.key===method;})[0]; if(!info)return Promise.reject(new Error('Select a payment method.'));
           
           var other=method==='other'?selectedOtherPayment(host,'pf'):{id:'',provider:''};
-          var ref=($('#pf-reference',host)||{}).value||'', provider=other.provider, file=($('#pf-receipt',host)||{}).files&&$('#pf-receipt',host).files[0];
-          if(ref.trim().length<4)return Promise.reject(new Error('Enter the payment reference number.')); if(method==='other'&&provider.trim().length<2)return Promise.reject(new Error('Select the payment destination.'));
-          return filePayload(file).then(function(receipt){return api('/api/event-payments',{method:'POST',body:{event_type:opts.eventType,registration_id:opts.registrationId,payment_method:method,reference_number:ref.trim(),other_option_id:other.id,other_provider:provider.trim(),receipt:receipt}});}).then(function(r){submitted=true;toast(r.reused?'Payment is already pending.':'Payment submitted for Admin verification.','success');loadMyRegistrations();if(opts.eventType==='tournament')modal({title:'Payment submitted',body:'<div class="tp-surface"><ol class="tp-steps"><li><b>✓</b>Player / Team</li><li><b>✓</b>Division</li><li><b>✓</b>Payment</li><li class="is-active"><b>4</b>Confirmation</li></ol><h2>Registration received</h2><p>Your receipt has been submitted for verification. Your place becomes official when the organiser approves the registration.</p><p>Track payment and approval in My Registrations.</p></div>'});if(opts.onDone)opts.onDone();});
+          var provider=other.provider, file=($('#pf-receipt',host)||{}).files&&$('#pf-receipt',host).files[0];
+          if(method==='other'&&provider.trim().length<2)return Promise.reject(new Error('Select the payment destination.'));
+          return filePayload(file).then(function(receipt){return api('/api/event-payments',{method:'POST',body:{event_type:opts.eventType,registration_id:opts.registrationId,payment_method:method,other_option_id:other.id,other_provider:provider.trim(),receipt:receipt}});}).then(function(r){submitted=true;toast(r.reused?'Payment is already pending.':'Payment submitted for Admin verification.','success');loadMyRegistrations();if(opts.eventType==='tournament')modal({title:'Payment submitted',body:'<div class="tp-surface"><ol class="tp-steps"><li><b>✓</b>Player / Team</li><li><b>✓</b>Division</li><li><b>✓</b>Payment</li><li class="is-active"><b>4</b>Confirmation</li></ol><h2>Registration received</h2><p>Your receipt has been submitted for verification. Your place becomes official when the organiser approves the registration.</p><p>Track payment and approval in My Registrations.</p></div>'});if(opts.onDone)opts.onDone();});
         }});
       var host=m.host;
       if(opts.eventType==='tournament')$('.modal-body',host).insertAdjacentHTML('afterbegin','<ol class="tp-steps"><li><b>✓</b>Player / Team</li><li><b>✓</b>Division</li><li class="is-active"><b>3</b>Payment</li><li><b>4</b>Confirmation</li></ol>');
       function render(){var key=$('#pf-method',host).value,info=methods.filter(function(x){return x.key===key;})[0]||{}; 
         var qr=key==='other'?'':officialPaymentQr(info);
         var acct=key==='other'?'':((info.account_name||info.account_number)?'<div class="payment-account"><strong>'+esc(info.account_name||info.label||key)+'</strong><button type="button" class="copy-payment-number" data-copy-number="'+esc(info.account_number||'')+'">'+esc(info.account_number||'')+' ⧉</button></div>':'');
-        $('#pf-details',host).innerHTML='<div class="payment-method-panel premium-pay-panel">'+qr+acct+'<p class="s muted">'+esc(info.instructions||'')+'</p>'+(key==='other'?otherPaymentOptionsPanel(info,'pf'):'')+'<div class="grid cols-2 payment-entry-grid"><div class="field"><label class="label">Reference number</label><input class="input" id="pf-reference" /></div><div class="field"><label class="label">Receipt / screenshot</label><input class="input" id="pf-receipt" type="file" accept="image/png,image/jpeg,image/webp" /></div></div></div>';
+        $('#pf-details',host).innerHTML='<div class="payment-method-panel premium-pay-panel">'+qr+acct+'<p class="s muted">'+esc(info.instructions||'')+'</p>'+(key==='other'?otherPaymentOptionsPanel(info,'pf'):'')+'<div class="payment-entry-grid"><div class="field"><label class="label" for="pf-receipt">Receipt / screenshot (required)</label><input required class="input" id="pf-receipt" type="file" accept="image/png,image/jpeg,image/webp" /></div></div></div>';
         if(key==='other')bindOtherPaymentChoices($('#pf-details',host),'pf');
       }
       $('#pf-method',host).onchange=render;render();return m;
@@ -3468,7 +3531,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
   window.addEventListener('appinstalled',function(){setMarked(true);deferredPrompt=null;sync();});
   window.addEventListener('pageshow',sync);document.addEventListener('visibilitychange',function(){if(!document.hidden)sync();});
   if(btn)btn.addEventListener('click',async function(){if(!deferredPrompt)return;btn.disabled=true;try{await deferredPrompt.prompt();var c=await deferredPrompt.userChoice;if(c&&c.outcome==='accepted')setMarked(true);}catch(_){}deferredPrompt=null;btn.disabled=false;sync();});
-  if('serviceWorker' in navigator)window.addEventListener('load',function(){navigator.serviceWorker.register('service-worker.js?v=105-smart-openplay-safe-20261018',{scope:'./',updateViaCache:'none'}).then(function(reg){return reg.update();}).catch(function(){});});
+  if('serviceWorker' in navigator)window.addEventListener('load',function(){navigator.serviceWorker.register('service-worker.js?v=106-registration-receipts-20261102',{scope:'./',updateViaCache:'none'}).then(function(reg){return reg.update();}).catch(function(){});});
   sync();
 })();
 </script>

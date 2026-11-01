@@ -1,9 +1,9 @@
-const CACHE = 'pikol-v105-smart-openplay-safe-20261018';
+const CACHE = 'pikol-v106-registration-receipts-20261102';
 const SHELL = [
   // Current HTML imports use these URLs. Keep their exact query versions in
   // the public allow-list so a fresh offline shell can load its real runtime.
   './occasion-promotions.css?v=83','./venue-ui.js?v=71','./mobile-fit.css?v=92-fraud-android',
-  './admin-premium.css?v=89-responsive-v43','./client-upgrades.css?v=56-android-native-scroll',
+  './admin-premium.css?v=106-registration-receipts','./client-upgrades.css?v=56-android-native-scroll',
   './tournament-premium.js?v=74-system-audit','./venue-booking.css?v=89-responsive-v43','./mobile-fit.css?v=75-mobile-fit',
   './occasion-promotions.css?v=86-safe-remove','./occasion-admin.js?v=86-safe-remove',
   './mobile-fit.css?v=95-android-admin-global-scroll',
@@ -15,7 +15,7 @@ const SHELL = [
   './universal-responsive.css?v=101-responsive-v2-rotation-20261015',
   './openplay-smart.css?v=105',
   './index.html','./admin.html','./scoring.html','./styles.css','./cards.js','./tournament-view.js','./config.js','./qr-lite.js?v=67','./qr-decoder.js?v=67','./promo-qr.js?v=77-wenjelly-logo-20261009','./promo-qr.css?v=67',
-  './admin-premium.css?v=92-fraud-android','./admin-premium.css','./admin-charts.js','./admin-charts.js?v=80-venue-labels','./booking-premium.css?v=76-responsive-checkout','./booking-premium.css','./assets/booking/maps-pin.svg','./assets/booking/hero-court.jpg','./assets/booking/court-01.jpg','./assets/booking/court-02.jpg','./assets/booking/court-03.jpg',
+  './admin-premium.css?v=92-fraud-android','./admin-premium.css','./admin-charts.js','./admin-charts.js?v=80-venue-labels','./booking-premium.css?v=106-registration-receipts','./booking-premium.css','./assets/booking/maps-pin.svg','./assets/booking/hero-court.jpg','./assets/booking/court-01.jpg','./assets/booking/court-02.jpg','./assets/booking/court-03.jpg',
   './assets/booking/community.jpg','./assets/booking/membership.jpg','./assets/defaults/venue-default.webp','./assets/defaults/court-default.webp',
   './manifest.json?v=73','./admin-manifest.json?v=73','./scoring-manifest.json?v=73','./icons/wenjelly-v73-192.png','./icons/wenjelly-v73-512.png','./icons/wenjelly-v73-maskable-192.png','./icons/wenjelly-v73-maskable-512.png','./icons/wenjelly-v73-apple.png'
 ];

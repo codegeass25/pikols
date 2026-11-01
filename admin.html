@@ -34,7 +34,7 @@ if (/Android/i.test(navigator.userAgent || '')) document.documentElement.classLi
 .admin-app .promo-image-actions .btn{white-space:normal}
 @media(max-width:620px){.admin-app .asset-card.booking-hero-asset{grid-template-columns:minmax(0,1fr)}.admin-app .booking-hero-asset .asset-preview{grid-column:1;grid-row:auto}.admin-app .booking-hero-asset .card-title,.admin-app .booking-hero-asset>p,.admin-app .booking-hero-asset>.input,.admin-app .booking-hero-asset>.row,.admin-app .booking-hero-asset .promo-preview-note{grid-column:1}.admin-app .court-promo-preview{max-height:250px}}
 </style>
-<link rel="stylesheet" href="admin-premium.css?v=89-responsive-v43" />
+<link rel="stylesheet" href="admin-premium.css?v=106-registration-receipts" />
 
 <style id="pikol-role-ui-v33">
 .role-hidden{display:none !important}
@@ -149,7 +149,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
       <button class="nav-item is-active" data-page="dashboard" data-group="dashboard"><span class="ico" aria-hidden="true"><svg class="admin-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1Z"/></svg></span>Dashboard</button>
       <button class="nav-item" data-page="calendar" data-default-page="calendar" data-group="schedule"><span class="ico" aria-hidden="true"><svg class="admin-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 11h18M8 15h2M14 15h2M8 18h2"/></svg></span><span class="nav-label" data-default-label="Bookings &amp; Schedule">Bookings &amp; Schedule</span><span class="pill hidden" id="nav-pending"></span></button>
       <button class="nav-item" data-page="payments" data-group="transactions"><span class="ico" aria-hidden="true"><svg class="admin-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="3"/><path d="M2 9h20M6 15h4"/></svg></span>Payments<span class="pill hidden" id="nav-payments"></span></button>
-      <button class="nav-item" data-page="players" data-group="players"><span class="ico" aria-hidden="true"><svg class="admin-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="7" r="3"/><path d="M2 21v-3a7 7 0 0 1 14 0v3ZM16 4a3 3 0 0 1 0 6M19 14a5 5 0 0 1 3 4v3"/></svg></span>Players &amp; Membership</button>
+      <button class="nav-item" data-page="players" data-group="players"><span class="ico" aria-hidden="true"><svg class="admin-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="7" r="3"/><path d="M2 21v-3a7 7 0 0 1 14 0v3ZM16 4a3 3 0 0 1 0 6M19 14a5 5 0 0 1 3 4v3"/></svg></span>Players &amp; Membership<span id="nav-registration-count" class="badge badge-pending hidden admin-only-panel" aria-label="Pending account verifications"></span></button>
       <button class="nav-item" data-page="events" data-group="events"><span class="ico" aria-hidden="true"><svg class="admin-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3h8v6a4 4 0 0 1-8 0ZM8 5H4v3a4 4 0 0 0 4 4M16 5h4v3a4 4 0 0 1-4 4M12 13v5M8 21h8M9 18h6"/></svg></span>Events<span class="pill hidden" id="nav-events"></span></button>
       <button class="nav-item" data-page="notifications" data-group="communications"><span class="ico" aria-hidden="true"><svg class="admin-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m2 6 10 7L22 6"/></svg></span>Communications</button>
       <button class="nav-item" data-page="reports" data-group="reports"><span class="ico" aria-hidden="true"><svg class="admin-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 21V11M10 21V3M16 21V8M22 21V15"/></svg></span>Reports</button>
@@ -317,6 +317,13 @@ body.admin-app.role-ready #view-app{visibility:visible}
 
       <!-- PLAYERS -->
       <section id="page-players" class="hidden">
+        <section class="section-shell admin-only-panel registration-review-section" id="registration-applications-panel">
+          <div class="card-header"><div><h2 class="section-title">Pending Account Verifications <span class="badge badge-pending" id="registration-pending-count">0</span></h2><p class="tiny muted">Review identity documents before activating new player accounts.</p></div>
+            <select class="select" id="registration-status" aria-label="Account application status" style="width:auto"><option value="pending_review">Pending review</option><option value="approved">Approved history</option><option value="rejected">Rejected history</option></select></div>
+          <div class="table-wrap players-table-viewport" role="region" aria-label="Account verification applications. Swipe horizontally to view all columns."><table class="data"><thead><tr><th>Applicant</th><th>Email</th><th>Mobile</th><th>Submitted</th><th>Status</th><th>Actions</th></tr></thead><tbody id="registration-applications-body"></tbody></table></div>
+          <p class="tiny registration-error hidden" id="registration-list-error" role="alert"></p>
+          <div class="row wrap mt-3"><button type="button" class="btn btn-outline btn-sm" id="registration-refresh">Refresh applications</button><button type="button" class="btn btn-outline btn-sm hidden" id="registration-more">Load more</button></div>
+        </section>
         <div class="section-shell">
           <div class="card-header"><h2 class="section-title">Players</h2>
             <input class="input" id="pl-q" aria-label="Search players" placeholder="Search players" style="max-width:260px" /></div>
@@ -687,41 +694,41 @@ body.admin-app.role-ready #view-app{visibility:visible}
         <form class="settings-section hidden mt-5" id="set-payments">
           <div class="card-header" style="align-items:flex-start">
             <div><h2 class="section-title" style="margin-bottom:6px">Booking &amp; manual payments</h2>
-            <p class="page-subtitle">One payment workflow for Court Booking, Tournament and Open Play. Digital payments are verified manually from the submitted reference and receipt.</p></div>
+            <p class="page-subtitle">One payment workflow for Court Booking, Tournament, Open Play and Membership. Digital payments are verified manually from the submitted receipt or payment screenshot.</p></div>
             <span class="badge badge-approved">MANUAL VERIFICATION</span>
           </div>
           <div class="field"><label class="label" for="s-payment_note">Payment note shown to clients</label><input class="input" id="s-payment_note" data-key="payment_note" /></div>
           <div class="alert alert-info"><strong>Full online payment only</strong><br>Cash and Payment at Venue are disabled. Court bookings must be paid in full through an enabled digital/manual-transfer method before approval.</div>
           <div class="payment-channel-grid">
             <div class="payment-channel-section">
-              <div class="spread"><div><strong>GCash</strong><div class="tiny muted">QR + number → manual reference → receipt upload → Admin verification.</div></div><label class="switch"><input type="checkbox" id="s-gcash_enabled" data-key="gcash_enabled"><span class="track"></span></label></div>
+              <div class="spread"><div><strong>GCash</strong><div class="tiny muted">QR / account → payment → receipt upload → Admin verification.</div></div><label class="switch"><input type="checkbox" id="s-gcash_enabled" data-key="gcash_enabled"><span class="track"></span></label></div>
               <div class="grid cols-2 mt-3"><div class="field"><label class="label">Account name</label><input class="input" id="s-gcash_account_name" data-key="gcash_account_name"></div><div class="field"><label class="label">Mobile number</label><input class="input" id="s-gcash_number" data-key="gcash_number" inputmode="tel"></div></div>
               <div class="field"><label class="label">Instructions</label><input class="input" id="s-gcash_instructions" data-key="gcash_instructions" placeholder="Scan QR, send payment, then upload your receipt."></div>
               <div class="payment-qr-upload" data-payment-qr="gcash"><strong>Official GCash QR Code</strong><div data-qr-preview></div><input type="hidden" id="s-gcash_qr_url" data-key="gcash_qr_url"><input type="file" data-qr-file accept="image/png,image/jpeg,image/webp" hidden><div class="row wrap"><button type="button" class="btn btn-outline btn-sm" data-qr-upload>Upload / Replace GCash QR</button><button type="button" class="btn btn-ghost btn-sm" data-qr-remove>Remove QR</button></div><p class="tiny muted">Upload the official image from your payment app. PNG, JPG or WebP, up to 12 MB.</p></div>
             </div>
             <div class="payment-channel-section">
-              <div class="spread"><div><strong>Maya / PayMaya</strong><div class="tiny muted">QR + number → manual reference → receipt upload → Admin verification.</div></div><label class="switch"><input type="checkbox" id="s-maya_enabled" data-key="maya_enabled"><span class="track"></span></label></div>
+              <div class="spread"><div><strong>Maya / PayMaya</strong><div class="tiny muted">QR / account → payment → receipt upload → Admin verification.</div></div><label class="switch"><input type="checkbox" id="s-maya_enabled" data-key="maya_enabled"><span class="track"></span></label></div>
               <div class="grid cols-2 mt-3"><div class="field"><label class="label">Account name</label><input class="input" id="s-maya_account_name" data-key="maya_account_name"></div><div class="field"><label class="label">Mobile number</label><input class="input" id="s-maya_number" data-key="maya_number" inputmode="tel"></div></div>
               <div class="field"><label class="label">Instructions</label><input class="input" id="s-maya_instructions" data-key="maya_instructions" placeholder="Scan QR, send payment, then upload your receipt."></div>
               <div class="payment-qr-upload" data-payment-qr="maya"><strong>Official Maya QR Code</strong><div data-qr-preview></div><input type="hidden" id="s-maya_qr_url" data-key="maya_qr_url"><input type="file" data-qr-file accept="image/png,image/jpeg,image/webp" hidden><div class="row wrap"><button type="button" class="btn btn-outline btn-sm" data-qr-upload>Upload / Replace Maya QR</button><button type="button" class="btn btn-ghost btn-sm" data-qr-remove>Remove QR</button></div><p class="tiny muted">Upload the official image from your payment app. PNG, JPG or WebP, up to 12 MB.</p></div>
             </div>
             <div class="payment-channel-section">
-              <div class="spread"><div><strong>GoTyme Bank</strong><div class="tiny muted">Bank transfer → reference → receipt upload → staff verification.</div></div><label class="switch"><input type="checkbox" id="s-gotyme_enabled" data-key="gotyme_enabled"><span class="track"></span></label></div>
+              <div class="spread"><div><strong>GoTyme Bank</strong><div class="tiny muted">Bank transfer → receipt upload → staff verification.</div></div><label class="switch"><input type="checkbox" id="s-gotyme_enabled" data-key="gotyme_enabled"><span class="track"></span></label></div>
               <div class="grid cols-2 mt-3"><div class="field"><label class="label">Account name</label><input class="input" id="s-gotyme_account_name" data-key="gotyme_account_name"></div><div class="field"><label class="label">Account number</label><input class="input" id="s-gotyme_number" data-key="gotyme_number"></div></div>
               <div class="payment-qr-upload" data-payment-qr="gotyme"><strong>Official GoTyme QR Code</strong><div data-qr-preview></div><input type="hidden" id="s-gotyme_qr_url" data-key="gotyme_qr_url"><input type="file" data-qr-file accept="image/png,image/jpeg,image/webp" hidden><div class="row wrap"><button type="button" class="btn btn-outline btn-sm" data-qr-upload>Upload / Replace GoTyme QR</button><button type="button" class="btn btn-ghost btn-sm" data-qr-remove>Remove QR</button></div><p class="tiny muted">Upload the official image from your payment app. PNG, JPG or WebP, up to 12 MB.</p></div>
-              <div class="field"><label class="label">Instructions</label><input class="input" id="s-gotyme_instructions" data-key="gotyme_instructions" placeholder="Send exact amount, enter reference, upload receipt."></div>
+              <div class="field"><label class="label">Instructions</label><input class="input" id="s-gotyme_instructions" data-key="gotyme_instructions" placeholder="Send the exact amount, then upload a clear payment receipt or screenshot."></div>
             </div>
             <div class="payment-channel-section payment-channel-section-wide">
               <div class="spread"><div><strong>Others</strong><div class="tiny muted">Configure multiple alternative banks/e-wallets. Each account can have its own number and several official QR/payment images.</div></div><label class="switch"><input type="checkbox" id="s-other_enabled" data-key="other_enabled"><span class="track"></span></label></div>
               <div class="field mt-3"><label class="label">Display label</label><input class="input" id="s-other_label" data-key="other_label" placeholder="Others"></div>
-              <div class="field"><label class="label">General instructions</label><textarea class="textarea" id="s-other_instructions" data-key="other_instructions" placeholder="Select one of the payment destinations below, send the exact amount, enter the reference number and upload a receipt."></textarea></div>
+              <div class="field"><label class="label">General instructions</label><textarea class="textarea" id="s-other_instructions" data-key="other_instructions" placeholder="Select one of the payment destinations below, send the exact amount, then upload a clear payment receipt or screenshot."></textarea></div>
               <textarea id="s-other_payment_options" data-key="other_payment_options" class="hidden" aria-hidden="true"></textarea>
               <div class="spread mt-3"><div><strong>Alternative payment accounts</strong><div class="tiny muted">Examples: BPI, BDO, UnionBank, SeaBank, ShopeePay. Add a number/account and one or more official payment images.</div></div><button class="btn btn-outline btn-sm" id="btn-add-other-payment" type="button">+ Add Payment Account</button></div>
               <div id="other-payment-options-admin" class="other-payment-admin-list mt-3"></div>
               <input id="other-payment-image-file" type="file" accept="image/png,image/jpeg,image/webp" multiple hidden>
             </div>
           </div>
-          <div class="panel mt-4"><strong>Duplicate protection</strong><div class="tiny muted mt-2">Manual references and receipt file fingerprints are checked across active payment records. A suspicious duplicate is blocked or flagged for Admin review using the manual reference and receipt fingerprint.</div></div>
+          <div class="panel mt-4"><strong>Duplicate protection</strong><div class="tiny muted mt-2">Receipt file fingerprints are checked across payment records. A suspicious duplicate receipt is flagged for Admin review. Historical transaction references remain available for fraud and history checks.</div></div>
           <div class="mt-4"><button class="btn btn-primary" type="submit" data-loading="Saving...">Save booking &amp; payment settings</button></div>
         </form>
 
@@ -891,6 +898,13 @@ body.admin-app.role-ready #view-app{visibility:visible}
 
         <section class="settings-section hidden mt-5" id="set-security">
           <h2 class="section-title" style="margin-bottom:16px">Security & backup</h2>
+          <form id="set-registration" class="admin-only-panel registration-settings">
+            <h3 class="card-title">Account Registration &amp; Verification</h3>
+            <label class="switch"><input type="checkbox" id="s-require_admin_registration_approval" data-key="require_admin_registration_approval" aria-describedby="registration-approval-help" /><span class="track"></span><span>Require Admin Approval for New Accounts</span></label>
+            <p class="field-hint" id="registration-approval-help">When enabled, new player registrations remain pending until an Admin reviews the submitted Valid ID. When disabled, the account is activated automatically after the required Profile Picture and Valid ID are successfully submitted.</p>
+            <p class="tiny muted">Profile Picture and Valid ID are always required. This affects new submissions only; existing pending applications still need an Admin decision.</p>
+            <button type="submit" class="btn btn-primary" data-loading="Saving...">Save registration settings</button>
+          </form>
           <button id="pwa-install-admin" class="btn btn-primary btn-block pwa-install-inline" type="button" hidden>Install Admin App</button>
                     <form id="form-adminpw" style="max-width:420px">
             <div class="field"><label class="label" for="ap-cur">Current password</label><input class="input" id="ap-cur" type="password" required autocomplete="current-password" /></div>
@@ -1339,7 +1353,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
           '<td>' + esc(t.item_name || '—') + (t.division_name ? '<div class="tiny muted">' + esc(t.division_name) + '</div>' : '') + '</td>' +
           '<td class="num">' + esc(money(t.amount_due)) + '</td>' +
           '<td>' + esc(String(t.payment_provider || 'MANUAL').toUpperCase()) + '<div class="tiny muted">' + esc((t.payment_method || '').toUpperCase()) + '</div>' +
-          '<div class="tiny muted">' + esc(t.reference_number || (String(t.payment_method||'').toLowerCase()==='cash' ? 'cash collection' : 'no reference')) + '</div></td>' +
+          '<div class="tiny muted">' + esc(t.reference_number || (String(t.payment_method||'').toLowerCase()==='cash' ? 'cash collection' : 'Receipt verification')) + '</div></td>' +
           '<td>' + txBadge(TX_STATUS_LABEL[t.unified_status] || t.unified_status, TX_STATUS_CLASS[t.unified_status] || 'badge-pending') + '</td>' +
           '<td class="tiny">' + esc(txStamp(t.created_at)) + '</td>' +
           '<td class="row-actions"><button class="btn btn-primary btn-sm" data-tx-open="' + esc(t.transaction_key) + '">Review</button></td></tr>';
@@ -1367,7 +1381,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
   }
 
   function txValidationBlock(t) {
-    return t.duplicate_warning ? '<div class="alert alert-warning"><strong>Possible duplicate</strong><br><span class="tiny">Another payment may use the same reference or receipt. Compare the receipt before marking paid.</span></div>' : '';
+    return t.duplicate_warning ? '<div class="alert alert-warning"><strong>Possible duplicate</strong><br><span class="tiny">'+(t.reference_number?'Another historical payment may use the same reference or receipt.':'Possible duplicate receipt.')+' Inspect carefully before verifying.</span></div>' : '';
   }
 
   function openTransactionModal(key, after) {
@@ -1376,7 +1390,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
       var closed=['verified','rejected','approved','cancelled','completed'].indexOf(String(t.status||'').toLowerCase())>=0;
       var actions='';
       if(!closed && ['submitted','under_review'].indexOf(String(t.status||'').toLowerCase())>=0){
-        actions='<div class="action-panel review-actions"><strong>'+(isCash?'Cash collection':'Payment review')+'</strong><p class="tiny muted mt-2">'+(isCash?'Record only after cash is physically received.':'Compare the uploaded receipt with the manually entered reference before verifying.')+'</p><div class="field"><label class="label">Verification notes</label><textarea class="textarea" id="tx-review-notes" maxlength="400"></textarea></div><div class="row wrap"><button class="btn btn-success" data-tx-verify>'+(isCash?'Mark cash paid':'Mark paid')+'</button><button class="btn btn-danger" data-tx-reject>Reject</button></div></div>';
+        actions='<div class="action-panel review-actions"><strong>'+(isCash?'Cash collection':'Payment review')+'</strong><p class="tiny muted mt-2">'+(isCash?'Record only after cash is physically received.':'Compare the uploaded receipt with the actual receiving account transaction records before verifying.')+'</p><div class="field"><label class="label">Verification notes</label><textarea class="textarea" id="tx-review-notes" maxlength="400"></textarea></div><div class="row wrap"><button class="btn btn-success" data-tx-verify>'+(isCash?'Mark cash paid':'Mark paid')+'</button><button class="btn btn-danger" data-tx-reject>Reject</button></div></div>';
       } else actions='<p class="tiny muted">Current status: '+esc(TX_STATUS_LABEL[t.unified_status]||t.unified_status)+'</p>';
       if(isAdmin() && String(t.status).toLowerCase()==='verified'){
         actions+='<section class="payment-fraud-action mt-3"><div class="alert alert-warning"><strong>Payment verification override</strong><p class="tiny">Super Admin only. Independently verify the real payment records before invalidating a Paid transaction. This can restrict the player account, retain the original receipt and preserve existing transaction history.</p></div><button type="button" class="btn btn-danger" data-tx-fraud-open>Reject this payment</button><div data-tx-fraud-panel hidden><div class="field mt-3"><label class="label" for="tx-fraud-reason">Reason / verified findings</label><textarea id="tx-fraud-reason" class="textarea" rows="4" minlength="20" maxlength="800" placeholder="Explain the payment account verification and why this receipt is invalid."></textarea></div><label class="payment-fraud-check"><input type="checkbox" id="tx-fraud-confirm"><span>I independently checked management payment records, confirm payment was not received, and understand the player account will be banned.</span></label><div class="row wrap mt-3"><button type="button" class="btn btn-danger" data-tx-fraud-apply>Confirm rejection &amp; ban account</button><button type="button" class="btn btn-outline" data-tx-fraud-back>Back</button></div></div></section>';
@@ -1385,7 +1399,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
         actions+='<section class="payment-fraud-action mt-3"><div class="alert alert-warning"><strong>Fraud decision recorded</strong><p class="tiny">The original payment remains invalidated. An authorized appeal can restore account access without marking an invalid payment as paid.</p></div><button type="button" class="btn btn-outline" data-tx-fraud-appeal>Review / overturn account ban</button></section>';
       }
       var history=(t.client_history||[]).slice(0,8).map(function(h){return '<tr><td>'+esc(h.transaction_key)+'</td><td>'+esc(TX_TYPE_LABEL[h.transaction_type]||h.transaction_type)+'</td><td class="num">'+esc(money(h.amount))+'</td><td>'+esc(h.status)+'</td><td class="tiny">'+esc(txStamp(h.created_at))+'</td></tr>';}).join('');
-      var host=modal({title:'Payment review · '+(TX_TYPE_LABEL[t.transaction_type]||t.transaction_type)+' '+t.transaction_key,wide:true,cancelText:'Close',body:'<div class="grid cols-2 payment-review-grid"><div><div class="receipt-frame" id="tx-receipt"></div></div><div class="stack" style="gap:12px"><table class="data"><tbody><tr><td class="muted">Client</td><td>'+esc(t.client_name||'—')+'<div class="tiny muted">'+esc(t.client_email||'')+'</div></td></tr><tr><td class="muted">Item</td><td>'+esc(t.item_name||'—')+(t.division_name?' · '+esc(t.division_name):'')+'</td></tr><tr><td class="muted">Amount</td><td><strong>'+esc(money(t.amount_due))+'</strong></td></tr><tr><td class="muted">Method</td><td>'+esc(String(t.payment_method||'').toUpperCase())+'</td></tr><tr><td class="muted">Reference</td><td class="num">'+esc(t.reference_number||(isCash?'Cash collection':'—'))+'</td></tr><tr><td class="muted">Submitted</td><td>'+esc(txStamp(t.created_at))+'</td></tr><tr><td class="muted">Status</td><td>'+txBadge(TX_STATUS_LABEL[t.unified_status]||t.unified_status,TX_STATUS_CLASS[t.unified_status]||'badge-pending')+'</td></tr>'+(t.cancellation_source?'<tr><td class="muted">Related service</td><td>Cancelled by '+esc(t.cancellation_source==='venue'?'Management / Venue':'Player')+(t.cancellation_resolution?'<div class="tiny muted">Resolution: '+esc(t.cancellation_resolution==='credit'?'PIKOL Credit issued':t.cancellation_resolution)+'</div>':'')+(t.cancellation_reason?'<div class="tiny muted">'+esc(t.cancellation_reason)+'</div>':'')+'</td></tr>':'')+'</tbody></table>'+window.PikolVenueUI.segmentsHtml(t.booking_group,{humanTime,money})+txValidationBlock(t)+(history?'<details><summary class="tiny muted">Client payment history</summary><table class="data mt-2"><tbody>'+history+'</tbody></table></details>':'')+actions+'</div></div>'});
+      var host=modal({title:'Payment review · '+(TX_TYPE_LABEL[t.transaction_type]||t.transaction_type)+' '+t.transaction_key,wide:true,cancelText:'Close',body:'<div class="grid cols-2 payment-review-grid"><div><div class="receipt-frame" id="tx-receipt"></div></div><div class="stack" style="gap:12px"><table class="data"><tbody><tr><td class="muted">Client</td><td>'+esc(t.client_name||'—')+'<div class="tiny muted">'+esc(t.client_email||'')+'</div></td></tr><tr><td class="muted">Item</td><td>'+esc(t.item_name||'—')+(t.division_name?' · '+esc(t.division_name):'')+'</td></tr><tr><td class="muted">Amount</td><td><strong>'+esc(money(t.amount_due))+'</strong></td></tr><tr><td class="muted">Method</td><td>'+esc(String(t.payment_method||'').toUpperCase())+'</td></tr>'+(t.reference_number?'<tr><td class="muted">Reference</td><td class="num">'+esc(t.reference_number)+'</td></tr>':'')+'<tr><td class="muted">Submitted</td><td>'+esc(txStamp(t.created_at))+'</td></tr><tr><td class="muted">Status</td><td>'+txBadge(TX_STATUS_LABEL[t.unified_status]||t.unified_status,TX_STATUS_CLASS[t.unified_status]||'badge-pending')+'</td></tr>'+(t.cancellation_source?'<tr><td class="muted">Related service</td><td>Cancelled by '+esc(t.cancellation_source==='venue'?'Management / Venue':'Player')+(t.cancellation_resolution?'<div class="tiny muted">Resolution: '+esc(t.cancellation_resolution==='credit'?'PIKOL Credit issued':t.cancellation_resolution)+'</div>':'')+(t.cancellation_reason?'<div class="tiny muted">'+esc(t.cancellation_reason)+'</div>':'')+'</td></tr>':'')+'</tbody></table>'+window.PikolVenueUI.segmentsHtml(t.booking_group,{humanTime,money})+txValidationBlock(t)+(history?'<details><summary class="tiny muted">Client payment history</summary><table class="data mt-2"><tbody>'+history+'</tbody></table></details>':'')+actions+'</div></div>'});
       if(isCash) $('#tx-receipt',host).innerHTML='<div class="cash-receipt-placeholder"><span>₱</span><strong>Cash</strong><small>No receipt upload required</small></div>';
       else if(t.has_receipt) txReceiptUrl(t.transaction_key).then(function(url){$('#tx-receipt',host).innerHTML='<a href="'+assetUrl(url)+'" target="_blank" rel="noopener"><img src="'+assetUrl(url)+'" alt="Payment receipt" /></a>';}).catch(function(e){$('#tx-receipt',host).innerHTML='<span class="muted tiny">'+esc(e.message)+'</span>';});
       else $('#tx-receipt',host).innerHTML='<span class="muted tiny">No receipt stored.</span>';
@@ -1436,7 +1450,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
     api('/api/bookings/'+bookingId+'/payment').then(function(r){
       var pmt=r.payment||r;if(!pmt||!pmt.id)throw new Error('No payment found for this reservation.');
       var isCash=String(pmt.payment_method||'').toLowerCase()==='cash';
-      var body='<dl class="summary-list"><div class="summary-row"><dt>Method</dt><dd>'+esc(String(pmt.payment_method||'').toUpperCase())+'</dd></div><div class="summary-row"><dt>Amount</dt><dd>'+esc(money(pmt.amount))+'</dd></div><div class="summary-row"><dt>Reference</dt><dd>'+esc(pmt.reference_number||(isCash?'Cash collection':'—'))+'</dd></div><div class="summary-row"><dt>Status</dt><dd>'+badge(pmt.status)+'</dd></div></dl>'+(pmt.duplicate_warning?'<div class="alert alert-warning">Possible duplicate reference or receipt. Inspect carefully before verifying.</div>':'')+'<div id="pv-receipt" class="receipt-frame mt-3"></div>';
+      var body='<dl class="summary-list"><div class="summary-row"><dt>Method</dt><dd>'+esc(String(pmt.payment_method||'').toUpperCase())+'</dd></div><div class="summary-row"><dt>Amount</dt><dd>'+esc(money(pmt.amount))+'</dd></div>'+(pmt.reference_number?'<div class="summary-row"><dt>Reference</dt><dd>'+esc(pmt.reference_number)+'</dd></div>':'')+'<div class="summary-row"><dt>Status</dt><dd>'+badge(pmt.status)+'</dd></div></dl>'+(pmt.duplicate_warning?'<div class="alert alert-warning">'+(pmt.reference_number?'Possible duplicate reference or receipt.':'Possible duplicate receipt.')+' Inspect carefully before verifying.</div>':'')+'<div id="pv-receipt" class="receipt-frame mt-3"></div>';
       if(['submitted','under_review'].indexOf(String(pmt.status||'').toLowerCase())>=0) body+='<div class="field mt-3"><label class="label">Verification notes</label><textarea class="textarea" id="pv-notes"></textarea></div><button class="btn btn-success" id="pv-verify">'+(isCash?'Mark cash paid':'Mark paid')+'</button>';
       if(isAdmin()&&String(pmt.status||'').toLowerCase()==='verified')body+='<div class="payment-fraud-action mt-3"><div class="alert alert-warning"><strong>Payment verification override</strong><p class="tiny">Only the Owner / Super Admin may reject an already verified payment after checking the real transaction history. This action cancels unplayed linked bookings, restricts the player account and preserves the original receipt.</p></div><button type="button" class="btn btn-danger" id="pv-fraud-open">Reject this payment</button><div id="pv-fraud-panel" hidden><div class="field mt-3"><label class="label" for="pv-fraud-reason">Reason / verified findings (required)</label><textarea id="pv-fraud-reason" class="textarea" rows="4" minlength="20" maxlength="800" placeholder="Describe what you checked in the actual GCash / Maya / bank / cash account, and why no valid payment exists."></textarea></div><label class="payment-fraud-check"><input type="checkbox" id="pv-fraud-confirm"><span>I independently checked management payment records, confirm this is not a real received payment and understand that the player account will be banned.</span></label><div class="row wrap mt-3"><button type="button" class="btn btn-danger" id="pv-fraud-apply">Confirm rejection &amp; ban account</button><button type="button" class="btn btn-outline" id="pv-fraud-cancel">Back</button></div></div></div>';
       if(isAdmin()&&String(pmt.status||'').toLowerCase()==='rejected_fraud')body+='<div class="payment-fraud-action mt-3"><div class="alert alert-warning"><strong>Fraud decision recorded.</strong><p class="tiny">The rejected payment remains invalidated. A separate appeal review may restore account access without falsely marking a payment as collected.</p></div><button type="button" class="btn btn-outline" id="pv-fraud-appeal">Review / overturn account ban</button></div>';
@@ -1539,6 +1553,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
   });
   function signOutLocal() {
     TOKEN = ''; USER = null; sessionStorage.removeItem('pb_admin_token');
+    ++REG_REQUEST;releaseRegistrationImages();$('#registration-applications-body').innerHTML='';
     if (RT) RT.disconnect();
     COURTS=[]; PLAYERS=[]; BOOKINGS=[]; SETTINGS={};
     var mr=$('#modal-root');if(mr){if(mr.children.length||Object.prototype.hasOwnProperty.call(mr.dataset,'previousOverflow')){document.body.style.overflow=mr.dataset.previousOverflow||'';delete mr.dataset.previousOverflow;}mr.innerHTML='';}
@@ -2586,7 +2601,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
             badge: dup ? '<span class="badge badge-pending">Check duplicate</span>' : '',
             title: t.client_name || 'Unknown client',
             meta: esc((t.payment_method || 'payment').toUpperCase()) + ' · <span class="num">' + esc(money(t.amount_due)) +
-              '</span><br><span class="tiny muted">' + esc(t.item_name || '') + ' · ' + esc(t.reference_number || 'no reference') + '</span>',
+              '</span><br><span class="tiny muted">' + esc(t.item_name || '') + (t.reference_number ? ' · ' + esc(t.reference_number) : '') + '</span>',
             action: 'data-tx-open="' + esc(t.transaction_key) + '"',
             actionLabel: 'Review payment'
           });
@@ -3169,7 +3184,83 @@ body.admin-app.role-ready #view-app{visibility:visible}
   /* ---------- players ---------- */
   var plTimer;
   $('#pl-q').addEventListener('input', function () { clearTimeout(plTimer); plTimer = setTimeout(loadPlayers, 260); });
+  var REG_NEXT=null,REG_REQUEST=0,REG_IMAGE_URLS=[];
+  function releaseRegistrationImages(){
+    REG_IMAGE_URLS.forEach(function(item){URL.revokeObjectURL(item.url);item.image.removeAttribute('src');});REG_IMAGE_URLS=[];
+  }
+  var registrationImageObserver=new MutationObserver(function(){
+    REG_IMAGE_URLS=REG_IMAGE_URLS.filter(function(item){if(item.image.isConnected)return true;URL.revokeObjectURL(item.url);return false;});
+  });
+  registrationImageObserver.observe(document.body,{childList:true,subtree:true});
+  function registrationCount(n){
+    $('#registration-pending-count').textContent=n;
+    var badge=$('#nav-registration-count');badge.textContent=n;badge.classList.toggle('hidden',!n);
+  }
+  function refreshRegistrationBadge(){
+    if(!isAdmin())return Promise.resolve();
+    return api('/api/admin/registration-applications?count_only=1').then(function(data){registrationCount(data.pending_count);}).catch(function(){});
+  }
+  function loadRegistrationImage(id,kind,image,thumbnail){
+    var token=TOKEN;
+    return fetch(API+'/api/admin/registration-applications/'+id+'/'+kind+(thumbnail?'?thumbnail=1':''),{headers:{Authorization:'Bearer '+token},cache:'no-store'})
+      .then(function(response){if(!response.ok)throw new Error('The private image could not be loaded.');return response.blob();})
+      .then(function(blob){if(TOKEN!==token||!image.isConnected)throw new Error('Image review closed.');var url=URL.createObjectURL(blob);image.src=url;REG_IMAGE_URLS.push({image:image,url:url});return image.decode?image.decode().then(function(){return url;}):url;});
+  }
+  function registrationBadge(row){return '<span class="badge '+(row.status==='approved'?'badge-confirmed':row.status==='rejected'?'badge-rejected':'badge-pending')+'">'+esc(row.status==='pending_review'?'Pending review':row.status==='approved'?(row.activation_mode==='automatic'?'Auto-activated':'Approved'):'Rejected')+'</span>';}
+  function loadRegistrationApplications(append){
+    if(!isAdmin())return Promise.resolve();
+    var revision=++REG_REQUEST,status=$('#registration-status').value;
+    $('#registration-list-error').classList.add('hidden');
+    return api('/api/admin/registration-applications?status='+status+(append&&REG_NEXT?'&before='+REG_NEXT:''))
+      .then(function(data){
+        if(revision!==REG_REQUEST)return;REG_NEXT=data.next_before;registrationCount(data.pending_count);
+        var body=$('#registration-applications-body');
+        var rows=data.applications.map(function(row){return '<tr><td><div class="registration-applicant"><img class="registration-avatar" data-registration-photo="'+row.id+'" alt="Applicant profile picture"/><strong>'+esc(row.full_name)+'</strong></div></td><td>'+esc(row.email)+'</td><td>'+esc(row.mobile)+'</td><td>'+esc(txStamp(row.submitted_at))+'</td><td>'+registrationBadge(row)+'</td><td><button type="button" class="btn btn-outline btn-sm" data-registration-review="'+row.id+'">Review</button></td></tr>';}).join('');
+        if(append)body.insertAdjacentHTML('beforeend',rows);else body.innerHTML=rows||'<tr><td colspan="6"><div class="empty"><strong>No '+(status==='pending_review'?'pending account verifications':'applications in this history')+'</strong></div></td></tr>';
+        $('#registration-more').classList.toggle('hidden',!REG_NEXT);
+        body.querySelectorAll('[data-registration-photo]:not([data-requested])').forEach(function(image){image.dataset.requested='1';loadRegistrationImage(image.dataset.registrationPhoto,'profile-photo',image,true).catch(function(){image.alt='Profile preview unavailable';});});
+      }).catch(function(error){if(revision===REG_REQUEST){$('#registration-list-error').textContent=error.message+' Use Refresh applications to retry.';$('#registration-list-error').classList.remove('hidden');}});
+  }
+  $('#registration-status').onchange=function(){loadRegistrationApplications();};
+  $('#registration-refresh').onclick=function(){loadRegistrationApplications();};
+  $('#registration-more').onclick=function(){loadRegistrationApplications(true);};
+  document.addEventListener('click',function(event){
+    var button=event.target.closest('[data-registration-review]');if(!button)return;
+    api('/api/admin/registration-applications/'+button.dataset.registrationReview).then(function(row){
+      var pending=row.status==='pending_review';
+      var host=modal({title:'Account registration review',wide:true,confirmText:pending?'Approve Registration':null,cancelText:'Close',
+        body:'<div class="registration-review-grid"><section><h3 class="card-title">Applicant</h3><img class="registration-review-profile" data-review-profile alt="Applicant profile picture"/><h3>'+esc(row.full_name)+'</h3><p>'+esc(row.email)+'<br>'+esc(row.mobile)+'</p><p class="tiny muted">Submitted '+esc(txStamp(row.submitted_at))+'</p>'+registrationBadge(row)+(row.reviewed_at?'<p class="tiny muted">Reviewed '+esc(txStamp(row.reviewed_at))+'</p>':'')+(row.rejection_reason?'<p><strong>Reason:</strong> '+esc(row.rejection_reason)+'</p>':'')+'</section><section><h3 class="card-title">Identity verification</h3><p class="tiny muted">Private Valid ID · Authorized Management staff only</p><p data-id-state role="status">Loading private Valid ID…</p><img class="registration-review-id" data-review-id alt="Applicant private Valid ID" hidden/><button type="button" class="btn btn-outline btn-sm" data-id-retry hidden>Retry loading Valid ID</button></section></div>'+
+          (pending?'<section class="registration-rejection"><h3 class="card-title">Request a correction</h3><label class="label" for="registration-reason-option">Reason for rejection</label><select class="select" id="registration-reason-option"><option value="">Choose a reason</option><option>Valid ID is unclear</option><option>Invalid identification document</option><option>Information cannot be verified</option><option>Profile Picture is unclear</option><option>Submitted information does not match</option><option>Other</option></select><label class="label mt-3" for="registration-reason">Reason / correction needed (required)</label><textarea class="textarea" id="registration-reason" minlength="3" maxlength="500" required></textarea><button type="button" class="btn btn-danger mt-3" data-registration-reject>Reject Registration</button></section>':''),
+        onConfirm:function(){
+          var reject=$('[data-registration-reject]',host);if(reject)reject.disabled=true;
+          return api('/api/admin/registration-applications/'+row.id+'/approve',{method:'POST',body:{}})
+            .then(function(){toast('Registration approved. The player can now log in.','success');loadPlayers();refreshRegistrationBadge();})
+            .finally(function(){if(reject)reject.disabled=false;});
+        }});
+      loadRegistrationImage(row.id,'profile-photo',$('[data-review-profile]',host)).catch(function(){});
+      var approve=$('[data-confirm]',host);if(approve)approve.disabled=true;
+      function loadId(){
+        var image=$('[data-review-id]',host);$('[data-id-state]',host).textContent='Loading private Valid ID…';$('[data-id-retry]',host).hidden=true;
+        loadRegistrationImage(row.id,'valid-id',image).then(function(){image.hidden=false;$('[data-id-state]',host).textContent='Private Valid ID loaded for review.';if(approve)approve.disabled=false;})
+          .catch(function(error){$('[data-id-state]',host).textContent=error.message;$('[data-id-retry]',host).hidden=false;});
+      }
+      $('[data-id-retry]',host).onclick=loadId;loadId();
+      if(pending){
+        $('#registration-reason-option',host).onchange=function(){var reason=$('#registration-reason',host);reason.value=this.value==='Other'?'':this.value;reason.focus();};
+        $('[data-registration-reject]',host).onclick=function(){
+          var reason=$('#registration-reason',host).value.trim(),reject=this;
+          if(reason.length<3){toast('Enter a rejection reason (at least 3 characters).','warning');$('#registration-reason',host).focus();return;}
+          var wasDisabled=approve.disabled;busy(reject,true);approve.disabled=true;
+          api('/api/admin/registration-applications/'+row.id+'/reject',{method:'POST',body:{reason:reason}})
+            .then(function(){host.remove();toast('Registration rejected. The applicant may submit corrected information.','success');loadPlayers();refreshRegistrationBadge();})
+            .catch(function(error){toast(error.message,'error');}).finally(function(){busy(reject,false);approve.disabled=wasDisabled;});
+        };
+      }
+    }).catch(function(error){toast(error.message,'error');});
+  });
+
   function loadPlayers() {
+    loadRegistrationApplications();
     var q = $('#pl-q').value.trim();
     return api('/api/admin/players' + (q ? '?q=' + encodeURIComponent(q) : '')).then(function (rows) {
       PLAYERS = rows;
@@ -3894,6 +3985,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
         .finally(function () { busy(btn, false); });
     });
   }
+  saveSettings($('#set-registration'), ['require_admin_registration_approval']);
   saveSettings($('#set-branding'), ['facility_name','short_name','tagline','description','address','contact_number','contact_email','website','social_facebook','social_instagram','brand_primary','brand_secondary','brand_accent','booking_prefix']);
   saveSettings($('#set-booking'), ['maximum_players','slot_minutes','currency','facility_timezone','checkout_hold_minutes']);
   saveSettings($('#set-membership'), ['membership_enabled','membership_sms_enabled','membership_expiry_reminder_days','nonmember_advance_days','nonmember_max_active_bookings','nonmember_cancellation_hours']);
@@ -3936,7 +4028,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
   };
 
   /* ---------- In-Charge PWA push ---------- */
-  var ADMIN_SW_VERSION='105-smart-openplay-safe-20261018';
+  var ADMIN_SW_VERSION='106-registration-receipts-20261102';
   var PUSH_PREP={reg:null,publicKey:null,serverStatus:null,ready:false,error:null,promise:null};
   function b64ToUint8(s){s=String(s||'').replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';var raw=atob(s),a=new Uint8Array(raw.length);for(var i=0;i<raw.length;i++)a[i]=raw.charCodeAt(i);return a;}
   function bytesEqual(a,b){if(!a||!b)return false;var x=new Uint8Array(a),y=new Uint8Array(b);if(x.length!==y.length)return false;for(var i=0;i<x.length;i++)if(x[i]!==y[i])return false;return true;}
@@ -4782,6 +4874,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
       'tournament:registration_updated': function () { if (onPage('tournaments')) { run('treg', loadTournamentRegistrations); run('tournaments', loadTournaments); } run('badges', refreshEventBadges); },
       'tournament:payment_updated': function () { if (onPage('tournaments')) {run('treg', loadTournamentRegistrations);run('tournaments', loadTournaments);} run('badges', refreshEventBadges); },
       'availability:changed': function () { window.dispatchEvent(new Event('pikol:availability')); if (onPage('calendar')) run('calendar', loadCalendar); },
+      'registration:updated': function () { refreshRegistrationBadge(); if(onPage('players'))run('registration',loadRegistrationApplications); },
       'player:created': function () { if (onPage('players')) run('players', loadPlayers); run('dashboard', loadDashboard); },
       'player:updated': function () { run('player-directory', loadPlayerDirectory); if (onPage('players')) run('players', loadPlayers); },
       'player:profile_updated': function () { run('player-directory', loadPlayerDirectory); if (onPage('players')) run('players', loadPlayers); else refreshCurrent(); },
@@ -4941,6 +5034,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
     $('#admin-account').title = USER.email || '';
     $('#admin-avatar').textContent = (USER.full_name || USER.email || 'A').trim().split(/\s+/).slice(0, 2).map(function (n) { return n.charAt(0); }).join('').toUpperCase();
     applyRoleUI();
+    refreshRegistrationBadge();
     if(isAdmin())loadSettings().then(loadCourts).catch(function () { loadCourts(); });
     var pushParams=new URLSearchParams(location.search),pushPage=pushParams.get('push_page');
     var landing=(pushPage&&LOADERS[pushPage]&&roleAllows(pushPage))?pushPage:roleHomePage();
