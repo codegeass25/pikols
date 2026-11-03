@@ -10,3 +10,15 @@
 .op3-leave-btn:hover{background:#7e2925!important}
 .op3-auto-status{padding:10px 13px;border-radius:12px;background:rgba(145,200,92,.1);border:1px solid rgba(145,200,92,.3);margin:9px 0}
 .op3-stat{min-width:0}.op3-stat b{overflow-wrap:anywhere;line-height:1.15}.op3-qr svg{max-width:100%;height:auto}.op3-shell button:focus-visible,.op3-settings button:focus-visible{outline:3px solid #88b95e;outline-offset:2px}.op3-shell [hidden],.op3-settings [hidden]{display:none!important}
+
+.op-contest-board details, .op-contest-preview, #op-advanced { margin-block: 0.75rem; }
+.op-contest-board summary, #op-advanced summary { font-weight: 700; cursor: pointer; }
+#op-advanced summary { margin-bottom: 0.65rem; }
+.op-contest-settings [hidden], .op-contest-preview[hidden] { display: none; }
+.op-contest-settings input[type=number] { width: 100%; }
+.op-contest-preview label { display: block; margin-block: 0.6rem; }
+.op-contest-table { overflow-x: auto; margin-block: 0.75rem; }
+.op-contest-table table { min-width: 38rem; width: 100%; border-collapse: collapse; }
+.op-contest-table td, .op-contest-table th { padding: 0.4rem; text-align: left; border-bottom: 1px solid #52736f66; }
+.op-contest-match { flex-wrap: wrap; overflow-wrap: anywhere; }
+.op-poster-preview canvas { display: block; width: min(100%, 360px); height: auto; margin: 0.75rem auto; }
