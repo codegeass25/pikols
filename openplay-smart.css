@@ -22,3 +22,40 @@
 .op-contest-table td, .op-contest-table th { padding: 0.4rem; text-align: left; border-bottom: 1px solid #52736f66; }
 .op-contest-match { flex-wrap: wrap; overflow-wrap: anywhere; }
 .op-poster-preview canvas { display: block; width: min(100%, 360px); height: auto; margin: 0.75rem auto; }
+
+/* Open Play Admin form: date → venue → courts → available time, with inline preset guide.
+   Scoped to the modal form so existing public Open Play, scoring and live court CSS stay intact. */
+.op-create-schedule,.op-preset-section,.op-event-details{min-width:0;max-width:100%}
+.op-create-schedule{border:1px solid #dbe8df;background:linear-gradient(135deg,#f7fbf8,#fff);border-radius:14px;padding:15px 15px 3px;margin-bottom:15px}
+.op-create-schedule .event-venue-select,.op-create-schedule .field{min-width:0}
+.op-create-schedule .op-time-frame{border-top:1px solid #d8e5de;padding-top:13px;margin-top:5px}
+.op-create-schedule .op-time-grid{gap:10px 14px;margin-top:10px}
+.op-create-schedule .op-time-grid .field{margin-bottom:7px}
+.op-create-schedule .op-time-grid .select{width:100%;min-width:0}
+.op-time-hint{font-size:12px;line-height:1.55;color:#527264;margin:6px 0 9px;overflow-wrap:anywhere}
+.op-schedule-preview{margin:8px 0 12px;min-width:0}
+.op-schedule-preview .slot-availability{max-width:100%;min-width:0;overflow-x:auto}
+.op-preset-section{margin:16px 0 10px}
+.op-preset-section .field{margin-bottom:11px}
+.op-preset-section .op3-small{font-size:12px;line-height:1.55;margin:5px 0 9px}
+.op-preset-guide{background:linear-gradient(135deg,#f0faf3 0%,#fff 100%);border:1px solid #b6d9c4;border-radius:14px;padding:16px;color:#173d2e;overflow-wrap:anywhere}
+.op-preset-guide-heading{display:flex;align-items:flex-start;gap:11px;margin-bottom:13px}
+.op-preset-guide-symbol{font-size:23px;color:#166844;line-height:1.2;flex:none}
+.op-preset-guide h3{font-size:16px;font-weight:850;line-height:1.35;margin:0 0 5px;color:#164632}
+.op-preset-guide-intro{font-size:13px;line-height:1.65;margin:0;color:#385c4a}
+.op-preset-guide-rows{border:1px solid #d5e8da;background:#fff;border-radius:11px;overflow:hidden}
+.op-preset-guide-row{display:grid;grid-template-columns:minmax(105px,29%) minmax(0,1fr);gap:9px 14px;padding:10px 12px;font-size:12px;line-height:1.55}
+.op-preset-guide-row+.op-preset-guide-row{border-top:1px solid #e4eee7}
+.op-preset-guide-label{font-weight:800;color:#255d43}
+.op-preset-guide-detail{color:#24473a;min-width:0}
+.op-preset-guide-example,.op-preset-guide-contest{font-size:12px;line-height:1.6;padding:11px 12px;margin-top:11px;border-radius:10px;background:#e8f4eb;border:1px solid #d3e7d8}
+.op-preset-guide-example strong,.op-preset-guide-contest strong{color:#154e35;font-size:12px}
+.op-preset-guide-example p,.op-preset-guide-contest p{margin:4px 0 0;color:#335944}
+.op-preset-guide-contest{background:#edf6fa;border-color:#d6e7ee}
+.op-preset-guide-contest.is-warning{background:#fff4e3;border-color:#eed2a0}
+.op-preset-guide-footnote{font-size:11px;line-height:1.55;color:#4b715e;margin:11px 2px 0}
+.op-event-details{margin-top:16px}
+.op-form-section-label{font-size:14px;font-weight:850;color:#1e5038;margin:0 0 12px}
+.op-event-details-grid{gap:0 14px}
+@media(max-width:600px){.op-create-schedule{padding:12px 11px 2px}.op-preset-guide{padding:12px}.op-preset-guide-row{grid-template-columns:1fr;gap:3px;padding:10px 11px}.op-preset-guide-heading{gap:8px}.op-preset-guide h3{font-size:15px}.op-create-schedule .op-time-grid{grid-template-columns:minmax(0,1fr)!important}}
+@media(prefers-reduced-motion:reduce){.op-preset-guide{transition:none}}

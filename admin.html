@@ -963,8 +963,8 @@ body.admin-app.role-ready #view-app{visibility:visible}
 <div class="toast-host" id="toasts" role="status" aria-live="polite"></div>
 <div id="modal-root"></div>
 
-<link rel="stylesheet" href="openplay-smart.css?v=108">
-<script src="openplay-contest.js?v=108"></script>
+<link rel="stylesheet" href="openplay-smart.css?v=109-openplay-form-help-20261104">
+<script src="openplay-contest.js?v=109-openplay-form-help-20261104"></script>
 <script src="qr-lite.js?v=67"></script>
 <script src="qr-decoder.js?v=67"></script>
 <script src="promo-qr.js?v=107-official-logo-20261102"></script>
@@ -1926,8 +1926,8 @@ body.admin-app.role-ready #view-app{visibility:visible}
   }
   function multiCourtField(id,event){
     event=event||{};var sel=eventVenueId(event),prefix=id.split('-')[0];
-    return '<div class="event-venue-select field"><label class="label" for="'+prefix+'-venue">1. Select Venue *</label><select class="select" id="'+prefix+'-venue" required><option value="">Choose venue</option>'+VENUES.filter(function(v){return v.status==='active';}).map(function(v){return '<option value="'+v.id+'"'+(Number(v.id)===sel?' selected':'')+'>'+esc(v.name)+'</option>';}).join('')+'</select></div>'+
-      '<div class="field"><div class="spread"><label class="label">2. Courts at selected venue *</label><button class="btn btn-ghost btn-sm" type="button" data-select-all-courts="'+id+'">Select all</button></div><div class="court-checks venue-court-checks" id="'+id+'"></div><div class="tiny muted">Only courts at the selected venue can be reserved.</div></div>';
+    return '<div class="event-venue-select field"><label class="label" for="'+prefix+'-venue">'+(prefix==='op'?'2. Select Venue *':'1. Select Venue *')+'</label><select class="select" id="'+prefix+'-venue" required><option value="">Choose venue</option>'+VENUES.filter(function(v){return v.status==='active';}).map(function(v){return '<option value="'+v.id+'"'+(Number(v.id)===sel?' selected':'')+'>'+esc(v.name)+'</option>';}).join('')+'</select></div>'+
+      '<div class="field"><div class="spread"><label class="label">'+(prefix==='op'?'3. Select Court(s) *':'2. Courts at selected venue *')+'</label><button class="btn btn-ghost btn-sm" type="button" data-select-all-courts="'+id+'">Select all</button></div><div class="court-checks venue-court-checks" id="'+id+'"></div><div class="tiny muted">Only courts at the selected venue can be reserved.</div></div>';
   }
   function wireEventVenue(host,prefix,event){
     var sel=$('#'+prefix+'-venue',host),checks=$('#'+prefix+'-court',host),initial=event&&event.court_ids||(event&&event.court_id?[event.court_id]:[]);
@@ -3651,23 +3651,42 @@ body.admin-app.role-ready #view-app{visibility:visible}
   function openPlayForm(e) {
     e = e || {};
     var legacy=!e.player_cap_v2&&e.id&&(!e.capacity||e.capacity>12);
-    return '<div class="grid cols-2" style="gap:0 18px">' +
+    // Admin's natural booking sequence: date -> venue -> courts -> available time.
+    // IDs and API payload remain unchanged; the existing venue/range binders are reused.
+    return '<section class="op-create-schedule" aria-label="Open Play schedule">' +
+      '<div class="field"><label class="label" for="op-date">1. Event Date *</label><input class="input" id="op-date" type="date" value="' + esc(e.event_date || '') + '" /></div>' +
+      multiCourtField('op-court', e) +
+      '<div class="field op-time-frame"><span class="label">4. Available Time Frame *</span>' +
+      '<p class="op-time-hint" id="op-time-hint" aria-live="polite">Select a date, venue, and court(s) to view available time slots.</p>' +
+      '<div class="grid cols-2 op-time-grid">' +
+      '<div class="field"><label class="label" for="op-start">Start Time</label><input class="input" id="op-start" type="time" value="' + esc(e.start_time || '') + '" /></div>' +
+      '<div class="field"><label class="label" for="op-end">End Time</label><input class="input" id="op-end" type="time" value="' + esc(e.end_time || '') + '" /></div>' +
+      '</div>' +
+      '<div class="op-schedule-preview"><span class="op3-label">Court schedule for the selected date</span>' +
+      '<div id="op-availability" class="slot-availability"><span class="tiny muted">Choose a date and court to load the schedule.</span></div></div></div>' +
+      '</section>' +
+      '<section class="op-preset-section" aria-label="Open Play gameplay configuration">' +
+      '<div class="field"><label class="label" for="op-preset">5. Open Play Preset *</label>' +
+      '<p class="op3-small">Choose a preset to automatically configure matching, partners, and court rotation.</p>' +
+      '<select class="input" id="op-preset">'+PikolOpenPlay.options(e)+'</select></div>' +
+      '<div class="op-preset-guide" id="op-preset-guide" role="region" aria-label="Selected Open Play preset details" aria-live="polite"></div>' +
+      '</section>' +
+      PikolOpenPlay.settings(e) +
+      '<section class="op-event-details" aria-label="Open Play event details">' +
+      '<div class="op-form-section-label">Event details &amp; poster</div>' +
+      '<div class="grid cols-2 op-event-details-grid">' +
       '<div class="field"><label class="label" for="op-title">Event title</label><input class="input" id="op-title" maxlength="140" value="' + esc(e.title || '') + '" /></div>' +
       '<div class="field"><label class="label" for="op-fee">Entrance fee</label><input class="input" id="op-fee" inputmode="decimal" value="' + esc(String(e.entrance_fee == null ? '' : e.entrance_fee)) + '" /></div>' +
-      '<div class="field"><label class="label" for="op-date">Date</label><input class="input" id="op-date" type="date" value="' + esc(e.event_date || '') + '" /></div>' +
       '<div class="field"><label class="label" for="op-capacity">'+(legacy?'Legacy capacity (blank = unlimited)':'Player capacity (maximum 12)')+'</label><input class="input" id="op-capacity" inputmode="numeric"'+(legacy?'':' type="number" min="1" max="12" required')+' value="' + esc(String(e.id?e.capacity||'':12)) + '" /></div>' +
-      '<div class="field"><label class="label" for="op-start">Start time</label><input class="input" id="op-start" type="time" value="' + esc(e.start_time || '') + '" /></div>' +
-      '<div class="field"><label class="label" for="op-end">End time</label><input class="input" id="op-end" type="time" value="' + esc(e.end_time || '') + '" /></div>' +
       '</div>' +
-      multiCourtField('op-court', e) +
-      '<div class="field"><label class="label" for="op-preset">Open Play preset</label><select class="input" id="op-preset">'+PikolOpenPlay.options(e)+'</select></div>' +
-      PikolOpenPlay.settings(e) +
       '<div class="field"><label class="label" for="op-description">Description</label><textarea class="textarea" id="op-description" maxlength="2000">' + esc(e.description || '') + '</textarea></div>' +
       '<div class="field"><label class="label" for="op-poster">Poster image URL</label>' +
-      '<input class="input" id="op-poster" maxlength="400" value="' + esc(e.poster_url || '') + '" />' +
+      '<input class="input" id="op-poster" maxlength="400" value="' + esc(e.poster_url || '') + '" placeholder="Automatically filled when you upload a poster" />' +
+      '<p class="op3-small">Upload a poster to automatically fill this URL, or paste an existing image URL.</p>' +
       '<button class="btn btn-outline btn-sm mt-4" type="button" id="op-poster-upload">Upload poster</button>' +
       '<input type="file" id="op-poster-file" accept="image/png,image/jpeg,image/webp" class="hidden" /> '+
       '<button class="btn btn-outline btn-sm mt-4" type="button" id="op-poster-generate">Generate event poster</button></div>' +
+      '</section>' +
       '<details class="op3-settings" id="op-advanced"><summary>Advanced Settings — Optional</summary>'+
       '<div class="op3-label">Allowed official divisions</div>'+['Beginner','Novice Low','Novice High','Intermediate','Expert'].map(function(n){return '<label class="op3-chip"><input type="checkbox" data-op-division="'+n+'" '+((Array.isArray(e.allowed_divisions)?e.allowed_divisions:String(e.allowed_divisions||'Beginner|Novice Low|Novice High|Intermediate|Expert').split('|')).indexOf(n)>=0?'checked':'')+'>'+n+'</label>';}).join('')+
       '<div class="op3-grid">'+
@@ -3679,17 +3698,24 @@ body.admin-app.role-ready #view-app{visibility:visible}
       '<div><label class="op3-label" for="op-warmup">Advance Warm-up Alert</label><select class="op3-select" id="op-warmup">'+op3Opts([['0','Disabled'],['1','One game ahead'],['2','Two games ahead']],String(e.warmup_games??1))+'</select></div>'+
       '<div><label class="op3-label" for="op-grace">Court Call Grace</label><select class="op3-select" id="op-grace">'+op3Opts([['2','2 minutes'],['3','3 minutes'],['5','5 minutes']],String(e.call_grace_minutes??3))+'</select></div>'+
       '<div><label class="op3-label" for="op-auto-dispatch">Next Court Dispatch</label><select class="op3-select" id="op-auto-dispatch">'+op3Opts([['1','Automatic when ready'],['0','Host assigns manually']],String(e.auto_dispatch??1))+'</select></div>'+
-      '</div><p class="op3-small">Official DIVISION only. Verified star ratings stay exclusively with existing promotion/demotion logic.</p></details>'+ 
-      /* SCHEDULE-AWARE PICKER: Open Play is a SINGLE-DAY event, so the admin
-         sees the live court schedule for the chosen date and court before
-         picking a time. Booked slots are shown but not selectable. */
-      '<div class="field"><span class="label">Court schedule for the selected date</span>' +
-      '<div id="op-availability" class="slot-availability"><span class="tiny muted">Choose a date and a court to load the schedule.</span></div></div>';
+      '</div><p class="op3-small">Official DIVISION only. Verified star ratings stay exclusively with existing promotion/demotion logic.</p></details>';
   }
 
   /* Renders the availability of the selected court/date inside the Open Play
      form and lets the admin click an AVAILABLE slot to fill the times. */
-  function wireOpenPlayAvailability(host,currentId){return wireEventRange(host,'op','open_play',currentId);}
+  function wireOpenPlayAvailability(host,currentId){
+    var date=$('#op-date',host),venue=$('#op-venue',host),courts=$('#op-court',host),hint=$('#op-time-hint',host);
+    function updateTimeHint(){
+      var count=selectedCourts(host,'op-court').length;
+      hint.textContent=!date.value?'Select an event date first to check court availability.':
+        !venue.value?'Select a venue to view its courts.':
+        !count?'Select at least one court to view available start/end times.':
+        'Select a continuously available time range for '+(count===1?'the selected court.':'all '+count+' selected courts.');
+    }
+    [date,venue,courts].forEach(function(el){el.addEventListener('change',updateTimeHint);});
+    updateTimeHint();
+    return wireEventRange(host,'op','open_play',currentId);
+  }
   function readOpenPlayForm(host) {
     return {
       title: $('#op-title', host).value, entrance_fee: $('#op-fee', host).value || 0,
@@ -4065,7 +4091,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
   };
 
   /* ---------- In-Charge PWA push ---------- */
-  var ADMIN_SW_VERSION='107-official-logo-20261102';
+  var ADMIN_SW_VERSION='109-openplay-form-help-20261104';
   var PUSH_PREP={reg:null,publicKey:null,serverStatus:null,ready:false,error:null,promise:null};
   function b64ToUint8(s){s=String(s||'').replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';var raw=atob(s),a=new Uint8Array(raw.length);for(var i=0;i<raw.length;i++)a[i]=raw.charCodeAt(i);return a;}
   function bytesEqual(a,b){if(!a||!b)return false;var x=new Uint8Array(a),y=new Uint8Array(b);if(x.length!==y.length)return false;for(var i=0;i<x.length;i++)if(x[i]!==y[i])return false;return true;}

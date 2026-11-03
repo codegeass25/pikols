@@ -56,6 +56,7 @@
       get('contest-settings').hidden=!c.enabled;
       get('prize-settings').hidden=!c.cash_prizes;
       get('contest-warning').hidden=!c.enabled||get('rotation').value==='fair';
+      describePreset(host);
       var prizes=c.prizes.reduce((sum,x)=>sum+(Number(x)||0),0);
       var collections=(Number(get('fee').value)||0)*(Number(get('capacity').value)||0);
       get('prize-budget').textContent='Prize pool '+money(prizes)+' · Maximum registration collections '+money(collections)+
@@ -76,6 +77,78 @@
     });
     host.addEventListener('input',update);
     update();
+  }
+
+  // Self-contained help content for the Admin's selected preset.
+  // This is informational only: the original settings, read(), and APIs own the rules.
+  var presetHelp = {
+    standard: {
+      summary:'An organized, fair Open Play for players of similar skill levels. Best for regular club sessions and mixed groups of solo players or accepted partners.',
+      matching:'Division-Based: players are matched within the same or adjacent eligible official divisions.',
+      registration:'Individual players may join alone; accepted fixed pairs may also register.',
+      rotation:'Fair Smart: the queue prioritizes players with fewer games played and those who have been ready/waiting longer.',
+      dispatch:'Automatic court assignment when an eligible group and available court are ready.',
+      example:'Example: A Beginner is usually grouped with Beginner or adjacent eligible divisions. After a match, waiting players with fewer games receive priority.',
+      contest:'Compatible with Contest Mode when Fair Smart rotation is selected. Contest uses a separate schedule so every participating player completes the same number of games.'
+    },
+    social: {
+      summary:'A friendly social session where eligible players from different official divisions can meet and play together. Best for community mixers.',
+      matching:'Open Mix: players from the enabled divisions may be mixed across skill levels rather than limited to adjacent divisions.',
+      registration:'Players may register individually or with an accepted fixed partner.',
+      rotation:'Fair Smart: court rotation considers games played and waiting time, even when skill divisions are mixed.',
+      dispatch:'Automatic court assignment for the next eligible group.',
+      example:'Example: A Beginner and an Intermediate can be called together if both divisions are allowed and the event’s registration requirements are met.',
+      contest:'Compatible with Contest Mode under Fair Smart rotation. The fixed contest schedule enforces equal games despite mixed divisions.'
+    },
+    fixed: {
+      summary:'A doubles session for players who want to stay with their chosen partner throughout play. Best for practicing team coordination.',
+      matching:'Division-Based: pair eligibility follows the configured official-division and fixed-partner rules.',
+      registration:'Fixed Pair Only: both teammates must complete registration, accept the partnership, and meet payment/check-in requirements.',
+      rotation:'Fair Smart: accepted pairs are rotated fairly; the registered teammates stay together.',
+      dispatch:'Automatic court assignment when two eligible confirmed pairs and a court are ready.',
+      example:'Example: Player A registers with Player B, who accepts. They play as one pair against other eligible pairs rather than being split into different teams.',
+      contest:'Compatible with Contest Mode under Fair Smart rotation. Each player receives the same game quota; competition ranks complete pairs.'
+    },
+    winners: {
+      summary:'A host-managed competitive casual session where the winning pair can defend its place on court.',
+      matching:'Division-Based: only eligible players or pairs may be called as opponents.',
+      registration:'Solo players and accepted fixed pairs can register according to normal Open Play rules.',
+      rotation:'Winners Stay: after a scored game, the winning pair may remain while the Host selects the next eligible challengers.',
+      dispatch:'Host-controlled: the Host manages the next court assignments instead of normal automatic Fair Smart dispatch.',
+      example:'Example: Team A wins and may stay on the court. The Host calls the next eligible pair to challenge them.',
+      contest:'Not compatible with strict equal-games Contest Mode, because winners remaining on court can create unequal game counts.'
+    }
+  };
+  function guideEscape(v){return String(v == null ? '' : v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+  function selectedText(el){return el && el.selectedOptions && el.selectedOptions[0] ? el.selectedOptions[0].textContent.trim() : 'Not selected';}
+  function describePreset(host) {
+    var target=host.querySelector('#op-preset-guide');
+    if(!target)return;
+    var get=id=>host.querySelector('#op-'+id), key=get('preset').value;
+    var info=presetHelp[key], custom=!info, contest=get('contest-enabled').checked;
+    // Input/fee edits also call update(); avoid rebuilding a large live region unnecessarily.
+    var signature=[key,contest,get('rotation').value].concat(custom?Object.keys(fields).map(function(id){return get(id).value;}):[]).join('|');
+    if(target.dataset.guideSignature===signature)return;
+    target.dataset.guideSignature=signature;
+    if(custom){
+      var playing=get('playing-mode').value, rotating=get('rotation').value, reg=get('reg-mode').value;
+      info={
+        summary:'This event uses custom Advanced Settings. The details below reflect the actual current selections, not an automatic preset. Changing the advanced fields changes these explanations immediately.',
+        matching:playing==='mix'?'Open Mix: players may mix across allowed official divisions.':selectedText(get('division-matching'))+': eligible divisions are matched according to this rule.',
+        registration:selectedText(get('reg-mode'))+(reg!=='individual'?' · Partner rule: '+selectedText(get('pair-div')):' · No fixed-partner registration.'),
+        rotation:selectedText(get('rotation'))+(rotating==='four_off'?' — Existing Four On / Four Off behavior is preserved; it has not been replaced by Fair Smart.':rotating==='fair'?' — Balances completed games and waiting time.':' — The winning team may remain on court.'),
+        dispatch:selectedText(get('auto-dispatch'))+' · Warm-up: '+selectedText(get('warmup'))+' · Call grace: '+selectedText(get('grace'))+'.',
+        example:'Example: The Host can customize matching, registration, and rotation rules in Advanced Settings. Review these rules carefully before publishing.',
+        contest:rotating==='fair'?'Fair Smart is compatible with the optional strict equal-games Contest Mode.': 'Contest Mode requires Fair Smart Rotation. Select Fair Smart or disable Contest Mode before creating a contest.'
+      };
+    }
+    var title=names[key]||names.custom;
+    var rows=[['Player matching',info.matching],['Registration & partners',info.registration],['Court rotation',info.rotation],['Court dispatch',info.dispatch]];
+    target.innerHTML='<div class="op-preset-guide-heading"><span class="op-preset-guide-symbol" aria-hidden="true">ⓘ</span><div><h3>'+guideEscape(title)+'</h3><p class="op-preset-guide-intro">'+guideEscape(info.summary)+'</p></div></div>'+
+      '<div class="op-preset-guide-rows">'+rows.map(function(row){return '<div class="op-preset-guide-row"><div class="op-preset-guide-label">'+guideEscape(row[0])+'</div><div class="op-preset-guide-detail">'+guideEscape(row[1])+'</div></div>';}).join('')+'</div>'+
+      '<div class="op-preset-guide-example"><strong>Example in practice</strong><p>'+guideEscape(info.example)+'</p></div>'+
+      '<div class="op-preset-guide-contest'+(contest && get('rotation').value!=='fair'?' is-warning':'')+'"><strong>Contest compatibility'+(contest?' · Contest is ON':'')+'</strong><p>'+guideEscape(info.contest)+'</p></div>'+
+      '<p class="op-preset-guide-footnote">Allowed divisions, partner restrictions, warm-up alerts and call grace can still be reviewed in Advanced Settings. Four On / Four Off remains available there.</p>';
   }
 
   function table(rows,esc) {
