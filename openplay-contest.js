@@ -6,7 +6,7 @@
   };
   var names = {
     standard:'Standard Smart Open Play',social:'Social Open Mix',fixed:'Fixed Partner Play',
-    winners:'Winners Stay',custom:'Custom Configuration'
+    winners:'Winners Stay',paddle:'Paddle Stacking Open Play',custom:'Custom Configuration'
   };
   var presets = {
     standard:defaults,
@@ -19,6 +19,7 @@
     'pair-div':'pair_divisions',rotation:'rotation_mode',warmup:'warmup_games',grace:'call_grace_minutes','auto-dispatch':'auto_dispatch'
   };
   function presetFor(event) {
+    if(event.preset==='paddle')return 'paddle';
     return Object.keys(presets).find(function (key) {
       return Object.keys(defaults).every(function (field) {
         return String(event[fields[field]] ?? defaults[field]) === presets[key][field];
@@ -49,13 +50,61 @@
     return {enabled:get('contest-enabled').checked,games_per_player:Number(get('contest-target').value),
       cash_prizes:get('prizes-enabled').checked,prizes:[1,2,3].map(n=>get('prize-'+n).value)};
   }
+  var methods = {
+    fifo:['Traditional / FIFO','The first four eligible paddles in waiting order are called together. Accepted fixed pairs stay together. An incompatible group at the front waits for a host decision.','After four players finish, they move behind players still waiting.'],
+    win_loss:['Win-Loss Stacking','All four leave after a scored game. Newcomers get first-game priority, then the preferred rack is tried first. If it cannot supply two compatible pairs, try the other rack, then the oldest compatible players across racks. Ties enter the neutral rack.','Two Winners Rack pairs are called. The next rack preference is Losers Rack.'],
+    skill_based:['Skill-Based Stacking','The oldest eligible unit anchors the search. Try the same official division first, then other groups allowed by the playing, matching and partner rules.','If no compatible Beginner game can form, the oldest eligible unit with a compatible group can be called.'],
+    four_paddle_group:['Four-Paddle Group Stacking','A host queues four confirmed, eligible players together. Complete groups are called in formation order and return to the end after playing.','The host creates Group A and then Group B. Group B is next after Group A plays.'],
+    partner_pair:['Partner / Pair Stacking','Only accepted, eligible fixed partnerships queue. Two compatible partnerships are called without splitting either pair.','Two players who have not accepted their invitations cannot be called as a team.'],
+    challenge_court:['Challenge Court Stacking','Eligible winners stay against a compatible challenger pair until the configured win limit. A host can skip a call, correct a score, or end a streak with an audit reason.','With a limit of two, a team that wins its second consecutive game leaves the court.'],
+    adaptive:['Adaptive / Hybrid Stacking','The host sets a waiting threshold. At each game boundary, eligible waiting players outside the finishing roster determine whether that court uses Four On / Four Off or Winners Stay next.','At the threshold, four compatible replacements take the court. Below the threshold, eligible winners can stay up to the configured win limit.']
+  };
+  function paddleSettings(event) {
+    return '<div class="op-paddle-settings" id="op-paddle-settings" hidden><div class="field"><label class="label" for="op-stacking-method">Paddle Stacking Method</label>'+
+      '<select class="input" id="op-stacking-method">'+Object.entries(methods).map(([key,method])=>
+        '<option value="'+key+'"'+(event.stacking_method===key?' selected':'')+'>'+method[0]+'</option>').join('')+'</select></div>'+
+      '<div class="field" id="op-stay-field" hidden><label class="label" for="op-stay-limit">Successive wins before rotating off</label>'+
+      '<input class="input" id="op-stay-limit" type="number" min="1" max="12" step="1" value="'+Number(event.stay_limit||2)+'"></div>'+
+      '<div class="field" id="op-adaptive-field" hidden><label class="label" for="op-adaptive-threshold">Waiting-player threshold for Four On / Four Off</label>'+
+      '<input class="input" id="op-adaptive-threshold" type="number" min="4" max="12" step="1" value="'+Number(event.adaptive_threshold||6)+'"></div></div>';
+  }
+  function readPaddle(host,validate=true) {
+    var get=id=>host.querySelector('#op-'+id), preset=get('preset').value;
+    if(preset!=='paddle')return {preset};
+    var method=get('stacking-method').value;
+    var result={preset,stacking_method:method};
+    if(validate&&get('contest-enabled').checked)throw new Error('Paddle Stacking requires Contest Mode OFF. Choose another preset to keep Contest Mode.');
+    function number(field,min) {
+      var control=get(field),value=Number(control.value);
+      if(validate&&(!Number.isInteger(value)||value<min||value>12)){
+        control.focus();
+        throw new Error('Enter a whole number from '+min+' to 12 for '+control.labels[0].textContent.toLowerCase()+'.');
+      }
+      return value;
+    }
+    if(['challenge_court','adaptive'].includes(method))result.stay_limit=number('stay-limit',1);
+    if(method==='adaptive')result.adaptive_threshold=number('adaptive-threshold',4);
+    return result;
+  }
   function wire(host,money) {
-    var get=id=>host.querySelector('#op-'+id), preset=get('preset');
+    var get=id=>host.querySelector('#op-'+id), preset=get('preset'),method=get('stacking-method');
     function update() {
       var c=read(host);
+      var paddle=preset.value==='paddle'&&!!method,pair=paddle&&method.value==='partner_pair';
+      if(method){
+        get('paddle-settings').hidden=!paddle;
+        get('stay-field').hidden=!paddle||!['challenge_court','adaptive'].includes(method.value);
+        get('adaptive-field').hidden=!paddle||method.value!=='adaptive';
+        get('rotation').disabled=paddle;
+        get('reg-mode').disabled=pair;
+        if(paddle)get('rotation').value=method.value==='challenge_court'?'winners_stay':'fair';
+        if(pair)get('reg-mode').value='pair';
+      }
       get('contest-settings').hidden=!c.enabled;
       get('prize-settings').hidden=!c.cash_prizes;
-      get('contest-warning').hidden=!c.enabled||get('rotation').value==='fair';
+      get('contest-warning').hidden=!c.enabled||(!paddle&&get('rotation').value==='fair');
+      get('contest-warning').textContent=paddle?'Paddle Stacking requires Contest Mode OFF. Choose another preset to keep Contest Mode.':
+        'Contest Mode requires Fair Smart rotation. Choose Fair Smart or turn off Contest Mode.';
       describePreset(host);
       var prizes=c.prizes.reduce((sum,x)=>sum+(Number(x)||0),0);
       var collections=(Number(get('fee').value)||0)*(Number(get('capacity').value)||0);
@@ -63,12 +112,18 @@
         ' · '+(collections>=prizes?'Collections above prize budget ':'Prize budget above maximum collections ')+money(Math.abs(collections-prizes))+'.';
     }
     preset.addEventListener('change',function(){
-      var config=presets[preset.value];
+      var config=preset.value==='paddle'?defaults:presets[preset.value];
       if(config) Object.keys(config).forEach(id=>{get(id).value=config[id];});
+      if(preset.value==='paddle'&&method?.value==='challenge_court')get('auto-dispatch').value='0';
+      update();
+    });
+    if(method)method.addEventListener('change',function(){
+      get('reg-mode').value=method.value==='partner_pair'?'pair':'both';
+      get('auto-dispatch').value=method.value==='challenge_court'?'0':'1';
       update();
     });
     host.addEventListener('change',function(ev){
-      if(ev.target.closest('#op-advanced')){
+      if(ev.target.closest('#op-advanced')&&preset.value!=='paddle'){
         var rules={};
         Object.keys(fields).forEach(id=>{rules[fields[id]]=get(id).value;});
         preset.value=presetFor(rules);
@@ -77,6 +132,56 @@
     });
     host.addEventListener('input',update);
     update();
+  }
+
+  function paddleRack(live,esc,host) {
+    var rack=live.rack;
+    if(!rack)return '';
+    var method=live.event.stacking_method,groupMode=method==='four_paddle_group';
+    var labels={ready:'Ready',on_deck:'On deck',checked_in:'Checked in',paused:'Paused',called:'Called',playing:'Playing'};
+    var policies={four_off:'Four On / Four Off',winners_stay:'Winners Stay'};
+    var button=(action,label,p)=>'<button type="button" class="op3-btn secondary" data-paddle-action="'+action+
+      '" data-player="'+Number(p.id)+'" data-position="'+Number(p.position)+'">'+label+'</button>';
+    function player(p) {
+      var canSelect=host&&groupMode&&p.eligible&&!p.group;
+      return '<li class="op3-row"><div>'+(canSelect?'<label><input type="checkbox" value="'+Number(p.id)+'" data-paddle-member> ':'<span>')+
+        '<strong>'+esc(p.name)+'</strong>'+(canSelect?'</label>':'</span>')+
+        '<div class="op3-small">'+esc(p.division)+(p.pair?' · Pair '+Number(p.pair):'')+(p.group?' · Group '+Number(p.group):'')+'</div>'+
+        (p.blocked?'<div class="op3-small">'+esc(p.blocked)+'</div>':'')+'</div><div><b>'+esc(labels[p.state]||p.state)+'</b>'+
+        (host&&['ready','on_deck','paused','checked_in'].includes(p.state)?'<div class="op3-inline-actions">'+
+          (['paused','checked_in'].includes(p.state)?button('return','Return',p):button('pause','Pause',p)+button('requeue','Move to End',p))+'</div>':'')+'</div></li>';
+    }
+    var waiting=rack.players.filter(p=>['ready','on_deck','checked_in'].includes(p.state));
+    function section(label,players) {
+      return '<div class="op-paddle-lane"><h4>'+label+'</h4>'+(players.length?'<ol>'+players.map(player).join('')+'</ol>':
+        '<p class="op3-small">Empty</p>')+'</div>';
+    }
+    var grouped=method==='win_loss'?section('First Game',waiting.filter(p=>p.rack==='initial'))+
+      section('Winners Rack',waiting.filter(p=>p.rack==='winners'))+section('Losers Rack',waiting.filter(p=>p.rack==='losers'))+
+      section('Neutral Rack · Draws',waiting.filter(p=>p.rack==='neutral')):section('Waiting Order',waiting);
+    var groupActions='';
+    if(host&&groupMode){
+      var groups=new Map(rack.players.filter(p=>p.group).map(p=>[p.group,p.group_position]));
+      groupActions='<p class="op3-small">Select four ready paddles. Include both members of any accepted fixed pair.</p>'+
+        '<button type="button" class="op3-btn" data-paddle-action="group_create">Queue Group of Four</button>'+
+        [...groups.entries()].filter(([id])=>!rack.players.some(p=>p.group===id&&['called','playing'].includes(p.state))).map(([id,position])=>
+          '<div class="op3-inline-actions"><b>Group '+Number(id)+'</b>'+
+          '<button type="button" class="op3-btn secondary" data-paddle-action="group_requeue" data-group="'+Number(id)+'" data-position="'+Number(position)+'">Requeue Group</button>'+
+          '<button type="button" class="op3-btn secondary" data-paddle-action="group_dissolve" data-group="'+Number(id)+'" data-position="'+Number(position)+'">Dissolve Group</button></div>').join('');
+    }
+    return '<section class="op-paddle-rack" aria-label="Digital paddle rack"><h3 class="op3-section">Digital Paddle Rack</h3>'+
+      '<p class="op3-meta">'+esc(methods[method][0])+(rack.next_rack?' · Next rack preference: '+(rack.next_rack==='winners'?'Winners Rack':'Losers Rack'):'')+'</p><div class="op-paddle-lanes">'+grouped+
+      section('Called, Playing and Paused',rack.players.filter(p=>['called','playing','paused'].includes(p.state)))+'</div>'+groupActions+
+      '<h4>Upcoming Courts</h4>'+rack.upcoming.map(c=>'<div class="op3-row"><div><strong>'+esc(c.court)+'</strong>'+
+        (policies[c.policy]?'<div class="op3-small">'+esc(policies[c.policy])+(c.streak?' · '+Number(c.streak)+' successive wins':'')+'</div>':'')+
+        '<div class="op3-small">'+esc(c.names.length?c.names.join(' · '):c.reason||'Court occupied')+'</div></div>'+
+        (host&&c.game_id&&['challenge_court','adaptive'].includes(method)?'<div class="op3-inline-actions">'+
+          '<button type="button" class="op3-btn secondary" data-paddle-action="correct_score" data-court="'+Number(c.court_id)+'" data-game="'+Number(c.game_id)+'">Correct Score</button>'+
+          (c.streak?'<button type="button" class="op3-btn secondary" data-paddle-action="end_streak" data-court="'+Number(c.court_id)+'" data-game="'+Number(c.game_id)+'">End Streak</button>':'')+'</div>':'')+'</div>').join('')+
+      '<h4>Completed Games</h4>'+(rack.completed.length?rack.completed.map(g=>'<div class="op3-row"><span><strong>'+esc(g.court)+'</strong>'+
+        '<span class="op3-small"> · '+[1,2].map(team=>esc(g.players.filter(p=>p.team===team).map(p=>p.full_name).join(' + '))).join(' vs ')+'</span></span>'+
+        '<b>'+esc(g.score_a==null||g.score_b==null?'No score':g.score_a+'–'+g.score_b+(g.score_a===g.score_b?' · Draw':''))+'</b></div>').join(''):
+        '<p class="op3-small">No completed games yet.</p>')+'</section>';
   }
 
   // Self-contained help content for the Admin's selected preset.
@@ -126,6 +231,15 @@
     if(!target)return;
     var get=id=>host.querySelector('#op-'+id), key=get('preset').value;
     var info=presetHelp[key], custom=!info, contest=get('contest-enabled').checked;
+    if(key==='paddle'&&get('stacking-method')){
+      var method=methods[get('stacking-method').value];
+      target.innerHTML='<div class="op-preset-guide-heading"><span class="op-preset-guide-symbol" aria-hidden="true">ⓘ</span><div><h3>'+
+        guideEscape(method[0])+'</h3><p class="op-preset-guide-intro">'+guideEscape(method[1])+'</p></div></div>'+
+        '<div class="op-preset-guide-example"><strong>Example in practice</strong><p>'+guideEscape(method[2])+'</p></div>'+
+        '<div class="op-preset-guide-contest'+(contest?' is-warning':'')+'"><strong>Contest compatibility</strong>'+
+        '<p>Paddle Stacking house rules require Contest Mode OFF.'+(contest?' Turn it off before saving or choose another preset.':'')+'</p></div>';
+      return;
+    }
     // Input/fee edits also call update(); avoid rebuilding a large live region unnecessarily.
     var signature=[key,contest,get('rotation').value].concat(custom?Object.keys(fields).map(function(id){return get(id).value;}):[]).join('|');
     if(target.dataset.guideSignature===signature)return;
@@ -270,5 +384,5 @@
     var a=document.createElement('a');a.href=canvas.toDataURL('image/png');a.download=filename;
     document.body.appendChild(a);a.click();a.remove();
   }
-  window.PikolOpenPlay={names,presets,presetFor,options,settings,read,wire,board,preview,poster,download};
+  window.PikolOpenPlay={names,presets,presetFor,options,settings,read,paddleSettings,readPaddle,paddleRack,wire,board,preview,poster,download};
 })();

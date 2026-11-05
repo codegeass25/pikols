@@ -16,7 +16,7 @@
 <link rel="stylesheet" href="occasion-promotions.css?v=83">
 <script src="tournament-view.js"></script>
 <link rel="stylesheet" href="styles.css" />
-<link rel="stylesheet" href="openplay-smart.css?v=109-openplay-form-help-20261104" />
+<link rel="stylesheet" href="openplay-smart.css?v=110-paddle-recovery-20261105" />
 <link rel="stylesheet" href="booking-premium.css?v=106-registration-receipts" />
 <link rel="preload" as="image" href="assets/booking/hero-court.jpg" fetchpriority="high" />
 
@@ -351,8 +351,46 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
           <label class="label" for="li-pass">Password</label>
           <input class="input" id="li-pass" type="password" autocomplete="current-password" required placeholder="••••••••" />
         </div>
+        <button type="button" id="forgot-password" class="btn btn-ghost recovery-link">Forgot Password?</button>
         <button class="btn btn-primary btn-block" type="submit" data-loading="Signing in...">Login</button>
       </form>
+
+      <section id="password-recovery" aria-labelledby="recovery-heading" hidden>
+        <h3 id="recovery-heading">Reset your password</h3>
+        <p id="recovery-message" role="status" aria-live="polite"></p>
+        <form id="recovery-request-form" hidden>
+          <div class="field">
+            <label class="label" for="recovery-email">Email address</label>
+            <input class="input" id="recovery-email" type="email" autocomplete="email" maxlength="160" required>
+          </div>
+          <button type="submit" class="btn btn-primary btn-block">Send Verification Code</button>
+        </form>
+        <form id="recovery-verify-form" hidden>
+          <div class="field">
+            <label class="label" for="recovery-code">Verification Code</label>
+            <input class="input" id="recovery-code" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" required>
+          </div>
+          <button type="submit" class="btn btn-primary btn-block">Verify OTP</button>
+          <button type="button" id="recovery-resend" class="btn btn-outline" aria-describedby="recovery-countdown">Resend Code</button>
+          <p id="recovery-countdown" class="op3-small"></p>
+        </form>
+        <form id="recovery-reset-form" hidden>
+          <p class="op3-small" id="recovery-password-help">Use at least 8 characters and at most 72 UTF-8 bytes. Some characters use more than one byte.</p>
+          <div class="field">
+            <label class="label" for="recovery-password">New Password</label>
+            <input class="input" id="recovery-password" type="password" minlength="8" maxlength="72" autocomplete="new-password" aria-describedby="recovery-password-help" required>
+          </div>
+          <div class="field">
+            <label class="label" for="recovery-confirm">Confirm New Password</label>
+            <input class="input" id="recovery-confirm" type="password" minlength="8" maxlength="72" autocomplete="new-password" required>
+          </div>
+          <button type="submit" class="btn btn-primary btn-block">Reset Password</button>
+        </form>
+        <div class="recovery-navigation">
+          <button type="button" class="btn btn-ghost" id="recovery-back">Back to Login</button>
+          <button type="button" class="btn btn-ghost" id="recovery-start-over" hidden>Start Over</button>
+        </div>
+      </section>
 
       <div id="registration-result" class="registration-result hidden" role="status" aria-live="polite"></div>
       <form id="form-register" class="hidden" novalidate>
@@ -711,7 +749,8 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
 <div id="modal-root"></div>
 
 <script src="range-availability.js?v=56-android-native-scroll"></script>
-<script src="openplay-contest.js?v=109-openplay-form-help-20261104"></script>
+<script src="openplay-contest.js?v=110-paddle-recovery-20261105"></script>
+<script src="password-recovery.js?v=110-paddle-recovery-20261105"></script>
 <script>
 /* ================= shared runtime (player app) ================= */
 (function () {
@@ -1131,6 +1170,9 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
       $('#form-register').classList.toggle('hidden', tab.dataset.authtab !== 'register');
       if(tab.dataset.authtab==='register')$('#registration-result').classList.add('hidden');
     };
+  });
+  var closePasswordRecovery=window.bindPikolPasswordRecovery?.(apiRequest,function(){
+    if(TOKEN||USER){signOutLocal();openAuth();}
   });
 
   function submitHandler(form, fn) {
@@ -2977,6 +3019,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
     $('#li-email').focus({preventScroll:IS_ANDROID});
   }
   function closeAuth() {
+    closePasswordRecovery?.();
     $('#view-auth').classList.add('hidden'); afterAuth=null;
     syncLayers();
     if(IS_ANDROID) requestAnimationFrame(function(){window.scrollTo(0,authReturnScrollY||0);});
@@ -3486,7 +3529,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
     var dlg=modal({title:'My Open Play · Live Courts',wide:true,body:'<div class="op3-shell op3-modal" id="op3-player-live"><div class="op3-empty">Loading live queue...</div></div>',cancelText:'Close'});
     var host=dlg.host,root=$('#op3-player-live',host),loading=false,currentContest=null,currentEvent=null;
     function refresh(){if(!host.isConnected||loading)return Promise.resolve();loading=true;
-      var open=$('details[open] > summary',root).map(x=>x.textContent);
+      var open=$$('details[open] > summary',root).map(x=>x.textContent);
       var code=$('#op3-venue-code',host),savedCode=code?code.value:'',editingCode=code===document.activeElement,scroll=$('.modal-body',host).scrollTop;
       return api('/api/open-play/'+id+'/smart/me').then(function(me){
         return (me.registration?api('/api/open-play/'+id+'/smart/live'):api('/api/open-play/'+id).then(function(e){return {event:e,courts:[],games:[],waiting:[]};})).then(function(data){return [data,me];});
@@ -3505,8 +3548,9 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
          (!locked&&registered&&!pair&&event.registration_mode!=='individual'&&!['left','called','playing'].includes(att.state)?'<button class="op3-btn secondary" data-op3-partner="1">Choose / Retry Fixed Partner</button>':'')+
          '<div class="op3-inline-actions">'+(att.state==='left'&&!(contest?.status==='PAUSED'&&!att.left_at)?'<div class="op3-alert">✓ Checked out — no more game calls for this session.</div>':registered&&me.registration.status==='confirmed'&&!['called','playing'].includes(att.state)?'<input class="op3-select" style="width:170px" id="op3-venue-code" aria-label="Venue attendance code" placeholder="6-digit venue code" inputmode="numeric" maxlength="6"><button class="op3-btn" data-op3-checkin="1">QR Check-in</button>':'')+
          (!locked&&att.state==='ready'?'<button class="op3-btn secondary" data-op3-ready="0">Take a Rest</button>':(!locked&&(att.state==='paused'||att.state==='checked_in'))?'<button class="op3-btn secondary" data-op3-ready="1">Ready / Resume Queue</button>':'')+(att.state&&att.state!=='left'&&(att.state!=='playing'||contest?.status==='IN_PROGRESS')?'<button class="op3-btn op3-leave-btn" data-op3-checkout="1">Leave Open Play</button>':'')+'<button class="op3-btn secondary" data-op3-refresh="1">Refresh</button></div>'+
-         (registered?'<h3 class="op3-section">Current Playing Courts</h3><div class="op3-courts">'+data.courts.map(function(c){return op3PlayerCourt(c,data.games.find(function(g){return Number(g.court_id)===Number(c.id);}));}).join('')+'</div><h3 class="op3-section">Current Waiting Pool</h3>'+data.waiting.map(function(w){return '<div class="op3-row"><span><strong>'+esc(w.full_name)+'</strong> <span class="op3-small">'+esc(w.player_division)+' · '+Number(w.games_played)+' games</span></span><b>'+esc(w.state)+'</b></div>';}).join(''):'');
-        $('details > summary',root).forEach(x=>{if(open.includes(x.textContent))x.parentElement.open=true;});
+         (registered?'<h3 class="op3-section">Current Playing Courts</h3><div class="op3-courts">'+data.courts.map(function(c){return op3PlayerCourt(c,data.games.find(function(g){return Number(g.court_id)===Number(c.id);}));}).join('')+'</div>'+
+         (data.rack?PikolOpenPlay.paddleRack(data,esc,false):'<h3 class="op3-section">Current Waiting Pool</h3>'+data.waiting.map(function(w){return '<div class="op3-row"><span><strong>'+esc(w.full_name)+'</strong> <span class="op3-small">'+esc(w.player_division)+' · '+Number(w.games_played)+' games</span></span><b>'+esc(w.state)+'</b></div>';}).join('')):'');
+        $$('details > summary',root).forEach(x=>{if(open.includes(x.textContent))x.parentElement.open=true;});
         var nextCode=$('#op3-venue-code',host);if(nextCode){nextCode.value=savedCode;if(editingCode)nextCode.focus({preventScroll:true});}$('.modal-body',host).scrollTop=scroll;
       }).catch(function(e){if(host.isConnected)root.innerHTML='<div class="op3-alert">'+esc(e.message)+'</div><button class="op3-btn secondary" data-op3-refresh="1">Retry</button>';}).finally(function(){loading=false;});
     }
@@ -3581,7 +3625,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
   window.addEventListener('appinstalled',function(){setMarked(true);deferredPrompt=null;sync();});
   window.addEventListener('pageshow',sync);document.addEventListener('visibilitychange',function(){if(!document.hidden)sync();});
   if(btn)btn.addEventListener('click',async function(){if(!deferredPrompt)return;btn.disabled=true;try{await deferredPrompt.prompt();var c=await deferredPrompt.userChoice;if(c&&c.outcome==='accepted')setMarked(true);}catch(_){}deferredPrompt=null;btn.disabled=false;sync();});
-  if('serviceWorker' in navigator)window.addEventListener('load',function(){navigator.serviceWorker.register('service-worker.js?v=109-openplay-form-help-20261104',{scope:'./',updateViaCache:'none'}).then(function(reg){return reg.update();}).catch(function(){});});
+  if('serviceWorker' in navigator)window.addEventListener('load',function(){navigator.serviceWorker.register('service-worker.js?v=110-paddle-recovery-20261105',{scope:'./',updateViaCache:'none'}).then(function(reg){return reg.update();}).catch(function(){});});
   sync();
 })();
 </script>

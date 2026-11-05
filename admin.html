@@ -963,8 +963,8 @@ body.admin-app.role-ready #view-app{visibility:visible}
 <div class="toast-host" id="toasts" role="status" aria-live="polite"></div>
 <div id="modal-root"></div>
 
-<link rel="stylesheet" href="openplay-smart.css?v=109-openplay-form-help-20261104">
-<script src="openplay-contest.js?v=109-openplay-form-help-20261104"></script>
+<link rel="stylesheet" href="openplay-smart.css?v=110-paddle-recovery-20261105">
+<script src="openplay-contest.js?v=110-paddle-recovery-20261105"></script>
 <script src="qr-lite.js?v=67"></script>
 <script src="qr-decoder.js?v=67"></script>
 <script src="promo-qr.js?v=107-official-logo-20261102"></script>
@@ -3669,6 +3669,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
       '<div class="field"><label class="label" for="op-preset">5. Open Play Preset *</label>' +
       '<p class="op3-small">Choose a preset to automatically configure matching, partners, and court rotation.</p>' +
       '<select class="input" id="op-preset">'+PikolOpenPlay.options(e)+'</select></div>' +
+      PikolOpenPlay.paddleSettings(e) +
       '<div class="op-preset-guide" id="op-preset-guide" role="region" aria-label="Selected Open Play preset details" aria-live="polite"></div>' +
       '</section>' +
       PikolOpenPlay.settings(e) +
@@ -3716,8 +3717,9 @@ body.admin-app.role-ready #view-app{visibility:visible}
     updateTimeHint();
     return wireEventRange(host,'op','open_play',currentId);
   }
-  function readOpenPlayForm(host) {
+  function readOpenPlayForm(host,validate=true) {
     return {
+      ...PikolOpenPlay.readPaddle(host,validate),
       title: $('#op-title', host).value, entrance_fee: $('#op-fee', host).value || 0,
       event_date: $('#op-date', host).value, start_time: $('#op-start', host).value, end_time: $('#op-end', host).value,
       capacity: $('#op-capacity', host).value, contest:PikolOpenPlay.read(host), venue_id:Number($('#op-venue',host).value), court_ids: selectedCourts(host,'op-court'),
@@ -3752,7 +3754,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
   function wireOpenPlayUpgrade(host,event){
     PikolOpenPlay.wire(host,money);
     $('#op-poster-generate',host).onclick=async function(){
-      var button=this, values=readOpenPlayForm(host), id=event&&event.id;
+      var button=this, values=readOpenPlayForm(host,false), id=event&&event.id;
       if(!values.title.trim()||!values.event_date||!values.start_time||!values.end_time||!values.venue_id){
         toast('Enter the title, date, times, and venue before generating a poster.','error');return;
       }
@@ -4060,7 +4062,15 @@ body.admin-app.role-ready #view-app{visibility:visible}
     var connected=String(s.gmail_connected||'0')==='1';
     var account=$('#s-gmail_sender_email'); if(account)account.readOnly=connected;
     if(status)status.value=connected?('Connected · '+(s.gmail_sender_email||'Gmail')):'Not connected';
-    if(hint)hint.textContent=connected?'Gmail API is authorized for automatic email notifications.':'Save OAuth credentials, add the redirect URI in Google Cloud, then press Connect Gmail.';
+    if(hint){
+      hint.textContent=connected?'Gmail API is authorized for automatic email notifications.':'Save OAuth credentials, add the redirect URI in Google Cloud, then press Connect Gmail.';
+      var recovery=s.password_recovery;
+      if(recovery){
+        hint.textContent+=' Password recovery: '+(!recovery.enabled?'disabled until the server secret is provisioned.':!recovery.mail_enabled?'email delivery is disabled.':
+          recovery.last_delivery?.status==='failed'?'the last delivery failed. Check the Gmail connection and send a test email.':
+          recovery.last_delivery?.status==='accepted'?'the last delivery was accepted by Gmail.':'awaiting a delivery attempt.');
+      }
+    }
     var dis=$('#btn-disconnect-gmail'); if(dis)dis.disabled=!connected;
   }
   /* Sender name is derived from the white-label facility name. */
@@ -4091,7 +4101,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
   };
 
   /* ---------- In-Charge PWA push ---------- */
-  var ADMIN_SW_VERSION='109-openplay-form-help-20261104';
+  var ADMIN_SW_VERSION='110-paddle-recovery-20261105';
   var PUSH_PREP={reg:null,publicKey:null,serverStatus:null,ready:false,error:null,promise:null};
   function b64ToUint8(s){s=String(s||'').replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';var raw=atob(s),a=new Uint8Array(raw.length);for(var i=0;i<raw.length;i++)a[i]=raw.charCodeAt(i);return a;}
   function bytesEqual(a,b){if(!a||!b)return false;var x=new Uint8Array(a),y=new Uint8Array(b);if(x.length!==y.length)return false;for(var i=0;i<x.length;i++)if(x[i]!==y[i])return false;return true;}
@@ -5067,7 +5077,8 @@ body.admin-app.role-ready #view-app{visibility:visible}
       if(box&&prepared)box.innerHTML=PikolOpenPlay.preview(prepared,esc,money);
     }
     function refresh(){if(!host.isConnected||loading)return Promise.resolve();loading=true;
-      var scroll=$('.modal-body',host).scrollTop, open=$('details[open] > summary',root).map(x=>x.textContent);
+      var scroll=$('.modal-body',host).scrollTop, open=$$('details[open] > summary',root).map(x=>x.textContent);
+      var selectedPaddles=new Set($$('[data-paddle-member]:checked',root).map(x=>x.value));
       return api('/api/open-play/'+id+'/smart/live').then(function(v){
       if(!host.isConnected)return;
       live=v;
@@ -5076,13 +5087,14 @@ body.admin-app.role-ready #view-app{visibility:visible}
       root.innerHTML='<div class="op3-top"><div><h2>'+esc(v.event.title)+'</h2><p class="op3-meta">'+esc(v.event.playing_mode==='division'?'Division-Based':'Open Mix')+' · '+esc(v.event.division_matching)+' matching</p></div><span class="op3-pulse">● LIVE</span></div>'+
       '<div class="op3-stats"><div class="op3-stat"><b>'+courts.length+'</b><small>Courts</small></div><div class="op3-stat"><b>'+waiting.filter(function(x){return x.state==='ready';}).length+'</b><small>Ready</small></div><div class="op3-stat"><b>'+games.length+'</b><small>Playing / Called</small></div></div>'+
       PikolOpenPlay.board(contest,esc,money,true)+
-      (contest?'':'<p class="op3-small op3-auto-status">'+(Number(v.event.auto_dispatch)===1&&v.event.rotation_mode!=='winners_stay'?'⚡ Automatic next-court calling is enabled during this session.':'Host-controlled calling is enabled. Tap Call Next Group for each free court.')+'</p>')+
+      (contest?'':'<p class="op3-small op3-auto-status">'+(Number(v.event.auto_dispatch)===1&&(v.rack||v.event.rotation_mode!=='winners_stay')?'⚡ Automatic next-court calling is enabled during this session.':'Host-controlled calling is enabled. Tap Call Next Group for each free court.')+'</p>')+
       '<div class="op3-inline-actions op3-admin-ops">'+(contest&&(contest.status!=='IN_PROGRESS'||!Number(v.event.warmup_games))?'':'<button class="op3-btn" data-op3-warmup="1">🔔 Warm-up Next Group</button>')+'<button class="op3-btn secondary" data-op3-qr="1">⌗ Venue QR Check-in</button><button class="op3-btn secondary" data-op3-refresh="1">↻ Refresh</button></div>'+
       '<h3 class="op3-section">Partner Approval Requests</h3>'+(v.pending_pairs||[]).map(function(p){return '<div class="op3-row"><span>'+esc(p.inviter_name)+' + '+esc(p.invitee_name)+' · Mixed Division</span><button class="op3-btn" data-op3-approve="'+Number(p.id)+'">Approve Pair</button></div>';}).join('')+
       '<h3 class="op3-section">Live Playing Courts</h3><div class="op3-courts">'+courts.map(function(c){return op3Court(c,games.find(function(g){return Number(g.court_id)===Number(c.id);}),!contest||contest.status==='IN_PROGRESS');}).join('')+'</div>'+
-      '<h3 class="op3-section">Waiting Players & Fixed Pairs</h3>'+(waiting.length?waiting.map(function(p){return '<div class="op3-row"><span><strong>'+esc(p.full_name)+'</strong><small> · '+esc(p.player_division)+' · '+Number(p.games_played)+' games</small></span><b>'+esc(p.state)+'</b></div>';}).join(''):'<div class="op3-empty">No checked-in waiting players yet.</div>');
+      (v.rack?PikolOpenPlay.paddleRack(v,esc,true):'<h3 class="op3-section">Waiting Players & Fixed Pairs</h3>'+(waiting.length?waiting.map(function(p){return '<div class="op3-row"><span><strong>'+esc(p.full_name)+'</strong><small> · '+esc(p.player_division)+' · '+Number(p.games_played)+' games</small></span><b>'+esc(p.state)+'</b></div>';}).join(''):'<div class="op3-empty">No checked-in waiting players yet.</div>'));
       renderPreview();
-      $('details > summary',root).forEach(x=>{if(open.includes(x.textContent))x.parentElement.open=true;});
+      $$('[data-paddle-member]',root).forEach(x=>{x.checked=selectedPaddles.has(x.value);});
+      $$('details > summary',root).forEach(x=>{if(open.includes(x.textContent))x.parentElement.open=true;});
       $('.modal-body',host).scrollTop=scroll;
     }).catch(function(e){if(host.isConnected)root.innerHTML='<div class="op3-alert">'+esc(e.message)+'</div><button class="op3-btn secondary" data-op3-refresh="1">Retry</button>';}).finally(function(){loading=false;});}
     host.addEventListener('click',function(ev){var b=ev.target.closest('[data-op3-dispatch],[data-op3-action],[data-op3-warmup],[data-op3-qr],[data-op3-refresh],[data-op3-approve]');if(!b||b.disabled)return;
@@ -5091,12 +5103,53 @@ body.admin-app.role-ready #view-app{visibility:visible}
       if(b.dataset.op3Qr)return op3VenueQR(base);
       var action=b.dataset.op3Action,url=action?base+'/games/'+b.dataset.game+'/'+action:b.dataset.op3Warmup?base+'/warmup':base+'/dispatch';var body={};
       if(b.dataset.op3Dispatch)body.court_id=Number(b.dataset.op3Dispatch);
-      if(action==='finish'){body=opContestScores(!!live?.contest);if(!body)return;}
+      if(action==='finish'){body=opContestScores(!!live?.contest||['win_loss','challenge_court','adaptive'].includes(live?.event?.stacking_method));if(!body)return;}
       if(action==='skip'){
         if(live?.contest){body.reason=prompt('Why is this contest match being requeued?');if(!body.reason)return;}
+        else if(live?.rack){
+          var roster=live.games.find(g=>g.id===Number(b.dataset.game))?.players||[];
+          var missing=prompt('Enter a no-show number, or leave blank to pause all four.\n'+roster.map((p,i)=>(i+1)+'. '+p.full_name).join('\n'),'');
+          if(missing===null)return;
+          if(missing.trim()){
+            var player=roster[Number(missing)-1];
+            if(!player)return toast('Select a number from this court roster.','error');
+            body.player_id=player.id;
+          }
+          body.reason=prompt('Enter the reason for skipping this call.');
+          if(!body.reason?.trim())return;
+        }
         else if(!confirm('Skip the unstarted group and pause all four players?'))return;
       }
       b.disabled=true;api(url,{method:'POST',body:body}).then(function(){toast('Open Play queue updated.','success');return refresh();}).catch(function(e){toast(e.message,'error');}).finally(function(){b.disabled=false;});
+    });
+    host.addEventListener('click',async function(ev){
+      var b=ev.target.closest('[data-paddle-action]');
+      if(!b||b.disabled||!live?.rack)return;
+      var action=b.dataset.paddleAction,body={};
+      if(action==='group_create'){
+        body.player_ids=$$('[data-paddle-member]:checked',root).map(x=>Number(x.value));
+        if(body.player_ids.length!==4)return toast('Select exactly four ready paddles.','error');
+      }
+      if(b.dataset.group)body.group_id=Number(b.dataset.group);
+      if(b.dataset.player)body.player_id=Number(b.dataset.player);
+      if(b.dataset.position)body.position=Number(b.dataset.position);
+      if(b.dataset.court){body.court_id=Number(b.dataset.court);body.game_id=Number(b.dataset.game);}
+      if(action==='correct_score'){
+        var score=opContestScores(true);
+        if(!score)return;
+        if(!/^\d{1,2}$/.test(score.score_a)||!/^\d{1,2}$/.test(score.score_b))return toast('Enter scores from 0 to 99.','error');
+        body.score_a=Number(score.score_a);body.score_b=Number(score.score_b);
+      }
+      body.reason=prompt('Enter the reason for this paddle rack action.');
+      if(!body.reason?.trim())return;
+      b.disabled=true;
+      try {
+        await api(base+'/paddle/'+action,{method:'POST',body:body});
+        if(action==='group_create')$$('[data-paddle-member]:checked',root).forEach(x=>{x.checked=false;});
+        await refresh();
+        toast('Paddle rack updated.','success');
+      }catch(error){toast(error.message,'error');}
+      finally{b.disabled=false;}
     });
     host.addEventListener('click',async function(ev){
       var b=ev.target.closest('[data-op-contest-action]');

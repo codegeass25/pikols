@@ -1,2 +1,2 @@
 /* Compatibility shim: Admin, Booking and Scorer share one PWA cache. */
-importScripts('./service-worker.js?v=109-openplay-form-help-20261104');
+importScripts('./service-worker.js?v=110-paddle-recovery-20261105');
