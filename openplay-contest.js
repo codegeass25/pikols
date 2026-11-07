@@ -38,7 +38,7 @@
       '<div id="op-contest-settings"'+(c.enabled?'':' hidden')+'>'+
       '<label class="op3-label" for="op-contest-target">Games per player</label><select id="op-contest-target" class="op3-select">'+
       [3,4,5,6,7].map(function(n){return '<option'+(n===(c.games_per_player||5)?' selected':'')+'>'+n+'</option>';}).join('')+'</select>'+
-      '<p class="op3-small">Confirm eligible attendance and review a complete equal-games schedule in Live Courts before starting.</p>'+
+      '<p class="op3-small">Contest Mode supports one roster of up to 12 players total, even with multiple courts. Courts share that roster. Confirm 8–12 eligible attendees and review the equal-games schedule in Live Courts.</p>'+
       '<p id="op-contest-warning" class="op3-alert" hidden>Contest Mode requires Fair Smart rotation. Choose Fair Smart or turn off Contest Mode.</p>'+
       '<label class="label"><input id="op-prizes-enabled" type="checkbox"'+(c.cash_prizes?' checked':'')+disabled+'> Enable cash prizes</label>'+
       '<div id="op-prize-settings"'+(c.cash_prizes?'':' hidden')+'><div class="op3-grid">'+[1,2,3].map(function(n){
@@ -86,10 +86,11 @@
     if(method==='adaptive')result.adaptive_threshold=number('adaptive-threshold',4);
     return result;
   }
-  function wire(host,money) {
+  function wire(host,money,event) {
     var get=id=>host.querySelector('#op-'+id), preset=get('preset'),method=get('stacking-method');
     function update() {
       var c=read(host);
+      updateCapacity(host,event,c.enabled);
       var paddle=preset.value==='paddle'&&!!method,pair=paddle&&method.value==='partner_pair';
       if(method){
         get('paddle-settings').hidden=!paddle;
@@ -132,6 +133,33 @@
     });
     host.addEventListener('input',update);
     update();
+  }
+
+  function updateCapacity(host,event,contest) {
+    var total=host.querySelector('#op-capacity'),preview=host.querySelector('#op-capacity-preview');
+    if(!total||!preview)return;
+    var ids=[...host.querySelectorAll('#op-court input[type=checkbox]:checked')].map(el=>Number(el.value));
+    var same=event?.court_ids?.length===ids.length&&ids.every(id=>event.court_ids.includes(id));
+    var legacy=event?.id&&!event.court_capacity_v3&&same&&contest===!!event.contest?.enabled&&
+      (contest||event.ended||['completed','cancelled'].includes(event.status));
+    var capacity=ids.length?(legacy?event.capacity:contest?12:ids.length*12):0;
+    total.value=capacity==null?'Unlimited':String(capacity);
+    var detail=!ids.length?'Select at least one eligible court to calculate capacity.':
+      legacy?'Existing capacity is kept for this selection. Changing courts applies the current capacity rule.':
+      contest?'Contest Mode · one roster, 12 total players across the selected courts.':
+      '12 players per court × '+ids.length+' selected '+(ids.length===1?'court':'courts')+' = '+capacity+' total players.';
+    if(preview.textContent!==detail)preview.textContent=detail;
+    var warning=host.querySelector('#op-capacity-warning');
+    var count=Number(event?.registered??event?.confirmed??0);
+    warning.hidden=!ids.length||capacity==null||capacity>=count||legacy;
+    if(!warning.hidden)warning.textContent='This leaves '+capacity+' places for '+count+' committed registrations, including active payment holds and receipts in review. Keep enough courts or resolve those commitments before saving.';
+  }
+
+  function capacitySummary(event) {
+    if(event.registered==null)return '';
+    return Number(event.registered)+' committed'+(event.capacity?' / '+Number(event.capacity)+' places':'')+
+      ' · '+Number(event.confirmed||0)+' confirmed · '+Number(event.held||0)+' payment holds · '+Number(event.under_review||0)+' in review'+
+      (event.capacity_mode==='contest'?' · Contest roster limit 12 total':'');
   }
 
   function paddleRack(live,esc,host) {
@@ -384,5 +412,5 @@
     var a=document.createElement('a');a.href=canvas.toDataURL('image/png');a.download=filename;
     document.body.appendChild(a);a.click();a.remove();
   }
-  window.PikolOpenPlay={names,presets,presetFor,options,settings,read,paddleSettings,readPaddle,paddleRack,wire,board,preview,poster,download};
+  window.PikolOpenPlay={names,presets,presetFor,options,settings,read,paddleSettings,readPaddle,paddleRack,wire,capacitySummary,board,preview,poster,download};
 })();

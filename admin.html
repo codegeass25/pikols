@@ -963,8 +963,8 @@ body.admin-app.role-ready #view-app{visibility:visible}
 <div class="toast-host" id="toasts" role="status" aria-live="polite"></div>
 <div id="modal-root"></div>
 
-<link rel="stylesheet" href="openplay-smart.css?v=110-paddle-recovery-20261105">
-<script src="openplay-contest.js?v=110-paddle-recovery-20261105"></script>
+<link rel="stylesheet" href="openplay-smart.css?v=111-openplay-court-capacity-20261107">
+<script src="openplay-contest.js?v=111-openplay-court-capacity-20261107"></script>
 <script src="qr-lite.js?v=67"></script>
 <script src="qr-decoder.js?v=67"></script>
 <script src="promo-qr.js?v=107-official-logo-20261102"></script>
@@ -3650,7 +3650,6 @@ body.admin-app.role-ready #view-app{visibility:visible}
   function op3Opts(rows,current){return rows.map(function(x){return '<option value="'+x[0]+'"'+(x[0]===String(current)?' selected':'')+'>'+x[1]+'</option>';}).join('');}
   function openPlayForm(e) {
     e = e || {};
-    var legacy=!e.player_cap_v2&&e.id&&(!e.capacity||e.capacity>12);
     // Admin's natural booking sequence: date -> venue -> courts -> available time.
     // IDs and API payload remain unchanged; the existing venue/range binders are reused.
     return '<section class="op-create-schedule" aria-label="Open Play schedule">' +
@@ -3678,7 +3677,8 @@ body.admin-app.role-ready #view-app{visibility:visible}
       '<div class="grid cols-2 op-event-details-grid">' +
       '<div class="field"><label class="label" for="op-title">Event title</label><input class="input" id="op-title" maxlength="140" value="' + esc(e.title || '') + '" /></div>' +
       '<div class="field"><label class="label" for="op-fee">Entrance fee</label><input class="input" id="op-fee" inputmode="decimal" value="' + esc(String(e.entrance_fee == null ? '' : e.entrance_fee)) + '" /></div>' +
-      '<div class="field"><label class="label" for="op-capacity">'+(legacy?'Legacy capacity (blank = unlimited)':'Player capacity (maximum 12)')+'</label><input class="input" id="op-capacity" inputmode="numeric"'+(legacy?'':' type="number" min="1" max="12" required')+' value="' + esc(String(e.id?e.capacity||'':12)) + '" /></div>' +
+      '<div class="field"><label class="label" for="op-capacity">Total registration capacity</label><input class="input" id="op-capacity" readonly aria-describedby="op-capacity-preview" />'+
+      '<p class="op3-small" id="op-capacity-preview" aria-live="polite"></p><p class="op3-alert" id="op-capacity-warning" role="status" hidden></p></div>' +
       '</div>' +
       '<div class="field"><label class="label" for="op-description">Description</label><textarea class="textarea" id="op-description" maxlength="2000">' + esc(e.description || '') + '</textarea></div>' +
       '<div class="field"><label class="label" for="op-poster">Poster image URL</label>' +
@@ -3722,7 +3722,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
       ...PikolOpenPlay.readPaddle(host,validate),
       title: $('#op-title', host).value, entrance_fee: $('#op-fee', host).value || 0,
       event_date: $('#op-date', host).value, start_time: $('#op-start', host).value, end_time: $('#op-end', host).value,
-      capacity: $('#op-capacity', host).value, contest:PikolOpenPlay.read(host), venue_id:Number($('#op-venue',host).value), court_ids: selectedCourts(host,'op-court'),
+      contest:PikolOpenPlay.read(host), venue_id:Number($('#op-venue',host).value), court_ids: selectedCourts(host,'op-court'),
       description: $('#op-description', host).value, poster_url: $('#op-poster', host).value,
       allowed_divisions:$$('[data-op-division]:checked',host).map(function(x){return x.dataset.opDivision;}),
       playing_mode:$('#op-playing-mode',host).value,division_matching:$('#op-division-matching',host).value,
@@ -3752,12 +3752,13 @@ body.admin-app.role-ready #view-app{visibility:visible}
     return {name:brand.facility_name,logo:(brand.logo_url||brand.app_logo_url)?assetUrl(brand.logo_url||brand.app_logo_url):''};
   }
   function wireOpenPlayUpgrade(host,event){
-    PikolOpenPlay.wire(host,money);
+    PikolOpenPlay.wire(host,money,event);
     $('#op-poster-generate',host).onclick=async function(){
       var button=this, values=readOpenPlayForm(host,false), id=event&&event.id;
-      if(!values.title.trim()||!values.event_date||!values.start_time||!values.end_time||!values.venue_id){
-        toast('Enter the title, date, times, and venue before generating a poster.','error');return;
+      if(!values.title.trim()||!values.event_date||!values.start_time||!values.end_time||!values.venue_id||!values.court_ids.length){
+        toast('Enter the title, date, times, venue and courts before generating a poster.','error');return;
       }
+      values.capacity=Number($('#op-capacity',host).value)||null;
       values.venue_name=$('#op-venue',host).selectedOptions[0].textContent;
       values.preset_name=PikolOpenPlay.names[$('#op-preset',host).value];
       var publicUrl=id&&event.published?new URL('./?openplay='+id,location.href).href:null;
@@ -3786,7 +3787,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
         return '<tr role="link" tabindex="0" data-card-nav data-op-regs="'+e.id+'" aria-label="Open '+esc(e.title)+'"><td>' + esc(e.title) + (e.capacity ? '<div class="tiny muted">Capacity ' + e.capacity + '</div>' : '') + '</td>' +
           '<td>' + dateCell(e.event_date) + '</td><td>' + timeCell(e.start_time, e.end_time, e.event_date) + '</td>' +
           '<td class="num">' + esc(money(e.entrance_fee)) + '</td><td><strong>' + esc(e.venue_name||e.location||'—') + '</strong><div class="tiny muted">'+esc(e.court_name||'—')+'</div></td>' +
-          '<td class="num">' + (e.full?'FULL — ':'') + (e.confirmed || 0) + (e.capacity ? '/' + e.capacity + ' Players' : '') + '<div class="tiny muted">'+Number(e.pending||0)+' Pending</div></td>' +
+          '<td class="num">' + (e.full?'FULL — ':'') + esc(PikolOpenPlay.capacitySummary(e)) + (e.registration_closed_reason?'<div class="tiny muted">'+esc(e.registration_closed_reason)+'</div>':'') + '</td>' +
           '<td class="num">' + esc(money(e.collected)) + '</td>' +
           '<td>' + badge(e.status.replace('_', ' '), e.status === 'published' ? 'badge-approved' : e.status === 'cancelled' ? 'badge-rejected' : 'badge-pending') + '</td>' +
           '<td>' + vis + '</td>' +
@@ -3898,7 +3899,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
             '<div class="muted">' + esc(r.client_mobile || '') + '</div></td>' +
             '<td class="num">' + esc(money(Number(r.gross_amount||0)||Number(r.amount_due||0)+Number(r.credit_used||0))) + (Number(r.credit_used||0)>0?'<div class="tiny muted">Credit '+esc(money(r.credit_used))+' · Cash '+esc(money(r.amount_due))+'</div>':'') + '</td>' +
             '<td>' + badge(PAY_LABEL[r.payment_status] || r.payment_status, PAY_BADGE[r.payment_status] || 'badge-pending') + '</td>' +
-            '<td>' + badge(OPREG_LABEL[r.status] || r.status, r.status === 'confirmed' ? 'badge-approved' : r.status === 'rejected' ? 'badge-rejected' : 'badge-pending') +
+            '<td>' + badge(r.hold_expired?'Payment hold expired':OPREG_LABEL[r.status] || r.status, r.status === 'confirmed' ? 'badge-approved' : r.status === 'rejected' || r.hold_expired ? 'badge-rejected' : 'badge-pending') +
             (r.payment_rejected ? '<div class="tiny muted">Not an active attendee · rejected payment</div>' : '') + '</td>' +
             '<td class="tiny">' + esc(r.registration_code || '—') + '</td>' +
             '<td>' + (pay ? '<button class="btn btn-ghost btn-sm" data-op-receipt="' + pay.id + '">Review</button>' : '<span class="muted">—</span>') + '</td></tr>';
@@ -4101,7 +4102,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
   };
 
   /* ---------- In-Charge PWA push ---------- */
-  var ADMIN_SW_VERSION='110-paddle-recovery-20261105';
+  var ADMIN_SW_VERSION='111-openplay-court-capacity-20261107';
   var PUSH_PREP={reg:null,publicKey:null,serverStatus:null,ready:false,error:null,promise:null};
   function b64ToUint8(s){s=String(s||'').replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';var raw=atob(s),a=new Uint8Array(raw.length);for(var i=0;i<raw.length;i++)a[i]=raw.charCodeAt(i);return a;}
   function bytesEqual(a,b){if(!a||!b)return false;var x=new Uint8Array(a),y=new Uint8Array(b);if(x.length!==y.length)return false;for(var i=0;i<x.length;i++)if(x[i]!==y[i])return false;return true;}
@@ -4938,6 +4939,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
       'openplay:registration_created': function () { if (onPage('openplay')) run('openplay', loadOpenPlay); if (OP_REGS_OPEN) run('opregs', function () { loadOpenPlayRegistrations(OP_REGS_OPEN); }); if (onPage('events')) run('hub', loadEventsHub); if (onPage('payments')) run('payments', loadPayments); run('badges', refreshEventBadges); },
       'openplay:registration_cancelled': function () { if (onPage('openplay')) run('openplay', loadOpenPlay); if (OP_REGS_OPEN) run('opregs', function () { loadOpenPlayRegistrations(OP_REGS_OPEN); }); if (onPage('events')) run('hub', loadEventsHub); if (onPage('payments')) run('payments', loadPayments); run('badges', refreshEventBadges); },
       'openplay:payment_updated': function () { if (OP_REGS_OPEN) run('opregs', function () { loadOpenPlayRegistrations(OP_REGS_OPEN); }); run('badges', refreshEventBadges); },
+      'openplay:capacity_changed': function(p) { if(onPage('openplay'))run('openplay',loadOpenPlay);if(OP_REGS_OPEN)run('opregs',function(){loadOpenPlayRegistrations(OP_REGS_OPEN);});document.dispatchEvent(new CustomEvent('pikol-openplay-live',{detail:p})); },
       'tournament:created': function () { if (onPage('tournaments')) run('tournaments', loadTournaments); if (onPage('events')) run('hub', loadEventsHub); },
       'tournament:updated': function () { if (onPage('tournaments')) run('tournaments', loadTournaments); if (onPage('events')) run('hub', loadEventsHub); },
       'tournament:status_changed': function () { if (onPage('tournaments')) run('tournaments', loadTournaments); },
@@ -5047,10 +5049,15 @@ body.admin-app.role-ready #view-app{visibility:visible}
   function op3Court(c,game,controls){
     var team1=game?(game.players||[]).filter(function(x){return x.team===1;}):[],team2=game?(game.players||[]).filter(function(x){return x.team===2;}):[];
     var ps=[team1[0],team1[1],team2[0],team2[1]];
-    return '<article class="op3-court-card"><div class="op3-court-head">'+esc(c.name||('Court '+c.id))+'<span>'+(game?esc(game.state.toUpperCase()):'AVAILABLE')+'</span></div>'+
+    return '<article class="op3-court-card"><div class="op3-court-head">'+esc(c.name||('Court '+c.id))+'<span>'+(game?esc(game.state.toUpperCase()):c.available===false?'UNAVAILABLE':'AVAILABLE')+'</span></div>'+
        '<div class="op3-pitch"><i class="op3-line net"></i><i class="op3-line center-top"></i><i class="op3-line center-bottom"></i><i class="op3-line kitchen-top"></i><i class="op3-line kitchen-bottom"></i>'+ps.map(op3Person).join('')+'</div>'+
-       (game?'<div class="op3-score">'+(game.score_a??'—')+' : '+(game.score_b??'—')+(game.started_at?' · '+Math.max(0,Math.floor((Date.now()-Date.parse(game.started_at))/60000))+' min':'')+'</div>':'<p class="op3-small">Ready for the next compatible group.</p>')+
-       (controls===false?'':game?'<div class="op3-inline-actions">'+(game.state==='called'?'<button class="op3-btn" data-op3-action="start" data-game="'+game.id+'">Start Game</button><button class="op3-btn secondary" data-op3-action="skip" data-game="'+game.id+'">Skip No-show</button>':'<button class="op3-btn" data-op3-action="finish" data-game="'+game.id+'">Finish / Score</button>')+'</div>':'<button class="op3-btn" data-op3-dispatch="'+c.id+'">Call Next Group</button>')+'</article>';
+       (game?'<div class="op3-score">'+(game.score_a??'—')+' : '+(game.score_b??'—')+(game.started_at?' · '+Math.max(0,Math.floor((Date.now()-Date.parse(game.started_at))/60000))+' min':'')+'</div>':
+        '<p class="op3-small">'+(c.available===false?'Check the court status and reservation.':'Ready for the next compatible group.')+'</p>')+
+       (controls===false?'':game?'<div class="op3-inline-actions">'+(game.state==='called'?
+        (c.available===false?'':'<button class="op3-btn" data-op3-action="start" data-game="'+game.id+'">Start Game</button>')+
+        '<button class="op3-btn secondary" data-op3-action="skip" data-game="'+game.id+'">'+(c.available===false?'Skip Unavailable Court':'Skip No-show')+'</button>':
+        '<button class="op3-btn" data-op3-action="finish" data-game="'+game.id+'">Finish / Score</button>')+'</div>':
+        c.available===false?'':'<button class="op3-btn" data-op3-dispatch="'+c.id+'">Call Next Group</button>')+'</article>';
   }
   function op3VenueQR(base){
     var host=modal({title:'Permanent Venue Check-in QR',body:'<div class="op3-shell op3-modal" id="op3-venue-display"><div class="op3-empty">Loading venue check-in...</div></div>'}),root=$('#op3-venue-display',host),timer;
@@ -5086,6 +5093,8 @@ body.admin-app.role-ready #view-app{visibility:visible}
       if(contest&&!['READY','CONFIGURING'].includes(contest.status))prepared=null;
       root.innerHTML='<div class="op3-top"><div><h2>'+esc(v.event.title)+'</h2><p class="op3-meta">'+esc(v.event.playing_mode==='division'?'Division-Based':'Open Mix')+' · '+esc(v.event.division_matching)+' matching</p></div><span class="op3-pulse">● LIVE</span></div>'+
       '<div class="op3-stats"><div class="op3-stat"><b>'+courts.length+'</b><small>Courts</small></div><div class="op3-stat"><b>'+waiting.filter(function(x){return x.state==='ready';}).length+'</b><small>Ready</small></div><div class="op3-stat"><b>'+games.length+'</b><small>Playing / Called</small></div></div>'+
+      '<p class="op3-small">'+esc(PikolOpenPlay.capacitySummary(v.event))+'</p>'+
+      (v.event.registration_closed_reason?'<p class="op3-alert">'+esc(v.event.registration_closed_reason)+'</p>':'')+
       PikolOpenPlay.board(contest,esc,money,true)+
       (contest?'':'<p class="op3-small op3-auto-status">'+(Number(v.event.auto_dispatch)===1&&(v.rack||v.event.rotation_mode!=='winners_stay')?'⚡ Automatic next-court calling is enabled during this session.':'Host-controlled calling is enabled. Tap Call Next Group for each free court.')+'</p>')+
       '<div class="op3-inline-actions op3-admin-ops">'+(contest&&(contest.status!=='IN_PROGRESS'||!Number(v.event.warmup_games))?'':'<button class="op3-btn" data-op3-warmup="1">🔔 Warm-up Next Group</button>')+'<button class="op3-btn secondary" data-op3-qr="1">⌗ Venue QR Check-in</button><button class="op3-btn secondary" data-op3-refresh="1">↻ Refresh</button></div>'+

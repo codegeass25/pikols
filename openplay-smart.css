@@ -79,3 +79,6 @@
 #recovery-resend{margin-top:10px}
 .recovery-navigation{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}
 #password-recovery [hidden],#password-recovery[hidden],.op-paddle-settings[hidden]{display:none!important}
+.payment-hold-notice{margin:10px 0;padding:11px;border:1px solid var(--border,#aabeb5);border-radius:10px;overflow-wrap:anywhere}
+.payment-hold-notice p{margin:4px 0 0}
+#pf-details[hidden],#op-capacity-warning[hidden]{display:none!important}
