@@ -218,6 +218,10 @@ body.admin-app.role-ready #view-app{visibility:visible}
             </div>
           </div>
 
+          <div class="counter-tools" aria-label="Counter bookings">
+            <button type="button" class="btn btn-primary" id="btn-counter-walk" hidden>+ Walk-In Booking</button>
+            <button type="button" class="btn btn-outline" id="btn-counter-holds" hidden>Counter Holds</button>
+          </div>
           <div id="bookings-confirmed-groups">
             <section class="booking-schedule-group" id="bookings-upcoming-group">
               <div class="booking-group-head"><div><h3>Upcoming Games</h3><p>Nearest confirmed court schedules first.</p></div><span class="booking-group-count" id="bookings-upcoming-count">0</span></div>
@@ -267,6 +271,8 @@ body.admin-app.role-ready #view-app{visibility:visible}
                 
                 <option value="verified">Paid</option>
                 <option value="rejected">Rejected</option>
+                <option value="refunded">Refunded</option>
+                <option value="voided">Voided</option>
                 <option value="all">All statuses</option>
               </select>
               <input class="input" id="tx-q" aria-label="Search transactions" placeholder="Client or reference" style="max-width:200px" />
@@ -471,7 +477,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
       <!-- REPORTS -->
       <section id="page-reports" class="hidden">
         <div class="section-shell report-toolbar"><div class="card-header"><h2 class="section-title">Report date range</h2><div class="report-filter-grid"><label class="report-filter-field" for="rp-from"><span>From</span><input class="input" id="rp-from" type="date" /></label><label class="report-filter-field" for="rp-to"><span>To</span><input class="input" id="rp-to" type="date" /></label><label class="report-filter-field" for="rp-venue"><span>Venue</span><select class="select" id="rp-venue"><option value="">All venues</option></select></label><button class="btn btn-primary btn-sm" id="rp-run" data-loading="Loading...">Run report</button></div></div></div>
-        <div class="grid cols-4" id="rp-summary"></div><div id="rp-breakdown"></div><section class="section-shell"><h3 class="section-title">Venue reservations and court utilization</h3><div class="table-wrap"><table class="data"><thead><tr><th>Venue</th><th>Reservations</th><th>Booked court-hours</th><th>Booked value</th><th>Collected cash</th><th>Credit applied</th></tr></thead><tbody id="rp-venues"></tbody></table></div></section>
+        <div class="grid cols-4" id="rp-summary"></div><div id="rp-breakdown"></div><section class="section-shell"><h3 class="section-title">Venue reservations and court utilization</h3><div class="table-wrap"><table class="data"><thead><tr><th>Venue</th><th>Reservations</th><th>Booked court-hours</th><th>Booked value</th><th>Verified collections</th><th>Credit applied</th></tr></thead><tbody id="rp-venues"></tbody></table></div></section>
         <div class="grid cols-2 report-charts">
           <section class="section-shell"><div class="card-header"><h3 class="section-title">Bookings per day</h3></div><div class="chart-bars" id="rp-chart"></div></section>
           <section class="section-shell"><div class="card-header"><h3 class="section-title">Booked value by court</h3></div><div class="stack" id="rp-courts"></div></section>
@@ -965,6 +971,8 @@ body.admin-app.role-ready #view-app{visibility:visible}
 
 <link rel="stylesheet" href="openplay-smart.css?v=111-openplay-court-capacity-20261107">
 <script src="openplay-contest.js?v=111-openplay-court-capacity-20261107"></script>
+<link rel="stylesheet" href="counter-bookings.css?v=112-counter-bookings-20261108">
+<script src="counter-bookings.js?v=112-counter-bookings-20261108"></script>
 <script src="qr-lite.js?v=67"></script>
 <script src="qr-decoder.js?v=67"></script>
 <script src="promo-qr.js?v=107-official-logo-20261102"></script>
@@ -1311,11 +1319,12 @@ body.admin-app.role-ready #view-app{visibility:visible}
   var TX_STATUS_LABEL = {
     AWAITING_PAYMENT: 'Payment due', PAYMENT_SUBMITTED: 'For review', UNDER_REVIEW: 'For review',
     VERIFIED: 'Paid', APPROVED: 'Paid', REJECTED: 'Rejected', REJECTED_FRAUD: 'Fraud rejected',
-    CANCELLED: 'Cancelled', COMPLETED: 'Completed'
+    CANCELLED: 'Cancelled', COMPLETED: 'Completed', REFUNDED: 'Refunded', VOIDED: 'Voided'
   };
   var TX_STATUS_CLASS = {
     VERIFIED: 'badge-approved', APPROVED: 'badge-approved', COMPLETED: 'badge-approved',
-    REJECTED: 'badge-rejected', REJECTED_FRAUD: 'badge-rejected', CANCELLED: 'badge-rejected'
+    REJECTED: 'badge-rejected', REJECTED_FRAUD: 'badge-rejected', CANCELLED: 'badge-rejected',
+    REFUNDED: 'badge-rejected', VOIDED: 'badge-rejected'
   };
   var TX_REASONS = {};
 
@@ -1350,14 +1359,14 @@ body.admin-app.role-ready #view-app{visibility:visible}
         return '<tr><td class="num">' + esc(t.booking_reference || t.transaction_key) +
           '<div class="tiny muted">' + esc(t.transaction_key) + '</div></td>' +
           '<td>' + txBadge(TX_TYPE_LABEL[t.transaction_type] || t.transaction_type, 'badge-pending') + '</td>' +
-          '<td>' + adminPerson(t.client_name, t.client_email) + '</td>' +
+          '<td>' + adminPerson(t.client_name, t.client_email) + (t.customer_type==='guest'?'<div class="tiny muted">Guest (No Account)</div>':'') + '</td>' +
           '<td>' + esc(t.item_name || '—') + (t.division_name ? '<div class="tiny muted">' + esc(t.division_name) + '</div>' : '') + '</td>' +
           '<td class="num">' + esc(money(t.amount_due)) + '</td>' +
           '<td>' + esc(String(t.payment_provider || 'MANUAL').toUpperCase()) + '<div class="tiny muted">' + esc((t.payment_method || '').toUpperCase()) + '</div>' +
-          '<div class="tiny muted">' + esc(t.reference_number || (String(t.payment_method||'').toLowerCase()==='cash' ? 'cash collection' : 'Receipt verification')) + '</div></td>' +
+          '<div class="tiny muted">' + esc(t.reference_number || (t.payment_channel==='counter' ? 'Counter verification' : String(t.payment_method||'').toLowerCase()==='cash' ? 'Cash collection' : 'Receipt verification')) + '</div></td>' +
           '<td>' + txBadge(TX_STATUS_LABEL[t.unified_status] || t.unified_status, TX_STATUS_CLASS[t.unified_status] || 'badge-pending') + '</td>' +
           '<td class="tiny">' + esc(txStamp(t.created_at)) + '</td>' +
-          '<td class="row-actions"><button class="btn btn-primary btn-sm" data-tx-open="' + esc(t.transaction_key) + '">Review</button></td></tr>';
+          '<td class="row-actions"><button class="btn btn-primary btn-sm" data-tx-open="' + esc(t.transaction_key) + '">' + (t.payment_channel==='counter'?'View':'Review') + '</button></td></tr>';
       }).join('') : '<tr><td colspan="9"><div class="empty"><strong>Nothing to review</strong>No transactions match these filters.</div></td></tr>';
     }).catch(function (e) { toast(e.message, 'error'); });
   }
@@ -1393,7 +1402,12 @@ body.admin-app.role-ready #view-app{visibility:visible}
       if(!closed && ['submitted','under_review'].indexOf(String(t.status||'').toLowerCase())>=0){
         actions='<div class="action-panel review-actions"><strong>'+(isCash?'Cash collection':'Payment review')+'</strong><p class="tiny muted mt-2">'+(isCash?'Record only after cash is physically received.':'Compare the uploaded receipt with the actual receiving account transaction records before verifying.')+'</p><div class="field"><label class="label">Verification notes</label><textarea class="textarea" id="tx-review-notes" maxlength="400"></textarea></div><div class="row wrap"><button class="btn btn-success" data-tx-verify>'+(isCash?'Mark cash paid':'Mark paid')+'</button><button class="btn btn-danger" data-tx-reject>Reject</button></div></div>';
       } else actions='<p class="tiny muted">Current status: '+esc(TX_STATUS_LABEL[t.unified_status]||t.unified_status)+'</p>';
-      if(isAdmin() && String(t.status).toLowerCase()==='verified'){
+      if(t.payment_channel==='counter'&&window.PikolCounter?.can(USER,t.booking_source)){
+        actions+='<button type="button" class="btn btn-outline" data-counter-print="'+Number(t.source_id)+'">Print Payment Acknowledgment</button>';
+        if(isAdmin()&&t.unified_status==='VERIFIED'&&!t.cancellation_source)
+          actions+='<button type="button" class="btn btn-outline" data-counter-adjust="'+Number(t.source_id)+'">Adjust Counter Payment</button>';
+      }
+      if(isAdmin() && t.payment_channel!=='counter' && String(t.status).toLowerCase()==='verified'){
         actions+='<section class="payment-fraud-action mt-3"><div class="alert alert-warning"><strong>Payment verification override</strong><p class="tiny">Super Admin only. Independently verify the real payment records before invalidating a Paid transaction. This can restrict the player account, retain the original receipt and preserve existing transaction history.</p></div><button type="button" class="btn btn-danger" data-tx-fraud-open>Reject this payment</button><div data-tx-fraud-panel hidden><div class="field mt-3"><label class="label" for="tx-fraud-reason">Reason / verified findings</label><textarea id="tx-fraud-reason" class="textarea" rows="4" minlength="20" maxlength="800" placeholder="Explain the payment account verification and why this receipt is invalid."></textarea></div><label class="payment-fraud-check"><input type="checkbox" id="tx-fraud-confirm"><span>I independently checked management payment records, confirm payment was not received, and understand the player account will be banned.</span></label><div class="row wrap mt-3"><button type="button" class="btn btn-danger" data-tx-fraud-apply>Confirm rejection &amp; ban account</button><button type="button" class="btn btn-outline" data-tx-fraud-back>Back</button></div></div></section>';
       }
       if(isAdmin() && String(t.status).toLowerCase()==='rejected_fraud'){
@@ -1401,7 +1415,8 @@ body.admin-app.role-ready #view-app{visibility:visible}
       }
       var history=(t.client_history||[]).slice(0,8).map(function(h){return '<tr><td>'+esc(h.transaction_key)+'</td><td>'+esc(TX_TYPE_LABEL[h.transaction_type]||h.transaction_type)+'</td><td class="num">'+esc(money(h.amount))+'</td><td>'+esc(h.status)+'</td><td class="tiny">'+esc(txStamp(h.created_at))+'</td></tr>';}).join('');
       var host=modal({title:'Payment review · '+(TX_TYPE_LABEL[t.transaction_type]||t.transaction_type)+' '+t.transaction_key,wide:true,cancelText:'Close',body:'<div class="grid cols-2 payment-review-grid"><div><div class="receipt-frame" id="tx-receipt"></div></div><div class="stack" style="gap:12px"><table class="data"><tbody><tr><td class="muted">Client</td><td>'+esc(t.client_name||'—')+'<div class="tiny muted">'+esc(t.client_email||'')+'</div></td></tr><tr><td class="muted">Item</td><td>'+esc(t.item_name||'—')+(t.division_name?' · '+esc(t.division_name):'')+'</td></tr><tr><td class="muted">Amount</td><td><strong>'+esc(money(t.amount_due))+'</strong></td></tr><tr><td class="muted">Method</td><td>'+esc(String(t.payment_method||'').toUpperCase())+'</td></tr>'+(t.reference_number?'<tr><td class="muted">Reference</td><td class="num">'+esc(t.reference_number)+'</td></tr>':'')+'<tr><td class="muted">Submitted</td><td>'+esc(txStamp(t.created_at))+'</td></tr><tr><td class="muted">Status</td><td>'+txBadge(TX_STATUS_LABEL[t.unified_status]||t.unified_status,TX_STATUS_CLASS[t.unified_status]||'badge-pending')+'</td></tr>'+(t.cancellation_source?'<tr><td class="muted">Related service</td><td>Cancelled by '+esc(t.cancellation_source==='venue'?'Management / Venue':'Player')+(t.cancellation_resolution?'<div class="tiny muted">Resolution: '+esc(t.cancellation_resolution==='credit'?'PIKOL Credit issued':t.cancellation_resolution)+'</div>':'')+(t.cancellation_reason?'<div class="tiny muted">'+esc(t.cancellation_reason)+'</div>':'')+'</td></tr>':'')+'</tbody></table>'+window.PikolVenueUI.segmentsHtml(t.booking_group,{humanTime,money})+txValidationBlock(t)+(history?'<details><summary class="tiny muted">Client payment history</summary><table class="data mt-2"><tbody>'+history+'</tbody></table></details>':'')+actions+'</div></div>'});
-      if(isCash) $('#tx-receipt',host).innerHTML='<div class="cash-receipt-placeholder"><span>₱</span><strong>Cash</strong><small>No receipt upload required</small></div>';
+      if(t.payment_channel==='counter')$('#tx-receipt',host).innerHTML='<div class="cash-receipt-placeholder"><strong>Counter payment</strong><small>Staff verification recorded in the ledger</small></div>';
+      else if(isCash) $('#tx-receipt',host).innerHTML='<div class="cash-receipt-placeholder"><span>₱</span><strong>Cash</strong><small>No receipt upload required</small></div>';
       else if(t.has_receipt) txReceiptUrl(t.transaction_key).then(function(url){$('#tx-receipt',host).innerHTML='<a href="'+assetUrl(url)+'" target="_blank" rel="noopener"><img src="'+assetUrl(url)+'" alt="Payment receipt" /></a>';}).catch(function(e){$('#tx-receipt',host).innerHTML='<span class="muted tiny">'+esc(e.message)+'</span>';});
       else $('#tx-receipt',host).innerHTML='<span class="muted tiny">No receipt stored.</span>';
       function done(msg){toast(msg,'success');host.remove();loadPayments();refreshEventBadges();loadDashboard();if(after)after();}
@@ -2658,23 +2673,43 @@ body.admin-app.role-ready #view-app{visibility:visible}
   function bookingDetailsBody(b) {
     function rows(items) { return '<dl class="summary-list">' + items.map(function (item) { return '<div class="summary-row"><dt>' + esc(item[0]) + '</dt><dd>' + esc(item[1] == null ? '—' : item[1]) + '</dd></div>'; }).join('') + '</dl>'; }
     function section(icon, title, content) { return '<section class="detail-card"><h3 class="detail-card-head">' + adminIcon(icon) + esc(title) + '</h3>' + content + '</section>'; }
-    return window.PikolVenueUI.segmentsHtml(b,{humanTime,money,adminActions:!!(USER&&['admin','booking_manager'].includes(USER.role))})+'<div class="booking-detail-intro"><span>Reference <strong>' + esc(b.reference) + '</strong></span>' + badge(b.status) + '</div><div class="booking-detail-grid">' +
+    return window.PikolVenueUI.segmentsHtml(b,{humanTime,money,adminActions:!!(USER&&['admin','booking_manager'].includes(USER.role))})+
+      '<div class="counter-tools">'+counterActions(b)+'</div><div class="booking-detail-intro"><span>Reference <strong>' + esc(b.reference) + '</strong></span>' + badge(b.status) + '</div><div class="booking-detail-grid">' +
       section('court', 'Booking summary', rows([['Court',b.court_name],['Court amount',money(b.amount)],['PIKOL Credit used',Number(b.credit_used||0)>0?money(b.credit_used):'—'],['Cash payment required',money(Math.max(0,Number(b.amount||0)-Number(b.credit_used||0)))]])) +
-      section('user', 'Player information', rows([['Player',b.player_name],['Email',b.player_email],['Mobile',b.player_mobile || '—'],['Players',b.players]])) +
-      section('calendar', 'Schedule details', rows([['Date',humanDate(b.booking_date)],['Time',window.PikolVenueUI.timeLabel(b,{humanTime})]])) +
+      section('user', 'Customer information', rows([['Customer',b.player_name],['Type',b.customer_type==='guest'?'Guest (No Account)':'Registered Player'],['Email',b.player_email],['Contact',b.player_mobile || '—'],['Players',b.players]])) +
+      section('calendar', 'Schedule details', rows([['Date',humanDate(b.booking_date)],['Time',window.PikolVenueUI.timeLabel(b,{humanTime})],...(b.extension_of_reference?[['Extends booking',b.extension_of_reference]]:[])])) +
       section('payments', 'Payment information', rows([['Method',String(b.payment_method || '—').toUpperCase()],['Payment status',String(b.payment_record_status || b.payment_status || 'none').replace(/_/g,' ')],['Payment amount',b.payment_amount == null ? '—' : money(b.payment_amount)]])) +
       section('list', 'Booking notes', rows([['Created by',b.created_by || '—'],['Cancelled by',b.cancellation_source==='venue'?'Management / Venue':b.cancellation_source==='player'?'Player':'—'],['Cancellation reason',b.cancellation_reason||'—'],['Resolution',b.cancellation_resolution==='credit'?'PIKOL Credit issued':b.cancellation_resolution==='rebooked'?'Rebooked':b.cancellation_resolution||'—'],['Notes',b.notes || 'No additional notes.']])) + '</div>';
   }
 
+  function counterActions(b) {
+    if(!window.PikolCounter)return '';
+    var today=new Intl.DateTimeFormat('en-CA',{timeZone:BRAND.facility_timezone||'Asia/Manila'}).format(new Date());
+    var actions=[];
+    if(PikolCounter.can(USER,'extension')&&b.booking_date===today){
+      var segments=b.group_id?(b.segments||[]):[b];
+      segments.filter(s=>s.status==='confirmed'&&s.end_time!=='00:00').forEach(function(s){
+        actions.push('<button type="button" class="btn btn-outline btn-sm" data-counter-extend="'+Number(s.id)+'">Extend Booking'+
+          (b.group_id?' · '+esc((s.court_name||'Court')+' '+humanTime(s.end_time)):'')+'</button>');
+      });
+    }
+    if(['walk_in','extension'].includes(b.booking_source)&&b.payment_id&&PikolCounter.can(USER,b.booking_source)){
+      actions.push('<button type="button" class="btn btn-outline btn-sm" data-counter-print="'+Number(b.id)+'">Payment Acknowledgment</button>');
+      if(isAdmin()&&b.status==='confirmed'){
+        actions.push('<button type="button" class="btn btn-outline btn-sm" data-counter-adjust="'+Number(b.id)+'">Adjust Counter Payment</button>');
+      }
+    }
+    return actions.join(' ');
+  }
   function bookingRowHtml(b) {
     var act = bookingActions(b);
     if (!b.group_id && b.status === 'confirmed' && isAdmin()) {
       act.push('<button class="btn btn-outline btn-sm" data-resched="' + b.id + '">Reschedule</button>');
     }
     if(b.group_id && USER && ['admin','booking_manager'].includes(USER.role))act.push('<span class="tiny muted">Expand slots for individual actions</span>');
-    act.push('<button class="btn btn-ghost btn-sm" data-detail="' + b.id + '">Details</button>');
+    act.push('<button class="btn btn-ghost btn-sm" data-detail="' + b.id + '">Details</button>',counterActions(b));
     return '<tr><td class="num">' + esc(b.reference) + '</td><td>' + esc(b.player_name) + '<div class="tiny muted">' +
-      esc(b.player_email) + '</div></td><td>' + esc(b.court_name) + '</td><td>' + humanDate(b.booking_date) +
+      esc(b.customer_type==='guest'?'Guest (No Account)':b.player_email) + '</div></td><td>' + esc(b.court_name) + '</td><td>' + humanDate(b.booking_date) +
       '<div class="tiny muted num booking-time-range">' + window.PikolVenueUI.timeLabel(b,{humanTime}) + '</div></td><td>' +
       esc(money(b.amount)) + '</td><td>' + esc(b.payment_method ? b.payment_method.toUpperCase() : '—') +
       '</td><td>' + (b.payment_amount != null ? esc(money(b.payment_amount)) : '—') + '<div class="tiny">' +
@@ -2688,6 +2723,10 @@ body.admin-app.role-ready #view-app{visibility:visible}
 
   function fillVenueFilters(){return api(isAdmin()?'/api/admin/venues?include_retired=1':'/api/venues').then(function(vs){VENUES=vs.filter(function(v){return !v.deleted_at&&v.status!=='archived';});['bk-venue','rp-venue'].forEach(function(id){var el=document.getElementById(id),value=el.value;el.innerHTML='<option value="">All venues</option>'+vs.map(v=>'<option value="'+v.id+'">'+esc(v.name)+(v.deleted_at?' · retired':'')+'</option>').join('');el.value=value;});});}
   function loadBookings() {
+    if(window.PikolCounter){
+      $('#btn-counter-walk').hidden=!PikolCounter.can(USER,'walk_in');
+      $('#btn-counter-holds').hidden=!PikolCounter.can(USER,'walk_in')&&!PikolCounter.can(USER,'extension');
+    }
     if($('#bk-venue').options.length===1)fillVenueFilters().catch(function(){});
     var p = new URLSearchParams();
     var selectedStatus = $('#bk-status').value || 'confirmed';
@@ -2725,9 +2764,10 @@ body.admin-app.role-ready #view-app{visibility:visible}
     if (vc) {
       var bk = BOOKINGS.filter(function(x){return x.id===Number(vc.dataset.venueCancel);})[0]; if(!bk)return;
       var host=modal({title:'Venue Cancellation — '+bk.reference,locked:true,danger:true,confirmText:'Apply resolution',body:
-        '<div class="alert alert-warning"><strong>No cash refund.</strong> Choose how Management will make the affected player whole.</div>'+ 
+        (bk.customer_type==='guest'?'<div class="alert alert-warning">Rebook this guest. An authorized Administrator can separately record a completed external guest refund.</div>':'<div class="alert alert-warning"><strong>No cash refund.</strong> Choose how Management will make the affected player whole.</div>')+
         '<div class="field"><label class="label" for="vc-reason">Reason</label><textarea class="textarea" id="vc-reason" maxlength="300" placeholder="e.g. unsafe court condition, maintenance, emergency closure"></textarea></div>'+ 
-        '<div class="field"><label class="label" for="vc-resolution">Resolution</label><select class="select" id="vc-resolution">'+(bk.group_id?'':'<option value="rebook">Rebook Player</option>')+'<option value="credit">Issue PIKOL Credit</option></select></div>'+ 
+        '<div class="field"><label class="label" for="vc-resolution">Resolution</label><select class="select" id="vc-resolution">'+(bk.group_id?'':'<option value="rebook">Rebook Customer</option>')+
+        (bk.customer_type==='guest'?'':'<option value="credit">Issue PIKOL Credit</option>')+'</select></div>'+
         '<div id="vc-rebook">'+venueCourtMoveFields('vc',bk)+ 
         '<div class="grid cols-2"><div class="field"><label class="label" for="vc-date">New date</label><input class="input" id="vc-date" type="date" value="'+esc(bk.booking_date)+'"></div><div class="field"><label class="label" for="vc-time">New start time</label><input class="input" id="vc-time" type="time" step="900" value="'+esc(bk.start_time)+'"></div></div><p class="tiny muted">The original booking duration is preserved and the new schedule is clash-checked.</p></div>',
         onConfirm:function(h){var reason=$('#vc-reason',h).value.trim(),resolution=$('#vc-resolution',h).value;if(reason.length<3)return Promise.reject(new Error('Enter the venue cancellation reason.'));var body={reason:reason,resolution:resolution};if(resolution==='rebook'){body.court_id=Number($('#vc-court',h).value);body.date=$('#vc-date',h).value;body.start_time=$('#vc-time',h).value;}return api('/api/admin/bookings/'+bk.id+'/venue-cancel',{method:'POST',body:body}).then(function(out){toast(resolution==='credit'?('Venue cancellation saved. '+money(out.credit_issued||0)+' PIKOL Credit issued.'):'Player rebooked successfully.','success');loadBookings();loadDashboard();if(!$('#page-payments').classList.contains('hidden'))loadPayments();});}});
@@ -2762,7 +2802,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
       modal({
         title: 'Booking details',
         body: bookingDetailsBody(b),
-        confirmText: 'Send reminder',
+        confirmText: b.customer_type==='guest'?null:'Send reminder',
         onConfirm: function () {
           return api('/api/admin/bookings/' + b.id + '/reminder', { method: 'POST' })
             .then(function () { toast('Reminder sent.', 'success'); });
@@ -3462,13 +3502,14 @@ body.admin-app.role-ready #view-app{visibility:visible}
       if (details) details.innerHTML = '<details class="admin-report-details"><summary>Financial &amp; booking breakdown</summary><dl class="admin-report-breakdown">' + [
         ['Court booking payments collected', money(Math.max(0,Number(f.total_revenue||0)-Number(f.game_revenue||0)-Number(f.event_revenue||0)-Number(f.membership_revenue||0)))], ['Additional booking payments collected', money(f.game_revenue)],
         ['Event fees collected', money(f.event_revenue)], ['Membership fees collected', money(f.membership_revenue)],
+        ['Cash collected', money(f.cash_revenue)], ['Digital payments collected', money(f.digital_revenue)],
         ['PIKOL Credit issued', money(f.pikol_credit_issued||0)], ['PIKOL Credit used', money(f.pikol_credit_used||0)], ['PIKOL Credit outstanding', money(f.pikol_credit_outstanding||0)],
         ['Confirmed bookings', s.confirmed || 0], ['Completed bookings', s.completed || 0],
         ['Cancelled bookings', s.cancelled || 0], ['No-show bookings', s.no_show || 0],
         ['Pending bookings', s.pending || 0], ['Rejected bookings', s.rejected || 0], ['Date range', d.from + ' → ' + d.to]
       ].map(function (item) { return '<div><dt>' + esc(item[0]) + '</dt><dd class="num">' + esc(item[1]) + '</dd></div>'; }).join('') + '</dl></details>';
-      var venueNote=document.getElementById('rp-venue-note');if(!venueNote){venueNote=document.createElement('p');venueNote.id='rp-venue-note';venueNote.className='field-hint';document.getElementById('rp-venues').closest('section').append(venueNote);}venueNote.textContent=d.venue_finance_note||'Customer reservations count once; utilization uses actual court segments. Cash totals use verified payments.';
-      $('#rp-venues').innerHTML=(d.byVenue||[]).map(v=>'<tr><td>'+esc(v.name)+'</td><td>'+v.reservations+'</td><td>'+v.court_hours+'</td><td>'+money(v.booked_value)+'</td><td>'+money(v.cash_collected)+'</td><td>'+money(v.credit_applied)+'</td></tr>').join('')||'<tr><td colspan="6">No bookings in this date range.</td></tr>';
+      var venueNote=document.getElementById('rp-venue-note');if(!venueNote){venueNote=document.createElement('p');venueNote.id='rp-venue-note';venueNote.className='field-hint';document.getElementById('rp-venues').closest('section').append(venueNote);}venueNote.textContent=d.venue_finance_note||'Customer reservations count once; utilization uses actual court segments. Collections use the verified payment ledger.';
+      $('#rp-venues').innerHTML=(d.byVenue||[]).map(v=>'<tr><td>'+esc(v.name)+'</td><td>'+v.reservations+'</td><td>'+v.court_hours+'</td><td>'+money(v.booked_value)+'</td><td>'+money(v.cash_collected)+'<div class="tiny muted">Cash '+money(v.physical_cash_collected||0)+' · Digital '+money(v.digital_collected||0)+'</div></td><td>'+money(v.credit_applied)+'</td></tr>').join('')||'<tr><td colspan="6">No bookings in this date range.</td></tr>';
       $('#rp-chart').innerHTML = AdminCharts.bars(d.byDay || [], {from: d.from, to: d.to, label: 'Bookings per day'});
       $('#rp-courts').innerHTML = AdminCharts.donut((d.byCourt || []).map(function (c) { return {name: c.name, total: c.revenue}; }), {label: 'Booked value by court', totalLabel: 'Booked value', format: money});
       var peak = d.peak || [], max = Math.max.apply(null, peak.map(function (x) { return Number(x.total) || 0; }).concat([1]));
@@ -4102,7 +4143,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
   };
 
   /* ---------- In-Charge PWA push ---------- */
-  var ADMIN_SW_VERSION='111-openplay-court-capacity-20261107';
+  var ADMIN_SW_VERSION='112-counter-bookings-20261108';
   var PUSH_PREP={reg:null,publicKey:null,serverStatus:null,ready:false,error:null,promise:null};
   function b64ToUint8(s){s=String(s||'').replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';var raw=atob(s),a=new Uint8Array(raw.length);for(var i=0;i<raw.length;i++)a[i]=raw.charCodeAt(i);return a;}
   function bytesEqual(a,b){if(!a||!b)return false;var x=new Uint8Array(a),y=new Uint8Array(b);if(x.length!==y.length)return false;for(var i=0;i<x.length;i++)if(x[i]!==y[i])return false;return true;}
@@ -4730,7 +4771,9 @@ body.admin-app.role-ready #view-app{visibility:visible}
     return api('/api/admin/staff-users').then(function(rows){
       var box=$('#staff-users-list'); if(!box)return;
       box.innerHTML=(rows||[]).length?(rows||[]).map(function(u){
-        return '<div class="list-row"><div class="list-main"><div class="list-title">'+esc(u.full_name)+'</div><div class="list-sub">'+esc(u.email)+' · '+esc(String(u.role).replace(/_/g,' '))+'</div></div><div class="list-end">'+statusBadge(u.status)+'<button class="btn btn-outline btn-sm" data-staff-edit="'+u.id+'">Edit</button><button class="btn btn-ghost btn-sm" data-staff-delete="'+u.id+'"'+(u.status==='inactive'?'':' disabled title="Deactivate this user before deletion"')+'>Delete</button></div></div>';
+        return '<div class="list-row"><div class="list-main"><div class="list-title">'+esc(u.full_name)+'</div><div class="list-sub">'+esc(u.email)+' · '+esc(String(u.role).replace(/_/g,' '))+'</div></div><div class="list-end">'+statusBadge(u.status)+'<button class="btn btn-outline btn-sm" data-staff-edit="'+u.id+'">Edit</button>'+
+          (u.status==='active'&&['admin','booking_manager'].includes(u.role)?'<button class="btn btn-outline btn-sm" data-counter-permissions="'+Number(u.id)+'">Counter permissions</button>':'')+
+          '<button class="btn btn-ghost btn-sm" data-staff-delete="'+u.id+'"'+(u.status==='inactive'?'':' disabled title="Deactivate this user before deletion"')+'>Delete</button></div></div>';
       }).join(''):'<div class="empty">No staff users found.</div>';
     }).catch(function(e){toast(e.message,'error');});
   }
@@ -4747,6 +4790,31 @@ body.admin-app.role-ready #view-app{visibility:visible}
   }
   var addStaff=$('#btn-add-staff-user'); if(addStaff)addStaff.onclick=function(){staffUserModal();};
   document.addEventListener('click',function(e){var b=e.target.closest('[data-staff-edit]');if(!b)return;api('/api/admin/staff-users').then(function(rows){var u=(rows||[]).find(function(x){return Number(x.id)===Number(b.dataset.staffEdit);});if(u)staffUserModal(u);});});
+  document.addEventListener('click',function(e){
+    var button=e.target.closest('[data-counter-permissions]');
+    if(!button||!isAdmin())return;
+    api('/api/admin/staff-users').then(function(rows){
+      var staff=rows.find(u=>Number(u.id)===Number(button.dataset.counterPermissions));
+      if(!staff)throw Error('This staff account is unavailable.');
+      modal({title:'Counter permissions · '+staff.full_name,confirmText:'Save Counter Permissions',
+        body:'<div class="counter-flow"><p>Grant each workflow independently. A grant authorizes this staff member to verify funds and settle the booking in one step.</p>'+
+          '<label class="counter-check"><input type="checkbox" id="staff-walk-in" '+(staff.can_walkin_book?'checked':'')+'> Walk-In Booking</label>'+
+          '<label class="counter-check"><input type="checkbox" id="staff-extension" '+(staff.can_extend_booking?'checked':'')+'> Extend Booking</label></div>',
+        onConfirm:async function(host){
+          var result=await api('/api/admin/staff-users/'+Number(staff.id)+'/counter-permissions',{method:'PUT',body:{
+            can_walkin_book:$('#staff-walk-in',host).checked,can_extend_booking:$('#staff-extension',host).checked}});
+          if(USER&&Number(USER.id)===Number(staff.id)){
+            USER.can_walkin_book=result.can_walkin_book;USER.can_extend_booking=result.can_extend_booking;
+          }
+          loadStaffUsers();toast('Counter permissions saved.','success');
+        }});
+    }).catch(err=>toast(err.message,'error'));
+  });
+
+  window.PikolCounter?.init({api,modal,toast,getUser:()=>USER,onChange:()=>{
+    loadBookings();loadDashboard();if(!$('#page-payments').classList.contains('hidden'))loadPayments();
+    if(!$('#page-calendar').classList.contains('hidden'))loadCalendar();
+  }});
 
   window.PikolPromo.init({getSettings:function(){return SETTINGS||{};},assetUrl:assetUrl,toast:toast});
   window.PikolOccasionAdmin.init({api:api,toast:toast,modal:modal});
