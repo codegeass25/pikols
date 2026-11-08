@@ -255,6 +255,35 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
 .guide-status{border:1px solid var(--border,#dde5e1);border-radius:10px;padding:10px;background:var(--surface,#fff)}
 .guide-status strong{display:block;margin-bottom:3px}
 .guide-meta{font-size:.75rem;color:var(--muted,#52615c);margin-top:8px}
+.registration-guide-host .modal-body{display:block;overflow:auto;overscroll-behavior:contain;touch-action:pan-y;padding:16px clamp(14px,4vw,26px);scrollbar-gutter:stable}
+.guide-modal-host .modal-foot{flex:0 0 auto;flex-wrap:wrap}
+.registration-guide-host .modal-foot .btn,.registration-guide-host .modal-head .btn,.registration-guide-content a,.registration-guide-trigger{min-height:44px}
+.registration-guide-host .modal-head .btn-icon{width:44px}
+.registration-guide-content{min-width:0;overflow-wrap:anywhere}
+.registration-guide-content p{line-height:1.55;margin:0 0 10px}
+.registration-guide-content .guide-status{margin-bottom:18px}
+.registration-guide-facts{display:grid;gap:4px 16px;grid-template-columns:repeat(auto-fit,minmax(min(100%,170px),1fr));margin:8px 0 0}
+.registration-guide-facts dt{font-weight:700}
+.registration-guide-facts dd{margin:0}
+.registration-guide-steps{display:block;padding-inline-start:28px}
+.registration-guide-steps>li{padding-inline-start:6px;margin-bottom:16px}
+.registration-guide-steps>li::marker{color:var(--brand-primary,#0f3d32);font-weight:800}
+.registration-guide-steps h3{font-size:1rem;margin:0 0 4px}
+.registration-guide-steps ul{padding-inline-start:19px;margin:0 0 10px}
+.registration-guide-trigger{justify-self:start;align-self:flex-start}
+.registration-with-guide .modal-head h2{min-width:0;overflow-wrap:anywhere}
+@media(max-width:1024px){
+  /* Help tabs and registration guides each need one bounded reading region. */
+  html.pikol-android body.player-app .modal-host.guide-modal-host{overflow:hidden!important}
+  html.pikol-android body.player-app .guide-modal-host .modal.wide{max-height:calc(100vh - 16px)!important;max-height:calc(100dvh - 16px)!important;overflow:hidden!important}
+  html.pikol-android body.player-app .guide-modal-host .modal-body{flex:1 1 0!important;overflow:hidden!important;overscroll-behavior:contain!important}
+  html.pikol-android body.player-app .guide-modal-host.registration-guide-host .modal-body{overflow:auto!important}
+}
+@media(max-width:480px){
+  .registration-with-guide .modal-head{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 10px}
+  .registration-with-guide .modal-head .registration-guide-trigger{grid-row:2}
+  .registration-with-guide .modal-head [data-close]{grid-column:2;grid-row:1}
+}
 .guide-panel .terms-shell{height:auto;min-height:0;overflow:visible;display:block}.guide-panel .terms-panels{overflow:visible;padding:14px 0 0}.guide-panel .terms-tabs{padding:10px 0;background:transparent}
 @media(max-width:1024px){
   .terms-modal-host .modal{max-height:90vh;max-height:90dvh}
@@ -751,6 +780,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
 <script src="range-availability.js?v=56-android-native-scroll"></script>
 <script src="openplay-contest.js?v=111-openplay-court-capacity-20261107"></script>
 <script src="password-recovery.js?v=110-paddle-recovery-20261105"></script>
+<script src="registration-guide.js?v=113-registration-guide"></script>
 <script>
 /* ================= shared runtime (player app) ================= */
 (function () {
@@ -988,6 +1018,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
       '<span class="guide-kicker">My Games / My Bookings</span><h3>Track your reservations</h3><p>On mobile, the navigation says <strong>My Games</strong>. Inside the page, the title is <strong>My Bookings</strong>.</p><ul><li><strong>Upcoming</strong> shows active or future reservations.</li><li><strong>History</strong> shows previous, completed or cancelled bookings.</li><li><strong>Payments</strong> helps you review payment-related booking information.</li><li>Open a booking to review its court, schedule, booking reference and current status.</li><li>If the site shows <strong>Complete payment</strong>, follow the payment screen before the temporary hold expires.</li><li>Use <strong>Cancel Booking</strong> only when you really want to release the reservation. Non-members follow the self-cancellation cutoff configured by Management in <strong>Settings &gt; Membership</strong>; active membership plans may provide a shorter cutoff. The No-Refund Policy still applies: verified payments remain collected and PIKOL Credit already used is not restored.</li></ul><div class="guide-actions"><button class="btn btn-primary btn-sm" type="button" data-help-goto="bookings">Open My Bookings</button></div>' },
     {id:'events',label:'Events & Rating',html:
       '<span class="guide-kicker">Tournaments, Open Play &amp; Stars</span><h3>Events &amp; Registrations</h3><p>Use <strong>Events</strong> to browse <strong>Tournaments</strong>, <strong>Open Play</strong> and <strong>My registrations</strong>. Tournament pages also show <strong>My matches</strong> when you have scheduled matches.</p>'+
+      '<div class="guide-actions"><button type="button" class="btn btn-outline btn-sm registration-guide-trigger" data-help-registration="openplay">Open Play registration guide</button><button type="button" class="btn btn-outline btn-sm registration-guide-trigger" data-help-registration="tournament">Tournament registration guide</button></div>'+
       '<h4>Star-Based Tournament Rating</h4><p>Your star rating comes only from <strong>completed Tournament matches</strong>. Normal court bookings and Open Play do not add stars to your Tournament Rating.</p><ul><li>After a completed Tournament match, you may rate opponents you actually played against from <strong>1 ★ to 5 ★</strong>.</li><li>You cannot rate yourself, and in Doubles you rate the opposing players—not your teammate.</li><li>Each opponent can be rated only once for that match.</li><li>The rating opportunity stays available for <strong>30 days</strong> after the match is completed.</li><li>Valid submitted ratings become <strong>Verified ratings</strong>.</li></ul>'+
       '<h4>How your rating builds up</h4><p><strong>Tournament expertise</strong> is the average of the verified ratings you have received. The system also checks how many verified ratings you have compared with the number required for your current <strong>Official Division</strong>.</p><p>The requirement is about 30% of the active players in your current division, with a minimum of <strong>5</strong> and a maximum of <strong>30</strong> verified ratings.</p>'+
       '<p>The Official Division ladder is <strong>Beginner → Novice Low → Novice High → Intermediate → Expert</strong>.</p>'+
@@ -1037,6 +1068,10 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
     requestAnimationFrame(syncGuideScrollbar);
 
     dlg.host.addEventListener('click',function(e){
+      var registration=e.target.closest('[data-help-registration]');
+      if(registration&&window.PikolRegistrationGuide){
+        PikolRegistrationGuide.open(modal,registration.dataset.helpRegistration,{money:money});return;
+      }
       var tab=e.target.closest('[data-guide-tab]');if(tab){var id=tab.dataset.guideTab;$$('[data-guide-tab]',dlg.host).forEach(function(x){var on=x.dataset.guideTab===id;x.classList.toggle('is-active',on);x.setAttribute('aria-selected',String(on));});$$('[data-guide-panel]',dlg.host).forEach(function(x){var on=x.dataset.guidePanel===id;x.classList.toggle('is-active',on);if(on)x.scrollTop=0;});requestAnimationFrame(syncGuideScrollbar);return;}
       var go=e.target.closest('[data-help-goto]');if(go){var target=go.dataset.helpGoto,panel=go.dataset.helpPanel;dlg.close();goto(target);if(panel&&target==='profile')setTimeout(function(){openPanel(panel);},80);}
       requestAnimationFrame(syncGuideScrollbar);
@@ -2419,24 +2454,65 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
     }).catch(function(e){release();toast(e.message,'error');});
   }
 
+  /* --------------------------- registration guidance ------------------------- */
+  var registrationAttempt=0;
+  function currentRegistrationAttempt(){
+    var attempt=++registrationAttempt, id=USER?.id, token=TOKEN;
+    return function(){return attempt===registrationAttempt&&!!token&&TOKEN===token&&USER?.id===id;};
+  }
+  function firstRegistrationGuide(kind){
+    return !!(window.PikolRegistrationGuide&&USER?.role==='player'&&Number(USER.id)>0&&TOKEN&&
+      !PikolRegistrationGuide.seen(kind,USER.id));
+  }
+  function showFirstRegistrationGuide(kind,context,current,start){
+    PikolRegistrationGuide.open(modal,kind,context,{first:true,start:context.warning?undefined:function(){
+      if(current())return start();
+    }});
+    PikolRegistrationGuide.remember(kind,USER.id);
+  }
+  function registrationGuideButton(dialog,open){
+    if(!window.PikolRegistrationGuide)return;
+    dialog.host.classList.add('registration-with-guide');
+    var link=document.createElement('button');
+    link.type='button';link.className='btn btn-outline btn-sm registration-guide-trigger';
+    link.textContent='How this works';
+    link.addEventListener('click',open);
+    $('.modal-head h2',dialog.host).after(link);
+  }
+  function tournamentGuideContext(id,name,info,available,warning){
+    var cached=PUBLIC_EVENTS.find(function(t){return Number(t.id)===Number(id);});
+    var detail=cached?Promise.resolve(cached):api('/api/tournaments/'+id)
+      .then(function(result){return result.tournament;}).catch(function(){return null;});
+    return detail.then(function(event){
+      return {event:event||{name:name},info:info,available:warning?[]:available,
+        warning:warning,date:event?tnWhen(event):'',money:money};
+    });
+  }
+
   /* --------------------------- tournament registration ------------------------- */
-  function openTournamentRegistration(tournamentId, tournamentName) {
+  function openTournamentRegistration(tournamentId, tournamentName, resumed) {
+    var current=currentRegistrationAttempt();
     return Promise.all([api('/api/tournaments/' + tournamentId + '/registration-info'),loadPikolCredit()]).then(function (parts) { var info=parts[0];
-      if (!info.registration_open) return toast('Registration is closed for this tournament.', 'error');
-      var open = info.divisions.filter(function (d) { return !d.full; });
-      if (!open.length) return toast('All divisions are full.', 'error');
+      if(!current())return;
       /* STRICT DIVISION RULE - the server is the authority, this only keeps
          the player from wasting a request on an impossible registration. */
       var myDivision = info.player_division || 'Beginner';
+      var open = info.divisions.filter(function (d) { return !d.full; });
       var eligible = info.divisions.filter(function (d) { return d.eligible; });
-      if (!eligible.length) {
-        return toast('You are currently rated ' + myDivision + ', but this tournament does not have a ' +
-          myDivision + ' division available for registration.', 'error');
-      }
       var eligibleOpen = eligible.filter(function (d) { return !d.full; });
-      if (!eligibleOpen.length) {
-        return toast('The ' + myDivision + ' division of this tournament is already full.', 'error');
+      var warning='';
+      if(!info.registration_open)warning='Registration is closed for this tournament.';
+      else if(!open.length)warning='All divisions are full.';
+      else if(!eligible.length)warning='You are currently rated '+myDivision+', but this tournament does not have a '+myDivision+' division available for registration.';
+      else if(!eligibleOpen.length)warning='The '+myDivision+' division of this tournament is already full.';
+      if(!resumed&&firstRegistrationGuide('tournament')){
+        return tournamentGuideContext(tournamentId,tournamentName,info,eligibleOpen,warning).then(function(context){
+          if(current())showFirstRegistrationGuide('tournament',context,current,function(){
+            return openTournamentRegistration(tournamentId,tournamentName,true);
+          });
+        });
       }
+      if(warning)return toast(warning,'error');
       var partner = null;   /* verified same-division partner (registered player) */
       var partnerTimer = null, partnerQuery = 0;
       var m = modal({
@@ -2591,7 +2667,14 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
       $('#tr-division', m.host).onchange = function () { sync(); if(Number(this.selectedOptions[0].dataset.size)>1&&!partner)window.PikolPremiumRegistration.step(m.host,1); };
       sync();
       window.PikolPremiumRegistration.enhance(m.host,USER,info);
-    }).catch(function (e) { toast(e.message, 'error'); });
+      registrationGuideButton(m,function(){
+        if(m.host.dataset.guideLoading)return;
+        m.host.dataset.guideLoading='1';
+        tournamentGuideContext(tournamentId,tournamentName,info,eligibleOpen,'').then(function(context){
+          if(current()&&m.host.isConnected)PikolRegistrationGuide.open(modal,'tournament',context,{fromForm:true});
+        }).finally(function(){delete m.host.dataset.guideLoading;});
+      });
+    }).catch(function (e) { if(current())toast(e.message, 'error'); });
   }
 
   /* --------------------------------- open play --------------------------------- */
@@ -2614,14 +2697,20 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
     }).catch(function (e) { toast(e.message, 'error'); });
   }
 
-  document.addEventListener('click', function (ev) {
-    var join = ev.target.closest('[data-op-join]');
-    if (!join) return;
-    if(!requirePlayer(function(){goto('openplay');var resume=document.createElement('button');resume.dataset.opJoin=join.dataset.opJoin;document.body.appendChild(resume);resume.click();resume.remove();}))return;
-    var id = join.dataset.opJoin;
-    Promise.all([api('/api/open-play/' + id),loadPikolCredit(),api('/api/open-play/'+id+'/quote'),api('/api/open-play/'+id+'/smart/me').catch(function(){return {};})]).then(function (parts) { var e=parts[0],q=parts[2],invite=parts[3].pair && Number(parts[3].pair.invitee_id)===Number(USER.id) && ['pending','needs_approval'].includes(parts[3].pair.status)?parts[3].pair:null;
-      if (eventEnded(e)) return toast('This Open Play event has already ended', 'error');
-      if(e.registration_closed_reason||e.registration_locked||e.full)return toast(e.registration_closed_reason||(e.full?'This Open Play event is FULL.':'The Contest roster is locked.'),'error');
+  function openPlayRegistration(id,resumed) {
+    var current=currentRegistrationAttempt();
+    return Promise.all([api('/api/open-play/' + id),loadPikolCredit(),api('/api/open-play/'+id+'/quote'),api('/api/open-play/'+id+'/smart/me').catch(function(){return {};})]).then(function (parts) {
+      if(!current())return;
+      var e=parts[0],q=parts[2],me=parts[3],invite=me.pair && Number(me.pair.invitee_id)===Number(USER.id) && ['pending','needs_approval'].includes(me.pair.status)?me.pair:null;
+      var warning=eventEnded(e)?'This Open Play event has already ended':
+        e.registration_closed_reason||(e.full?'This Open Play event is FULL.':e.registration_locked?'The Contest roster is locked.':'');
+      var context={event:e,quote:q,me:me,invite:invite,date:whenText(e.event_date,e.start_time,e.end_time),money:money};
+      if(!resumed&&!me.registration&&firstRegistrationGuide('openplay')){
+        var divisions=PikolRegistrationGuide.divisionsFor(e);
+        context.warning=warning||(me.division&&divisions.length&&!divisions.includes(me.division)?'Your Official Division ('+me.division+') is not eligible for this Open Play.':'');
+        return showFirstRegistrationGuide('openplay',context,current,function(){return openPlayRegistration(id,true);});
+      }
+      if(warning)return toast(warning,'error');
       var acceptedPair=parts[3].pair?.status==='accepted';
       var opDlg=modal({
         title: 'Join ' + e.title,
@@ -2668,7 +2757,17 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
       function updatePartnerMode(){partnerBox.hidden=modeSelect.value!=='pair'||!!invite||acceptedPair;}
       modeSelect.addEventListener('change',updatePartnerMode);updatePartnerMode();
       op3WirePartnerSearch(opHost);
-    }).catch(function (err) { toast(err.message, 'error'); });
+      registrationGuideButton(opDlg,function(){
+        if(current()&&opHost.isConnected)PikolRegistrationGuide.open(modal,'openplay',context,{fromForm:true});
+      });
+    }).catch(function (err) { if(current())toast(err.message, 'error'); });
+  }
+  document.addEventListener('click', function (ev) {
+    var join = ev.target.closest('[data-op-join]');
+    if (!join) return;
+    var id=join.dataset.opJoin, retry=join.hasAttribute('data-op-payment-retry');
+    if(!requirePlayer(function(){goto('openplay');openPlayRegistration(id,retry);}))return;
+    return openPlayRegistration(id,retry);
   });
 
   /* ------------------------------ my registrations ----------------------------- */
@@ -2682,7 +2781,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
       if (r.payment_status === 'under_review') {
         pay = '<span class="s muted">Receipt under review</span>';
       } else if(openPlay&&(r.hold_expired||r.payment_rejected||!(Date.parse(r.payment_hold_expires_at)>Date.now()))){
-        pay='<button class="btn btn-primary btn-sm" data-op-join="'+Number(r.event_id)+'">Secure New Payment Hold</button>'+
+        pay='<button class="btn btn-primary btn-sm" data-op-join="'+Number(r.event_id)+'" data-op-payment-retry>Secure New Payment Hold</button>'+
           '<span class="list-sub">If you already transferred funds, contact Management before paying again.</span>';
       } else {
         var label = r.payment_status === 'rejected' ? 'Choose payment method' : 'Pay now';
@@ -3670,7 +3769,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
   window.addEventListener('appinstalled',function(){setMarked(true);deferredPrompt=null;sync();});
   window.addEventListener('pageshow',sync);document.addEventListener('visibilitychange',function(){if(!document.hidden)sync();});
   if(btn)btn.addEventListener('click',async function(){if(!deferredPrompt)return;btn.disabled=true;try{await deferredPrompt.prompt();var c=await deferredPrompt.userChoice;if(c&&c.outcome==='accepted')setMarked(true);}catch(_){}deferredPrompt=null;btn.disabled=false;sync();});
-  if('serviceWorker' in navigator)window.addEventListener('load',function(){navigator.serviceWorker.register('service-worker.js?v=112-counter-bookings-20261108',{scope:'./',updateViaCache:'none'}).then(function(reg){return reg.update();}).catch(function(){});});
+  if('serviceWorker' in navigator)window.addEventListener('load',function(){navigator.serviceWorker.register('service-worker.js?v=113-registration-guide',{scope:'./',updateViaCache:'none'}).then(function(reg){return reg.update();}).catch(function(){});});
   sync();
 })();
 </script>
