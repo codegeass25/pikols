@@ -1098,6 +1098,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
         $('#view-app').inert = false;
       }
       if (previousFocus && previousFocus.isConnected && (!modalRoot.children.length || modalRoot.lastElementChild.contains(previousFocus))) previousFocus.focus();
+      if (typeof opts.onClose === 'function') opts.onClose();
     });
     observer.observe(modalRoot, {childList:true});
     requestAnimationFrame(function () { if (host.isConnected && modalRoot.lastElementChild === host) dialog.focus(); });
@@ -1197,80 +1198,6 @@ body.admin-app.role-ready #view-app{visibility:visible}
       esc(String(s).charAt(0).toUpperCase() + String(s).slice(1)) + '</span>';
   }
 
-  /* ---------- settlement (final game payment) ---------- */
-  var SETTLE_LABEL = { paid: 'Fully paid', partially_paid: 'Partially paid', unpaid: 'Unpaid' };
-  function settleOf(b) {
-    var fee = Number(b.amount || 0);
-    var paid = (String(b.payment_record_status || '') === 'verified' ? Number(b.payment_amount || 0) : 0) + Number(b.game_paid || 0) + Number(b.credit_used || 0);
-    var balance = Math.max(0, fee - paid);
-    return { fee: fee, paid: paid, balance: balance,
-      status: paid <= 0 ? 'unpaid' : balance > 0.009 ? 'partially_paid' : 'paid' };
-  }
-  function settleBadge(b) {
-    var st = settleOf(b);
-    var cls = st.status === 'paid' ? 'confirmed' : st.status === 'partially_paid' ? 'pending' : 'cancelled';
-    var icon = st.status === 'paid' ? '\u2713' : st.status === 'partially_paid' ? '\u25d1' : '\u2715';
-    return '<span class="badge badge-' + cls + '" data-icon="' + icon + '">' + esc(SETTLE_LABEL[st.status]) + '</span>' +
-      '<div class="tiny muted num">' + esc(money(st.paid)) + ' of ' + esc(money(st.fee)) +
-      (st.balance > 0.009 ? ' \u00b7 balance ' + esc(money(st.balance)) : '') + '</div>';
-  }
-  function canSettle(b) {
-    return ['confirmed', 'completed'].indexOf(b.status) >= 0 &&
-      settleOf(b).balance > 0.009;
-  }
-
-  function settlementModal(bookingId) {
-    api('/api/bookings/' + bookingId + '/settlement').then(function (r) {
-      var st = r.settlement;
-      var methods = [];
-      var ledger = (r.payments || []).map(function (pm) {
-        return '<tr><td>' + esc(pm.payment_type === 'game_payment' ? 'Game payment' :
-          pm.payment_type === 'booking_fee' ? 'Court booking payment' : 'Other') + '</td><td>' +
-          esc(String(pm.payment_method || '').toUpperCase()) + '</td><td class="num">' + esc(money(pm.amount)) +
-          '</td><td>' + esc(String(pm.payment_provider || '').toUpperCase()) + '</td><td>' + badge(pm.status) + '</td></tr>';
-      }).join('') || '<tr><td colspan="5" class="muted tiny">No payments recorded yet.</td></tr>';
-
-      modal({
-        title: 'Final settlement — ' + st.reference,
-        wide: true,
-        confirmText: st.balance > 0.009 ? 'Continue' : '',
-        body: '<dl class="summary-list">' +
-          '<div class="summary-row"><dt>Total game fee</dt><dd>' + esc(money(st.game_fee)) + '</dd></div>' +
-          '<div class="summary-row"><dt>Verified booking payment</dt><dd>' + esc(money(st.cash_paid || 0)) + '</dd></div>' +
-          '<div class="summary-row"><dt>Additional payments recorded</dt><dd>' + esc(money(st.game_paid || 0)) + '</dd></div>' +
-          '<div class="summary-row"><dt>PIKOL Credit used</dt><dd>' + esc(money(st.credit_used || 0)) + '</dd></div>' +
-          '<div class="summary-row"><dt>Total funded</dt><dd>' + esc(money(st.total_paid)) + '</dd></div>' +
-          '<div class="summary-row"><dt><strong>Remaining balance</strong></dt><dd><strong>' + esc(money(st.balance)) + '</strong></dd></div></dl>' +
-          '<p class="muted tiny mt-2">Any PIKOL Credit already used is included in Total funded and is not charged again.</p>' +
-          '<div class="table-wrap mt-3"><table class="data"><thead><tr><th>Type</th><th>Method</th><th>Amount</th><th>Provider</th><th>Status</th></tr></thead><tbody>' + ledger + '</tbody></table></div>' +
-          (st.balance > 0.009
-            ? '<div class="grid cols-2 mt-3" style="gap:0 12px">' +
-              '<div class="field"><label class="label" for="gp-method">Payment method</label><select class="select" id="gp-method">' +
-              methods.map(function (m) { return '<option value="' + m + '">' + m.toUpperCase() + '</option>'; }).join('') +
-              '</select><div class="field-hint">Staff records the remaining balance only after receiving Cash.</div></div>' +
-              '<div class="field"><label class="label" for="gp-amount">Amount</label><input class="input" id="gp-amount" type="number" min="0.01" step="0.01" value="' + st.balance + '" /></div>' +
-              '<div class="field"><label class="label" for="gp-notes">Notes</label><input class="input" id="gp-notes" maxlength="200" placeholder="Optional" /></div></div>'
-            : '<p class="mt-3"><span class="badge badge-confirmed" data-icon="✓">This booking is fully settled</span></p>'),
-        onConfirm: function (h) {
-          var amount = Number($('#gp-amount', h).value);
-          if (!(amount > 0)) return Promise.reject(new Error('Enter a valid amount.'));
-          var method = $('#gp-method', h).value;
-          return api('/api/admin/bookings/' + bookingId + '/game-payment', {
-            method: 'POST', body: { payment_method: method, amount: amount, notes: $('#gp-notes', h).value.trim() }
-          }).then(function (res) {
-            toast(res.settlement.balance > 0 ? 'Cash recorded. Remaining balance: ' + money(res.settlement.balance) : 'Cash recorded. This booking is now fully paid.', 'success');
-            refreshWorkflow();
-          });
-        }
-      });
-    }).catch(function (e) { toast(e.message, 'error'); });
-  }
-
-  document.addEventListener('click', function (e) {
-    var sb = e.target.closest('[data-settle]');
-    if (sb) settlementModal(sb.dataset.settle);
-  });
-
   document.addEventListener('click', function (e) {
     var ap = e.target.closest('[data-booking-approve]');
     if (!ap) return;
@@ -1288,15 +1215,8 @@ body.admin-app.role-ready #view-app{visibility:visible}
   /* ---------- payments & manual receipt verification ---------- */
   function bookingActions(b) {
     var act = [];
-    if (canSettle(b)) {
-      
-    } else if (['confirmed', 'completed'].indexOf(b.status) >= 0) {
-      
-    }
-    const method = String(b.payment_method || '').toLowerCase();
-    const isCashBooking = method === 'cash' || String(b.payment_provider || '').toUpperCase() === 'CASH';
     if (b.payment_id) {
-      act.push('<button class="btn btn-outline btn-sm" data-payment="' + b.payment_id + '" data-bid="' + b.id + '">Payment details</button>');
+      act.push('<button type="button" class="btn btn-outline btn-sm" data-booking-payment="' + Number(b.payment_id) + '">Payment details</button>');
     }
     if (b.status === 'pending_approval' && String(b.payment_status || '').toLowerCase() === 'paid') {
       /* Recovery only for records verified before the auto-confirm update. */
@@ -1414,12 +1334,17 @@ body.admin-app.role-ready #view-app{visibility:visible}
         actions+='<section class="payment-fraud-action mt-3"><div class="alert alert-warning"><strong>Fraud decision recorded</strong><p class="tiny">The original payment remains invalidated. An authorized appeal can restore account access without marking an invalid payment as paid.</p></div><button type="button" class="btn btn-outline" data-tx-fraud-appeal>Review / overturn account ban</button></section>';
       }
       var history=(t.client_history||[]).slice(0,8).map(function(h){return '<tr><td>'+esc(h.transaction_key)+'</td><td>'+esc(TX_TYPE_LABEL[h.transaction_type]||h.transaction_type)+'</td><td class="num">'+esc(money(h.amount))+'</td><td>'+esc(h.status)+'</td><td class="tiny">'+esc(txStamp(h.created_at))+'</td></tr>';}).join('');
-      var host=modal({title:'Payment review · '+(TX_TYPE_LABEL[t.transaction_type]||t.transaction_type)+' '+t.transaction_key,wide:true,cancelText:'Close',body:'<div class="grid cols-2 payment-review-grid"><div><div class="receipt-frame" id="tx-receipt"></div></div><div class="stack" style="gap:12px"><table class="data"><tbody><tr><td class="muted">Client</td><td>'+esc(t.client_name||'—')+'<div class="tiny muted">'+esc(t.client_email||'')+'</div></td></tr><tr><td class="muted">Item</td><td>'+esc(t.item_name||'—')+(t.division_name?' · '+esc(t.division_name):'')+'</td></tr><tr><td class="muted">Amount</td><td><strong>'+esc(money(t.amount_due))+'</strong></td></tr><tr><td class="muted">Method</td><td>'+esc(String(t.payment_method||'').toUpperCase())+'</td></tr>'+(t.reference_number?'<tr><td class="muted">Reference</td><td class="num">'+esc(t.reference_number)+'</td></tr>':'')+'<tr><td class="muted">Submitted</td><td>'+esc(txStamp(t.created_at))+'</td></tr><tr><td class="muted">Status</td><td>'+txBadge(TX_STATUS_LABEL[t.unified_status]||t.unified_status,TX_STATUS_CLASS[t.unified_status]||'badge-pending')+'</td></tr>'+(t.cancellation_source?'<tr><td class="muted">Related service</td><td>Cancelled by '+esc(t.cancellation_source==='venue'?'Management / Venue':'Player')+(t.cancellation_resolution?'<div class="tiny muted">Resolution: '+esc(t.cancellation_resolution==='credit'?'PIKOL Credit issued':t.cancellation_resolution)+'</div>':'')+(t.cancellation_reason?'<div class="tiny muted">'+esc(t.cancellation_reason)+'</div>':'')+'</td></tr>':'')+'</tbody></table>'+window.PikolVenueUI.segmentsHtml(t.booking_group,{humanTime,money})+txValidationBlock(t)+(history?'<details><summary class="tiny muted">Client payment history</summary><table class="data mt-2"><tbody>'+history+'</tbody></table></details>':'')+actions+'</div></div>'});
+      var receiptUrl;
+      var host=modal({title:'Payment review · '+(TX_TYPE_LABEL[t.transaction_type]||t.transaction_type)+' '+t.transaction_key,wide:true,locked:true,cancelText:'Close',onClose:function(){if(receiptUrl)URL.revokeObjectURL(receiptUrl);},body:'<div class="grid cols-2 payment-review-grid"><div><div class="receipt-frame" id="tx-receipt"></div></div><div class="stack" style="gap:12px"><table class="data"><tbody><tr><td class="muted">Client</td><td>'+esc(t.client_name||'—')+'<div class="tiny muted">'+esc(t.client_email||'')+'</div></td></tr><tr><td class="muted">Item</td><td>'+esc(t.item_name||'—')+(t.division_name?' · '+esc(t.division_name):'')+'</td></tr><tr><td class="muted">Amount</td><td><strong>'+esc(money(t.amount_due))+'</strong></td></tr><tr><td class="muted">Method</td><td>'+esc(String(t.payment_method||'').toUpperCase())+'</td></tr>'+(t.reference_number?'<tr><td class="muted">Reference</td><td class="num">'+esc(t.reference_number)+'</td></tr>':'')+'<tr><td class="muted">Submitted</td><td>'+esc(txStamp(t.created_at))+'</td></tr><tr><td class="muted">Status</td><td>'+txBadge(TX_STATUS_LABEL[t.unified_status]||t.unified_status,TX_STATUS_CLASS[t.unified_status]||'badge-pending')+'</td></tr>'+(t.cancellation_source?'<tr><td class="muted">Related service</td><td>Cancelled by '+esc(t.cancellation_source==='venue'?'Management / Venue':'Player')+(t.cancellation_resolution?'<div class="tiny muted">Resolution: '+esc(t.cancellation_resolution==='credit'?'PIKOL Credit issued':t.cancellation_resolution)+'</div>':'')+(t.cancellation_reason?'<div class="tiny muted">'+esc(t.cancellation_reason)+'</div>':'')+'</td></tr>':'')+'</tbody></table>'+window.PikolVenueUI.segmentsHtml(t.booking_group,{humanTime,money})+txValidationBlock(t)+(history?'<details><summary class="tiny muted">Client payment history</summary><table class="data mt-2"><tbody>'+history+'</tbody></table></details>':'')+actions+'</div></div>'});
       if(t.payment_channel==='counter')$('#tx-receipt',host).innerHTML='<div class="cash-receipt-placeholder"><strong>Counter payment</strong><small>Staff verification recorded in the ledger</small></div>';
       else if(isCash) $('#tx-receipt',host).innerHTML='<div class="cash-receipt-placeholder"><span>₱</span><strong>Cash</strong><small>No receipt upload required</small></div>';
-      else if(t.has_receipt) txReceiptUrl(t.transaction_key).then(function(url){$('#tx-receipt',host).innerHTML='<a href="'+assetUrl(url)+'" target="_blank" rel="noopener"><img src="'+assetUrl(url)+'" alt="Payment receipt" /></a>';}).catch(function(e){$('#tx-receipt',host).innerHTML='<span class="muted tiny">'+esc(e.message)+'</span>';});
+      else if(t.has_receipt) txReceiptUrl(t.transaction_key).then(function(url){
+        if(!host.isConnected){URL.revokeObjectURL(url);return;}
+        receiptUrl=url;
+        $('#tx-receipt',host).innerHTML='<a href="'+esc(url)+'" target="_blank" rel="noopener"><img src="'+esc(url)+'" alt="Payment receipt" /></a>';
+      }).catch(function(e){if(host.isConnected)$('#tx-receipt',host).innerHTML='<span class="muted tiny">'+esc(e.message)+'</span>';});
       else $('#tx-receipt',host).innerHTML='<span class="muted tiny">No receipt stored.</span>';
-      function done(msg){toast(msg,'success');host.remove();loadPayments();refreshEventBadges();loadDashboard();if(after)after();}
+      function done(msg){toast(msg,'success');host.remove();refreshWorkflow();if(after)after();}
       host.addEventListener('click',function(ev){
         var fo=ev.target.closest('[data-tx-fraud-open]');
         if(fo){var panel=host.querySelector('[data-tx-fraud-panel]');if(panel){panel.hidden=false;fo.hidden=true;var ta=$('#tx-fraud-reason',host);if(ta)ta.focus();}return;}
@@ -1433,7 +1358,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
           if(!confirm('FINAL FRAUD OVERRIDE: Invalidate '+t.transaction_key+', restrict the player account and revoke active sessions? This cannot be reversed by simply marking the payment Paid.'))return;
           busy(fa,true);
           api('/api/admin/transactions/'+encodeURIComponent(t.transaction_key)+'/fraud-invalidate',{method:'POST',body:{reason:reason,confirmation:'PAYMENT NOT RECEIVED - CONFIRMED'}})
-            .then(function(){if(t.transaction_type==='booking')loadBookings();done('Fraud rejection saved and account restricted.');})
+            .then(function(){done('Fraud rejection saved and account restricted.');})
             .catch(function(err){toast(err.message,'error');}).finally(function(){busy(fa,false);});return;
         }
         var appeal=ev.target.closest('[data-tx-fraud-appeal]');
@@ -1449,7 +1374,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
             return api(endpoint,{method:'POST',body:{reason:reason.trim()}}).then(function(data){done(data.account_restored?'Account restored. Payment remains invalidated.':'Appeal recorded; other active bans remain.');});
           }).catch(function(err){toast(err.message,'error');}).finally(function(){busy(appeal,false);});return;
         }
-        var vf=ev.target.closest('[data-tx-verify]'); if(vf){busy(vf,true);api('/api/admin/transactions/'+encodeURIComponent(t.transaction_key)+'/verify',{method:'POST',body:{verification_notes:($('#tx-review-notes',host)||{}).value||''}}).then(function(){if(t.transaction_type==='booking'){loadBookings();done('Payment verified. Booking confirmed automatically.');}else{done(isCash?'Cash received and recorded.':'Payment marked paid.');}}).catch(function(e){toast(e.message,'error');}).finally(function(){busy(vf,false);});return;}
+        var vf=ev.target.closest('[data-tx-verify]'); if(vf){busy(vf,true);api('/api/admin/transactions/'+encodeURIComponent(t.transaction_key)+'/verify',{method:'POST',body:{verification_notes:($('#tx-review-notes',host)||{}).value||''}}).then(function(){done(t.transaction_type==='booking'?'Payment verified. Booking confirmed automatically.':isCash?'Cash received and recorded.':'Payment marked paid.');}).catch(function(e){toast(e.message,'error');}).finally(function(){busy(vf,false);});return;}
         var rj=ev.target.closest('[data-tx-reject]'); if(rj){var reason=prompt('Reason for rejection:','Reference/receipt could not be verified');if(!reason)return;busy(rj,true);api('/api/admin/transactions/'+encodeURIComponent(t.transaction_key)+'/reject',{method:'POST',body:{reason:reason,rejection_reason:reason}}).then(function(){done('Payment rejected.');}).catch(function(e){toast(e.message,'error');}).finally(function(){busy(rj,false);});}
       });
     }).catch(function(e){toast(e.message,'error');});
@@ -1462,52 +1387,9 @@ body.admin-app.role-ready #view-app{visibility:visible}
     if (!$('#page-bookings').classList.contains('hidden')) loadBookings();
   }
 
-  function paymentReview(paymentId, bookingId) {
-    api('/api/bookings/'+bookingId+'/payment').then(function(r){
-      var pmt=r.payment||r;if(!pmt||!pmt.id)throw new Error('No payment found for this reservation.');
-      var isCash=String(pmt.payment_method||'').toLowerCase()==='cash';
-      var body='<dl class="summary-list"><div class="summary-row"><dt>Method</dt><dd>'+esc(String(pmt.payment_method||'').toUpperCase())+'</dd></div><div class="summary-row"><dt>Amount</dt><dd>'+esc(money(pmt.amount))+'</dd></div>'+(pmt.reference_number?'<div class="summary-row"><dt>Reference</dt><dd>'+esc(pmt.reference_number)+'</dd></div>':'')+'<div class="summary-row"><dt>Status</dt><dd>'+badge(pmt.status)+'</dd></div></dl>'+(pmt.duplicate_warning?'<div class="alert alert-warning">'+(pmt.reference_number?'Possible duplicate reference or receipt.':'Possible duplicate receipt.')+' Inspect carefully before verifying.</div>':'')+'<div id="pv-receipt" class="receipt-frame mt-3"></div>';
-      if(['submitted','under_review'].indexOf(String(pmt.status||'').toLowerCase())>=0) body+='<div class="field mt-3"><label class="label">Verification notes</label><textarea class="textarea" id="pv-notes"></textarea></div><button class="btn btn-success" id="pv-verify">'+(isCash?'Mark cash paid':'Mark paid')+'</button>';
-      if(isAdmin()&&String(pmt.status||'').toLowerCase()==='verified')body+='<div class="payment-fraud-action mt-3"><div class="alert alert-warning"><strong>Payment verification override</strong><p class="tiny">Only the Owner / Super Admin may reject an already verified payment after checking the real transaction history. This action cancels unplayed linked bookings, restricts the player account and preserves the original receipt.</p></div><button type="button" class="btn btn-danger" id="pv-fraud-open">Reject this payment</button><div id="pv-fraud-panel" hidden><div class="field mt-3"><label class="label" for="pv-fraud-reason">Reason / verified findings (required)</label><textarea id="pv-fraud-reason" class="textarea" rows="4" minlength="20" maxlength="800" placeholder="Describe what you checked in the actual GCash / Maya / bank / cash account, and why no valid payment exists."></textarea></div><label class="payment-fraud-check"><input type="checkbox" id="pv-fraud-confirm"><span>I independently checked management payment records, confirm this is not a real received payment and understand that the player account will be banned.</span></label><div class="row wrap mt-3"><button type="button" class="btn btn-danger" id="pv-fraud-apply">Confirm rejection &amp; ban account</button><button type="button" class="btn btn-outline" id="pv-fraud-cancel">Back</button></div></div></div>';
-      if(isAdmin()&&String(pmt.status||'').toLowerCase()==='rejected_fraud')body+='<div class="payment-fraud-action mt-3"><div class="alert alert-warning"><strong>Fraud decision recorded.</strong><p class="tiny">The rejected payment remains invalidated. A separate appeal review may restore account access without falsely marking a payment as collected.</p></div><button type="button" class="btn btn-outline" id="pv-fraud-appeal">Review / overturn account ban</button></div>';
-      var host=modal({title:'Payment details — '+(r.booking?r.booking.reference:'#'+pmt.id),locked:true,body:body,cancelText:'Close'});
-      host.classList.add('fraud-payment-host');
-      var appealButton=$('#pv-fraud-appeal',host);
-      if(appealButton)appealButton.onclick=function(){
-        busy(appealButton,true);
-        api('/api/admin/fraud-cases/payment/'+pmt.id).then(function(c){
-          if(c.decision==='overturned')throw Error('This fraud case is already overturned.');
-          var reason=window.prompt('Why should management overturn this account ban? Payment will remain rejected:','');
-          if(reason===null)return;
-          if(reason.trim().length<20)throw Error('Provide at least 20 characters explaining the appeal review.');
-          return api('/api/admin/fraud-cases/'+c.id+'/overturn',{method:'POST',body:{reason:reason.trim()}}).then(function(outcome){toast(outcome.account_restored?'Account access restored; payment remains invalidated.':'Case overturned. Another active restriction still applies.','success');host.remove();refreshWorkflow();});
-        }).catch(function(e){toast(e.message,'error');}).finally(function(){busy(appealButton,false);});
-      };
-      var openFraud=$('#pv-fraud-open',host), fraudPanel=$('#pv-fraud-panel',host);
-      if(openFraud&&fraudPanel){
-        openFraud.onclick=function(){fraudPanel.hidden=false;openFraud.hidden=true;$('#pv-fraud-reason',host).focus();};
-        $('#pv-fraud-cancel',host).onclick=function(){fraudPanel.hidden=true;openFraud.hidden=false;};
-        $('#pv-fraud-apply',host).onclick=function(){
-          var button=this,reason=String($('#pv-fraud-reason',host).value||'').trim();
-          if(reason.length<20){toast('Explain the verified findings in at least 20 characters.','warning');return;}
-          if(!$('#pv-fraud-confirm',host).checked){toast('You must confirm the real payment records were independently checked.','warning');return;}
-          if(!window.confirm('FINAL CONFIRMATION: Reject verified payment #'+pmt.id+', cancel affected unplayed reservations, ban the player and revoke all their sessions?'))return;
-          busy(button,true);
-          api('/api/admin/payments/'+pmt.id+'/fraud-invalidate',{method:'POST',body:{reason:reason,confirmation:'PAYMENT NOT RECEIVED - CONFIRMED'}})
-            .then(function(result){toast('Fraud case #'+result.case_id+' recorded. Payment rejected and player access restricted.','success');host.remove();refreshWorkflow();loadBookings();})
-            .catch(function(e){toast(e.message,'error');}).finally(function(){busy(button,false);});
-        };
-      }
-      if(isCash) $('#pv-receipt',host).innerHTML='<div class="cash-receipt-placeholder"><span>₱</span><strong>Cash</strong><small>No receipt required</small></div>'; else if(pmt.has_proof) fetch(API+'/api/payments/'+pmt.id+'/proof',{headers:{Authorization:'Bearer '+TOKEN}}).then(function(x){if(!x.ok)throw new Error('Receipt unavailable');return x.blob();}).then(function(blob){var u=URL.createObjectURL(blob);$('#pv-receipt',host).innerHTML='<img src="'+u+'" alt="Receipt" />';}).catch(function(e){$('#pv-receipt',host).innerHTML='<span class="muted tiny">'+esc(e.message)+'</span>';});
-      var vb=$('#pv-verify',host);if(vb)vb.onclick=function(){busy(vb,true);api('/api/payments/'+pmt.id+'/verify',{method:'POST',body:{verification_notes:($('#pv-notes',host)||{}).value||''}}).then(function(){toast('Payment verified. Booking confirmed automatically.','success');host.remove();refreshWorkflow();}).catch(function(e){toast(e.message,'error');}).finally(function(){busy(vb,false);});};
-    }).catch(function(e){toast(e.message,'error');});
-  }
-
-
   document.addEventListener('click', function (e) {
-    var pv = e.target.closest('[data-payment]');
-    if (pv) { paymentReview(pv.dataset.payment, pv.dataset.bid); return; }
-    return;
+    var payment = e.target.closest('[data-booking-payment]');
+    if (payment) openTransactionModal('booking-' + payment.dataset.bookingPayment);
   });
 
   /* branding */
@@ -1643,7 +1525,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
         '<div class="table-wrap"><table class="data"><thead><tr><th>Tournament</th><th>Match</th><th>Format</th><th>Rating</th></tr></thead><tbody>' +
         (d.received.length ? d.received.map(function (r) {
           return '<tr><td>' + esc(r.tournament_name) + '</td><td>' + esc(String(r.round || '')) + ' #' + r.match_number +
-            '</td><td>' + (r.match_type === 'doubles' ? 'Doubles' : 'Singles') + '</td><td>' + ratStars(r.rating) + '</td></tr>';
+            '</td><td>' + esc(window.PikolPremium.label(r.match_type) || '—') + '</td><td>' + ratStars(r.rating) + '</td></tr>';
         }).join('') : '<tr><td colspan="4" class="muted">No verified tournament ratings yet.</td></tr>') +
         '</tbody></table></div>' +
         '<div class="field mt-4"><label class="label" for="rat-div">Set division</label>' +
@@ -1891,8 +1773,6 @@ body.admin-app.role-ready #view-app{visibility:visible}
   $('#drawer-backdrop').onclick = function () { $('#view-app').classList.remove('drawer-open'); $('#drawer-open').setAttribute('aria-expanded','false'); $('#drawer-open').focus(); };
   $('#btn-refresh').onclick = function () { LOADERS[current](); toast('Refreshed.', 'info'); };
   var alertBell=$('#btn-incharge-alerts'); if(alertBell)alertBell.onclick=showInChargeAlerts;
-
-  var more=$('#admin-more-nav');if(more)more.onclick=function(){$('#view-app').classList.add('drawer-open')};
 
   /* ---------- tournaments ---------- */
   var TRN_STATUSES = ['draft','registration_open','registration_closed','scheduled','live','paused','completed','cancelled'];
@@ -2673,9 +2553,11 @@ body.admin-app.role-ready #view-app{visibility:visible}
   function bookingDetailsBody(b) {
     function rows(items) { return '<dl class="summary-list">' + items.map(function (item) { return '<div class="summary-row"><dt>' + esc(item[0]) + '</dt><dd>' + esc(item[1] == null ? '—' : item[1]) + '</dd></div>'; }).join('') + '</dl>'; }
     function section(icon, title, content) { return '<section class="detail-card"><h3 class="detail-card-head">' + adminIcon(icon) + esc(title) + '</h3>' + content + '</section>'; }
+    var paid = Number(b.reservation_paid ?? (b.payment_record_status === 'verified' ? b.payment_amount : 0)) || 0;
+    var balance = ['cancelled','rejected'].includes(b.status) ? '—' : money(Math.max(0, Number(b.amount||0) - Number(b.credit_used||0) - paid));
     return window.PikolVenueUI.segmentsHtml(b,{humanTime,money,adminActions:!!(USER&&['admin','booking_manager'].includes(USER.role))})+
       '<div class="counter-tools">'+counterActions(b)+'</div><div class="booking-detail-intro"><span>Reference <strong>' + esc(b.reference) + '</strong></span>' + badge(b.status) + '</div><div class="booking-detail-grid">' +
-      section('court', 'Booking summary', rows([['Court',b.court_name],['Court amount',money(b.amount)],['PIKOL Credit used',Number(b.credit_used||0)>0?money(b.credit_used):'—'],['Cash payment required',money(Math.max(0,Number(b.amount||0)-Number(b.credit_used||0)))]])) +
+      section('court', 'Booking summary', rows([['Court',b.court_name],['Court amount',money(b.amount)],['PIKOL Credit used',Number(b.credit_used||0)>0?money(b.credit_used):'—'],['Balance due',balance]])) +
       section('user', 'Customer information', rows([['Customer',b.player_name],['Type',b.customer_type==='guest'?'Guest (No Account)':'Registered Player'],['Email',b.player_email],['Contact',b.player_mobile || '—'],['Players',b.players]])) +
       section('calendar', 'Schedule details', rows([['Date',humanDate(b.booking_date)],['Time',window.PikolVenueUI.timeLabel(b,{humanTime})],...(b.extension_of_reference?[['Extends booking',b.extension_of_reference]]:[])])) +
       section('payments', 'Payment information', rows([['Method',String(b.payment_method || '—').toUpperCase()],['Payment status',String(b.payment_record_status || b.payment_status || 'none').replace(/_/g,' ')],['Payment amount',b.payment_amount == null ? '—' : money(b.payment_amount)]])) +
@@ -3933,7 +3815,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
       var event=OP_CACHE.find(function(e){return String(e.id)===String(id);});
       box.innerHTML = '<section class="section-shell"><div class="section-head"><h2 class="section-title">'+esc(event?event.title:'Open Play')+' · Attendees</h2>' +
         '<button class="btn btn-ghost btn-sm" id="op-regs-close">Close</button></div>' +
-        '<div class="table-wrap"><table class="data"><thead><tr><th>Client</th><th>Contact</th><th>Fee</th><th>Payment</th><th>Status</th><th>Code</th><th>Payment</th></tr></thead><tbody>' +
+        '<div class="table-wrap"><table class="data"><thead><tr><th>Client</th><th>Contact</th><th>Fee</th><th>Payment status</th><th>Registration status</th><th>Code</th><th>Review payment</th></tr></thead><tbody>' +
         (rows.map(function (r) {
           var pay = (r.payments || [])[(r.payments || []).length - 1];
           return '<tr><td>' + esc(r.client_name) + '</td><td class="tiny">' + esc(r.client_email || '') +
@@ -4143,7 +4025,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
   };
 
   /* ---------- In-Charge PWA push ---------- */
-  var ADMIN_SW_VERSION='112-counter-bookings-20261108';
+  var ADMIN_SW_VERSION='114-system-audit-20261109';
   var PUSH_PREP={reg:null,publicKey:null,serverStatus:null,ready:false,error:null,promise:null};
   function b64ToUint8(s){s=String(s||'').replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';var raw=atob(s),a=new Uint8Array(raw.length);for(var i=0;i<raw.length;i++)a[i]=raw.charCodeAt(i);return a;}
   function bytesEqual(a,b){if(!a||!b)return false;var x=new Uint8Array(a),y=new Uint8Array(b);if(x.length!==y.length)return false;for(var i=0;i<x.length;i++)if(x[i]!==y[i])return false;return true;}

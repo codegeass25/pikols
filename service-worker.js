@@ -1,4 +1,4 @@
-const CACHE = 'pikol-v113-registration-guide';
+const CACHE = 'pikol-v114-system-audit-20261109';
 const SHELL = [
   // Current HTML imports use these URLs. Keep their exact query versions in
   // the public allow-list so a fresh offline shell can load its real runtime.

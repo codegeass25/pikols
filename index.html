@@ -1302,10 +1302,13 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
   }
   function signOutLocal() {
     TOKEN='';USER=null;CURRENT_MEMBERSHIP=null;myBookings=[];NOTIFS=[];afterAuth=null;PIKOL_CREDIT={balance:0,reserved:0,available:0,history:[]};renderPikolCredit();
+    RATING=null;
     localStorage.removeItem('pb_token');setBell(0);
     $('#modal-root').innerHTML='';
     $('#form-profile').reset();$('#form-password').reset();
     $('#bookings-list').innerHTML='';$('#booking-detail').innerHTML='';$('#notif-list').innerHTML='';
+    ['my-trn-regs','my-op-regs','rating-summary-card','rating-pending-card','rating-history-card'].forEach(function(id){document.getElementById(id).replaceChildren();});
+    $('#ev-reg-pill').textContent='';$('#ev-reg-pill').classList.add('hidden');
     if(RT)RT.connect();showGuest();
   }
   /* Restricted player notice: no normal session can see this private evidence. */
@@ -1353,7 +1356,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
     $$('.bottom-nav button').forEach(function(b){b.classList.toggle('is-active',b.dataset.tab===tab);});
     if(tab==='bookings')loadBookings();
     if(tab==='book')ensureBooking();
-    if(tab==='tournaments'){evGoto(EV_SUB);if(TOKEN)loadMyRegistrations();}
+    if(tab==='tournaments'){evGoto(EV_SUB);if(TOKEN&&EV_SUB!=='myregs')loadMyRegistrations();}
     if(tab==='profile'){openPanel('panel-profile');loadRating();}
     if(tab==='notifications')loadNotifications();
     if(tab==='membership'){$('#membership-card').classList.add('hidden');$('#membership-plans-card').classList.remove('hidden','show-benefits');$$('[data-member-view]').forEach(function(b){b.classList.toggle('is-active',b.dataset.memberView==='plans');});loadMembership();}
@@ -1395,58 +1398,44 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
   }
   function settlementOf(b) {
     var fee = Number(b.amount || 0);
-    var paid = (String(b.payment_record_status || '') === 'verified' ? Number(b.payment_amount || 0) : 0) + Number(b.game_paid || 0) + Number(b.credit_used || 0);
+    var payment = b.reservation_paid ?? (b.payment_record_status === 'verified' ? b.payment_amount : 0);
+    var paid = Number(payment || 0) + Number(b.game_paid || 0) + Number(b.credit_used || 0);
     var balance = Math.max(0, fee - paid);
     return {
       game_fee: fee, total_paid: paid, balance: balance,
-      status: paid <= 0 ? 'unpaid' : balance > 0.009 ? 'partially_paid' : 'paid'
+      status: balance <= 0.009 ? 'paid' : paid > 0 ? 'partially_paid' : 'unpaid'
     };
   }
-  var SETTLE_LABEL = { unpaid: 'Unpaid', partially_paid: 'Balance due', paid: 'Fully settled' };
+  var SETTLE_LABEL = { unpaid: 'Unpaid', partially_paid: 'Balance due', paid: 'Fully settled',
+    submitted: 'Under review', under_review: 'Under review', refunded: 'Refunded', voided: 'Voided', rejected_fraud: 'Payment invalidated' };
+  function bookingPaymentState(b) {
+    var status = b.payment_record_status || b.payment_status;
+    if (['submitted','under_review','refunded','voided','rejected_fraud'].includes(status)) return status;
+    return settlementOf(b).status;
+  }
+  function bookingResolutionLabel(resolution) {
+    return ({credit:'PIKOL Credit issued',rebooked:'Rebooked',external_refund:'External refund recorded',
+      counter_payment_voided:'Counter payment voided',fraud_payment_rejected:'Payment invalidated'})[resolution] ||
+      window.PikolPremium.label(resolution);
+  }
   function settleBadge(b) {
-    if (b.status === 'cancelled' || b.status === 'rejected') return '';
-    var st = settlementOf(b);
-    var cls = st.status === 'paid' ? 'confirmed' : st.status === 'partially_paid' ? 'pending' : 'pending';
-    return '<span class="badge badge-' + cls + '" data-icon="' + (st.status === 'paid' ? '✓' : '₱') + '">' +
-      esc(SETTLE_LABEL[st.status]) + '</span>';
+    var status = bookingPaymentState(b);
+    var terminalPayment = ['refunded','voided','rejected_fraud'].includes(status);
+    if ((b.status === 'cancelled' || b.status === 'rejected') && !terminalPayment) return '';
+    var cls = status === 'paid' ? 'confirmed' : terminalPayment ? 'cancelled' : 'pending';
+    return '<span class="badge badge-' + cls + '" data-icon="' + (status === 'paid' ? '✓' : '₱') + '">' +
+      esc(SETTLE_LABEL[status]) + '</span>';
   }
   function settlementLine(b) {
     if (b.status === 'cancelled' || b.status === 'rejected') return '';
+    if (['submitted','under_review'].includes(bookingPaymentState(b))) return '';
     var st = settlementOf(b);
     if (!st.game_fee) return '';
     return '<div class="s">Paid ' + money(st.total_paid) + ' of ' + money(st.game_fee) +
       (st.balance > 0.009
-        ? ' · <strong style="color:var(--danger,#c0392b)">Balance ' + money(st.balance) + '</strong> (settle on-site)'
+        ? ' · <strong style="color:var(--danger,#c0392b)">Balance ' + money(st.balance) + '</strong>'
         : ' · <strong>Settled</strong>') + '</div>';
   }
-  /* Bookings are RECORDS: compact list rows (columns on desktop, stacked on
-     mobile) — never one big card per booking. */
-  function settlementText(b) {
-    if (b.status === 'cancelled' || b.status === 'rejected') return '';
-    var st = settlementOf(b);
-    if (!st.game_fee) return '';
-    return st.balance > 0.009
-      ? 'Paid ' + money(st.total_paid) + '<br><strong style="color:var(--danger,#c0392b)">Balance ' + money(st.balance) + '</strong>'
-      : 'Paid ' + money(st.total_paid) + '<br><strong>Settled</strong>';
-  }
-  function bookingRow(b, actions) {
-    var d = new Date(b.booking_date + 'T00:00:00');
-    return '<div class="list-row has-cols">' +
-      '<span class="list-lead">🏸</span>' +
-      '<span class="list-main"><span class="list-title">' + esc(b.court_name) + ' · ' +
-      humanTime(b.start_time) + ' – ' + humanTime(b.end_time) + '</span>' +
-      '<span class="list-sub">' + MONTHS[d.getMonth()].slice(0, 3) + ' ' + d.getDate() + ', ' + d.getFullYear() +
-      ' · <span class="num">' + esc(b.reference) + '</span></span>' +
-      (b.status === 'rejected' && b.rejection_reason
-        ? '<span class="list-sub is-danger">Reason: ' + esc(b.rejection_reason) + '</span>' : '') +
-      (b.payment_status === 'rejected' && b.payment_rejection_reason && b.status !== 'rejected'
-        ? '<span class="list-sub is-danger">Payment rejected: ' + esc(b.payment_rejection_reason) + '</span>' : '') +
-      '</span>' +
-      '<span class="list-col">' + money(b.amount) + '</span>' +
-      '<span class="list-col">' + settlementText(b) + '</span>' +
-      '<span class="list-end">' + statusBadge(b.status) + settleBadge(b) + (actions || '') + '</span></div>';
-  }
-
   var COURT_CAROUSEL_MQ = window.matchMedia ? window.matchMedia('(max-width: 1024px)') : {matches:false};
   function initCourtCarousel(host, opts) {
     if (!host) return;
@@ -2178,7 +2167,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
         return '<div class="rating-match">' +
           '<div class="rating-match-head">\uD83C\uDFC6 ' + esc(m.tournament_name) + '</div>' +
           '<div class="tiny muted">' + esc(m.round) + ' \u2014 ' +
-            (m.match_type === 'doubles' ? 'Doubles' : 'Singles') + ' \u00b7 ' + esc(m.division_name) + '</div>' +
+            esc(window.PikolPremium.label(m.match_type) || '—') + ' \u00b7 ' + esc(m.division_name) + '</div>' +
           '<div class="tiny muted mt-4">You played:</div>' +
           m.opponents.map(function (o) {
             return '<div class="rating-opponent" data-rating-row="' + m.match_id + ':' + o.user_id + '">' +
@@ -2215,7 +2204,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
         return '<tr class="rating-history-row" data-history="' + r.id + '" style="cursor:pointer">' +
           '<td>' + esc(r.tournament_name) + '</td>' +
           '<td>' + esc(r.tournament_round || ('#' + r.match_id)) + '</td>' +
-          '<td>' + (r.match_type === 'doubles' ? 'Doubles' : 'Singles') + '</td>' +
+          '<td>' + esc(window.PikolPremium.label(r.match_type) || '—') + '</td>' +
           '<td>' + esc(r.opponent_name) + '</td>' +
           '<td>' + starRow(r.rating) + '</td>' +
           '<td><span class="badge badge-confirmed">Verified</span></td></tr>';
@@ -2223,6 +2212,8 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
   }
 
   function loadRating() {
+    var token = TOKEN;
+    if (!token) return Promise.resolve();
     return api('/api/my/rating').then(function (d) {
       RATING = d;
       $('#pf-division').value=d.summary.division||'Not yet assigned';
@@ -2230,6 +2221,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
       renderRatingPending(d.pending);
       renderRatingHistory(d.history);
     }).catch(function (e) {
+      if (token !== TOKEN) return;
       var card = $('#rating-summary-card');
       $('#pf-division').value='Currently unavailable';
       if (card) card.innerHTML = '<p class="muted tiny">' + esc(e.message) + '</p>';
@@ -2287,7 +2279,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
         '<div><dt>Tournament</dt><dd>' + esc(r.tournament_name) + '</dd></div>' +
         '<div><dt>Division</dt><dd>' + esc(r.division_name) + '</dd></div>' +
         '<div><dt>Match</dt><dd>' + esc(r.tournament_round || ('#' + r.match_id)) + '</dd></div>' +
-        '<div><dt>Format</dt><dd>' + (r.match_type === 'doubles' ? 'Doubles' : 'Singles') + '</dd></div>' +
+        '<div><dt>Format</dt><dd>' + esc(window.PikolPremium.label(r.match_type) || '—') + '</dd></div>' +
         '<div><dt>Score</dt><dd>' + r.score_a + ' \u2013 ' + r.score_b + '</dd></div>' +
         '<div><dt>Opponent</dt><dd>' + esc(r.opponent_name) + '</dd></div>' +
         '<div><dt>Your rating</dt><dd>' + starRow(r.rating) + '</dd></div>' +
@@ -2333,10 +2325,15 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
     TN_OPEN=null;++TN_REQUEST;
     return window.PikolPremium.load(Object.assign(tournamentPremiumContext(),{selectedTournamentId:selectedEventId}));
   }
-  $('#tn-refresh').onclick = function () { evGoto(EV_SUB); loadMyRegistrations(); toast('Refreshed.', 'info'); };
+  $('#tn-refresh').onclick = function () {
+    if(EV_SUB==='tournaments')refreshTournamentView();else evGoto(EV_SUB);
+    if(EV_SUB!=='myregs')loadMyRegistrations();
+    toast('Refreshed.', 'info');
+  };
   /* ================== EVENTS: open play, registration, payments ================= */
   var EV_SUB = 'tournaments';
   var EV_TIMER = null;
+  var myRegistrationRequest = 0;
   var PAY_CFG = null;
   var PAY_LABEL_C = { submitted: 'Under review', under_review: 'Under review', verified: 'Verified', rejected: 'Action needed', unpaid: 'Unpaid', waived: 'No fee' };
   var PAY_BADGE_C = { submitted: 'pending', under_review: 'pending', verified: 'confirmed', rejected: 'rejected', unpaid: 'pending', waived: 'completed' };
@@ -2346,7 +2343,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
   };
 
   function evGoto(sub) {
-    if(sub==='myregs'&&!requirePlayer(function(){goto('tournaments');evGoto('myregs');}))return;
+    if(sub==='myregs'&&!requirePlayer(function(){EV_SUB='myregs';goto('tournaments');}))return;
     EV_SUB = sub;
     ['tournaments', 'openplay', 'myregs'].forEach(function (s) {
       $('#ev-view-' + s).classList.toggle('hidden', s !== sub);
@@ -2797,7 +2794,10 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
 
   function loadMyRegistrations() {
     if (!TOKEN) return Promise.resolve();
+    var request = ++myRegistrationRequest, token = TOKEN;
+    function current() { return request === myRegistrationRequest && token === TOKEN; }
     var p1 = api('/api/my/tournament-registrations').then(function (rows) {
+      if (!current()) return rows;
       $('#my-trn-regs').innerHTML = rows.length ? rows.map(function (r) {
         var pay = lastPayment(r);
         var sub = r.division_name;
@@ -2820,6 +2820,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
       return rows;
     });
     var p2 = api('/api/my/open-play-registrations').then(function (rows) {
+      if (!current()) return rows;
       $('#my-op-regs').innerHTML = rows.length ? rows.map(function (r) {
         var pay = lastPayment(r);
         return '<div class="list-row has-cols">' +
@@ -2841,12 +2842,13 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
       return rows;
     });
     return Promise.all([p1, p2]).then(function (res) {
+      if (!current()) return;
       var action = res[0].concat(res[1]).filter(function (r) {
         return Number(r.amount_due) > 0 && ['unpaid', 'rejected'].indexOf(r.payment_status) >= 0;
       }).length;
       var pill = $('#ev-reg-pill');
       pill.textContent = action; pill.classList.toggle('hidden', !action);
-    }).catch(function (e) { toast(e.message, 'error'); });
+    }).catch(function (e) { if(current())toast(e.message, 'error'); });
   }
 
   document.addEventListener('click', function (ev) {
@@ -3303,7 +3305,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
   }
   function renderBookingDetail(b){
     var host=$('#booking-detail');if(!b){host.innerHTML='<div class="empty"><strong>Your booking details</strong>Select a reservation to see its details.</div>';return;}
-    host.innerHTML='<div class="court-visual">'+courtPhoto(bookingCourt(b))+'</div><div class="booking-detail-content"><div class="spread"><h2>Booking Details</h2>'+statusBadge(b.status)+'</div><dl class="summary-list">'+detailRow('Court',b.court_name)+detailRow('Date',humanDate(b.booking_date))+detailRow('Time',window.PikolVenueUI.timeLabel(b,{humanTime}))+detailRow('Players',String(b.players||'—'))+detailRow('Court fee',money(b.amount))+(Number(b.credit_used||0)>0?detailRow('PIKOL Credit used',money(b.credit_used)):'')+detailRow('Reference',b.reference)+(b.extension_of_reference?detailRow('Extends booking',b.extension_of_reference):'')+detailRow('Payment status',SETTLE_LABEL[settlementOf(b).status])+(b.cancellation_source?detailRow('Cancelled by',b.cancellation_source==='venue'?'Management / Venue':'Player'):'')+(b.cancellation_resolution&&b.cancellation_resolution!=='none'?detailRow('Resolution',b.cancellation_resolution==='credit'?'PIKOL Credit issued':'Rebooked'):'')+'</dl>'+window.PikolVenueUI.segmentsHtml(b,{humanTime,money})+settlementLine(b)+(b.notes?'<p class="tiny muted">'+esc(b.notes)+'</p>':'')+(b.rejection_reason?'<p class="is-danger">'+esc(b.rejection_reason)+'</p>':'')+(b.payment_rejection_reason?'<p class="is-danger">Payment: '+esc(b.payment_rejection_reason)+'</p>':'')+cancellationPolicyUI(b)+'<div class="booking-detail-actions">'+bookingActions(b)+'</div></div>';
+    host.innerHTML='<div class="court-visual">'+courtPhoto(bookingCourt(b))+'</div><div class="booking-detail-content"><div class="spread"><h2>Booking Details</h2>'+statusBadge(b.status)+'</div><dl class="summary-list">'+detailRow('Court',b.court_name)+detailRow('Date',humanDate(b.booking_date))+detailRow('Time',window.PikolVenueUI.timeLabel(b,{humanTime}))+detailRow('Players',String(b.players||'—'))+detailRow('Court fee',money(b.amount))+(Number(b.credit_used||0)>0?detailRow('PIKOL Credit used',money(b.credit_used)):'')+detailRow('Reference',b.reference)+(b.extension_of_reference?detailRow('Extends booking',b.extension_of_reference):'')+detailRow('Payment status',SETTLE_LABEL[bookingPaymentState(b)])+(b.cancellation_source?detailRow('Cancelled by',b.cancellation_source==='venue'?'Management / Venue':'Player'):'')+(b.cancellation_resolution&&b.cancellation_resolution!=='none'?detailRow('Resolution',bookingResolutionLabel(b.cancellation_resolution)):'')+'</dl>'+window.PikolVenueUI.segmentsHtml(b,{humanTime,money})+settlementLine(b)+(b.notes?'<p class="tiny muted">'+esc(b.notes)+'</p>':'')+(b.rejection_reason?'<p class="is-danger">'+esc(b.rejection_reason)+'</p>':'')+(b.payment_rejection_reason?'<p class="is-danger">Payment: '+esc(b.payment_rejection_reason)+'</p>':'')+cancellationPolicyUI(b)+'<div class="booking-detail-actions">'+bookingActions(b)+'</div></div>';
   }
   function detailRow(label,value){return '<div class="summary-row"><dt>'+esc(label)+'</dt><dd>'+esc(value)+'</dd></div>';}
   document.addEventListener('click',function(e){var b=e.target.closest('[data-select-booking]');if(b){selectedBookingId=Number(b.dataset.selectBooking);renderBookings();}});
@@ -3769,7 +3771,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
   window.addEventListener('appinstalled',function(){setMarked(true);deferredPrompt=null;sync();});
   window.addEventListener('pageshow',sync);document.addEventListener('visibilitychange',function(){if(!document.hidden)sync();});
   if(btn)btn.addEventListener('click',async function(){if(!deferredPrompt)return;btn.disabled=true;try{await deferredPrompt.prompt();var c=await deferredPrompt.userChoice;if(c&&c.outcome==='accepted')setMarked(true);}catch(_){}deferredPrompt=null;btn.disabled=false;sync();});
-  if('serviceWorker' in navigator)window.addEventListener('load',function(){navigator.serviceWorker.register('service-worker.js?v=113-registration-guide',{scope:'./',updateViaCache:'none'}).then(function(reg){return reg.update();}).catch(function(){});});
+  if('serviceWorker' in navigator)window.addEventListener('load',function(){navigator.serviceWorker.register('service-worker.js?v=114-system-audit-20261109',{scope:'./',updateViaCache:'none'}).then(function(reg){return reg.update();}).catch(function(){});});
   sync();
 })();
 </script>
