@@ -12,4 +12,16 @@
 .counter-destination p{white-space:pre-wrap}
 .counter-destination img{display:inline-block;vertical-align:top;max-width:min(100%,240px);height:auto;margin:8px 8px 0 0;border-radius:6px}
 .counter-hold-row{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.counter-slot-grid{overflow:auto;max-height:48vh;border:1px solid var(--border,#aabeb5);border-radius:10px;margin:12px 0}
+.counter-slot-grid table{border-collapse:collapse;min-width:100%}
+.counter-slot-grid caption{text-align:left;font-weight:700;padding:10px}
+.counter-slot-grid th,.counter-slot-grid td{padding:6px;white-space:nowrap;text-align:center;border-bottom:1px solid var(--border,#aabeb5)}
+.counter-slot-grid th:first-child{position:sticky;left:0;background:var(--surface,#fff);z-index:1}
+.counter-slot-grid button{border:1px solid #609b69;border-radius:8px;min-height:44px;padding:8px 14px;background:#eff8ec;color:#174d31;cursor:pointer}
+.counter-slot-grid button[aria-pressed=true]{background:#205a3e;color:#fff;border-color:#205a3e}
+.counter-slot-grid button:focus-visible,.counter-source:focus-visible{outline:3px solid #97bd4d;outline-offset:2px}
+.counter-source{display:flex;flex-direction:column;gap:5px;text-align:left;width:100%;padding:12px;margin:8px 0;border:1px solid var(--border,#aabeb5);border-radius:10px;background:var(--surface,#fff);color:inherit;cursor:pointer}
+.counter-slot-summary{padding-inline-start:20px;line-height:1.7}
+.payment-admin-more{border-top:1px solid var(--border,#aabeb5);padding-top:10px;margin-top:10px}
+.payment-admin-more summary{cursor:pointer;font-weight:700;margin-bottom:8px}
 @media(max-width:520px){.counter-actions .btn{width:100%}.counter-summary{grid-template-columns:1fr;gap:4px}.counter-summary dd{margin-bottom:6px}}

@@ -1,4 +1,4 @@
-const CACHE = 'pikol-v114-system-audit-20261109';
+const CACHE = 'pikol-v116-admin-upgrades';
 const SHELL = [
   // Current HTML imports use these URLs. Keep their exact query versions in
   // the public allow-list so a fresh offline shell can load its real runtime.
@@ -13,9 +13,9 @@ const SHELL = [
   './event-carousel.js?v=90-event-peek','./event-carousel.css?v=90-event-peek','./tournament-premium.js?v=91-android-events-date-nav','./tournament-command.js?v=67','./tournament-premium.css?v=67','./scoring-premium.css?v=67','./scoring-premium.js?v=75-mobile-fit',
   './range-availability.js?v=56-android-native-scroll','./client-upgrades.css?v=91-android-events-date-nav',
   './universal-responsive.css?v=101-responsive-v2-rotation-20261015',
-  './openplay-smart.css?v=111-openplay-court-capacity-20261107','./openplay-contest.js?v=111-openplay-court-capacity-20261107',
+  './openplay-smart.css?v=111-openplay-court-capacity-20261107','./openplay-contest.js?v=116-admin-upgrades',
   './registration-guide.js?v=113-registration-guide',
-  './password-recovery.js?v=110-paddle-recovery-20261105','./counter-bookings.js?v=112-counter-bookings-20261108','./counter-bookings.css?v=112-counter-bookings-20261108','./index.html','./admin.html','./scoring.html','./styles.css','./cards.js','./tournament-view.js','./config.js','./qr-lite.js?v=67','./qr-decoder.js?v=67','./promo-qr.js?v=107-official-logo-20261102','./promo-qr.css?v=67',
+  './password-recovery.js?v=110-paddle-recovery-20261105','./counter-bookings.js?v=116-admin-upgrades','./counter-bookings.css?v=116-admin-upgrades','./index.html','./admin.html','./scoring.html','./styles.css','./cards.js','./tournament-view.js','./config.js','./qr-lite.js?v=67','./qr-decoder.js?v=67','./promo-qr.js?v=107-official-logo-20261102','./promo-qr.css?v=67',
   './admin-premium.css?v=92-fraud-android','./admin-premium.css','./admin-charts.js','./admin-charts.js?v=80-venue-labels','./booking-premium.css?v=106-registration-receipts','./booking-premium.css','./assets/booking/maps-pin.svg','./assets/booking/hero-court.jpg','./assets/booking/court-01.jpg','./assets/booking/court-02.jpg','./assets/booking/court-03.jpg',
   './assets/booking/community.jpg','./assets/booking/membership.jpg','./assets/defaults/venue-default.webp','./assets/defaults/court-default.webp',
   './manifest.json?v=73','./admin-manifest.json?v=73','./scoring-manifest.json?v=73','./icons/wenjelly-v73-192.png','./icons/wenjelly-v73-512.png','./icons/wenjelly-v73-maskable-192.png','./icons/wenjelly-v73-maskable-512.png','./icons/wenjelly-v73-apple.png'

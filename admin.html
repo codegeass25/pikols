@@ -202,12 +202,12 @@ body.admin-app.role-ready #view-app{visibility:visible}
       <section id="page-bookings" class="hidden">
         <div class="section-shell">
           <div class="card-header bookings-header">
-            <div><h2 class="section-title">Bookings</h2><p class="page-subtitle">Court reservations, payments and status in one place.</p></div>
+            <div><h2 class="section-title">Bookings</h2><p class="page-subtitle">Court schedules, customers and payments.</p></div>
             <div class="row wrap bookings-filters">
               <select class="select" id="bk-venue" aria-label="Booking venue"><option value="">All venues</option></select><input class="input" id="bk-q" aria-label="Search bookings" placeholder="Search name, email, reference" style="min-width:220px" />
               <select class="select" id="bk-status" aria-label="Booking status" style="min-width:150px">
-                <option value="all">All statuses</option>
-                <option value="checkout_hold">Checkout hold</option><option value="payment_submitted">Payment under review</option><option value="pending_approval">Pending approval</option><option value="confirmed" selected>Confirmed</option><option value="expired">Hold expired</option><option value="pending_payment">Payment required</option><option value="completed">Completed</option>
+                <option value="all" selected>All statuses</option>
+                <option value="checkout_hold">Awaiting payment</option><option value="payment_submitted">Payment under review</option><option value="pending_approval">Pending approval</option><option value="confirmed">Confirmed</option><option value="expired">Expired checkout</option><option value="pending_payment">Payment required</option><option value="completed">Completed</option>
                 <option value="cancelled">Cancelled</option>
               </select>
               <span class="mobile-date-field booking-date-field">
@@ -218,9 +218,12 @@ body.admin-app.role-ready #view-app{visibility:visible}
             </div>
           </div>
 
-          <div class="counter-tools" aria-label="Counter bookings">
-            <button type="button" class="btn btn-primary" id="btn-counter-walk" hidden>+ Walk-In Booking</button>
-            <button type="button" class="btn btn-outline" id="btn-counter-holds" hidden>Counter Holds</button>
+          <div class="grid cols-2" id="booking-summary-stats" aria-live="polite"></div>
+          <div class="counter-tools" aria-label="Booking views">
+            <button type="button" class="btn btn-primary" data-booking-window="today" aria-pressed="true">Today's Bookings</button>
+            <button type="button" class="btn btn-outline" data-booking-window="upcoming" aria-pressed="false">Upcoming Bookings</button>
+            <button type="button" class="btn btn-outline" data-booking-window="history" aria-pressed="false">Booking History</button>
+            <button type="button" class="btn btn-primary" id="btn-new-booking" hidden>+ New Booking</button>
           </div>
           <div id="bookings-confirmed-groups">
             <section class="booking-schedule-group" id="bookings-upcoming-group">
@@ -264,19 +267,16 @@ body.admin-app.role-ready #view-app{visibility:visible}
                 <option value="booking">Court bookings</option>
                 <option value="tournament">Tournaments</option>
                 <option value="open_play">Open Play</option>
+                <option value="open_play_guest">Direct guest Open Play</option>
                 <option value="membership">Membership</option>
               </select>
               <select class="input" id="tx-status" aria-label="Transaction status" style="width:auto">
-                <option value="review">For review</option>
-                
-                <option value="verified">Paid</option>
-                <option value="rejected">Rejected</option>
-                <option value="refunded">Refunded</option>
-                <option value="voided">Voided</option>
+                <option value="for_review">For Review</option>
+                <option value="verified">Verified / Paid</option>
+                <option value="issues">Issues</option>
                 <option value="all">All statuses</option>
               </select>
               <input class="input" id="tx-q" aria-label="Search transactions" placeholder="Client or reference" style="max-width:200px" />
-              <button class="btn btn-outline btn-sm" id="tx-refresh">Refresh</button>
             </div>
           </div>
           <div class="table-wrap"><table class="data" data-mobile-cards="true">
@@ -284,6 +284,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
               <th>Method / reference</th><th>Status</th><th>Submitted</th><th>Actions</th></tr></thead>
             <tbody id="tx-body"></tbody>
           </table></div>
+          <section class="counter-flow mt-4" id="counter-payment-work" hidden aria-live="polite"></section>
         </div>
       </section>
 
@@ -329,6 +330,11 @@ body.admin-app.role-ready #view-app{visibility:visible}
           <div class="table-wrap players-table-viewport" role="region" aria-label="Account verification applications. Swipe horizontally to view all columns."><table class="data"><thead><tr><th>Applicant</th><th>Email</th><th>Mobile</th><th>Submitted</th><th>Status</th><th>Actions</th></tr></thead><tbody id="registration-applications-body"></tbody></table></div>
           <p class="tiny registration-error hidden" id="registration-list-error" role="alert"></p>
           <div class="row wrap mt-3"><button type="button" class="btn btn-outline btn-sm" id="registration-refresh">Refresh applications</button><button type="button" class="btn btn-outline btn-sm hidden" id="registration-more">Load more</button></div>
+        </section>
+        <section class="section-shell admin-only-panel registration-review-section" id="identity-reviews-panel">
+          <div class="card-header"><div><h2 class="section-title">Player Identity Reviews</h2><p class="tiny muted">Review private Valid IDs and submitted name corrections.</p></div></div>
+          <div class="list" id="identity-reviews-list" aria-live="polite"></div>
+          <button type="button" class="btn btn-outline btn-sm mt-3 hidden" id="identity-reviews-more">Load more</button>
         </section>
         <div class="section-shell">
           <div class="card-header"><h2 class="section-title">Players</h2>
@@ -560,6 +566,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
             </div>
             <button class="btn btn-primary btn-sm" id="btn-new-openplay">＋ New Open Play</button>
           </div>
+          <div class="field"><label class="label" for="op-venue-filter">Venue</label><select class="input" id="op-venue-filter"><option value="">All venues</option></select></div>
           <div class="table-wrap"><table class="data" data-mobile-cards="true">
             <thead><tr><th>Event</th><th>Date</th><th>Time</th><th>Entrance fee</th><th>Location</th><th>Registered</th><th>Collected</th><th>Status</th><th>Visibility</th><th>Actions</th></tr></thead>
             <tbody id="openplay-body"></tbody>
@@ -918,7 +925,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
             <button class="btn btn-primary" type="submit" data-loading="Saving...">Change password</button>
           </form>
           <section id="staff-users-panel" class="mt-5 admin-only-panel">
-            <div class="spread"><div><h3 class="card-title">Staff users & role access</h3><p class="tiny muted">Create Admin, Booking Manager, Event Manager and Scorer accounts.</p></div><button class="btn btn-primary btn-sm" type="button" id="btn-add-staff-user">＋ Add user</button></div>
+            <div class="spread"><div><h3 class="card-title">Staff users &amp; role access</h3><p class="tiny muted">Assign an existing player or staff account to a role and venue.</p></div><div class="row wrap"><button class="btn btn-primary btn-sm" type="button" id="btn-staff-access">Assign access</button><button class="btn btn-outline btn-sm" type="button" id="btn-add-staff-user">Create staff account</button></div></div>
             <div id="staff-users-list" class="list mt-3"></div>
           </section>
           <hr style="border:0;border-top:1px solid var(--border);margin:24px 0" />
@@ -959,7 +966,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
   </div>
   <nav class="admin-mobile-nav" id="admin-mobile-nav" aria-label="Admin primary">
     <button data-mobile-page="dashboard" class="is-active"><span>⌂</span>Home</button>
-    <button data-mobile-page="calendar"><span>▥</span>Schedule</button>
+    <button data-mobile-page="calendar"><span>▥</span><span>Schedule</span></button>
     <button data-mobile-page="payments"><span>₱</span>Payments</button>
     <button data-mobile-page="events"><span>🏆</span>Events</button>
     <button data-mobile-page="more"><span>•••</span>More</button>
@@ -970,9 +977,9 @@ body.admin-app.role-ready #view-app{visibility:visible}
 <div id="modal-root"></div>
 
 <link rel="stylesheet" href="openplay-smart.css?v=111-openplay-court-capacity-20261107">
-<script src="openplay-contest.js?v=111-openplay-court-capacity-20261107"></script>
-<link rel="stylesheet" href="counter-bookings.css?v=112-counter-bookings-20261108">
-<script src="counter-bookings.js?v=112-counter-bookings-20261108"></script>
+<script src="openplay-contest.js?v=116-admin-upgrades"></script>
+<link rel="stylesheet" href="counter-bookings.css?v=116-admin-upgrades">
+<script src="counter-bookings.js?v=116-admin-upgrades"></script>
 <script src="qr-lite.js?v=67"></script>
 <script src="qr-decoder.js?v=67"></script>
 <script src="promo-qr.js?v=107-official-logo-20261102"></script>
@@ -1136,7 +1143,12 @@ body.admin-app.role-ready #view-app{visibility:visible}
       body: opts.body ? JSON.stringify(opts.body) : undefined
     }).then(function (res) {
       return res.json().catch(function () { return {}; }).then(function (data) {
-        if (!res.ok) { if (res.status === 401 && TOKEN) signOutLocal(); throw new Error(data.error || ('Request failed (' + res.status + ')')); }
+        if (!res.ok) {
+          if (res.status === 401 && TOKEN) signOutLocal();
+          var error=new Error(data.error || ('Request failed (' + res.status + ')'));
+          error.status=res.status;
+          throw error;
+        }
         return data;
       });
     }, function () { throw new Error('Cannot reach the booking server. Please try again later.'); });
@@ -1215,14 +1227,14 @@ body.admin-app.role-ready #view-app{visibility:visible}
   /* ---------- payments & manual receipt verification ---------- */
   function bookingActions(b) {
     var act = [];
-    if (b.payment_id) {
+    if (b.payment_id&&staffCan('verify_counter_payments')) {
       act.push('<button type="button" class="btn btn-outline btn-sm" data-booking-payment="' + Number(b.payment_id) + '">Payment details</button>');
     }
-    if (b.status === 'pending_approval' && String(b.payment_status || '').toLowerCase() === 'paid') {
+    if (b.status === 'pending_approval' && staffCan('confirm_bookings') && String(b.payment_status || '').toLowerCase() === 'paid') {
       /* Recovery only for records verified before the auto-confirm update. */
       act.push('<button class="btn btn-outline btn-sm" data-booking-approve="' + b.id + '" title="Legacy paid booking created before automatic confirmation">Finalize legacy booking</button>');
     }
-    if (b.status === 'confirmed' && isAdmin() && !b.group_id) {
+    if (b.status === 'confirmed' && staffCan('confirm_bookings') && !b.group_id&&!b.counter_group_id) {
       act.push(window.PikolVenueUI.attendanceButtons(b,false));
       act.push('<button class="btn btn-outline btn-sm" data-venue-cancel="' + b.id + '">Venue Cancel / Resolve</button>');
     }
@@ -1235,7 +1247,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
      bookings, tournament registrations and open play payments.
      ================================================================== */
 
-  var TX_TYPE_LABEL = { booking: 'Booking', tournament: 'Tournament', open_play: 'Open Play', membership: 'Membership' };
+  var TX_TYPE_LABEL = { booking: 'Booking', tournament: 'Tournament', open_play: 'Open Play', open_play_guest:'Direct guest Open Play', membership: 'Membership' };
   var TX_STATUS_LABEL = {
     AWAITING_PAYMENT: 'Payment due', PAYMENT_SUBMITTED: 'For review', UNDER_REVIEW: 'For review',
     VERIFIED: 'Paid', APPROVED: 'Paid', REJECTED: 'Rejected', REJECTED_FRAUD: 'Fraud rejected',
@@ -1270,6 +1282,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
       '&q=' + encodeURIComponent($('#tx-q').value.trim());
     return api('/api/admin/transactions' + qs).then(function (d) {
       TX_REASONS = d.reason_codes || {};
+      window.PikolCounter?.renderIssues?.($('#counter-payment-work'),$('#tx-status').value);
       $('#tx-stats').innerHTML = [
         ['For review', d.stats.pending_review, 'clock', '', 'Submissions needing review'],
         ['Paid today', d.stats.verified_today, 'calendar', '', 'Payments verified today'], ['Total collected', money(d.stats.total_collected), 'money', '', 'Verified payments · all time']
@@ -1284,7 +1297,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
           '<td class="num">' + esc(money(t.amount_due)) + '</td>' +
           '<td>' + esc(String(t.payment_provider || 'MANUAL').toUpperCase()) + '<div class="tiny muted">' + esc((t.payment_method || '').toUpperCase()) + '</div>' +
           '<div class="tiny muted">' + esc(t.reference_number || (t.payment_channel==='counter' ? 'Counter verification' : String(t.payment_method||'').toLowerCase()==='cash' ? 'Cash collection' : 'Receipt verification')) + '</div></td>' +
-          '<td>' + txBadge(TX_STATUS_LABEL[t.unified_status] || t.unified_status, TX_STATUS_CLASS[t.unified_status] || 'badge-pending') + '</td>' +
+          '<td>' + txBadge(TX_STATUS_LABEL[t.unified_status||String(t.status).toUpperCase()] || t.status, TX_STATUS_CLASS[t.unified_status||String(t.status).toUpperCase()] || 'badge-pending') + '</td>' +
           '<td class="tiny">' + esc(txStamp(t.created_at)) + '</td>' +
           '<td class="row-actions"><button class="btn btn-primary btn-sm" data-tx-open="' + esc(t.transaction_key) + '">' + (t.payment_channel==='counter'?'View':'Review') + '</button></td></tr>';
       }).join('') : '<tr><td colspan="9"><div class="empty"><strong>Nothing to review</strong>No transactions match these filters.</div></td></tr>';
@@ -1295,7 +1308,6 @@ body.admin-app.role-ready #view-app{visibility:visible}
   function loadEventPayments() { return loadPayments(); }
 
   ['#tx-type', '#tx-status'].forEach(function (sel) { $(sel).onchange = loadPayments; });
-  $('#tx-refresh').onclick = loadPayments;
   var TX_SEARCH_T = null;
   $('#tx-q').oninput = function () { clearTimeout(TX_SEARCH_T); TX_SEARCH_T = setTimeout(loadPayments, 350); };
   $('#tx-body').addEventListener('click', function (e) {
@@ -1315,6 +1327,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
   }
 
   function openTransactionModal(key, after) {
+    if(String(key).startsWith('open_play_guest-'))return openGuestTransactionModal(Number(key.split('-').pop()),after);
     return api('/api/admin/transactions/'+encodeURIComponent(key)).then(function(t){
       var method=String(t.payment_method||'').toLowerCase(); var isCash=method==='cash'||String(t.payment_provider||'').toUpperCase()==='CASH';
       var closed=['verified','rejected','approved','cancelled','completed'].indexOf(String(t.status||'').toLowerCase())>=0;
@@ -1325,10 +1338,10 @@ body.admin-app.role-ready #view-app{visibility:visible}
       if(t.payment_channel==='counter'&&window.PikolCounter?.can(USER,t.booking_source)){
         actions+='<button type="button" class="btn btn-outline" data-counter-print="'+Number(t.source_id)+'">Print Payment Acknowledgment</button>';
         if(isAdmin()&&t.unified_status==='VERIFIED'&&!t.cancellation_source)
-          actions+='<button type="button" class="btn btn-outline" data-counter-adjust="'+Number(t.source_id)+'">Adjust Counter Payment</button>';
+          actions+='<details class="payment-admin-more"><summary>More</summary><button type="button" class="btn btn-outline" data-counter-adjust="'+Number(t.source_id)+'">Refund / Void</button></details>';
       }
       if(isAdmin() && t.payment_channel!=='counter' && String(t.status).toLowerCase()==='verified'){
-        actions+='<section class="payment-fraud-action mt-3"><div class="alert alert-warning"><strong>Payment verification override</strong><p class="tiny">Super Admin only. Independently verify the real payment records before invalidating a Paid transaction. This can restrict the player account, retain the original receipt and preserve existing transaction history.</p></div><button type="button" class="btn btn-danger" data-tx-fraud-open>Reject this payment</button><div data-tx-fraud-panel hidden><div class="field mt-3"><label class="label" for="tx-fraud-reason">Reason / verified findings</label><textarea id="tx-fraud-reason" class="textarea" rows="4" minlength="20" maxlength="800" placeholder="Explain the payment account verification and why this receipt is invalid."></textarea></div><label class="payment-fraud-check"><input type="checkbox" id="tx-fraud-confirm"><span>I independently checked management payment records, confirm payment was not received, and understand the player account will be banned.</span></label><div class="row wrap mt-3"><button type="button" class="btn btn-danger" data-tx-fraud-apply>Confirm rejection &amp; ban account</button><button type="button" class="btn btn-outline" data-tx-fraud-back>Back</button></div></div></section>';
+        actions+='<details class="payment-admin-more"><summary>More</summary><section class="payment-fraud-action mt-3"><div class="alert alert-warning"><strong>Payment verification override</strong><p class="tiny">Independently verify the receiving account before invalidating this paid transaction. A confirmed fraud decision restricts the player account and revokes active sessions.</p></div><button type="button" class="btn btn-danger" data-tx-fraud-open>Review suspected fraud</button><div data-tx-fraud-panel hidden><div class="field mt-3"><label class="label" for="tx-fraud-reason">Reason / verified findings</label><textarea id="tx-fraud-reason" class="textarea" rows="4" minlength="20" maxlength="800"></textarea></div><label class="payment-fraud-check"><input type="checkbox" id="tx-fraud-confirm"><span>I independently checked the receiving account and confirm payment was not received.</span></label><div class="row wrap mt-3"><button type="button" class="btn btn-danger" data-tx-fraud-apply>Confirm rejection &amp; ban account</button><button type="button" class="btn btn-outline" data-tx-fraud-back>Back</button></div></div></section></details>';
       }
       if(isAdmin() && String(t.status).toLowerCase()==='rejected_fraud'){
         actions+='<section class="payment-fraud-action mt-3"><div class="alert alert-warning"><strong>Fraud decision recorded</strong><p class="tiny">The original payment remains invalidated. An authorized appeal can restore account access without marking an invalid payment as paid.</p></div><button type="button" class="btn btn-outline" data-tx-fraud-appeal>Review / overturn account ban</button></section>';
@@ -1378,6 +1391,52 @@ body.admin-app.role-ready #view-app{visibility:visible}
         var rj=ev.target.closest('[data-tx-reject]'); if(rj){var reason=prompt('Reason for rejection:','Reference/receipt could not be verified');if(!reason)return;busy(rj,true);api('/api/admin/transactions/'+encodeURIComponent(t.transaction_key)+'/reject',{method:'POST',body:{reason:reason,rejection_reason:reason}}).then(function(){done('Payment rejected.');}).catch(function(e){toast(e.message,'error');}).finally(function(){busy(rj,false);});}
       });
     }).catch(function(e){toast(e.message,'error');});
+  }
+
+  async function openGuestTransactionModal(id,after){
+    try{
+      var t=await api('/api/admin/guest-transactions/'+id),participants=t.participants||[];
+      var names=t.guest_names||participants.map(p=>p.full_name||p.name);
+      var host=modal({title:'Direct guest Open Play payment',wide:true,locked:true,body:
+        '<dl class="counter-summary"><dt>Event</dt><dd>'+esc(t.event_title||t.item_name)+'</dd><dt>Contact</dt><dd>'+
+        esc(t.contact_name||t.client_name)+' · '+esc(t.contact_phone||t.client_mobile||'')+'</dd><dt>Guests</dt><dd>'+names.map(esc).join(' · ')+
+        '</dd><dt>Amount due</dt><dd>'+money(t.amount_due??t.amount)+'</dd><dt>Method</dt><dd>'+esc(t.payment_method)+
+        '</dd><dt>Status</dt><dd>'+esc(TX_STATUS_LABEL[t.unified_status]||t.payment_status||t.status)+'</dd></dl>'+
+        (t.can_verify?'<div class="field"><label class="label" for="guest-payment-reference">Transfer reference</label><input class="input" id="guest-payment-reference" maxlength="100" value="'+esc(t.reference_number||'')+'"></div>'+
+        '<div class="field"><label class="label" for="guest-payment-amount">Verified amount received</label><input class="input" type="number" step="0.01" min="0" id="guest-payment-amount" value="'+Number(t.amount_due)+'"></div>'+
+        '<div class="field"><label class="label" for="guest-payment-reason">Rejection reason</label><textarea class="textarea" id="guest-payment-reason" maxlength="500"></textarea></div>'+
+        '<label class="counter-check"><input type="checkbox" id="guest-payment-confirm"> I verified the full amount was received.</label>'+
+        '<div class="counter-actions"><button class="btn btn-primary" data-guest-payment="verify">Verify Payment</button><button class="btn btn-outline" data-guest-payment="reject">Reject Payment</button></div>':'')+
+        (isAdmin()&&t.can_adjust?'<details class="payment-admin-more"><summary>More</summary><button class="btn btn-outline" data-guest-payment="adjust">Refund / Void</button></details>':'')});
+      host.addEventListener('click',async function(event){
+        var button=event.target.closest('[data-guest-payment]');if(!button||button.disabled)return;
+        var action=button.dataset.guestPayment,body={};
+        if(action==='verify'){
+          if(!$('#guest-payment-confirm',host).checked)return toast('Confirm that the full amount was received.','error');
+          body={verified:true,verified_amount:$('#guest-payment-amount',host).valueAsNumber,
+            payment_reference:$('#guest-payment-reference',host).value.trim()};
+        }else if(action==='reject'){
+          body.reason=$('#guest-payment-reason',host).value.trim();
+          if(body.reason.length<3)return toast('Enter the reason for rejection.','error');
+        }else{
+          var dialog=modal({title:'Refund / Void',danger:true,confirmText:'Record resolution',body:
+            '<div class="field"><label class="label" for="guest-adjust-action">Resolution</label><select class="input" id="guest-adjust-action"><option value="refund">Full external refund completed</option><option value="void">Payment was never received</option></select></div>'+
+            '<div class="field"><label class="label" for="guest-adjust-reason">Reason and reconciliation note</label><textarea class="textarea" id="guest-adjust-reason" minlength="3" maxlength="500"></textarea></div>'+
+            '<label><input type="checkbox" id="guest-adjust-confirm"> I verified this financial correction for the full amount.</label>',
+            onConfirm:async function(form){
+              var reason=$('#guest-adjust-reason',form).value.trim();
+              if(reason.length<3||!$('#guest-adjust-confirm',form).checked)throw Error('Confirm the correction and enter a reconciliation reason.');
+              await api('/api/admin/guest-transactions/'+id+'/adjust',{method:'POST',body:{action:$('#guest-adjust-action',form).value,reason:reason,confirm:true}});
+              host.remove();refreshWorkflow();if(after)after();
+            }});
+          return;
+        }
+        busy(button,true);
+        try{await api('/api/admin/guest-transactions/'+id+'/'+action,{method:'POST',body:body});host.remove();refreshWorkflow();if(after)after();}
+        catch(error){toast(error.message,'error');}
+        finally{busy(button,false);}
+      });
+    }catch(error){toast(error.message,'error');}
   }
 
   function refreshWorkflow() {
@@ -1442,8 +1501,8 @@ body.admin-app.role-ready #view-app{visibility:visible}
     busy(btn, true);
     api('/api/auth/login', { method: 'POST', body: { email: $('#li-email').value.trim(), password: $('#li-pass').value } })
       .then(function (d) {
-        if (['admin','booking_manager','event_manager'].indexOf(d.user.role)<0) throw new Error('This account is not authorized for the Staff System');
-        TOKEN = d.token; USER = d.user; sessionStorage.setItem('pb_admin_token', TOKEN);
+        USER=staffProfile(d.user);
+        TOKEN = d.token; sessionStorage.setItem('pb_admin_token', TOKEN);
         showApp(); toast('Welcome back, ' + d.user.full_name.split(' ')[0] + '.', 'success');
       })
       .catch(function (err) { toast(err.message, 'error'); })
@@ -1624,7 +1683,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
     });
   }
   function loadInChargeAlerts() {
-    if(!TOKEN||!USER)return Promise.resolve({unread:0,alerts:[]});
+    if(!TOKEN||!USER||!isAdmin())return Promise.resolve({unread:0,alerts:[]});
     return api('/api/admin/incharge-alerts?limit=60').then(function(d){
       INCHARGE_ALERTS=d.alerts||[];updateInChargeAlertUi(d.unread||0);return d;
     }).catch(function(){return {unread:INCHARGE_UNREAD,alerts:INCHARGE_ALERTS};});
@@ -1659,17 +1718,36 @@ body.admin-app.role-ready #view-app{visibility:visible}
     });
   }
   function isAdmin() { return !!(USER && USER.role === 'admin'); }
+  var STAFF_LABELS={admin:'Admin',booking_manager:'Booking Manager',venue_in_charge:'Venue In-Charge',event_manager:'Event Manager',scorer:'Scorer',player:'Registered Player'};
+  function staffProfile(account){
+    var role=account.staff_role||account.role;
+    var consoleGrant=Array.isArray(account.staff_permissions)&&account.staff_permissions.length>0;
+    if(!Object.hasOwn(STAFF_LABELS,role)||role==='player'||role==='scorer'&&!consoleGrant)throw Error('This account does not have Admin console access.');
+    return Object.assign({},account,{role:role});
+  }
+  function staffCan(permission){
+    if(isAdmin())return true;
+    if(Array.isArray(USER?.staff_permissions))return USER.staff_permissions.includes(permission);
+    // Accept the legacy profile shape during a rolling frontend update.
+    var legacy={booking_manager:['view_bookings','view_income'],venue_in_charge:['view_bookings'],
+      event_manager:['manage_open_play','manage_tournament','manage_live_queue','verify_event_payments']};
+    return (legacy[staffRole()]||[]).includes(permission);
+  }
   function staffRole(){return USER&&USER.role||'';}
   function allowedStaffPages(){
     if(isAdmin()) return null;
-    if(staffRole()==='booking_manager') return ['dashboard','bookings','payments','settings'];
-    /* Event Managers stay entirely inside event operations + password settings. */
-    if(staffRole()==='event_manager') return ['events','tournaments','openplay','settings'];
-    return [];
+    var pages=['settings'];
+    if(staffCan('view_bookings')||staffCan('walkin')||staffCan('extend'))pages.push('bookings');
+    if(staffCan('view_income')&&!pages.includes('bookings'))pages.push('dashboard');
+    if(staffCan('verify_counter_payments')||staffCan('verify_event_payments'))pages.push('payments');
+    if(staffCan('manage_open_play')||staffCan('manage_live_queue'))pages.push('openplay');
+    if(staffCan('manage_tournament'))pages.push('tournaments');
+    if(pages.includes('openplay')||pages.includes('tournaments'))pages.push('events');
+    if(staffCan('view_reports'))pages.push('reports');
+    return pages;
   }
   function roleHomePage(){
-    if(staffRole()==='event_manager') return 'events';
-    return 'dashboard';
+    return isAdmin()?'dashboard':['events','bookings','dashboard','payments','reports','settings'].find(roleAllows);
   }
   function roleAllows(page){var allowed=allowedStaffPages();return !allowed||allowed.indexOf(page)>=0;}
   function roleHide(el,yes){if(el)el.classList.toggle('role-hidden',!!yes);}
@@ -1686,28 +1764,42 @@ body.admin-app.role-ready #view-app{visibility:visible}
     function targetAllowed(el,attr){var p=el.getAttribute(attr);return !p||roleAllows(p);}
     root.querySelectorAll && root.querySelectorAll('[data-goto-page]').forEach(function(el){roleHide(el,!targetAllowed(el,'data-goto-page'));});
     root.querySelectorAll && root.querySelectorAll('[data-more-page]').forEach(function(el){roleHide(el,!targetAllowed(el,'data-more-page'));});
-    root.querySelectorAll && root.querySelectorAll('[data-mobile-page]').forEach(function(el){var p=el.dataset.mobilePage;if(p==='more')return; if(p==='calendar'&&staffRole()==='booking_manager')p='bookings';roleHide(el,!roleAllows(p));});
+    root.querySelectorAll && root.querySelectorAll('[data-mobile-page]').forEach(function(el){var p=el.dataset.mobilePage;if(p==='more')return; if(p==='calendar'&&roleAllows('bookings'))p='bookings';roleHide(el,!roleAllows(p));});
     /* Admin-only mutating controls never remain visible to delegated staff. */
     root.querySelectorAll && root.querySelectorAll('.admin-only-panel,[data-edit-court],[data-slot-add-open],[data-slot-remove-open]').forEach(function(el){roleHide(el,true);});
   }
   function applyRoleUI() {
     resetRoleUiState();
+    $$('[data-booking-window]').forEach(function(button){
+      roleHide(button,!staffCan('view_bookings')||!isAdmin()&&button.dataset.bookingWindow!=='today');
+      if(!isAdmin()){
+        var selected=button.dataset.bookingWindow==='today';
+        button.setAttribute('aria-pressed',String(selected));
+        button.classList.toggle('btn-primary',selected);
+        button.classList.toggle('btn-outline',!selected);
+      }
+    });
     var allowed=allowedStaffPages();
     $$('#nav .nav-item').forEach(function (b) {
       var original=b.dataset.defaultPage||b.dataset.page;
       b.dataset.page=original;
       var p=original;
-      if(staffRole()==='booking_manager'&&original==='calendar'){
+      if(!isAdmin()&&roleAllows('bookings')&&original==='calendar'){
         b.dataset.page='bookings';p='bookings';
         var label=b.querySelector('.nav-label');if(label)label.textContent='Bookings';
       }
       roleHide(b,!!allowed&&allowed.indexOf(p)<0);
     });
-    var mobSchedule=$('#admin-mobile-nav [data-mobile-page="calendar"]');if(mobSchedule){var spans=mobSchedule.querySelectorAll('span');if(spans.length>1)spans[1].textContent=staffRole()==='booking_manager'?'Bookings':'Schedule';}
-    $('#admin-role-label').textContent = isAdmin()?'ADMIN':(staffRole()==='booking_manager'?'BOOKING MANAGER':'EVENT MANAGER');
+    var mobSchedule=$('#admin-mobile-nav [data-mobile-page="calendar"]');if(mobSchedule){var spans=mobSchedule.querySelectorAll('span');if(spans.length>1)spans[1].textContent=!isAdmin()&&roleAllows('bookings')?'Bookings':'Schedule';}
+    $('#admin-role-label').textContent=(STAFF_LABELS[staffRole()]||'Staff').toUpperCase();
+    roleHide($('#btn-incharge-alerts'),!isAdmin());
     $$('.admin-only-panel').forEach(function(x){roleHide(x,!isAdmin());});
     /* Booking Manager reviews booking payments only; unrelated transaction categories disappear. */
-    var tx=$('#tx-type');if(tx){Array.from(tx.options).forEach(function(o){var keep=isAdmin()||staffRole()!=='booking_manager'||o.value==='booking';o.hidden=!keep;o.disabled=!keep;});if(staffRole()==='booking_manager'){tx.value='booking';roleHide(tx,true);}else roleHide(tx,false);}
+    var tx=$('#tx-type');if(tx){Array.from(tx.options).forEach(function(o){
+      var keep=isAdmin()||o.value==='all'||(o.value==='booking'?staffCan('verify_counter_payments'):
+        ['open_play','open_play_guest','tournament'].includes(o.value)&&staffCan('verify_event_payments'));
+      o.hidden=!keep;o.disabled=!keep;
+    });if(tx.selectedOptions[0]?.disabled)tx.value='all';roleHide(tx,false);}
     applyRoleVisibility(document);
     document.body.classList.add('role-ready');
   }
@@ -1743,6 +1835,12 @@ body.admin-app.role-ready #view-app{visibility:visible}
     $('#page-title').textContent = physicalPage === 'tournaments' ? 'Tournament Command Center' : physicalPage === 'settings' ? 'Settings' : (PAGE_TITLES[page] || PAGE_TITLES[physicalPage] || (physicalPage.charAt(0).toUpperCase() + physicalPage.slice(1)));
     var description = {dashboard:'Manage bookings, players, payments and more — all in one place.',calendar:'Plan. Play. Belong. Manage court availability and the daily schedule.',bookings:'Manage bookings, payments and availability — keep your club running smoothly.',courts:'Your courts, ready for the next game. Manage rates, status and promotional images.',blocks:'Plan maintenance and reserved periods without missing a beat.',payments:'Track and manage your court, event and membership collections.',players:'Build a stronger community, one player at a time.',memberships:'Memberships that bring your community closer.',ratings:'Follow player progress and review verified tournament ratings.',events:'Create memorable experiences. Build a stronger community.',tournaments:'Manage tournaments, registrations, matches and more — all in one place.',openplay:'More games. More connections. Bring your players together.',notifications:'Connect. Engage. Build a stronger community.',reports:'Track growth, engagement and performance — all in one place.',settings:'Configure your club, payments, communications and more.'};
     $('#admin-hero-description').textContent = physicalPage==='settings' ? description.settings : (description[page] || description[physicalPage] || '');
+    if(!isAdmin()&&physicalPage==='bookings'){
+      $('#page-title').textContent=staffCan('view_bookings')?"Today's Bookings":'Bookings';
+      $('#admin-hero-description').textContent=staffCan('view_bookings')?
+        "View today's bookings"+(staffCan('view_income')?' and verified collections.':'.'):
+        'Create or extend bookings with your assigned access.';
+    }
     $('#view-app').dataset.page = page;
     $('#view-app').classList.remove('drawer-open');
     $('#drawer-open').setAttribute('aria-expanded','false');
@@ -2441,9 +2539,8 @@ body.admin-app.role-ready #view-app{visibility:visible}
         ['Active courts', s.available_courts || 0, 'court', 'courts', 'Courts enabled for booking'],
         ['Payment reviews', s.pending_payments || 0, 'clock', 'payments', 'Submissions needing review']
       ] : [
-        ["Today's bookings", s.today_bookings || 0, 'calendar', 'bookings', 'Confirmed & completed'],
-        ['Payment reviews', s.pending_payments || 0, 'clock', 'payments', 'Submissions needing review'],
-        ['Pending approvals', s.pending_bookings || 0, 'clock', 'bookings', 'Bookings waiting for approval']
+        ...(staffCan('view_bookings')?[["Today's bookings", s.today_bookings || 0, 'calendar', 'bookings', 'Confirmed & completed']]:[]),
+        ...(staffCan('view_income')?[["Today's verified income",money(s.today_verified_income||0),'money','dashboard','Verified collections']]:[])
       ];
       $('#stat-grid').innerHTML = dashboardMetrics.map(adminMetric).join('');
       loadAttention(s);
@@ -2543,7 +2640,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
   $('#bk-clear').onclick = function () {
     $('#bk-venue').value = '';
     $('#bk-q').value = '';
-    $('#bk-status').value = 'confirmed';
+    $('#bk-status').value = 'all';
     $('#bk-date').value = '';
     syncDateDisplay('bk-date', 'bk-date-display', 'MM/DD/YY');
     loadBookings();
@@ -2555,8 +2652,11 @@ body.admin-app.role-ready #view-app{visibility:visible}
     function section(icon, title, content) { return '<section class="detail-card"><h3 class="detail-card-head">' + adminIcon(icon) + esc(title) + '</h3>' + content + '</section>'; }
     var paid = Number(b.reservation_paid ?? (b.payment_record_status === 'verified' ? b.payment_amount : 0)) || 0;
     var balance = ['cancelled','rejected'].includes(b.status) ? '—' : money(Math.max(0, Number(b.amount||0) - Number(b.credit_used||0) - paid));
-    return window.PikolVenueUI.segmentsHtml(b,{humanTime,money,adminActions:!!(USER&&['admin','booking_manager'].includes(USER.role))})+
-      '<div class="counter-tools">'+counterActions(b)+'</div><div class="booking-detail-intro"><span>Reference <strong>' + esc(b.reference) + '</strong></span>' + badge(b.status) + '</div><div class="booking-detail-grid">' +
+    var actions=bookingActions(b);
+    if(!b.group_id&&!b.counter_group_id&&b.status==='confirmed'&&staffCan('confirm_bookings'))actions.push('<button class="btn btn-outline btn-sm" data-resched="'+b.id+'">Reschedule</button>');
+    if(b.counter_checkout_id&&b.status==='checkout_hold')actions.push('<button class="btn btn-primary" data-counter-payment="'+b.counter_checkout_id+'">Review Payment</button>');
+    return window.PikolVenueUI.segmentsHtml(b,{humanTime,money,adminActions:staffCan('confirm_bookings')})+
+      '<div class="counter-tools">'+actions.join('')+counterActions(b)+'</div><div class="booking-detail-intro"><span>Reference <strong>' + esc(b.reference) + '</strong></span>' + badge(b.status) + '</div><div class="booking-detail-grid">' +
       section('court', 'Booking summary', rows([['Court',b.court_name],['Court amount',money(b.amount)],['PIKOL Credit used',Number(b.credit_used||0)>0?money(b.credit_used):'—'],['Balance due',balance]])) +
       section('user', 'Customer information', rows([['Customer',b.player_name],['Type',b.customer_type==='guest'?'Guest (No Account)':'Registered Player'],['Email',b.player_email],['Contact',b.player_mobile || '—'],['Players',b.players]])) +
       section('calendar', 'Schedule details', rows([['Date',humanDate(b.booking_date)],['Time',window.PikolVenueUI.timeLabel(b,{humanTime})],...(b.extension_of_reference?[['Extends booking',b.extension_of_reference]]:[])])) +
@@ -2569,56 +2669,95 @@ body.admin-app.role-ready #view-app{visibility:visible}
     var today=new Intl.DateTimeFormat('en-CA',{timeZone:BRAND.facility_timezone||'Asia/Manila'}).format(new Date());
     var actions=[];
     if(PikolCounter.can(USER,'extension')&&b.booking_date===today){
-      var segments=b.group_id?(b.segments||[]):[b];
+      var segments=b.segments?.length?b.segments:[b];
       segments.filter(s=>s.status==='confirmed'&&s.end_time!=='00:00').forEach(function(s){
         actions.push('<button type="button" class="btn btn-outline btn-sm" data-counter-extend="'+Number(s.id)+'">Extend Booking'+
-          (b.group_id?' · '+esc((s.court_name||'Court')+' '+humanTime(s.end_time)):'')+'</button>');
+          (b.segments?.length?' · '+esc((s.court_name||'Court')+' '+humanTime(s.end_time)):'')+'</button>');
       });
     }
     if(['walk_in','extension'].includes(b.booking_source)&&b.payment_id&&PikolCounter.can(USER,b.booking_source)){
       actions.push('<button type="button" class="btn btn-outline btn-sm" data-counter-print="'+Number(b.id)+'">Payment Acknowledgment</button>');
-      if(isAdmin()&&b.status==='confirmed'){
-        actions.push('<button type="button" class="btn btn-outline btn-sm" data-counter-adjust="'+Number(b.id)+'">Adjust Counter Payment</button>');
-      }
     }
     return actions.join(' ');
   }
   function bookingRowHtml(b) {
-    var act = bookingActions(b);
-    if (!b.group_id && b.status === 'confirmed' && isAdmin()) {
-      act.push('<button class="btn btn-outline btn-sm" data-resched="' + b.id + '">Reschedule</button>');
-    }
-    if(b.group_id && USER && ['admin','booking_manager'].includes(USER.role))act.push('<span class="tiny muted">Expand slots for individual actions</span>');
-    act.push('<button class="btn btn-ghost btn-sm" data-detail="' + b.id + '">Details</button>',counterActions(b));
     return '<tr><td class="num">' + esc(b.reference) + '</td><td>' + esc(b.player_name) + '<div class="tiny muted">' +
       esc(b.customer_type==='guest'?'Guest (No Account)':b.player_email) + '</div></td><td>' + esc(b.court_name) + '</td><td>' + humanDate(b.booking_date) +
       '<div class="tiny muted num booking-time-range">' + window.PikolVenueUI.timeLabel(b,{humanTime}) + '</div></td><td>' +
       esc(money(b.amount)) + '</td><td>' + esc(b.payment_method ? b.payment_method.toUpperCase() : '—') +
       '</td><td>' + (b.payment_amount != null ? esc(money(b.payment_amount)) : '—') + '<div class="tiny">' +
       badge(b.payment_record_status || b.payment_status || 'none') + '</div></td><td>' + badge(b.status) +
-      '</td><td><div class="row wrap" style="gap:6px">' + act.join('') + '</div></td></tr>' + (b.segments && b.segments.length ? '<tr class="booking-segments-row"><td colspan="9">' + window.PikolVenueUI.segmentsHtml(b,{humanTime,money,adminActions:!!(USER&&['admin','booking_manager'].includes(USER.role))}) + '</td></tr>' : '');
+      '</td><td><button type="button" class="btn btn-primary btn-sm" data-detail="'+b.id+'">Manage</button></td></tr>' +
+      (b.segments?.length?'<tr class="booking-segments-row"><td colspan="9">'+window.PikolVenueUI.segmentsHtml(b,{humanTime,money})+'</td></tr>':'');
   }
 
   function bookingEmptyRow(title, detail) {
     return '<tr><td colspan="9"><div class="empty"><strong>' + esc(title) + '</strong>' + esc(detail) + '</div></td></tr>';
   }
 
-  function fillVenueFilters(){return api(isAdmin()?'/api/admin/venues?include_retired=1':'/api/venues').then(function(vs){VENUES=vs.filter(function(v){return !v.deleted_at&&v.status!=='archived';});['bk-venue','rp-venue'].forEach(function(id){var el=document.getElementById(id),value=el.value;el.innerHTML='<option value="">All venues</option>'+vs.map(v=>'<option value="'+v.id+'">'+esc(v.name)+(v.deleted_at?' · retired':'')+'</option>').join('');el.value=value;});});}
+  function fillVenueFilters(){
+    return api(isAdmin()?'/api/admin/venues?include_retired=1':'/api/venues').then(function(venues){
+      var assigned=!isAdmin()&&USER.staff_venue_id;
+      var visible=assigned?venues.filter(function(venue){return Number(venue.id)===Number(assigned);}):venues;
+      VENUES=visible.filter(function(venue){return !venue.deleted_at&&venue.status!=='archived';});
+      ['bk-venue','rp-venue'].forEach(function(id){
+        var element=document.getElementById(id),selected=element.value;
+        element.innerHTML=(assigned?'':'<option value="">All venues</option>')+visible.map(function(venue){
+          return '<option value="'+venue.id+'">'+esc(venue.name)+(venue.deleted_at?' · retired':'')+'</option>';
+        }).join('');
+        element.value=assigned?String(assigned):selected;
+        element.disabled=!!assigned;
+      });
+    });
+  }
+  var BOOKING_WINDOW='today';
+  function bookingToday(){return new Intl.DateTimeFormat('en-CA',{timeZone:BRAND.facility_timezone||'Asia/Manila'}).format(new Date());}
+  function loadBookingSummary(){
+    var host=$('#booking-summary-stats');
+    var income=staffCan('view_income')?api('/api/admin/dashboard').then(d=>["Today's Verified Income",money(d.stats.today_verified_income||0),'money','','Verified collections']):Promise.resolve(null);
+    var reviews=staffCan('verify_counter_payments')?api('/api/admin/transactions?type=booking&status=for_review').then(d=>['Pending Reviews',Number(d.stats.pending_review||0)+Number(d.stats.cash_due||0),'clock','','Court payments awaiting review']):Promise.resolve(null);
+    return Promise.all([income,reviews]).then(cards=>{host.innerHTML=cards.filter(Boolean).map(adminMetric).join('');}).catch(e=>toast(e.message,'error'));
+  }
+  $('[data-booking-window]').parentElement.addEventListener('click',function(event){
+    var button=event.target.closest('[data-booking-window]');if(!button)return;
+    BOOKING_WINDOW=button.dataset.bookingWindow;
+    $$('[data-booking-window]').forEach(b=>{var selected=b===button;b.setAttribute('aria-pressed',String(selected));b.classList.toggle('btn-primary',selected);b.classList.toggle('btn-outline',!selected);});
+    $('#bk-date').value='';syncDateDisplay('bk-date','bk-date-display','MM/DD/YY');loadBookings();
+  });
   function loadBookings() {
+    if(!isAdmin())BOOKING_WINDOW='today';
     if(window.PikolCounter){
-      $('#btn-counter-walk').hidden=!PikolCounter.can(USER,'walk_in');
-      $('#btn-counter-holds').hidden=!PikolCounter.can(USER,'walk_in')&&!PikolCounter.can(USER,'extension');
+      $('#btn-new-booking').hidden=!PikolCounter.can(USER,'walk_in')&&!PikolCounter.can(USER,'extension');
+    }
+    loadBookingSummary();
+    var canView=staffCan('view_bookings');
+    roleHide($('.bookings-filters'),!canView);
+    if(!canView){
+      BOOKINGS=[];
+      $('#bookings-confirmed-groups').classList.add('hidden');
+      $('#bookings-standard-list').classList.remove('hidden');
+      $('#bookings-body').innerHTML=bookingEmptyRow('Start a new booking','Choose + New Booking to use your assigned booking actions.');
+      return Promise.resolve([]);
     }
     if($('#bk-venue').options.length===1)fillVenueFilters().catch(function(){});
     var p = new URLSearchParams();
-    var selectedStatus = $('#bk-status').value || 'confirmed';
+    var selectedStatus = $('#bk-status').value || 'all';
     if ($('#bk-q').value.trim()) p.set('q', $('#bk-q').value.trim());
     if (selectedStatus !== 'all') p.set('status', selectedStatus);
     if ($('#bk-date').value) p.set('date', $('#bk-date').value);
+    else if(BOOKING_WINDOW==='today')p.set('date',bookingToday());
+    else if(BOOKING_WINDOW==='upcoming'){
+      var next=new Date(bookingToday()+'T12:00:00Z');next.setUTCDate(next.getUTCDate()+1);p.set('from',next.toISOString().slice(0,10));
+    }else{
+      var past=new Date(bookingToday()+'T12:00:00Z');past.setUTCDate(past.getUTCDate()-1);p.set('to',past.toISOString().slice(0,10));
+    }
     if ($('#bk-venue').value) p.set('venue_id', $('#bk-venue').value);
-    return api('/api/admin/bookings?' + p.toString()).then(function (rows) {
+    var courtsReady=staffCan('confirm_bookings')&&!COURTS.length?
+      api('/api/courts').then(function(rows){COURTS=rows||[];}):Promise.resolve();
+    return Promise.all([api('/api/admin/bookings?' + p.toString()),courtsReady]).then(function (results) {
+      var rows=results[0];
       BOOKINGS = rows;
-      var confirmedView = selectedStatus === 'confirmed';
+      var confirmedView = false;
       $('#bookings-confirmed-groups').classList.toggle('hidden', !confirmedView);
       $('#bookings-standard-list').classList.toggle('hidden', confirmedView);
 
@@ -2682,9 +2821,9 @@ body.admin-app.role-ready #view-app{visibility:visible}
       var b = BOOKINGS.filter(function (x) { return x.id === Number(det.dataset.detail); })[0];
       if (!b) return;
       modal({
-        title: 'Booking details',
+        title: ['completed','cancelled','no_show'].includes(b.status)?'Booking history':'Manage Booking',
         body: bookingDetailsBody(b),
-        confirmText: b.customer_type==='guest'?null:'Send reminder',
+        confirmText: b.customer_type==='guest'||!staffCan('confirm_bookings')?null:'Send reminder',
         onConfirm: function () {
           return api('/api/admin/bookings/' + b.id + '/reminder', { method: 'POST' })
             .then(function () { toast('Reminder sent.', 'success'); });
@@ -2727,7 +2866,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
   document.addEventListener('click', function(e){
     var button=e.target.closest('[data-group-slot]');if(!button)return;
     e.preventDefault();e.stopPropagation();
-    if(!USER||!['admin','booking_manager'].includes(USER.role)){toast('Management access required','error');return;}
+    if(!staffCan('confirm_bookings')){toast('Booking management access required','error');return;}
     var found=groupedSlotLookup(button.dataset.slotId);if(!found){toast('Booking list changed. Refresh and retry.','error');return;}
     var slot=found.slot,group=found.group,action=button.dataset.groupSlot;
     if(slot.status!=='confirmed'){toast('Only confirmed slots can be handled','error');return;}
@@ -2775,7 +2914,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
   /* V73 shared Venue -> Court selectors for Calendar, Blocked and Events. */
   function loadVenueOptions(){
     return api(isAdmin()?'/api/admin/venues':'/api/venues').then(function(rows){
-      VENUES=(rows||[]).filter(function(v){return !v.deleted_at && v.status!=='archived';});
+      VENUES=(rows||[]).filter(function(v){return !v.deleted_at&&v.status!=='archived'&&(!USER?.staff_venue_id||Number(v.id)===USER.staff_venue_id);});
       [['cal-venue','All venues'],['bl-venue','Choose venue']].forEach(function(pair){
         var el=document.getElementById(pair[0]);if(!el)return;
         var previous=el.value;
@@ -3123,9 +3262,9 @@ body.admin-app.role-ready #view-app{visibility:visible}
     if(!isAdmin())return Promise.resolve();
     return api('/api/admin/registration-applications?count_only=1').then(function(data){registrationCount(data.pending_count);}).catch(function(){});
   }
-  function loadRegistrationImage(id,kind,image,thumbnail){
+  function loadRegistrationImage(id,kind,image,thumbnail,resource){
     var token=TOKEN;
-    return fetch(API+'/api/admin/registration-applications/'+id+'/'+kind+(thumbnail?'?thumbnail=1':''),{headers:{Authorization:'Bearer '+token},cache:'no-store'})
+    return fetch(API+'/api/admin/'+(resource||'registration-applications')+'/'+id+'/'+kind+(thumbnail?'?thumbnail=1':''),{headers:{Authorization:'Bearer '+token},cache:'no-store'})
       .then(function(response){if(!response.ok)throw new Error('The private image could not be loaded.');return response.blob();})
       .then(function(blob){if(TOKEN!==token||!image.isConnected)throw new Error('Image review closed.');var url=URL.createObjectURL(blob);image.src=url;REG_IMAGE_URLS.push({image:image,url:url});return image.decode?image.decode().then(function(){return url;}):url;});
   }
@@ -3153,7 +3292,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
       var pending=row.status==='pending_review';
       var host=modal({title:'Account registration review',wide:true,confirmText:pending?'Approve Registration':null,cancelText:'Close',
         body:'<div class="registration-review-grid"><section><h3 class="card-title">Applicant</h3><img class="registration-review-profile" data-review-profile alt="Applicant profile picture"/><h3>'+esc(row.full_name)+'</h3><p>'+esc(row.email)+'<br>'+esc(row.mobile)+'</p><p class="tiny muted">Submitted '+esc(txStamp(row.submitted_at))+'</p>'+registrationBadge(row)+(row.reviewed_at?'<p class="tiny muted">Reviewed '+esc(txStamp(row.reviewed_at))+'</p>':'')+(row.rejection_reason?'<p><strong>Reason:</strong> '+esc(row.rejection_reason)+'</p>':'')+'</section><section><h3 class="card-title">Identity verification</h3><p class="tiny muted">Private Valid ID · Authorized Management staff only</p><p data-id-state role="status">Loading private Valid ID…</p><img class="registration-review-id" data-review-id alt="Applicant private Valid ID" hidden/><button type="button" class="btn btn-outline btn-sm" data-id-retry hidden>Retry loading Valid ID</button></section></div>'+
-          (pending?'<section class="registration-rejection"><h3 class="card-title">Request a correction</h3><label class="label" for="registration-reason-option">Reason for rejection</label><select class="select" id="registration-reason-option"><option value="">Choose a reason</option><option>Valid ID is unclear</option><option>Invalid identification document</option><option>Information cannot be verified</option><option>Profile Picture is unclear</option><option>Submitted information does not match</option><option>Other</option></select><label class="label mt-3" for="registration-reason">Reason / correction needed (required)</label><textarea class="textarea" id="registration-reason" minlength="3" maxlength="500" required></textarea><button type="button" class="btn btn-danger mt-3" data-registration-reject>Reject Registration</button></section>':''),
+          (pending?'<section class="registration-rejection"><h3 class="card-title">Request a correction</h3><label class="label" for="registration-reason-option">Reason for rejection</label><select class="select" id="registration-reason-option"><option value="">Choose a reason</option><option value="name_mismatch">Name does not match Valid ID</option><option value="unreadable_id">Unreadable ID</option><option value="invalid_id">Expired/Invalid ID</option><option value="incomplete">Incomplete information</option><option value="duplicate">Suspected duplicate account</option><option value="unsupported_id">Unsupported identification</option><option value="other">Others</option></select><div class="hidden" id="registration-custom-reason"><label class="label mt-3" for="registration-reason">Explain the correction needed</label><textarea class="textarea" id="registration-reason" minlength="3" maxlength="500"></textarea></div><button type="button" class="btn btn-danger mt-3" data-registration-reject>Reject Registration</button></section>':''),
         onConfirm:function(){
           var reject=$('[data-registration-reject]',host);if(reject)reject.disabled=true;
           return api('/api/admin/registration-applications/'+row.id+'/approve',{method:'POST',body:{}})
@@ -3169,12 +3308,21 @@ body.admin-app.role-ready #view-app{visibility:visible}
       }
       $('[data-id-retry]',host).onclick=loadId;loadId();
       if(pending){
-        $('#registration-reason-option',host).onchange=function(){var reason=$('#registration-reason',host);reason.value=this.value==='Other'?'':this.value;reason.focus();};
+        var selection=$('#registration-reason-option',host), custom=$('#registration-reason',host);
+        selection.onchange=function(){
+          var other=this.value==='other';
+          $('#registration-custom-reason',host).classList.toggle('hidden',!other);
+          custom.required=other;
+          if(other)custom.focus();
+        };
         $('[data-registration-reject]',host).onclick=function(){
-          var reason=$('#registration-reason',host).value.trim(),reject=this;
-          if(reason.length<3){toast('Enter a rejection reason (at least 3 characters).','warning');$('#registration-reason',host).focus();return;}
+          var reasonCode=selection.value,reject=this;
+          if(!reasonCode){toast('Choose a rejection reason.','warning');selection.focus();return;}
+          if(reasonCode==='other'&&custom.value.trim().length<3){toast('Enter a rejection reason (at least 3 characters).','warning');custom.focus();return;}
+          var payload={reason_code:reasonCode};
+          if(reasonCode==='other')payload.reason=custom.value.trim();
           var wasDisabled=approve.disabled;busy(reject,true);approve.disabled=true;
-          api('/api/admin/registration-applications/'+row.id+'/reject',{method:'POST',body:{reason:reason}})
+          api('/api/admin/registration-applications/'+row.id+'/reject',{method:'POST',body:payload})
             .then(function(){host.remove();toast('Registration rejected. The applicant may submit corrected information.','success');loadPlayers();refreshRegistrationBadge();})
             .catch(function(error){toast(error.message,'error');}).finally(function(){busy(reject,false);approve.disabled=wasDisabled;});
         };
@@ -3182,25 +3330,87 @@ body.admin-app.role-ready #view-app{visibility:visible}
     }).catch(function(error){toast(error.message,'error');});
   });
 
+  var IDENTITY_REVIEWS=[], IDENTITY_NEXT=null, IDENTITY_REQUEST=0;
+  function loadIdentityReviews(append) {
+    if(!isAdmin())return Promise.resolve();
+    var request=++IDENTITY_REQUEST;
+    return api('/api/admin/identity-reviews'+(append&&IDENTITY_NEXT?'?before='+IDENTITY_NEXT:'')).then(function(data){
+      if(request!==IDENTITY_REQUEST)return;
+      IDENTITY_NEXT=data.next_before;
+      IDENTITY_REVIEWS=append?IDENTITY_REVIEWS.concat(data.reviews):data.reviews;
+      $('#identity-reviews-more').classList.toggle('hidden',!IDENTITY_NEXT);
+      $('#identity-reviews-list').innerHTML=IDENTITY_REVIEWS.map(function(row){
+        return '<div class="list-row"><span class="list-main"><strong>'+esc(row.full_name)+'</strong><span class="list-sub">'+
+          (row.kind==='mismatch'?'Name correction':'Legacy account verification')+' · '+esc(txStamp(row.submitted_at))+'</span></span>'+
+          '<button type="button" class="btn btn-outline btn-sm" data-identity-review="'+row.id+'">Review</button></div>';
+      }).join('')||'<p class="tiny muted">No pending player identity reviews.</p>';
+    }).catch(function(error){
+      if(request===IDENTITY_REQUEST)$('#identity-reviews-list').textContent=error.message;
+    });
+  }
+  $('#identity-reviews-more').onclick=function(){loadIdentityReviews(true);};
+  document.addEventListener('click',function(e){
+    var button=e.target.closest('[data-identity-review]');if(!button||!isAdmin())return;
+    var row=IDENTITY_REVIEWS.find(function(review){return String(review.id)===button.dataset.identityReview;});
+    if(!row)return;
+    function decide(decision,reason){
+      return api('/api/admin/identity-reviews/'+row.id+'/'+decision,{method:'POST',body:reason?{reason:reason}:{}}).then(function(){
+        toast(decision==='approve'?'Identity review approved.':'Identity submission rejected.','success');
+        loadPlayers();
+      });
+    }
+    var host=modal({title:'Review player identity',wide:true,confirmText:row.kind==='mismatch'?'Approve & Reactivate':'Verify Valid ID',
+      body:'<div class="registration-review-grid"><section><p>Account name<br><strong>'+esc(row.full_name)+'</strong></p><p>Name submitted<br><strong>'+
+        esc(row.proposed_name)+'</strong></p><p>'+esc(row.email)+'</p><p class="tiny muted">Review the name against the private Valid ID before approving.</p></section>'+
+        '<section><p role="status" data-identity-image-status>Loading private Valid ID…</p><img class="registration-review-id" data-identity-image alt="Private Valid ID" hidden /></section></div>'+
+        '<label class="label mt-3" for="identity-reject-reason">Reason if rejected</label><textarea class="textarea" id="identity-reject-reason" maxlength="500"></textarea>'+
+        '<button type="button" class="btn btn-danger btn-sm mt-3" data-identity-reject>Reject submission</button>',
+      onConfirm:function(){return decide('approve');}});
+    var approve=$('[data-confirm]',host),image=$('[data-identity-image]',host);
+    approve.disabled=true;
+    loadRegistrationImage(row.id,'valid-id',image,false,'identity-reviews').then(function(){
+      image.hidden=false;$('[data-identity-image-status]',host).textContent='Private Valid ID loaded.';approve.disabled=false;
+    }).catch(function(error){$('[data-identity-image-status]',host).textContent=error.message;});
+    $('[data-identity-reject]',host).onclick=function(){
+      var reason=$('#identity-reject-reason',host).value.trim(),reject=this;
+      if(reason.length<3){toast('Enter a rejection reason (at least 3 characters).','warning');return;}
+      busy(reject,true);decide('reject',reason).then(function(){host.remove();})
+        .catch(function(error){toast(error.message,'error');}).finally(function(){busy(reject,false);});
+    };
+  });
+
   function loadPlayers() {
     loadRegistrationApplications();
+    loadIdentityReviews();
     var q = $('#pl-q').value.trim();
     return api('/api/admin/players' + (q ? '?q=' + encodeURIComponent(q) : '')).then(function (rows) {
       PLAYERS = rows;
       if (!q) rememberPlayerDirectory(rows);
       $('#players-body').innerHTML = rows.length ? rows.map(function (p) {
+        var openMismatch=p.status==='suspended'&&['awaiting_submission','pending_review','rejected'].includes(p.identity_mismatch_status);
+        var actions=!isAdmin()||p.status==='banned'?'':openMismatch?'<span class="tiny muted">Identity correction open</span>':
+          '<button class="btn btn-outline btn-sm" data-player-status="'+p.id+'" data-to="'+
+          (p.status==='active'?'suspended':'active')+'">'+(p.status==='active'?'Suspend':'Reactivate')+'</button>';
         return '<tr><td>' + adminPerson(p.full_name, '', p.profile_photo_url, p.id) + '</td><td>' + esc(p.email) + '</td><td class="num">' + esc(p.mobile || '—') +
-          '</td><td class="num">' + p.booking_count + '</td><td>' + badge(p.status) + '</td><td>' +
-          '<button class="btn btn-outline btn-sm" data-player-status="' + p.id + '" data-to="' +
-          (p.status === 'active' ? 'suspended' : 'active') + '">' + (p.status === 'active' ? 'Suspend' : 'Reactivate') + '</button></td></tr>';
+          '</td><td class="num">' + p.booking_count + '</td><td>' + badge(p.status) + '</td><td>'+actions+'</td></tr>';
       }).join('') : '<tr><td colspan="6"><div class="empty"><strong>No players</strong>Registered players appear here.</div></td></tr>';
     }).catch(function (e) { toast(e.message, 'error'); });
   }
   document.addEventListener('click', function (e) {
-    var b = e.target.closest('[data-player-status]'); if (!b) return;
-    api('/api/admin/players/' + b.dataset.playerStatus + '/status', { method: 'PUT', body: { status: b.dataset.to } })
-      .then(function () { toast('Player ' + b.dataset.to + '.', 'success'); loadPlayers(); })
-      .catch(function (err) { toast(err.message, 'error'); });
+    var b=e.target.closest('[data-player-status]');if(!b||!isAdmin())return;
+    var suspending=b.dataset.to==='suspended';
+    var host=modal({title:suspending?'Suspend player account':'Reactivate player account',
+      confirmText:suspending?'Suspend player':'Reactivate player',danger:suspending,
+      body:suspending?'<label class="label" for="player-suspension-reason">Suspension reason</label><select class="select" id="player-suspension-reason">'+
+        '<option value="">General account suspension</option><option value="identity_mismatch">Registered Name Does Not Match Submitted Valid ID</option></select>'+
+        '<p class="tiny muted mt-3">For an identity mismatch, the player receives instructions for a private correction. An Administrator reviews it before reactivation.</p>':
+        '<p>Restore the player’s account access.</p>',
+      onConfirm:function(){
+        var body={status:b.dataset.to};
+        if(suspending&&$('#player-suspension-reason',host).value){body.reason='identity_mismatch';body.confirm=true;}
+        return api('/api/admin/players/'+b.dataset.playerStatus+'/status',{method:'PUT',body:body})
+          .then(function(){toast(suspending?'Player suspended.':'Player reactivated.','success');loadPlayers();});
+      }});
   });
 
   /* ---------- blocks ---------- */
@@ -3600,7 +3810,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
       '<div class="grid cols-2 op-event-details-grid">' +
       '<div class="field"><label class="label" for="op-title">Event title</label><input class="input" id="op-title" maxlength="140" value="' + esc(e.title || '') + '" /></div>' +
       '<div class="field"><label class="label" for="op-fee">Entrance fee</label><input class="input" id="op-fee" inputmode="decimal" value="' + esc(String(e.entrance_fee == null ? '' : e.entrance_fee)) + '" /></div>' +
-      '<div class="field"><label class="label" for="op-capacity">Total registration capacity</label><input class="input" id="op-capacity" readonly aria-describedby="op-capacity-preview" />'+
+      '<div class="field"><label class="label" for="op-capacity">Maximum Players</label><input class="input" id="op-capacity" type="number" inputmode="numeric" min="1" max="200" step="1" value="'+(Number(e.capacity)||20)+'" aria-describedby="op-capacity-preview" />'+
       '<p class="op3-small" id="op-capacity-preview" aria-live="polite"></p><p class="op3-alert" id="op-capacity-warning" role="status" hidden></p></div>' +
       '</div>' +
       '<div class="field"><label class="label" for="op-description">Description</label><textarea class="textarea" id="op-description" maxlength="2000">' + esc(e.description || '') + '</textarea></div>' +
@@ -3641,11 +3851,13 @@ body.admin-app.role-ready #view-app{visibility:visible}
     return wireEventRange(host,'op','open_play',currentId);
   }
   function readOpenPlayForm(host,validate=true) {
+    var paddle=PikolOpenPlay.readPaddle(host,validate),contest=PikolOpenPlay.read(host,validate);
     return {
-      ...PikolOpenPlay.readPaddle(host,validate),
+      ...paddle,
       title: $('#op-title', host).value, entrance_fee: $('#op-fee', host).value || 0,
       event_date: $('#op-date', host).value, start_time: $('#op-start', host).value, end_time: $('#op-end', host).value,
-      contest:PikolOpenPlay.read(host), venue_id:Number($('#op-venue',host).value), court_ids: selectedCourts(host,'op-court'),
+      contest:contest, capacity:PikolOpenPlay.readCapacity(host,validate),
+      venue_id:Number($('#op-venue',host).value), court_ids: selectedCourts(host,'op-court'),
       description: $('#op-description', host).value, poster_url: $('#op-poster', host).value,
       allowed_divisions:$$('[data-op-division]:checked',host).map(function(x){return x.dataset.opDivision;}),
       playing_mode:$('#op-playing-mode',host).value,division_matching:$('#op-division-matching',host).value,
@@ -3681,12 +3893,15 @@ body.admin-app.role-ready #view-app{visibility:visible}
       if(!values.title.trim()||!values.event_date||!values.start_time||!values.end_time||!values.venue_id||!values.court_ids.length){
         toast('Enter the title, date, times, venue and courts before generating a poster.','error');return;
       }
-      values.capacity=Number($('#op-capacity',host).value)||null;
       values.venue_name=$('#op-venue',host).selectedOptions[0].textContent;
       values.preset_name=PikolOpenPlay.names[$('#op-preset',host).value];
       var publicUrl=id&&event.published?new URL('./?openplay='+id,location.href).href:null;
       busy(button,true);
       try{
+        if(values.contest.enabled){
+          values.contest=PikolOpenPlay.read(host);
+          values.capacity=PikolOpenPlay.readCapacity(host);
+        }else values.capacity=Number($('#op-capacity',host).value)||null;
         var canvas=await PikolOpenPlay.poster(values,null,opPosterBrand(),publicUrl);
         if(!host.isConnected)return;
         var preview=modal({title:'Event poster preview',wide:true,body:'<div class="op-poster-preview"></div><button type="button" id="op-poster-download" class="btn btn-outline">Download PNG</button>',confirmText:'Use as Event Poster',
@@ -3705,29 +3920,36 @@ body.admin-app.role-ready #view-app{visibility:visible}
     return Promise.all([api('/api/admin/open-play'), api('/api/courts'),loadVenueOptions()]).then(function (results) {
       var rows = results[0];
       COURTS = results[1] || [];
-      $('#openplay-body').innerHTML = rows.map(function (e) {
+      $('#btn-new-openplay').hidden=!staffCan('manage_open_play');
+      var filter=$('#op-venue-filter'),selected=filter.value||String(USER?.staff_venue_id||'');
+      filter.innerHTML='<option value="">All venues</option>'+VENUES.map(function(v){return '<option value="'+v.id+'">'+esc(v.name)+'</option>';}).join('');
+      filter.value=selected;filter.disabled=!!USER?.staff_venue_id;
+      $('#openplay-body').innerHTML = rows.filter(function(e){return !selected||String(e.venue_id)===selected;}).map(function (e) {
         var vis = e.published ? badge('Published', 'badge-approved') : badge('Hidden', 'badge-pending');
         return '<tr role="link" tabindex="0" data-card-nav data-op-regs="'+e.id+'" aria-label="Open '+esc(e.title)+'"><td>' + esc(e.title) + (e.capacity ? '<div class="tiny muted">Capacity ' + e.capacity + '</div>' : '') + '</td>' +
           '<td>' + dateCell(e.event_date) + '</td><td>' + timeCell(e.start_time, e.end_time, e.event_date) + '</td>' +
           '<td class="num">' + esc(money(e.entrance_fee)) + '</td><td><strong>' + esc(e.venue_name||e.location||'—') + '</strong><div class="tiny muted">'+esc(e.court_name||'—')+'</div></td>' +
           '<td class="num">' + (e.full?'FULL — ':'') + esc(PikolOpenPlay.capacitySummary(e)) + (e.registration_closed_reason?'<div class="tiny muted">'+esc(e.registration_closed_reason)+'</div>':'') + '</td>' +
-          '<td class="num">' + esc(money(e.collected)) + '</td>' +
+          '<td class="num">' + (staffCan('view_income')?esc(money(e.collected)):'—') + '</td>' +
           '<td>' + badge(e.status.replace('_', ' '), e.status === 'published' ? 'badge-approved' : e.status === 'cancelled' ? 'badge-rejected' : 'badge-pending') + '</td>' +
           '<td>' + vis + '</td>' +
           '<td class="row-actions">' +
           '' +
-          '<button class="btn btn-ghost btn-sm" data-op-live="' + e.id + '">'+(e.contest?.enabled?'Contest & Courts':'Live Courts')+'</button> ' +
-          (e.registration_locked?'':'<button class="btn btn-ghost btn-sm" data-op-edit="' + e.id + '">Edit</button> ') +
-          '<button class="btn btn-ghost btn-sm" data-op-status="' + e.id + '">Status</button> ' +
-          '<button class="btn btn-ghost btn-sm" data-op-delete="' + e.id + '">Delete</button>' +
+          (staffCan('manage_live_queue')?'<button class="btn btn-ghost btn-sm" data-op-live="' + e.id + '">'+(e.contest?.enabled?'Contest & Courts':'Courts & Live Queue')+'</button> ':'')+
+          (isAdmin()?'<button class="btn btn-ghost btn-sm" data-op-guests="'+e.id+'">Direct Book Guests</button> ':'')+
+          (staffCan('manage_open_play')&&!e.registration_locked?'<button class="btn btn-ghost btn-sm" data-op-edit="' + e.id + '">Edit</button> ':'')+
+          (staffCan('manage_open_play')?'<button class="btn btn-ghost btn-sm" data-op-status="' + e.id + '">Status</button> '+
+          '<button class="btn btn-ghost btn-sm" data-op-delete="' + e.id + '">Delete</button>':'')+
           '</td></tr>';
       }).join('') || '<tr><td colspan="10" class="muted">No Open Play events yet</td></tr>';
       OP_CACHE = rows;
     }).catch(function (e) { toast(e.message, 'error'); });
   }
   var OP_CACHE = [];
+  $('#op-venue-filter').onchange=function(){OP_REGS_OPEN=null;$('#op-registrations').classList.add('hidden');loadOpenPlay();};
 
   $('#btn-new-openplay').onclick = function () {
+    if(!staffCan('manage_open_play'))return;
     var button = this;
     busy(button, true);
     return Promise.all([api('/api/courts'),loadVenueOptions()]).then(function (results) {
@@ -3748,6 +3970,8 @@ body.admin-app.role-ready #view-app{visibility:visible}
   };
 
   $('#openplay-body').addEventListener('click', function (ev) {
+    var guests=ev.target.closest('[data-op-guests]');
+    if(guests){ev.stopPropagation();return openGuestBookings(guests.dataset.opGuests);}
     var live = ev.target.closest('[data-op-live]');
     if(live){ev.stopPropagation();return op3AdminBoard(live.dataset.opLive);}
     var edit = ev.target.closest('[data-op-edit]');
@@ -3807,6 +4031,125 @@ body.admin-app.role-ready #view-app{visibility:visible}
   });
 
   var OP_REGS_OPEN = null;
+  function openGuestBookings(id) {
+    if(!isAdmin())return;
+    var event=OP_CACHE.find(function(row){return String(row.id)===String(id);});
+    var host=modal({title:(event?.title||'Open Play')+' · Direct Book Guests',wide:true,
+      cancelText:'Close',body:'<div data-guest-body>Loading guests…</div>'});
+    var endpoint='/api/admin/open-play/'+id+'/guests',data,requestKey=crypto.randomUUID();
+    function playerFields(count) {
+      var target=$('[data-guest-names]',host),prior=readPlayers();
+      target.innerHTML=Array.from({length:count},function(_,i){
+        var p=prior[i]||{};
+        return '<div class="grid cols-2"><div class="field"><label class="label" for="op-guest-name-'+i+'">Guest '+(i+1)+'</label>'+
+          '<input class="input" id="op-guest-name-'+i+'" data-guest-name maxlength="100" value="'+esc(p.name||'')+'"></div>'+
+          '<div class="field"><label class="label" for="op-guest-division-'+i+'">Division</label><select class="input" id="op-guest-division-'+i+'" data-guest-division>'+
+          (Array.isArray(event?.allowed_divisions)?event.allowed_divisions:['Beginner','Novice Low','Novice High','Intermediate','Expert'])
+            .map(function(n){return '<option'+(n===p.division?' selected':'')+'>'+n+'</option>';}).join('')+'</select></div></div>';
+      }).join('');
+    }
+    function readPlayers() {
+      var names=$$('[data-guest-name]',host),divisions=$$('[data-guest-division]',host);
+      return names.map(function(input,i){return {name:input.value.trim(),division:divisions[i].value};});
+    }
+    function showBeforeAfter() {
+      var input=$('[data-guest-count]',host),count=Number(input.value),left=Number(data.capacity.slots_left||0);
+      $('[data-guest-preview]',host).textContent='Available before '+left+' · Requested '+(Number.isInteger(count)?count:0)+
+        ' · Available after '+Math.max(0,left-(Number.isInteger(count)?count:0))+' · Group fee '+money((Number(event?.entrance_fee)||0)*(count||0));
+    }
+    function draw() {
+      requestKey=crypto.randomUUID();
+      host.dataset.reserveAll='false';
+      var c=data.capacity,left=Number(c.slots_left||0);
+      $('[data-guest-body]',host).innerHTML='<p class="op3-small" data-guest-capacity>'+esc(PikolOpenPlay.capacitySummary(c))+'</p>'+
+        '<div class="op3-settings"><h3>Reserve guest players</h3>'+
+        (c.registration_closed_reason?'<p class="op3-alert">'+esc(c.registration_closed_reason)+'</p>':'')+
+        '<div class="grid cols-2"><div class="field"><label class="label" for="op-guest-count">Number of guests</label>'+
+        '<input class="input" id="op-guest-count" data-guest-count type="number" min="1" max="'+left+'" step="1" value="'+Math.min(1,left)+'"></div>'+
+        '<div class="field"><label class="label"><input type="checkbox" data-guest-fixed '+(event?.registration_mode==='pair'?'checked':'')+'> Fixed pairs, in name order</label></div></div>'+
+        '<button type="button" class="btn btn-ghost btn-sm" data-guest-all'+(!left?' disabled':'')+'>Reserve all '+left+' available slots</button>'+
+        '<p data-guest-preview aria-live="polite"></p><div data-guest-names></div>'+
+        '<div class="grid cols-2"><div class="field"><label class="label" for="op-guest-contact">Contact person</label><input class="input" id="op-guest-contact" data-guest-contact maxlength="100"></div>'+
+        '<div class="field"><label class="label" for="op-guest-phone">Contact phone</label><input class="input" id="op-guest-phone" data-guest-phone type="tel" maxlength="30"></div>'+
+        '<div class="field"><label class="label" for="op-guest-method">Payment method</label><select class="input" id="op-guest-method" data-guest-method>'+data.methods.map(function(m){return '<option value="'+esc(m.key)+'">'+esc(m.label)+'</option>';}).join('')+'</select></div>'+
+        '<div class="field"><label class="label" for="op-guest-status">Payment status</label><select class="input" id="op-guest-status" data-guest-status><option value="held">Unpaid temporary hold</option><option value="confirmed">Verified group payment</option></select></div></div>'+
+        '<div class="field"><label class="label" for="op-guest-ref">Payment reference</label><input class="input" id="op-guest-ref" data-guest-ref maxlength="96"></div>'+
+        '<label class="label"><input type="checkbox" data-guest-verified> I received and verified the full group payment shown above.</label>'+
+        '<div class="field"><label class="label" for="op-guest-notes">Remarks</label><textarea class="textarea" id="op-guest-notes" data-guest-notes maxlength="500"></textarea></div>'+
+        '<button class="btn btn-primary" type="button" data-guest-save'+(!left||c.registration_closed_reason?' disabled':'')+'>Save guest reservation</button></div>'+
+        '<h3>Guest bookings</h3>'+(data.bookings.length?data.bookings.map(function(b){
+          return '<section class="op3-settings"><strong>'+esc(b.contact_name)+'</strong> · '+esc(b.contact_phone)+' · '+esc(b.status)+' · '+money(b.amount_due)+
+            '<p class="op3-small">'+esc(b.payment_method)+' · '+esc(b.payment_status)+(b.hold_expires_at?' · Hold until '+esc(new Date(b.hold_expires_at).toLocaleTimeString()):'')+'</p>'+
+            (b.status==='held'?'<div class="row"><button class="btn btn-outline btn-sm" data-guest-confirm="'+b.id+'">Verify group payment</button><button class="btn btn-ghost btn-sm" data-guest-release="'+b.id+'">Release unpaid hold</button></div>':'')+
+            b.players.map(function(p){
+              var inside=p.attendance_state&&p.attendance_state!=='left';
+              return '<div class="op3-row"><span>'+esc(p.full_name)+' · '+esc(p.player_division)+' · '+esc(p.attendance_state||'Not checked in')+'</span>'+
+                (b.status==='confirmed'?'<button class="btn btn-outline btn-sm" data-guest-check="'+p.id+'" data-check-action="'+(inside?'check-out':'check-in')+'">'+(inside?'Check out':'Check in')+'</button>':'')+'</div>';
+            }).join('')+'</section>';
+        }).join(''):'<p class="muted">No direct guest bookings.</p>');
+      playerFields(Math.min(1,left));showBeforeAfter();
+      $('[data-guest-count]',host).oninput=function(){
+        var count=Number(this.value);
+        host.dataset.reserveAll='false';
+        if(Number.isInteger(count)&&count>=1&&count<=left&&$$('[data-guest-name]',host).length!==count)playerFields(count);
+        showBeforeAfter();
+      };
+      $('[data-guest-count]',host).onchange=function(){
+        var count=Number(this.value);
+        if(!Number.isInteger(count)||count<1||count>left)toast('Enter a guest count from 1 to '+left+'.','error');
+      };
+    }
+    function refresh() {return api(endpoint).then(function(result){data=result;if(host.isConnected)draw();});}
+    host.addEventListener('click',async function(ev){
+      var all=ev.target.closest('[data-guest-all]'),save=ev.target.closest('[data-guest-save]'),
+        confirmButton=ev.target.closest('[data-guest-confirm]'),release=ev.target.closest('[data-guest-release]'),check=ev.target.closest('[data-guest-check]');
+      try{
+        if(all){
+          $('[data-guest-count]',host).value=data.capacity.slots_left;host.dataset.reserveAll='true';
+          playerFields(data.capacity.slots_left);showBeforeAfter();return;
+        }
+        if(save){
+          var count=PikolOpenPlay.readInteger($('[data-guest-count]',host)),status=$('[data-guest-status]',host).value;
+          if(status==='confirmed'&&!$('[data-guest-verified]',host).checked)throw Error('Confirm the full group payment received.');
+          var players=readPlayers();if(players.some(function(p){return !p.name;}))throw Error('Enter every guest’s name.');
+          busy(save,true);
+          await api(endpoint,{method:'POST',body:{player_count:count,players:players,contact_name:$('[data-guest-contact]',host).value,
+            contact_phone:$('[data-guest-phone]',host).value,payment_method:$('[data-guest-method]',host).value,status:status,
+            fixed_pairs:$('[data-guest-fixed]',host).checked,reserve_all:host.dataset.reserveAll==='true',idempotency_key:requestKey,
+            payment_reference:$('[data-guest-ref]',host).value,verified:$('[data-guest-verified]',host).checked,
+            verified_amount:Math.round((Number(event?.entrance_fee)||0)*100)*count/100,notes:$('[data-guest-notes]',host).value}});
+        }else if(confirmButton){
+          var booking=data.bookings.find(function(b){return b.id===Number(confirmButton.dataset.guestConfirm);});
+          modal({title:'Verify guest group payment',confirmText:'Verify payment',body:'<p>'+money(booking.amount_due)+' for '+booking.players.length+' guests.</p>'+
+            '<div class="field"><label class="label" for="op-guest-verify-ref">Payment reference</label><input class="input" id="op-guest-verify-ref" maxlength="96"></div>'+
+            '<label class="label"><input type="checkbox" id="op-guest-verify-received"> The full amount has been received.</label>',
+            onConfirm:function(dialog){
+              if(!$('#op-guest-verify-received',dialog).checked)throw Error('Confirm receipt of the full payment.');
+              return api(endpoint+'/bookings/'+booking.id+'/confirm',{method:'POST',body:{verified:true,verified_amount:booking.amount_due,
+                payment_reference:$('#op-guest-verify-ref',dialog).value}}).then(function(){refresh();loadOpenPlay();});
+            }});return;
+        }else if(release){
+          var reason=prompt('Reason for releasing this unpaid guest hold');if(!reason)return;
+          await api(endpoint+'/bookings/'+release.dataset.guestRelease+'/release',{method:'POST',body:{reason:reason}});
+        }else if(check){
+          await api(endpoint+'/players/'+check.dataset.guestCheck+'/'+check.dataset.checkAction,{method:'POST',body:{}});
+        }else return;
+        await refresh();loadOpenPlay();
+      }catch(error){toast(error.message,'error');}
+      finally{if(save?.isConnected)busy(save,false);}
+    });
+    var poll=setInterval(function(){
+      if(!host.isConnected){clearInterval(poll);return;}
+      // Keep capacity current without replacing a partly entered guest form.
+      api(endpoint).then(function(result){
+        if(!host.isConnected)return;data.capacity=result.capacity;data.bookings=result.bookings;
+        showBeforeAfter();$('[data-guest-count]',host).max=String(data.capacity.slots_left||0);
+        $('[data-guest-capacity]',host).textContent=PikolOpenPlay.capacitySummary(data.capacity);
+        $('[data-guest-save]',host).disabled=!data.capacity.slots_left||!!data.capacity.registration_closed_reason;
+      }).catch(function(){});
+    },10000);
+    return refresh().catch(function(error){toast(error.message,'error');});
+  }
   function loadOpenPlayRegistrations(id) {
     OP_REGS_OPEN = id;
     return api('/api/admin/open-play/' + id + '/registrations').then(function (rows) {
@@ -3815,21 +4158,28 @@ body.admin-app.role-ready #view-app{visibility:visible}
       var event=OP_CACHE.find(function(e){return String(e.id)===String(id);});
       box.innerHTML = '<section class="section-shell"><div class="section-head"><h2 class="section-title">'+esc(event?event.title:'Open Play')+' · Attendees</h2>' +
         '<button class="btn btn-ghost btn-sm" id="op-regs-close">Close</button></div>' +
+        '<div class="row mb-4">'+(staffCan('manage_live_queue')?'<button class="btn btn-outline btn-sm" data-op-panel-live>Courts &amp; Live Queue</button>':'')+
+        (isAdmin()?'<button class="btn btn-outline btn-sm" data-op-panel-guests>Direct Book Guests</button>':'')+'</div>'+
         '<div class="table-wrap"><table class="data"><thead><tr><th>Client</th><th>Contact</th><th>Fee</th><th>Payment status</th><th>Registration status</th><th>Code</th><th>Review payment</th></tr></thead><tbody>' +
         (rows.map(function (r) {
           var pay = (r.payments || [])[(r.payments || []).length - 1];
-          return '<tr><td>' + esc(r.client_name) + '</td><td class="tiny">' + esc(r.client_email || '') +
+          return '<tr><td>' + esc(r.client_name) +(r.customer_type==='guest'?'<div class="tiny muted">Direct guest · Group #'+Number(r.guest_booking_id)+'</div>':'')+ '</td><td class="tiny">' + esc(r.client_email || '') +
             '<div class="muted">' + esc(r.client_mobile || '') + '</div></td>' +
             '<td class="num">' + esc(money(Number(r.gross_amount||0)||Number(r.amount_due||0)+Number(r.credit_used||0))) + (Number(r.credit_used||0)>0?'<div class="tiny muted">Credit '+esc(money(r.credit_used))+' · Cash '+esc(money(r.amount_due))+'</div>':'') + '</td>' +
             '<td>' + badge(PAY_LABEL[r.payment_status] || r.payment_status, PAY_BADGE[r.payment_status] || 'badge-pending') + '</td>' +
             '<td>' + badge(r.hold_expired?'Payment hold expired':OPREG_LABEL[r.status] || r.status, r.status === 'confirmed' ? 'badge-approved' : r.status === 'rejected' || r.hold_expired ? 'badge-rejected' : 'badge-pending') +
             (r.payment_rejected ? '<div class="tiny muted">Not an active attendee · rejected payment</div>' : '') + '</td>' +
             '<td class="tiny">' + esc(r.registration_code || '—') + '</td>' +
-            '<td>' + (pay ? '<button class="btn btn-ghost btn-sm" data-op-receipt="' + pay.id + '">Review</button>' : '<span class="muted">—</span>') + '</td></tr>';
+            '<td>' + (r.customer_type==='guest'&&staffCan('verify_event_payments')?'<button class="btn btn-ghost btn-sm" data-op-guest-payment="'+r.guest_booking_id+'">Group payment</button>':
+              pay&&staffCan('verify_event_payments')?'<button class="btn btn-ghost btn-sm" data-op-receipt="' + pay.id + '">Review</button>' : '<span class="muted">—</span>') + '</td></tr>';
         }).join('') || '<tr><td colspan="7" class="muted">No attendees yet</td></tr>') +
         '</tbody></table></div></section>';
       $('#op-regs-close').onclick = function () { OP_REGS_OPEN = null; box.classList.add('hidden'); box.innerHTML = ''; };
       box.onclick = function (ev) {
+        if(ev.target.closest('[data-op-panel-live]'))return op3AdminBoard(id);
+        if(ev.target.closest('[data-op-panel-guests]'))return openGuestBookings(id);
+        var guestPayment=ev.target.closest('[data-op-guest-payment]');
+        if(guestPayment)return openGuestTransactionModal(Number(guestPayment.dataset.opGuestPayment),function(){loadOpenPlayRegistrations(id);});
         var b = ev.target.closest('[data-op-receipt]');
         if (b) openPaymentModal(b.dataset.opReceipt, function () { loadOpenPlayRegistrations(id); });
       };
@@ -3921,6 +4271,10 @@ body.admin-app.role-ready #view-app{visibility:visible}
     host.innerHTML = bits.join(' &middot; ');
   }
   function loadSettings() {
+    if(!isAdmin()){
+      applyAdminOperationalSettingsUI();
+      return Promise.resolve();
+    }
     return api('/api/admin/settings').then(function (s) {
       SETTINGS = s; if(isAdmin())loadStaffUsers();
       $$('[data-key]').forEach(function (el) {
@@ -4025,7 +4379,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
   };
 
   /* ---------- In-Charge PWA push ---------- */
-  var ADMIN_SW_VERSION='114-system-audit-20261109';
+  var ADMIN_SW_VERSION='116-admin-upgrades';
   var PUSH_PREP={reg:null,publicKey:null,serverStatus:null,ready:false,error:null,promise:null};
   function b64ToUint8(s){s=String(s||'').replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';var raw=atob(s),a=new Uint8Array(raw.length);for(var i=0;i<raw.length;i++)a[i]=raw.charCodeAt(i);return a;}
   function bytesEqual(a,b){if(!a||!b)return false;var x=new Uint8Array(a),y=new Uint8Array(b);if(x.length!==y.length)return false;for(var i=0;i<x.length;i++)if(x[i]!==y[i])return false;return true;}
@@ -4653,9 +5007,10 @@ body.admin-app.role-ready #view-app{visibility:visible}
     return api('/api/admin/staff-users').then(function(rows){
       var box=$('#staff-users-list'); if(!box)return;
       box.innerHTML=(rows||[]).length?(rows||[]).map(function(u){
-        return '<div class="list-row"><div class="list-main"><div class="list-title">'+esc(u.full_name)+'</div><div class="list-sub">'+esc(u.email)+' · '+esc(String(u.role).replace(/_/g,' '))+'</div></div><div class="list-end">'+statusBadge(u.status)+'<button class="btn btn-outline btn-sm" data-staff-edit="'+u.id+'">Edit</button>'+
-          (u.status==='active'&&['admin','booking_manager'].includes(u.role)?'<button class="btn btn-outline btn-sm" data-counter-permissions="'+Number(u.id)+'">Counter permissions</button>':'')+
-          '<button class="btn btn-ghost btn-sm" data-staff-delete="'+u.id+'"'+(u.status==='inactive'?'':' disabled title="Deactivate this user before deletion"')+'>Delete</button></div></div>';
+        return '<div class="list-row"><div class="list-main"><div class="list-title">'+esc(u.full_name)+'</div><div class="list-sub">'+esc(u.email)+' · '+esc(STAFF_LABELS[u.staff_role||u.role]||u.role)+'</div></div><div class="list-end">'+statusBadge(u.status)+
+          (u.status==='active'&&u.role!=='admin'?'<button class="btn btn-outline btn-sm" data-staff-access="'+esc(u.email)+'">Access</button>':'')+
+          (u.role!=='player'?'<button class="btn btn-outline btn-sm" data-staff-edit="'+u.id+'">Edit account</button>':'')+
+          (u.role!=='player'&&u.status==='inactive'?'<button class="btn btn-ghost btn-sm" data-staff-delete="'+u.id+'">Delete</button>':'')+'</div></div>';
       }).join(''):'<div class="empty">No staff users found.</div>';
     }).catch(function(e){toast(e.message,'error');});
   }
@@ -4671,6 +5026,54 @@ body.admin-app.role-ready #view-app{visibility:visible}
       }});
   }
   var addStaff=$('#btn-add-staff-user'); if(addStaff)addStaff.onclick=function(){staffUserModal();};
+  function openStaffAccess(initialEmail){
+    var catalog,users=[];
+    var host=modal({title:'Assign staff access',wide:true,confirmText:'Save access',
+      body:'<div class="field"><label class="label" for="sa-search">Find an existing account</label><div class="row">'+
+        '<input class="input" id="sa-search" type="search" placeholder="Name or email" style="min-width:0;flex:1"><button type="button" class="btn btn-outline" id="sa-find" style="flex-shrink:0">Find</button></div></div>'+
+        '<div class="field"><label class="label" for="sa-user">Account</label><select class="select" id="sa-user"></select></div>'+
+        '<div class="grid cols-2"><div class="field"><label class="label" for="sa-role">Staff role</label><select class="select" id="sa-role"></select></div>'+
+        '<div class="field"><label class="label" for="sa-venue">Venue</label><select class="select" id="sa-venue"></select></div></div>'+
+        '<fieldset class="admin-form-section"><legend>Permissions</legend><div class="grid cols-2" id="sa-permissions"></div></fieldset>',
+      onConfirm:async function(h){
+        var id=Number($('#sa-user',h).value);
+        if(!id)throw Error('Select an active account.');
+        var role=$('#sa-role',h).value||null;
+        await api('/api/admin/staff-access/'+id,{method:'PUT',body:{staff_role:role,venue_id:$('#sa-venue',h).value||null,
+          permissions:$$('[data-staff-permission]:checked',h).map(x=>x.dataset.staffPermission)}});
+        toast('Staff access updated. The account holder can sign in again.','success');loadStaffUsers();
+      }});
+    var search=$('#sa-search',host),account=$('#sa-user',host),role=$('#sa-role',host),venue=$('#sa-venue',host),grants=$('#sa-permissions',host);
+    search.value=initialEmail||'';
+    function showGrants(selected){
+      grants.innerHTML=Object.entries(catalog.permissions).map(([key,label])=>'<label class="counter-check"><input type="checkbox" data-staff-permission="'+key+'"'+
+        (selected.includes(key)?' checked':'')+(!role.value||role.value==='admin'?' disabled':'')+'> '+esc(label)+'</label>').join('');
+      venue.disabled=!role.value||role.value==='admin';
+    }
+    function showAccount(){
+      var user=users.find(x=>String(x.id)===account.value);
+      role.value=user?.staff_role||'';venue.value=user?.staff_venue_id||'';
+      showGrants(user?.staff_permissions||[]);
+    }
+    async function searchAccounts(){
+      try{
+        catalog=await api('/api/admin/staff-access?q='+encodeURIComponent(search.value.trim()));
+        users=catalog.users.filter(x=>x.status==='active');
+        account.innerHTML='<option value="">Choose account</option>'+users.map(x=>'<option value="'+x.id+'">'+esc(x.full_name+' · '+x.email)+'</option>').join('');
+        role.innerHTML='<option value="">Remove assignment</option>'+catalog.roles.map(key=>'<option value="'+key+'">'+esc(STAFF_LABELS[key])+'</option>').join('');
+        venue.innerHTML='<option value="">All venues</option>'+catalog.venues.map(v=>'<option value="'+v.id+'">'+esc(v.name)+'</option>').join('');
+        if(users.length===1)account.value=users[0].id;
+        showAccount();
+      }catch(error){toast(error.message,'error');}
+    }
+    $('#sa-find',host).onclick=searchAccounts;
+    search.onkeydown=function(event){if(event.key==='Enter'){event.preventDefault();searchAccounts();}};
+    account.onchange=showAccount;
+    role.onchange=function(){showGrants(catalog.defaults[role.value]||[]);};
+    searchAccounts();
+  }
+  $('#btn-staff-access').onclick=function(){openStaffAccess('');};
+  document.addEventListener('click',function(event){var button=event.target.closest('[data-staff-access]');if(button&&isAdmin())openStaffAccess(button.dataset.staffAccess);});
   document.addEventListener('click',function(e){var b=e.target.closest('[data-staff-edit]');if(!b)return;api('/api/admin/staff-users').then(function(rows){var u=(rows||[]).find(function(x){return Number(x.id)===Number(b.dataset.staffEdit);});if(u)staffUserModal(u);});});
   document.addEventListener('click',function(e){
     var button=e.target.closest('[data-counter-permissions]');
@@ -4901,6 +5304,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
       'tournament:payment_updated': function () { if (onPage('tournaments')) {run('treg', loadTournamentRegistrations);run('tournaments', loadTournaments);} run('badges', refreshEventBadges); },
       'availability:changed': function () { window.dispatchEvent(new Event('pikol:availability')); if (onPage('calendar')) run('calendar', loadCalendar); },
       'registration:updated': function () { refreshRegistrationBadge(); if(onPage('players'))run('registration',loadRegistrationApplications); },
+      'identity:updated': function () { if(onPage('players')&&isAdmin())run('identity',loadPlayers); },
       'player:created': function () { if (onPage('players')) run('players', loadPlayers); run('dashboard', loadDashboard); },
       'player:updated': function () { run('player-directory', loadPlayerDirectory); if (onPage('players')) run('players', loadPlayers); },
       'player:profile_updated': function () { run('player-directory', loadPlayerDirectory); if (onPage('players')) run('players', loadPlayers); else refreshCurrent(); },
@@ -5026,6 +5430,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
     return {score_a:a,score_b:b};
   }
   function op3AdminBoard(id){
+    if(!staffCan('manage_live_queue'))return;
     var host=modal({title:'Open Play · Live Court Control',wide:true,body:'<div id="op3-admin-live" class="op3-shell op3-live-mount"><div class="op3-empty">Loading real court status...</div></div>'});
     var root=$('#op3-admin-live',host),base='/api/admin/open-play/'+id+'/smart',loading=false;
     var live=null, prepared=null;
@@ -5036,21 +5441,29 @@ body.admin-app.role-ready #view-app{visibility:visible}
     function refresh(){if(!host.isConnected||loading)return Promise.resolve();loading=true;
       var scroll=$('.modal-body',host).scrollTop, open=$$('details[open] > summary',root).map(x=>x.textContent);
       var selectedPaddles=new Set($$('[data-paddle-member]:checked',root).map(x=>x.value));
-      return api('/api/open-play/'+id+'/smart/live').then(function(v){
+      return api('/api/admin/open-play/'+id+'/smart/live').then(function(v){
       if(!host.isConnected)return;
       live=v;
       var games=v.games||[],waiting=v.waiting||[],courts=v.courts||[],contest=v.contest;
+      function quotaMet(p){
+        var progress=PikolOpenPlay.playerProgress(contest,p.user_id);
+        return progress&&progress.completed>=progress.quota;
+      }
       if(contest&&!['READY','CONFIGURING'].includes(contest.status))prepared=null;
       root.innerHTML='<div class="op3-top"><div><h2>'+esc(v.event.title)+'</h2><p class="op3-meta">'+esc(v.event.playing_mode==='division'?'Division-Based':'Open Mix')+' · '+esc(v.event.division_matching)+' matching</p></div><span class="op3-pulse">● LIVE</span></div>'+
-      '<div class="op3-stats"><div class="op3-stat"><b>'+courts.length+'</b><small>Courts</small></div><div class="op3-stat"><b>'+waiting.filter(function(x){return x.state==='ready';}).length+'</b><small>Ready</small></div><div class="op3-stat"><b>'+games.length+'</b><small>Playing / Called</small></div></div>'+
+      '<div class="op3-stats"><div class="op3-stat"><b>'+courts.length+'</b><small>Courts</small></div><div class="op3-stat"><b>'+waiting.filter(x=>x.state==='ready'&&!quotaMet(x)).length+'</b><small>Ready</small></div><div class="op3-stat"><b>'+games.length+'</b><small>Playing / Called</small></div></div>'+
       '<p class="op3-small">'+esc(PikolOpenPlay.capacitySummary(v.event))+'</p>'+
       (v.event.registration_closed_reason?'<p class="op3-alert">'+esc(v.event.registration_closed_reason)+'</p>':'')+
-      PikolOpenPlay.board(contest,esc,money,true)+
+      PikolOpenPlay.board(contest,esc,money,true,isAdmin())+
       (contest?'':'<p class="op3-small op3-auto-status">'+(Number(v.event.auto_dispatch)===1&&(v.rack||v.event.rotation_mode!=='winners_stay')?'⚡ Automatic next-court calling is enabled during this session.':'Host-controlled calling is enabled. Tap Call Next Group for each free court.')+'</p>')+
       '<div class="op3-inline-actions op3-admin-ops">'+(contest&&(contest.status!=='IN_PROGRESS'||!Number(v.event.warmup_games))?'':'<button class="op3-btn" data-op3-warmup="1">🔔 Warm-up Next Group</button>')+'<button class="op3-btn secondary" data-op3-qr="1">⌗ Venue QR Check-in</button><button class="op3-btn secondary" data-op3-refresh="1">↻ Refresh</button></div>'+
       '<h3 class="op3-section">Partner Approval Requests</h3>'+(v.pending_pairs||[]).map(function(p){return '<div class="op3-row"><span>'+esc(p.inviter_name)+' + '+esc(p.invitee_name)+' · Mixed Division</span><button class="op3-btn" data-op3-approve="'+Number(p.id)+'">Approve Pair</button></div>';}).join('')+
       '<h3 class="op3-section">Live Playing Courts</h3><div class="op3-courts">'+courts.map(function(c){return op3Court(c,games.find(function(g){return Number(g.court_id)===Number(c.id);}),!contest||contest.status==='IN_PROGRESS');}).join('')+'</div>'+
-      (v.rack?PikolOpenPlay.paddleRack(v,esc,true):'<h3 class="op3-section">Waiting Players & Fixed Pairs</h3>'+(waiting.length?waiting.map(function(p){return '<div class="op3-row"><span><strong>'+esc(p.full_name)+'</strong><small> · '+esc(p.player_division)+' · '+Number(p.games_played)+' games</small></span><b>'+esc(p.state)+'</b></div>';}).join(''):'<div class="op3-empty">No checked-in waiting players yet.</div>'));
+      (v.rack?PikolOpenPlay.paddleRack(v,esc,true):'<h3 class="op3-section">Waiting Players & Fixed Pairs</h3>'+(waiting.length?waiting.map(function(p){
+        var progress=PikolOpenPlay.playerProgress(contest,p.user_id);
+        var count=contest?(progress?' · Completed Games: '+progress.completed+' / '+progress.quota:''):' · '+Number(p.games_played)+' games';
+        return '<div class="op3-row"><span><strong>'+esc(p.full_name)+'</strong><small> · '+esc(p.player_division)+count+'</small></span><b>'+esc(quotaMet(p)?'Quota complete':p.state)+'</b></div>';
+      }).join(''):'<div class="op3-empty">No checked-in waiting players yet.</div>'));
       renderPreview();
       $$('[data-paddle-member]',root).forEach(x=>{x.checked=selectedPaddles.has(x.value);});
       $$('details > summary',root).forEach(x=>{if(open.includes(x.textContent))x.parentElement.open=true;});
@@ -5117,8 +5530,26 @@ body.admin-app.role-ready #view-app{visibility:visible}
       if(action==='start'){
         if(!prepared?.fingerprint)return;
         body={fingerprint:prepared.fingerprint,target:prepared.target,confirm:$('#op-contest-confirm-format',host).checked,
-          accept_tie_rule:$('#op-contest-confirm-format',host).checked,confirm_prizes:!!$('#op-contest-confirm-prizes',host)?.checked,
-          confirm_time:!!$('#op-contest-confirm-time',host)?.checked};
+          accept_tie_rule:$('#op-contest-confirm-format',host).checked,confirm_prizes:!!$('#op-contest-confirm-prizes',host)?.checked};
+      }
+      if(action==='change-quota'){
+        var expected=Number(live.contest.locked_target);
+        return modal({title:'Change locked contest quota',confirmText:'Validate and apply',cancelText:'Cancel',
+          body:'<p>Current quota is <strong>'+expected+' games per player</strong>. Completed scores are preserved. PIKOL checks that the remaining matches fit the roster, court reservations and remaining session time before applying the change.</p>'+
+            '<div class="field"><label class="label" for="op-contest-new-target">Games Per Player</label><input class="input" id="op-contest-new-target" type="number" inputmode="numeric" min="1" max="96" step="1" value="'+expected+'"></div>'+
+            '<div class="field"><label class="label" for="op-contest-quota-reason">Reason for the audit log</label><textarea class="textarea" id="op-contest-quota-reason" minlength="3" maxlength="500"></textarea></div>'+
+            '<label><input type="checkbox" id="op-contest-quota-confirm"> I approve changing the quota for the entire locked roster.</label>',
+          onConfirm:async function(dialog){
+            var quota=PikolOpenPlay.readInteger($('#op-contest-new-target',dialog));
+            var reason=$('#op-contest-quota-reason',dialog).value.trim();
+            if(quota===expected)throw Error('Enter a different games-per-player quota.');
+            if(reason.length<3)throw Error('Enter a reason of 3–500 characters for the audit.');
+            if(!$('#op-contest-quota-confirm',dialog).checked)throw Error('Confirm the quota change for the locked roster.');
+            await api('/api/admin/open-play/'+id+'/contest/change-quota',{method:'POST',body:{games_per_player:quota,expected_target:expected,reason:reason,confirm:true}});
+            await refresh();
+            loadOpenPlay();
+            toast('Contest quota updated.','success');
+          }});
       }
       if(action==='finalize'&&!confirm('Publish and lock the official Top 3 and standings?'))return;
       if(['pause','resume','withdraw','return','requeue','reschedule','extend','correct','reopen','payout','reverse'].includes(action)){
@@ -5198,8 +5629,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
     toast('Cannot reach the booking server. Please try again later.', 'error');
   });
   if (TOKEN) api('/api/auth/me').then(function (d) {
-    if (['admin','booking_manager','event_manager'].indexOf(d.user.role)<0) throw new Error('not staff');
-    USER = d.user; showApp();
+    USER=staffProfile(d.user);showApp();
   }).catch(function () { signOutLocal(); });
 })();
 </script>

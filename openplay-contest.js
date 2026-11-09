@@ -36,19 +36,32 @@
     var c=event.contest||{}, disabled=c.prizes_locked?' disabled':'';
     return '<section class="op3-settings op-contest-settings"><label class="label"><input id="op-contest-enabled" type="checkbox"'+(c.enabled?' checked':'')+disabled+'> Enable Contest Mode</label>'+
       '<div id="op-contest-settings"'+(c.enabled?'':' hidden')+'>'+
-      '<label class="op3-label" for="op-contest-target">Games per player</label><select id="op-contest-target" class="op3-select">'+
-      [3,4,5,6,7].map(function(n){return '<option'+(n===(c.games_per_player||5)?' selected':'')+'>'+n+'</option>';}).join('')+'</select>'+
-      '<p class="op3-small">Contest Mode supports one roster of up to 12 players total, even with multiple courts. Courts share that roster. Confirm 8–12 eligible attendees and review the equal-games schedule in Live Courts.</p>'+
+      '<div class="op3-grid"><div><label class="op3-label" for="op-contest-target">Games Per Player</label>'+
+      '<input class="input" id="op-contest-target" type="number" inputmode="numeric" min="1" max="96" step="1" value="'+(Number(c.games_per_player)||'')+'" aria-describedby="op-contest-format-hint"></div></div>'+
+      '<p class="op3-small" id="op-contest-format-hint">Set the game quota and registration limit separately. Use Contest &amp; Courts to check whether the eligible checked-in players can complete the full schedule within the reservation.</p>'+
       '<p id="op-contest-warning" class="op3-alert" hidden>Contest Mode requires Fair Smart rotation. Choose Fair Smart or turn off Contest Mode.</p>'+
       '<label class="label"><input id="op-prizes-enabled" type="checkbox"'+(c.cash_prizes?' checked':'')+disabled+'> Enable cash prizes</label>'+
       '<div id="op-prize-settings"'+(c.cash_prizes?'':' hidden')+'><div class="op3-grid">'+[1,2,3].map(function(n){
         return '<label class="op3-label">Top '+n+' (₱)<input class="input" id="op-prize-'+n+'" type="number" min="0" max="99999999.99" step="0.01" value="'+Number((c.prizes||[])[n-1]||0)+'"'+disabled+'></label>';
       }).join('')+'</div><p class="op3-small" id="op-prize-budget"></p>'+(c.prizes_locked?'<p class="op3-small">Advertised prizes are locked.</p>':'')+'</div></div></section>';
   }
-  function read(host) {
+  function readInteger(input) {
+    var value=Number(input.value),min=Number(input.min),max=Number(input.max);
+    if(!Number.isSafeInteger(value)||value<min||value>max){
+      input.focus();
+      throw new Error(input.labels[0].textContent+' must be a whole number from '+min+' to '+max+'.');
+    }
+    return value;
+  }
+  function read(host,validate=true) {
     var get=id=>host.querySelector('#op-'+id);
-    return {enabled:get('contest-enabled').checked,games_per_player:Number(get('contest-target').value),
+    if(!get('contest-enabled').checked)return {enabled:false};
+    return {enabled:true,games_per_player:validate?readInteger(get('contest-target')):Number(get('contest-target').value),
       cash_prizes:get('prizes-enabled').checked,prizes:[1,2,3].map(n=>get('prize-'+n).value)};
+  }
+  function readCapacity(host,validate=true) {
+    var input=host.querySelector('#op-capacity');
+    return validate?readInteger(input):Number(input.value);
   }
   var methods = {
     fifo:['Traditional / FIFO','The first four eligible paddles in waiting order are called together. Accepted fixed pairs stay together. An incompatible group at the front waits for a host decision.','After four players finish, they move behind players still waiting.'],
@@ -89,7 +102,7 @@
   function wire(host,money,event) {
     var get=id=>host.querySelector('#op-'+id), preset=get('preset'),method=get('stacking-method');
     function update() {
-      var c=read(host);
+      var c=read(host,false);
       updateCapacity(host,event,c.enabled);
       var paddle=preset.value==='paddle'&&!!method,pair=paddle&&method.value==='partner_pair';
       if(method){
@@ -107,8 +120,9 @@
       get('contest-warning').textContent=paddle?'Paddle Stacking requires Contest Mode OFF. Choose another preset to keep Contest Mode.':
         'Contest Mode requires Fair Smart rotation. Choose Fair Smart or turn off Contest Mode.';
       describePreset(host);
-      var prizes=c.prizes.reduce((sum,x)=>sum+(Number(x)||0),0);
-      var collections=(Number(get('fee').value)||0)*(Number(get('capacity').value)||0);
+      var prizes=(c.prizes||[]).reduce((sum,x)=>sum+(Number(x)||0),0);
+      var capacity=c.enabled?readCapacity(host,false):Number(get('capacity').value);
+      var collections=(Number(get('fee').value)||0)*(capacity||0);
       get('prize-budget').textContent='Prize pool '+money(prizes)+' · Maximum registration collections '+money(collections)+
         ' · '+(collections>=prizes?'Collections above prize budget ':'Prize budget above maximum collections ')+money(Math.abs(collections-prizes))+'.';
     }
@@ -138,28 +152,22 @@
   function updateCapacity(host,event,contest) {
     var total=host.querySelector('#op-capacity'),preview=host.querySelector('#op-capacity-preview');
     if(!total||!preview)return;
-    var ids=[...host.querySelectorAll('#op-court input[type=checkbox]:checked')].map(el=>Number(el.value));
-    var same=event?.court_ids?.length===ids.length&&ids.every(id=>event.court_ids.includes(id));
-    var legacy=event?.id&&!event.court_capacity_v3&&same&&contest===!!event.contest?.enabled&&
-      (contest||event.ended||['completed','cancelled'].includes(event.status));
-    var capacity=ids.length?(legacy?event.capacity:contest?12:ids.length*12):0;
-    total.value=capacity==null?'Unlimited':String(capacity);
-    var detail=!ids.length?'Select at least one eligible court to calculate capacity.':
-      legacy?'Existing capacity is kept for this selection. Changing courts applies the current capacity rule.':
-      contest?'Contest Mode · one roster, 12 total players across the selected courts.':
-      '12 players per court × '+ids.length+' selected '+(ids.length===1?'court':'courts')+' = '+capacity+' total players.';
+    var count=Number(event?.registered??event?.confirmed??0);
+    total.min=contest?'4':'1';total.max=contest?'40':'200';
+    var capacity=Number(total.value);
+    var detail=contest?'Contest capacity is separate from the game quota. Prepare the checked-in roster to validate the schedule.':
+      'Set the registration limit for this event. Changing courts keeps this number.';
     if(preview.textContent!==detail)preview.textContent=detail;
     var warning=host.querySelector('#op-capacity-warning');
-    var count=Number(event?.registered??event?.confirmed??0);
-    warning.hidden=!ids.length||capacity==null||capacity>=count||legacy;
-    if(!warning.hidden)warning.textContent='This leaves '+capacity+' places for '+count+' committed registrations, including active payment holds and receipts in review. Keep enough courts or resolve those commitments before saving.';
+    warning.hidden=!capacity||capacity>=count;
+    if(!warning.hidden)warning.textContent='This event already has '+count+' committed players, including active holds and payment reviews.';
   }
 
   function capacitySummary(event) {
     if(event.registered==null)return '';
-    return Number(event.registered)+' committed'+(event.capacity?' / '+Number(event.capacity)+' places':'')+
-      ' · '+Number(event.confirmed||0)+' confirmed · '+Number(event.held||0)+' payment holds · '+Number(event.under_review||0)+' in review'+
-      (event.capacity_mode==='contest'?' · Contest roster limit 12 total':'');
+    return (event.capacity?'Maximum '+Number(event.capacity)+' · ':'')+
+      Number(event.confirmed_online??event.confirmed??0)+' online confirmed · '+Number(event.confirmed_guests||0)+' guests confirmed · '+
+      (Number(event.held||0)+Number(event.under_review||0))+' reserved/held'+(event.slots_left==null?'':' · '+Number(event.slots_left)+' available');
   }
 
   function paddleRack(live,esc,host) {
@@ -303,17 +311,25 @@
   function button(action,label,id) {
     return '<button type="button" class="op3-btn secondary" data-op-contest-action="'+action+'"'+(id?' data-op-subject="'+Number(id)+'"':'')+'>'+label+'</button>';
   }
-  function board(c,esc,money,admin) {
+  function playerProgress(contest,id) {
+    var player=contest?.players?.find(p=>Number(p.id)===Number(id));
+    if(player)return {completed:player.completed,quota:contest.locked_target||contest.games_per_player};
+    if(contest?.enabled&&['CONFIGURING','READY'].includes(contest.status))return {completed:0,quota:contest.games_per_player};
+    return null;
+  }
+  function board(c,esc,money,admin,canAdjustQuota=false) {
     if(!c)return '';
     var official=c.official, running=c.status==='IN_PROGRESS', paused=c.status==='PAUSED', complete=c.status==='COMPLETED';
+    var quota=c.locked_target||c.games_per_player;
     return '<section class="op3-settings op-contest-board"><h3>Equal-games contest · '+esc(c.status.replaceAll('_',' '))+'</h3>'+
-      '<p class="op3-small">'+(c.locked_target||c.games_per_player)+' games per player'+(c.required?' · '+c.completed+' of '+c.required+' matches complete · '+c.remaining+' remaining':'')+'</p>'+
+      '<p class="op3-small">'+quota+' games per player'+(c.required?' · '+c.completed+' of '+c.required+' matches complete · '+c.remaining+' remaining':'')+'</p>'+
       (c.pause?'<p class="op3-alert">'+esc(c.pause.reason)+(c.pause.matches.length?' · Affected matches '+c.pause.matches.join(', '):'')+'</p>':'')+
       (c.cash_prizes?'<p class="op3-small">Cash prizes '+c.prizes.map((x,i)=>'Top '+(i+1)+' '+esc(money(x))).join(' · ')+'</p>':'')+
       (admin?'<div class="op3-inline-actions">'+
         (['CONFIGURING','READY'].includes(c.status)?button('prepare','Prepare full schedule'):'')+
         (running?button('pause','Pause contest'):'')+
         (paused?button('resume','Resume contest')+button('extend','Extend reserved end time'):'')+
+        (canAdjustQuota&&c.can_adjust_quota?button('change-quota','Change locked quota'):'')+
         (complete?button('finalize','Finalize official results'):'')+
         (official?button('reopen','Reopen results'):'')+'</div><div id="op-contest-preview"></div>':'')+
       (official?'<h4>Official Top 3</h4><ol>'+official.top_three.map(r=>'<li><strong>Top '+r.rank+' · '+esc(r.name)+'</strong> · '+r.wins+'/'+r.games+' wins'+
@@ -322,7 +338,7 @@
       (c.standings.length?'<h4>'+ (official?'Official leaderboard':'Provisional leaderboard')+'</h4>'+table(official?official.rankings:c.standings,esc):'')+
       '<p class="op3-small">'+esc(c.tie_rule)+'</p>'+
       (c.players.length?'<details><summary>Player game counts</summary>'+c.players.map(p=>'<div class="op3-row"><span>'+esc(p.name)+'</span><span>'+
-        p.completed+' / '+c.locked_target+'</span>'+(admin&&(running||paused)?button('withdraw','Mark withdrawn',p.id):'')+
+        'Completed Games: '+p.completed+' / '+quota+'</span>'+(admin&&(running||paused)?button('withdraw','Mark withdrawn',p.id):'')+
         (admin&&paused?button('return','Authorize venue re-check-in',p.id):'')+'</div>').join('')+'</details>':'')+
       (c.matches.length?'<details><summary>Match schedule and scores</summary>'+c.matches.map(m=>'<div class="op3-row op-contest-match"><span>#'+m.sequence+' · Wave '+m.wave+' · '+esc(m.court_name)+
         '<br>'+m.teams.map(t=>t.map(p=>esc(p.name)).join(' + ')).join(' vs ')+'</span><span>'+esc(m.state)+
@@ -336,11 +352,9 @@
   }
   function preview(p,esc,money) {
     return '<div class="op-contest-preview"><h4>Attendance and schedule review</h4><p>'+p.players.length+' eligible and checked in · '+p.confirmed+' confirmed registrations</p>'+
-      '<p>'+p.players.map(x=>esc(x.name)).join(', ')+'</p>'+
+      '<p>'+p.players.map(x=>esc(x.name)).join(', ')+'</p><p>Configured quota: '+p.requested_target+' games per player</p>'+
       (p.error?'<p class="op3-alert">'+esc(p.error)+'</p>':
-        (p.adjustment?'<p class="op3-alert">'+esc(p.adjustment)+'</p>':'')+
-        '<p>'+p.target+' games each · '+p.matches.length+' matches · '+p.waves+' waves · estimated '+p.estimated_minutes+' minutes at 15 minutes per wave.</p>'+
-        (p.notice?'<p class="op3-alert">'+esc(p.notice)+'</p><label><input type="checkbox" id="op-contest-confirm-time"> I have reviewed the estimate and court reservation.</label>':'')+
+        '<p>'+p.required+' required doubles matches · '+p.waves+' waves · estimated '+p.estimated_minutes+' minutes.</p>'+
         '<details><summary>Review every court assignment</summary>'+p.matches.map(m=>'<p>#'+m.sequence+' · Wave '+m.wave+' · '+esc((p.courts.find(c=>c.id===m.court_id)||{}).name||'Court')+'<br>'+
           m.teams.map(t=>t.map(x=>esc(x.name)).join(' + ')).join(' vs ')+'</p>').join('')+'</details>'+
         '<p>'+esc(p.tie_rule)+'</p><label><input type="checkbox" id="op-contest-confirm-format"> I confirm attendance, '+p.target+' games per player, and the tie rule.</label>'+
@@ -398,7 +412,7 @@
       });
     }else{
       text(event.venue_name||event.location||brand.name,90,y,46,'#f7fbfa');
-      text('₱'+Number(event.entrance_fee||0).toFixed(2)+' entry  ·  Maximum '+(Number(event.capacity)||12)+' players',90,y+74,38,'#f7fbfa');
+      text('₱'+Number(event.entrance_fee||0).toFixed(2)+' entry'+(event.capacity?'  ·  Maximum '+Number(event.capacity)+' players':''),90,y+74,38,'#f7fbfa');
       text(event.preset_name||names[presetFor(event)],90,y+148,39,'#a6f5a5');
       if(event.contest?.enabled){
         text('Equal-games contest  ·  Target '+(event.contest.locked_target||event.contest.games_per_player)+' games each',90,y+222,36,'#f7fbfa');
@@ -412,5 +426,5 @@
     var a=document.createElement('a');a.href=canvas.toDataURL('image/png');a.download=filename;
     document.body.appendChild(a);a.click();a.remove();
   }
-  window.PikolOpenPlay={names,presets,presetFor,options,settings,read,paddleSettings,readPaddle,paddleRack,wire,capacitySummary,board,preview,poster,download};
+  window.PikolOpenPlay={names,presets,presetFor,options,settings,read,readCapacity,readInteger,paddleSettings,readPaddle,paddleRack,wire,capacitySummary,playerProgress,board,preview,poster,download};
 })();

@@ -709,6 +709,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
         </section>
         <form class="form-section hidden" id="form-profile" data-panelbox="panel-profile">
           <h2 class="section-title" style="margin-bottom:16px">Personal information</h2>
+          <section id="profile-identity" class="alert alert-info hidden" aria-live="polite"></section>
           <div class="profile-photo-editor">
             <div class="profile-photo-editor-preview" id="pf-photo-preview" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 22v-2a8 8 0 0 1 16 0v2"/></svg></div>
             <div class="profile-photo-editor-copy"><strong>Profile picture</strong><span class="field-hint">Choose a photo from your device. Large images are resized and optimized automatically before upload.</span>
@@ -778,7 +779,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
 <div id="modal-root"></div>
 
 <script src="range-availability.js?v=56-android-native-scroll"></script>
-<script src="openplay-contest.js?v=111-openplay-court-capacity-20261107"></script>
+<script src="openplay-contest.js?v=116-admin-upgrades"></script>
 <script src="password-recovery.js?v=110-paddle-recovery-20261105"></script>
 <script src="registration-guide.js?v=113-registration-guide"></script>
 <script>
@@ -933,6 +934,11 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
           if (res.status === 423 && data.banned && data.notice_token) { signOutLocal(); setTimeout(function(){ showBanNotice(data.notice_token); },0); }
           if (res.status === 401 && requestToken && requestToken === TOKEN) { signOutLocal(); }
           if (res.status === 403 && USER && /accept the Booking Terms/i.test(String(data.error||''))) { USER.terms_required=true; setTimeout(function(){showTermsGate();},0); }
+          if (res.status===403&&pathname==='/api/auth/login'&&data.identity_correction&&/^[a-f0-9]{64}$/.test(data.correction_token||'')) {
+            var correctionError=new Error(data.error);
+            correctionError.identityCorrection=data;
+            throw correctionError;
+          }
           throw new Error(data.error || ('Request failed (' + res.status + ')'));
         }
         return data;
@@ -1225,7 +1231,11 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
     return api('/api/auth/login', {
       method: 'POST',
       body: { email: $('#li-email').value.trim(), password: $('#li-pass').value }
-    }).then(function (data) { onAuth(data); toast('Welcome back!', 'success'); });
+    }).then(function (data) { onAuth(data); toast('Welcome back!', 'success'); }).catch(function(error){
+      if(!error.identityCorrection)throw error;
+      $('#li-pass').value='';
+      showIdentityCorrection(error.identityCorrection);
+    });
   });
 
   function registrationImagePayload(file,label) {
@@ -1237,6 +1247,24 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
       reader.onload=function(){var image=new Image();image.onload=function(){resolve({mime:file.type,data:String(reader.result).split(',').pop(),preview:reader.result});};image.onerror=function(){reject(new Error(label+' could not be decoded. Choose a valid image.'));};image.src=reader.result;};
       reader.readAsDataURL(file);
     });
+  }
+  function showIdentityCorrection(data) {
+    var token=data.correction_token;
+    if(TOKEN)signOutLocal();
+    modal({title:'Correct your account identity',confirmText:'Submit correction',
+      body:'<p>Your account is temporarily suspended. Submit the name shown on your Valid ID. An Administrator will review it before reactivating your account.</p>'+
+        (data.review_reason?'<p class="alert alert-info">Review note: '+esc(data.review_reason)+'</p>':'')+
+        '<label class="label mt-3" for="correction-full-name">Name on Valid ID</label><input class="input" id="correction-full-name" maxlength="120" autocomplete="name" />'+
+        '<label class="label mt-3" for="correction-valid-id">Valid ID (JPEG, PNG or WebP)</label><input class="input" id="correction-valid-id" type="file" accept="image/jpeg,image/png,image/webp" />',
+      onConfirm:function(host){
+        var fullName=$('#correction-full-name',host).value.trim();
+        if(fullName.length<2)throw new Error('Enter the full name shown on your Valid ID.');
+        return registrationImagePayload($('#correction-valid-id',host).files[0],'Valid ID').then(function(image){
+          return apiRequest('/api/auth/identity-correction',{method:'POST',body:{correction_token:token,full_name:fullName,
+            valid_id:{mime:image.mime,data:image.data}}});
+        }).then(function(){toast('Correction submitted for Administrator review.','success');});
+      },
+      onClose:function(){token='';}});
   }
   function clearRegistrationUpload(key) {
     var input=$('#rg-'+key),preview=$('#rg-'+key+'-preview');input.value='';input.removeAttribute('aria-invalid');
@@ -1306,6 +1334,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
     localStorage.removeItem('pb_token');setBell(0);
     $('#modal-root').innerHTML='';
     $('#form-profile').reset();$('#form-password').reset();
+    $('#profile-identity').replaceChildren();$('#profile-identity').classList.add('hidden');
     $('#bookings-list').innerHTML='';$('#booking-detail').innerHTML='';$('#notif-list').innerHTML='';
     ['my-trn-regs','my-op-regs','rating-summary-card','rating-pending-card','rating-history-card'].forEach(function(id){document.getElementById(id).replaceChildren();});
     $('#ev-reg-pill').textContent='';$('#ev-reg-pill').classList.add('hidden');
@@ -1357,7 +1386,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
     if(tab==='bookings')loadBookings();
     if(tab==='book')ensureBooking();
     if(tab==='tournaments'){evGoto(EV_SUB);if(TOKEN&&EV_SUB!=='myregs')loadMyRegistrations();}
-    if(tab==='profile'){openPanel('panel-profile');loadRating();}
+    if(tab==='profile'){openPanel('panel-profile');loadRating();loadIdentityVerification(false);}
     if(tab==='notifications')loadNotifications();
     if(tab==='membership'){$('#membership-card').classList.add('hidden');$('#membership-plans-card').classList.remove('hidden','show-benefits');$$('[data-member-view]').forEach(function(b){b.classList.toggle('is-active',b.dataset.memberView==='plans');});loadMembership();}
   }
@@ -2053,6 +2082,44 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
   }
 
   /* ---------- profile ---------- */
+  function loadIdentityVerification(notify) {
+    if(!USER||USER.role!=='player')return Promise.resolve();
+    var host=$('#profile-identity');
+    return api('/api/auth/identity-verification').then(function(state){
+      host.classList.toggle('hidden',state.status==='documented');
+      if(state.status==='documented'){host.replaceChildren();return;}
+      if(state.status==='pending_review'){
+        host.innerHTML='<strong>Valid ID awaiting review</strong><p class="tiny">You can continue using your account while Management reviews it.</p>';
+        return;
+      }
+      host.innerHTML='<strong>'+(state.show_reminder?'Account verification reminder':'Optional identity verification')+'</strong>'+
+        '<p class="tiny">Upload a Valid ID for Management verification. Your account stays active while you do this.</p>'+
+        (state.review_reason?'<p class="tiny">Review note: '+esc(state.review_reason)+'</p>':'')+
+        '<div class="row wrap"><button class="btn btn-outline btn-sm" type="button" data-identity-upload>Upload Valid ID</button>'+
+        (state.show_reminder?'<button class="btn btn-ghost btn-sm" type="button" data-identity-snooze>Remind Me Later</button>':'')+'</div>';
+      if(notify&&state.show_reminder)api('/api/auth/identity-verification/reminder',{method:'POST',body:{}}).catch(function(){});
+    }).catch(function(){});
+  }
+  $('#profile-identity').addEventListener('click',function(event){
+    var snooze=event.target.closest('[data-identity-snooze]');
+    if(snooze){
+      busy(snooze,true);
+      api('/api/auth/identity-verification/reminder',{method:'POST',body:{snooze:true}})
+        .then(function(){return loadIdentityVerification(false);})
+        .catch(function(error){toast(error.message,'error');})
+        .finally(function(){busy(snooze,false);});
+      return;
+    }
+    if(!event.target.closest('[data-identity-upload]'))return;
+    modal({title:'Upload a Valid ID',confirmText:'Submit for review',
+      body:'<p>Management uses this private image to verify the name on your active account.</p>'+
+        '<label class="label mt-3" for="legacy-valid-id">Valid ID (JPEG, PNG or WebP)</label><input class="input" id="legacy-valid-id" type="file" accept="image/jpeg,image/png,image/webp" />',
+      onConfirm:function(host){
+        return registrationImagePayload($('#legacy-valid-id',host).files[0],'Valid ID').then(function(image){
+          return apiRequest('/api/auth/identity-verification',{method:'POST',body:{valid_id:{mime:image.mime,data:image.data}}});
+        }).then(function(){toast('Valid ID submitted for Administrator review.','success');return loadIdentityVerification(false);});
+      }});
+  });
   function playerAvatarSvg() {
     return '<svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 22v-2a8 8 0 0 1 16 0v2"/></svg>';
   }
@@ -3418,6 +3485,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
     updateAccountPresentation();openPanel('panel-profile');syncLayers();
     var gated=!!(USER&&USER.role==='player'&&USER.terms_required);
     if(gated)showTermsGate(function(){if(resume&&TOKEN===authToken&&USER)resume();});
+    else loadIdentityVerification(true);
     loadNotifications({preview:true});
     Promise.all([loadMembership(),loadPayCfg().catch(function(){}),loadPikolCredit()]).then(function(){if(!gated&&resume&&TOKEN===authToken&&USER)resume();});
     loadDashboard();RT.connect();
@@ -3683,10 +3751,15 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
         var data=z[0],me=z[1],event=data.event,att=data.my_status||me.attendance||{},pair=me.pair,registered=!!me.registration;
         var contest=data.contest||null;currentContest=contest;currentEvent=event;
         var locked=contest&&!['CONFIGURING','READY'].includes(contest.status);
+        var progress=registered?PikolOpenPlay.playerProgress(contest,USER.id):null;
+        var quotaMet=progress&&progress.completed>=progress.quota;
+        var waiting=data.waiting.map(function(player){return {player:player,progress:PikolOpenPlay.playerProgress(contest,player.user_id)};});
+        var waitingCount=waiting.filter(x=>['ready','on_deck'].includes(x.player.state)&&(!x.progress||x.progress.completed<x.progress.quota)).length;
         var pairLabel=pair?'Fixed Partner: '+(Number(pair.inviter_id)===Number(USER.id)?pair.invitee_name:pair.inviter_name)+' ('+pair.status+')':me.registration&&me.registration.join_mode==='pair'?'Fixed partner required — choose a partner below.':'Individual / no active fixed pair';
         root.innerHTML='<div class="op3-top"><div><h3>'+esc(event.title)+'</h3><p class="op3-meta">'+esc(event.playing_mode==='mix'?'OPEN MIX':'DIVISION-BASED')+' · Your division: '+esc(me.division)+'</p></div><span class="op3-pulse">● LIVE</span></div>'+
-         '<div class="op3-stats"><div class="op3-stat"><b>'+esc(data.waiting.some(function(x){return Number(x.user_id)===Number(USER.id)&&x.state==='on_deck';})?'ON DECK':att.state||'—')+'</b><small>Your status</small></div><div class="op3-stat"><b>'+Number(att.games_played||0)+'</b><small>Games played</small></div><div class="op3-stat"><b>'+data.waiting.filter(function(x){return x.state==='ready'||x.state==='on_deck';}).length+'</b><small>Waiting</small></div></div>'+
-         '<div class="op3-alert">'+esc(pairLabel)+'<br>'+(!registered?'Register for this Open Play first.':me.registration.status!=='confirmed'?'Registration/payment requires confirmation.':!att.state?'Scan the venue QR then enter the displayed attendance code.':att.state==='ready'?'You are ready. You will receive a warm-up alert before a court call.':att.state==='playing'?'Your game is in progress.':att.state==='called'?'Your court is calling. Proceed to the court shown below.':att.state==='left'?'You have checked out of this Open Play. Your completed games remain in history.':'Follow your latest queue status below.')+'</div>'+
+         '<div class="op3-stats"><div class="op3-stat"><b>'+esc(quotaMet?'QUOTA COMPLETE':data.waiting.some(x=>Number(x.user_id)===Number(USER.id)&&x.state==='on_deck')?'ON DECK':att.state||'—')+'</b><small>Your status</small></div>'+
+         '<div class="op3-stat"><b>'+(contest?(progress?progress.completed+' / '+progress.quota:'—'):Number(att.games_played||0))+'</b><small>'+(contest?'Completed Games':'Games played')+'</small></div><div class="op3-stat"><b>'+waitingCount+'</b><small>Waiting</small></div></div>'+
+         '<div class="op3-alert">'+esc(pairLabel)+'<br>'+(!registered?'Register for this Open Play first.':quotaMet?'You have completed your counted games for this contest.':me.registration.status!=='confirmed'?'Registration/payment requires confirmation.':locked&&!progress?'The contest roster is locked.':!att.state?'Scan the venue QR then enter the displayed attendance code.':att.state==='ready'?'You are ready. You will receive a warm-up alert before a court call.':att.state==='playing'?'Your game is in progress.':att.state==='called'?'Your court is calling. Proceed to the court shown below.':att.state==='left'?'You have checked out of this Open Play. Your completed games remain in history.':'Follow your latest queue status below.')+'</div>'+
          '<p class="op3-small">'+esc(PikolOpenPlay.capacitySummary(event))+'</p>'+PikolOpenPlay.board(contest,esc,money,false)+
          (!registered&&!event.registration_locked?'<button class="op3-btn" data-op3-register="1">Register for this session</button>':'')+
          (!locked&&pair&&['pending','needs_approval'].includes(pair.status)&&Number(pair.invitee_id)===Number(USER.id)?(registered&&pair.status==='pending'?'<button class="op3-btn" data-op3-accept="'+Number(pair.id)+'">Accept Fixed Partner</button> ':'')+'<button class="op3-btn secondary" data-op3-decline="'+Number(pair.id)+'">Decline invitation</button>':'')+
@@ -3695,7 +3768,10 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
          '<div class="op3-inline-actions">'+(att.state==='left'&&!(contest?.status==='PAUSED'&&!att.left_at)?'<div class="op3-alert">✓ Checked out — no more game calls for this session.</div>':registered&&me.registration.status==='confirmed'&&!['called','playing'].includes(att.state)?'<input class="op3-select" style="width:170px" id="op3-venue-code" aria-label="Venue attendance code" placeholder="6-digit venue code" inputmode="numeric" maxlength="6"><button class="op3-btn" data-op3-checkin="1">QR Check-in</button>':'')+
          (!locked&&att.state==='ready'?'<button class="op3-btn secondary" data-op3-ready="0">Take a Rest</button>':(!locked&&(att.state==='paused'||att.state==='checked_in'))?'<button class="op3-btn secondary" data-op3-ready="1">Ready / Resume Queue</button>':'')+(att.state&&att.state!=='left'&&(att.state!=='playing'||contest?.status==='IN_PROGRESS')?'<button class="op3-btn op3-leave-btn" data-op3-checkout="1">Leave Open Play</button>':'')+'<button class="op3-btn secondary" data-op3-refresh="1">Refresh</button></div>'+
          (registered?'<h3 class="op3-section">Current Playing Courts</h3><div class="op3-courts">'+data.courts.map(function(c){return op3PlayerCourt(c,data.games.find(function(g){return Number(g.court_id)===Number(c.id);}));}).join('')+'</div>'+
-         (data.rack?PikolOpenPlay.paddleRack(data,esc,false):'<h3 class="op3-section">Current Waiting Pool</h3>'+data.waiting.map(function(w){return '<div class="op3-row"><span><strong>'+esc(w.full_name)+'</strong> <span class="op3-small">'+esc(w.player_division)+' · '+Number(w.games_played)+' games</span></span><b>'+esc(w.state)+'</b></div>';}).join('')):'');
+         (data.rack?PikolOpenPlay.paddleRack(data,esc,false):'<h3 class="op3-section">Current Waiting Pool</h3>'+waiting.map(function({player:w,progress:p}){
+           var count=contest?(p?' · Completed Games: '+p.completed+' / '+p.quota:''):' · '+Number(w.games_played)+' games';
+           return '<div class="op3-row"><span><strong>'+esc(w.full_name)+'</strong> <span class="op3-small">'+esc(w.player_division)+count+'</span></span><b>'+esc(p&&p.completed>=p.quota?'Quota complete':w.state)+'</b></div>';
+         }).join('')):'');
         $$('details > summary',root).forEach(x=>{if(open.includes(x.textContent))x.parentElement.open=true;});
         var nextCode=$('#op3-venue-code',host);if(nextCode){nextCode.value=savedCode;if(editingCode)nextCode.focus({preventScroll:true});}$('.modal-body',host).scrollTop=scroll;
       }).catch(function(e){if(host.isConnected)root.innerHTML='<div class="op3-alert">'+esc(e.message)+'</div><button class="op3-btn secondary" data-op3-refresh="1">Retry</button>';}).finally(function(){loading=false;});
@@ -3771,7 +3847,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
   window.addEventListener('appinstalled',function(){setMarked(true);deferredPrompt=null;sync();});
   window.addEventListener('pageshow',sync);document.addEventListener('visibilitychange',function(){if(!document.hidden)sync();});
   if(btn)btn.addEventListener('click',async function(){if(!deferredPrompt)return;btn.disabled=true;try{await deferredPrompt.prompt();var c=await deferredPrompt.userChoice;if(c&&c.outcome==='accepted')setMarked(true);}catch(_){}deferredPrompt=null;btn.disabled=false;sync();});
-  if('serviceWorker' in navigator)window.addEventListener('load',function(){navigator.serviceWorker.register('service-worker.js?v=114-system-audit-20261109',{scope:'./',updateViaCache:'none'}).then(function(reg){return reg.update();}).catch(function(){});});
+  if('serviceWorker' in navigator)window.addEventListener('load',function(){navigator.serviceWorker.register('service-worker.js?v=116-admin-upgrades',{scope:'./',updateViaCache:'none'}).then(function(reg){return reg.update();}).catch(function(){});});
   sync();
 })();
 </script>
