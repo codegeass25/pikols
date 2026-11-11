@@ -1,4 +1,4 @@
-const CACHE = 'pikol-v116-admin-upgrades';
+const CACHE = 'pikol-v117-payments-visibility-20261111';
 const SHELL = [
   // Current HTML imports use these URLs. Keep their exact query versions in
   // the public allow-list so a fresh offline shell can load its real runtime.

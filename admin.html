@@ -36,6 +36,11 @@ if (/Android/i.test(navigator.userAgent || '')) document.documentElement.classLi
 </style>
 <link rel="stylesheet" href="admin-premium.css?v=106-registration-receipts" />
 
+<style id="pikol-payments-staff-two-card-v1">
+/* Visual-only: fit both existing summary cards across the Payments row for non-ADMIN staff. */
+body.admin-app #tx-stats.payments-staff-summary{grid-template-columns:repeat(2,minmax(0,1fr)) !important}
+</style>
+
 <style id="pikol-role-ui-v33">
 .role-hidden{display:none !important}
 /* The app shell never paints until the authenticated role is resolved. */
@@ -1283,10 +1288,18 @@ body.admin-app.role-ready #view-app{visibility:visible}
     return api('/api/admin/transactions' + qs).then(function (d) {
       TX_REASONS = d.reason_codes || {};
       window.PikolCounter?.renderIssues?.($('#counter-payment-work'),$('#tx-status').value);
-      $('#tx-stats').innerHTML = [
+      // UI-only visibility rule: only the existing ADMIN role sees the all-time total.
+      // Payment transactions, their amounts, and the API response stay unchanged.
+      var paymentStatsCards = [
         ['For review', d.stats.pending_review, 'clock', '', 'Submissions needing review'],
-        ['Paid today', d.stats.verified_today, 'calendar', '', 'Payments verified today'], ['Total collected', money(d.stats.total_collected), 'money', '', 'Verified payments · all time']
-      ].map(adminMetric).join('');
+        ['Paid today', d.stats.verified_today, 'calendar', '', 'Payments verified today']
+      ];
+      if (isAdmin()) {
+        paymentStatsCards.push(['Total collected', money(d.stats.total_collected), 'money', '', 'Verified payments · all time']);
+      }
+      var paymentStatsHost = $('#tx-stats');
+      paymentStatsHost.classList.toggle('payments-staff-summary', !isAdmin());
+      paymentStatsHost.innerHTML = paymentStatsCards.map(adminMetric).join('');
 
       $('#tx-body').innerHTML = d.transactions.length ? d.transactions.map(function (t) {
         return '<tr><td class="num">' + esc(t.booking_reference || t.transaction_key) +
@@ -4379,7 +4392,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
   };
 
   /* ---------- In-Charge PWA push ---------- */
-  var ADMIN_SW_VERSION='116-admin-upgrades';
+  var ADMIN_SW_VERSION='117-payments-visibility-20261111';
   var PUSH_PREP={reg:null,publicKey:null,serverStatus:null,ready:false,error:null,promise:null};
   function b64ToUint8(s){s=String(s||'').replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';var raw=atob(s),a=new Uint8Array(raw.length);for(var i=0;i<raw.length;i++)a[i]=raw.charCodeAt(i);return a;}
   function bytesEqual(a,b){if(!a||!b)return false;var x=new Uint8Array(a),y=new Uint8Array(b);if(x.length!==y.length)return false;for(var i=0;i<x.length;i++)if(x[i]!==y[i])return false;return true;}
