@@ -1111,3 +1111,110 @@ body.admin-app #nav-registration-count { margin-left: auto; }
   body.admin-app .registration-review-section .card-header { align-items: flex-start; flex-direction: column; }
   body.admin-app .registration-review-section .select { max-width: 100%; }
 }
+
+/* V118 - Open Play mobile cards (Admin): preserve ALL authorized event details.
+   Fix the 2-column mobile record adapter's long values and nowrap action cells.
+   Scoped deliberately: other booking/tournament cards remain unchanged. */
+@media screen and (max-width:1024px) {
+  body.admin-app #page-openplay,
+  body.admin-app #page-openplay > .section-shell,
+  body.admin-app #page-openplay .table-wrap { min-width:0; max-width:100%; }
+  body.admin-app #page-openplay .table-wrap:has(>table.data.as-cards) {
+    width:100%; overflow:visible;
+  }
+  body.admin-app #page-openplay table.data.as-cards,
+  body.admin-app #page-openplay table.data.as-cards > tbody {
+    width:100%; min-width:0; max-width:100%;
+  }
+  body.admin-app #page-openplay table.data.as-cards > tbody > tr.is-card {
+    box-sizing:border-box; min-width:0; max-width:100%; width:100%;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    grid-template-areas:
+      "event event"
+      "date time"
+      "location location"
+      "fee collected"
+      "registered registered"
+      "status visibility"
+      "actions actions";
+    gap:12px 12px; padding:clamp(12px,2.5vw,18px);
+    align-content:start; overflow:visible;
+  }
+  body.admin-app #page-openplay table.data.as-cards > tbody > tr.is-card > td {
+    min-width:0; max-width:100%; white-space:normal;
+    overflow-wrap:anywhere; word-break:normal; text-align:left;
+    font-variant-numeric:tabular-nums;
+  }
+  body.admin-app #page-openplay table.data.as-cards > tbody > tr.is-card > td:nth-child(1) {grid-area:event;font-size:1.03rem;line-height:1.5}
+  body.admin-app #page-openplay table.data.as-cards > tbody > tr.is-card > td:nth-child(2) {grid-area:date}
+  body.admin-app #page-openplay table.data.as-cards > tbody > tr.is-card > td:nth-child(3) {grid-area:time}
+  body.admin-app #page-openplay table.data.as-cards > tbody > tr.is-card > td:nth-child(4) {grid-area:fee}
+  body.admin-app #page-openplay table.data.as-cards > tbody > tr.is-card > td:nth-child(5) {grid-area:location;display:block}
+  body.admin-app #page-openplay table.data.as-cards > tbody > tr.is-card > td:nth-child(6) {grid-area:registered;display:block}
+  body.admin-app #page-openplay table.data.as-cards > tbody > tr.is-card > td:nth-child(7) {grid-area:collected;display:block}
+  body.admin-app #page-openplay table.data.as-cards > tbody > tr.is-card > td:nth-child(8) {grid-area:status}
+  body.admin-app #page-openplay table.data.as-cards > tbody > tr.is-card > td:nth-child(9) {grid-area:visibility}
+  body.admin-app #page-openplay table.data.as-cards > tbody > tr.is-card > td:nth-child(10) {grid-area:actions}
+  body.admin-app #page-openplay table.data.as-cards > tbody > tr.is-card > td:nth-child(5) strong {display:block;overflow-wrap:anywhere}
+  body.admin-app #page-openplay table.data.as-cards > tbody > tr.is-card > td:nth-child(6) {
+    padding:12px; border:1px solid var(--border); border-radius:12px;
+    background:var(--surface-2,var(--surface));
+  }
+  body.admin-app #page-openplay .op-capacity-desktop {display:none}
+  body.admin-app #page-openplay .op-mobile-capacity {
+    display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:9px;
+    width:100%;min-width:0;margin:9px 0 2px;
+  }
+  body.admin-app #page-openplay .op-mobile-capacity-stat {
+    display:flex;flex-direction:column;gap:2px;min-width:0;
+    padding:8px 5px;align-items:center;text-align:center;
+    border:1px solid var(--border);border-radius:9px;background:var(--surface);
+  }
+  body.admin-app #page-openplay .op-mobile-capacity-number {font-size:1.1rem;line-height:1.35;font-weight:800}
+  body.admin-app #page-openplay .op-mobile-capacity-label {font-size:.68rem;line-height:1.35;overflow-wrap:anywhere;color:var(--text-secondary)}
+  body.admin-app #page-openplay .op-mobile-capacity-stat.is-available {background:var(--brand-primary-soft,var(--surface));color:var(--brand-primary,#067553)}
+  body.admin-app #page-openplay table.data.as-cards > tbody > tr.is-card > td.cell-actions.row-actions {
+    grid-area:actions; display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:8px; min-width:0; max-width:100%; width:100%;
+    white-space:normal !important; align-items:stretch; padding-top:12px;
+  }
+  body.admin-app #page-openplay td.cell-actions.row-actions .btn {
+    box-sizing:border-box;min-width:0;max-width:100%;width:100%;
+    min-height:44px;height:auto;white-space:normal;overflow-wrap:break-word;
+    word-break:normal;text-align:center;line-height:1.4;
+    display:inline-flex;justify-content:center;align-items:center;
+    padding:10px 8px;margin:0;font-size:clamp(.76rem,1.6vw,.88rem);
+    touch-action:manipulation;
+  }
+  body.admin-app #page-openplay td.cell-actions.row-actions :is([data-op-live],[data-op-guests]) {grid-column:1/-1}
+  body.admin-app #page-openplay .card-header {align-items:flex-start;gap:10px}
+  body.admin-app #page-openplay .card-header > .row {flex-wrap:wrap;max-width:100%;min-width:0}
+  body.admin-app #page-openplay #btn-new-openplay {max-width:100%;white-space:normal}
+  body.admin-app #op-registrations {scroll-margin-top:106px;scroll-margin-bottom:calc(var(--mobile-nav-h,72px) + 20px)}
+  body.admin-app #op-registrations .section-head {flex-wrap:wrap;gap:10px}
+  body.admin-app #op-registrations .section-head .section-title {min-width:0;overflow-wrap:anywhere}
+  body.admin-app #op-registrations .table-wrap {max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
+}
+@media screen and (max-width:900px) {
+  body.admin-app #page-openplay table.data.as-cards > tbody {grid-template-columns:minmax(0,1fr)}
+}
+@media screen and (max-width:767px) {
+  body.admin-app #page-openplay table.data.as-cards > tbody > tr.is-card {gap:13px 10px;padding:13px}
+  body.admin-app #page-openplay .op-mobile-capacity {grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+  body.admin-app #page-openplay .op-mobile-capacity-stat {padding:8px 3px}
+  body.admin-app #op-registrations {
+    scroll-margin-top:110px;
+    padding-bottom:calc(var(--mobile-nav-h,72px) + env(safe-area-inset-bottom) + 32px);
+  }
+}
+@media screen and (max-width:360px) {
+  body.admin-app #page-openplay .op-mobile-capacity {grid-template-columns:repeat(2,minmax(0,1fr))}
+  body.admin-app #page-openplay td.cell-actions.row-actions {grid-template-columns:minmax(0,1fr)}
+  body.admin-app #page-openplay table.data.as-cards > tbody > tr.is-card {grid-template-areas:
+      "event event" "date time" "location location" "fee collected"
+      "registered registered" "status visibility" "actions actions";
+  }
+}
+@media screen and (min-width:1025px) {
+  body.admin-app #page-openplay .op-mobile-capacity {display:none}
+}

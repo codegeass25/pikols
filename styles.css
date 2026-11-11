@@ -1110,7 +1110,6 @@ table.data.as-cards>tbody>tr.is-fullwidth>td{display:block;border:0;padding:0}
   /* Mobile record cards intentionally show only operationally useful fields. */
   #page-bookings table.as-cards td:nth-child(5),#page-bookings table.as-cards td:nth-child(6),#page-bookings table.as-cards td:nth-child(8){display:none}
   #page-tournaments table.as-cards td:nth-child(3),#page-tournaments table.as-cards td:nth-child(4),#page-tournaments table.as-cards td:nth-child(5),#page-tournaments table.as-cards td:nth-child(6),#page-tournaments table.as-cards td:nth-child(7){display:none}
-  #page-openplay table.as-cards td:nth-child(5),#page-openplay table.as-cards td:nth-child(6),#page-openplay table.as-cards td:nth-child(7){display:none}
   #page-notifications table.as-cards td:nth-child(5){display:none}
 }
 .event-detail-surface{padding:0 0 18px;border-bottom:1px solid var(--border)}.event-detail-section{padding:18px 0;border-bottom:1px solid var(--border)}.event-detail-section:last-child{border-bottom:0}

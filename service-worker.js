@@ -1,9 +1,9 @@
-const CACHE = 'pikol-v117-payments-visibility-20261111';
+const CACHE = 'pikol-v118-openplay-mobile-cards-20261111';
 const SHELL = [
   // Current HTML imports use these URLs. Keep their exact query versions in
   // the public allow-list so a fresh offline shell can load its real runtime.
   './occasion-promotions.css?v=83','./venue-ui.js?v=71','./mobile-fit.css?v=92-fraud-android',
-  './admin-premium.css?v=106-registration-receipts','./client-upgrades.css?v=56-android-native-scroll',
+  './admin-premium.css?v=118-openplay-mobile-cards-20261111','./styles.css?v=118-openplay-mobile-cards-20261111','./admin-premium.css?v=106-registration-receipts','./client-upgrades.css?v=56-android-native-scroll',
   './tournament-premium.js?v=74-system-audit','./venue-booking.css?v=89-responsive-v43','./mobile-fit.css?v=75-mobile-fit',
   './occasion-promotions.css?v=86-safe-remove','./occasion-admin.js?v=86-safe-remove',
   './mobile-fit.css?v=95-android-admin-global-scroll',
