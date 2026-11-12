@@ -21,7 +21,7 @@ if (/Android/i.test(navigator.userAgent || '')) document.documentElement.classLi
 <link rel="apple-touch-icon" href="icons/wenjelly-v73-apple.png" />
 <script src="config.js"></script>
 <script src="tournament-view.js"></script>
-<link rel="stylesheet" href="styles.css?v=118-openplay-mobile-cards-20261111" />
+<link rel="stylesheet" href="styles.css?v=119-openplay-groups-history-20261112" />
 <style>
 /* Booking photographs are wide previews, independent of logo sizing. */
 .admin-app .asset-card.booking-hero-asset{grid-column:1 / -1;grid-template-columns:minmax(180px,320px) minmax(0,1fr);gap:10px 20px}
@@ -34,7 +34,7 @@ if (/Android/i.test(navigator.userAgent || '')) document.documentElement.classLi
 .admin-app .promo-image-actions .btn{white-space:normal}
 @media(max-width:620px){.admin-app .asset-card.booking-hero-asset{grid-template-columns:minmax(0,1fr)}.admin-app .booking-hero-asset .asset-preview{grid-column:1;grid-row:auto}.admin-app .booking-hero-asset .card-title,.admin-app .booking-hero-asset>p,.admin-app .booking-hero-asset>.input,.admin-app .booking-hero-asset>.row,.admin-app .booking-hero-asset .promo-preview-note{grid-column:1}.admin-app .court-promo-preview{max-height:250px}}
 </style>
-<link rel="stylesheet" href="admin-premium.css?v=118-openplay-mobile-cards-20261111" />
+<link rel="stylesheet" href="admin-premium.css?v=119-openplay-groups-history-20261112" />
 
 <style id="pikol-payments-staff-two-card-v1">
 /* Visual-only: fit both existing summary cards across the Payments row for non-ADMIN staff. */
@@ -571,6 +571,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
             </div>
             <button class="btn btn-primary btn-sm" id="btn-new-openplay">＋ New Open Play</button>
           </div>
+          <div class="op-management-tabs" role="tablist" aria-label="Open Play event lifecycle"><button class="btn btn-outline" role="tab" data-op-bucket="active" aria-selected="true">Active &amp; Upcoming</button><button class="btn btn-outline" role="tab" data-op-bucket="history" aria-selected="false">Event History</button></div>
           <div class="field"><label class="label" for="op-venue-filter">Venue</label><select class="input" id="op-venue-filter"><option value="">All venues</option></select></div>
           <div class="table-wrap"><table class="data" data-mobile-cards="true">
             <thead><tr><th>Event</th><th>Date</th><th>Time</th><th>Entrance fee</th><th>Location</th><th>Registered</th><th>Collected</th><th>Status</th><th>Visibility</th><th>Actions</th></tr></thead>
@@ -982,7 +983,9 @@ body.admin-app.role-ready #view-app{visibility:visible}
 <div id="modal-root"></div>
 
 <link rel="stylesheet" href="openplay-smart.css?v=111-openplay-court-capacity-20261107">
-<script src="openplay-contest.js?v=116-admin-upgrades"></script>
+<script src="openplay-contest.js?v=119-openplay-groups-history-20261112"></script>
+<script src="openplay-upgrades.js?v=119-openplay-groups-history-20261112"></script>
+<link rel="stylesheet" href="openplay-upgrades.css?v=119-openplay-groups-history-20261112">
 <link rel="stylesheet" href="counter-bookings.css?v=116-admin-upgrades">
 <script src="counter-bookings.js?v=116-admin-upgrades"></script>
 <script src="qr-lite.js?v=67"></script>
@@ -1346,7 +1349,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
       var closed=['verified','rejected','approved','cancelled','completed'].indexOf(String(t.status||'').toLowerCase())>=0;
       var actions='';
       if(!closed && ['submitted','under_review'].indexOf(String(t.status||'').toLowerCase())>=0){
-        actions='<div class="action-panel review-actions"><strong>'+(isCash?'Cash collection':'Payment review')+'</strong><p class="tiny muted mt-2">'+(isCash?'Record only after cash is physically received.':'Compare the uploaded receipt with the actual receiving account transaction records before verifying.')+'</p><div class="field"><label class="label">Verification notes</label><textarea class="textarea" id="tx-review-notes" maxlength="400"></textarea></div><div class="row wrap"><button class="btn btn-success" data-tx-verify>'+(isCash?'Mark cash paid':'Mark paid')+'</button><button class="btn btn-danger" data-tx-reject>Reject</button></div></div>';
+        actions='<div class="action-panel review-actions"><strong>'+(isCash?'Cash collection':'Payment review')+'</strong><p class="tiny muted mt-2">'+(isCash?'Record only after cash is physically received.':'Compare the uploaded receipt with the actual receiving account transaction records before verifying.')+'</p><div class="field"><label class="label">Verification notes (required for ended-event financial settlement)</label><textarea class="textarea" id="tx-review-notes" maxlength="400"></textarea></div><div class="row wrap"><button class="btn btn-success" data-tx-verify>'+(isCash?'Mark cash paid':'Mark paid')+'</button><button class="btn btn-danger" data-tx-reject>Reject</button></div></div>';
       } else actions='<p class="tiny muted">Current status: '+esc(TX_STATUS_LABEL[t.unified_status]||t.unified_status)+'</p>';
       if(t.payment_channel==='counter'&&window.PikolCounter?.can(USER,t.booking_source)){
         actions+='<button type="button" class="btn btn-outline" data-counter-print="'+Number(t.source_id)+'">Print Payment Acknowledgment</button>';
@@ -1400,7 +1403,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
             return api(endpoint,{method:'POST',body:{reason:reason.trim()}}).then(function(data){done(data.account_restored?'Account restored. Payment remains invalidated.':'Appeal recorded; other active bans remain.');});
           }).catch(function(err){toast(err.message,'error');}).finally(function(){busy(appeal,false);});return;
         }
-        var vf=ev.target.closest('[data-tx-verify]'); if(vf){busy(vf,true);api('/api/admin/transactions/'+encodeURIComponent(t.transaction_key)+'/verify',{method:'POST',body:{verification_notes:($('#tx-review-notes',host)||{}).value||''}}).then(function(){done(t.transaction_type==='booking'?'Payment verified. Booking confirmed automatically.':isCash?'Cash received and recorded.':'Payment marked paid.');}).catch(function(e){toast(e.message,'error');}).finally(function(){busy(vf,false);});return;}
+        var vf=ev.target.closest('[data-tx-verify]'); if(vf){busy(vf,true);api('/api/admin/transactions/'+encodeURIComponent(t.transaction_key)+'/verify',{method:'POST',body:{verification_notes:($('#tx-review-notes',host)||{}).value||'',settle_ended:t.transaction_type==='open_play'}}).then(function(){done(t.transaction_type==='booking'?'Payment verified. Booking confirmed automatically.':isCash?'Cash received and recorded.':'Payment marked paid.');}).catch(function(e){toast(e.message,'error');}).finally(function(){busy(vf,false);});return;}
         var rj=ev.target.closest('[data-tx-reject]'); if(rj){var reason=prompt('Reason for rejection:','Reference/receipt could not be verified');if(!reason)return;busy(rj,true);api('/api/admin/transactions/'+encodeURIComponent(t.transaction_key)+'/reject',{method:'POST',body:{reason:reason,rejection_reason:reason}}).then(function(){done('Payment rejected.');}).catch(function(e){toast(e.message,'error');}).finally(function(){busy(rj,false);});}
       });
     }).catch(function(e){toast(e.message,'error');});
@@ -3935,12 +3938,13 @@ body.admin-app.role-ready #view-app{visibility:visible}
     var cells=[
       ['Maximum',e.capacity==null?'—':Number(e.capacity)],
       ['Online',Number(e.confirmed_online??e.confirmed??0)],
-      ['Guests',Number(e.confirmed_guests||0)],
+      ['Companions',Number(e.confirmed_companions||0)],
+      ['Direct guests',Number(e.confirmed_guests||0)],
       ['Reserved / held',holds],
       ['Available',e.slots_left==null?'—':Number(e.slots_left)]
     ];
     return '<div class="op-mobile-capacity" aria-label="Open Play registration availability">'+cells.map(function(c,i){
-      return '<span class="op-mobile-capacity-stat'+(i===4?' is-available':'')+'"><span class="op-mobile-capacity-number">'+esc(String(c[1]))+'</span><span class="op-mobile-capacity-label">'+esc(c[0])+'</span></span>';
+      return '<span class="op-mobile-capacity-stat'+(c[0]==='Available'?' is-available':'')+'"><span class="op-mobile-capacity-number">'+esc(String(c[1]))+'</span><span class="op-mobile-capacity-label">'+esc(c[0])+'</span></span>';
     }).join('')+'</div>';
   }
   function loadOpenPlay() {
@@ -3951,19 +3955,20 @@ body.admin-app.role-ready #view-app{visibility:visible}
       var filter=$('#op-venue-filter'),selected=filter.value||String(USER?.staff_venue_id||'');
       filter.innerHTML='<option value="">All venues</option>'+VENUES.map(function(v){return '<option value="'+v.id+'">'+esc(v.name)+'</option>';}).join('');
       filter.value=selected;filter.disabled=!!USER?.staff_venue_id;
-      $('#openplay-body').innerHTML = rows.filter(function(e){return !selected||String(e.venue_id)===selected;}).map(function (e) {
+      $$('[data-op-bucket]').forEach(function(button){var bucket=button.dataset.opBucket;button.setAttribute('aria-selected',String(bucket===OP_BUCKET));button.textContent=(bucket==='active'?'Active & Upcoming':'Event History')+' ('+rows.filter(function(e){return (!selected||String(e.venue_id)===selected)&&e.management_bucket===bucket;}).length+')';});
+      $('#openplay-body').innerHTML = rows.filter(function(e){return (!selected||String(e.venue_id)===selected)&&(e.management_bucket||'active')===OP_BUCKET;}).map(function (e) {
         var vis = e.published ? badge('Published', 'badge-approved') : badge('Hidden', 'badge-pending');
-        return '<tr role="link" tabindex="0" data-card-nav data-op-regs="'+e.id+'" aria-label="Open '+esc(e.title)+'"><td>' + esc(e.title) + (e.capacity ? '<div class="tiny muted">Capacity ' + e.capacity + '</div>' : '') + '</td>' +
+        return '<tr role="link" tabindex="0" data-card-nav data-op-regs="'+e.id+'" aria-label="Open '+esc(e.title)+'"><td>' + esc(e.title) + (e.completion_review_reason?'<div class="tiny op-history-reason">'+esc(e.completion_review_reason)+'</div>':'') + (e.capacity ? '<div class="tiny muted">Capacity ' + e.capacity + '</div>' : '') + '</td>' +
           '<td>' + dateCell(e.event_date) + '</td><td>' + timeCell(e.start_time, e.end_time, e.event_date) + '</td>' +
           '<td class="num">' + esc(money(e.entrance_fee)) + '</td><td><strong>' + esc(e.venue_name||e.location||'—') + '</strong><div class="tiny muted">'+esc(e.court_name||'—')+'</div></td>' +
           '<td class="num"><span class="op-capacity-desktop">' + (e.full?'FULL — ':'') + esc(PikolOpenPlay.capacitySummary(e)) + '</span>' + openPlayMobileCapacity(e) + (e.registration_closed_reason?'<div class="tiny muted">'+esc(e.registration_closed_reason)+'</div>':'') + '</td>' +
           '<td class="num">' + (staffCan('view_income')?esc(money(e.collected)):'—') + '</td>' +
-          '<td>' + badge(e.status.replace('_', ' '), e.status === 'published' ? 'badge-approved' : e.status === 'cancelled' ? 'badge-rejected' : 'badge-pending') + '</td>' +
+          '<td>' + badge(e.lifecycle_label||e.status.replace('_', ' '), e.status === 'published' ? 'badge-approved' : e.status === 'cancelled' ? 'badge-rejected' : 'badge-pending') + '</td>' +
           '<td>' + vis + '</td>' +
           '<td class="row-actions">' +
           '' +
           (staffCan('manage_live_queue')?'<button class="btn btn-ghost btn-sm" data-op-live="' + e.id + '">'+(e.contest?.enabled?'Contest & Courts':'Courts & Live Queue')+'</button> ':'')+
-          (isAdmin()?'<button class="btn btn-ghost btn-sm" data-op-guests="'+e.id+'">Direct Book Guests</button> ':'')+
+          (isAdmin()&&OP_BUCKET==='active'?'<button class="btn btn-ghost btn-sm" data-op-guests="'+e.id+'">Direct Book Guests</button> ':'')+
           (staffCan('manage_open_play')&&!e.registration_locked?'<button class="btn btn-ghost btn-sm" data-op-edit="' + e.id + '">Edit</button> ':'')+
           (staffCan('manage_open_play')?'<button class="btn btn-ghost btn-sm" data-op-status="' + e.id + '">Status</button> '+
           '<button class="btn btn-ghost btn-sm" data-op-delete="' + e.id + '">Delete</button>':'')+
@@ -3972,6 +3977,8 @@ body.admin-app.role-ready #view-app{visibility:visible}
       OP_CACHE = rows;
     }).catch(function (e) { toast(e.message, 'error'); });
   }
+  var OP_BUCKET='active';
+  $$('[data-op-bucket]').forEach(function(button){button.onclick=function(){OP_BUCKET=button.dataset.opBucket;OP_REGS_OPEN=null;$('#op-registrations').classList.add('hidden');loadOpenPlay();};});
   var OP_CACHE = [];
   $('#op-venue-filter').onchange=function(){OP_REGS_OPEN=null;$('#op-registrations').classList.add('hidden');loadOpenPlay();};
 
@@ -4104,16 +4111,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
         '<label class="label"><input type="checkbox" data-guest-verified> I received and verified the full group payment shown above.</label>'+
         '<div class="field"><label class="label" for="op-guest-notes">Remarks</label><textarea class="textarea" id="op-guest-notes" data-guest-notes maxlength="500"></textarea></div>'+
         '<button class="btn btn-primary" type="button" data-guest-save'+(!left||c.registration_closed_reason?' disabled':'')+'>Save guest reservation</button></div>'+
-        '<h3>Guest bookings</h3>'+(data.bookings.length?data.bookings.map(function(b){
-          return '<section class="op3-settings"><strong>'+esc(b.contact_name)+'</strong> · '+esc(b.contact_phone)+' · '+esc(b.status)+' · '+money(b.amount_due)+
-            '<p class="op3-small">'+esc(b.payment_method)+' · '+esc(b.payment_status)+(b.hold_expires_at?' · Hold until '+esc(new Date(b.hold_expires_at).toLocaleTimeString()):'')+'</p>'+
-            (b.status==='held'?'<div class="row"><button class="btn btn-outline btn-sm" data-guest-confirm="'+b.id+'">Verify group payment</button><button class="btn btn-ghost btn-sm" data-guest-release="'+b.id+'">Release unpaid hold</button></div>':'')+
-            b.players.map(function(p){
-              var inside=p.attendance_state&&p.attendance_state!=='left';
-              return '<div class="op3-row"><span>'+esc(p.full_name)+' · '+esc(p.player_division)+' · '+esc(p.attendance_state||'Not checked in')+'</span>'+
-                (b.status==='confirmed'?'<button class="btn btn-outline btn-sm" data-guest-check="'+p.id+'" data-check-action="'+(inside?'check-out':'check-in')+'">'+(inside?'Check out':'Check in')+'</button>':'')+'</div>';
-            }).join('')+'</section>';
-        }).join(''):'<p class="muted">No direct guest bookings.</p>');
+        '<p class="op3-small">Manage existing guests, holds and payments in Participants &amp; Live Queue.</p><button type="button" class="btn btn-outline" data-guest-manage>Participants &amp; Live Queue</button>';
       playerFields(Math.min(1,left));showBeforeAfter();
       $('[data-guest-count]',host).oninput=function(){
         var count=Number(this.value);
@@ -4128,8 +4126,8 @@ body.admin-app.role-ready #view-app{visibility:visible}
     }
     function refresh() {return api(endpoint).then(function(result){data=result;if(host.isConnected)draw();});}
     host.addEventListener('click',async function(ev){
-      var all=ev.target.closest('[data-guest-all]'),save=ev.target.closest('[data-guest-save]'),
-        confirmButton=ev.target.closest('[data-guest-confirm]'),release=ev.target.closest('[data-guest-release]'),check=ev.target.closest('[data-guest-check]');
+      if(ev.target.closest('[data-guest-manage]')){host.remove();return op3AdminBoard(id);}
+      var all=ev.target.closest('[data-guest-all]'),save=ev.target.closest('[data-guest-save]');
       try{
         if(all){
           $('[data-guest-count]',host).value=data.capacity.slots_left;host.dataset.reserveAll='true';
@@ -4145,21 +4143,6 @@ body.admin-app.role-ready #view-app{visibility:visible}
             fixed_pairs:$('[data-guest-fixed]',host).checked,reserve_all:host.dataset.reserveAll==='true',idempotency_key:requestKey,
             payment_reference:$('[data-guest-ref]',host).value,verified:$('[data-guest-verified]',host).checked,
             verified_amount:Math.round((Number(event?.entrance_fee)||0)*100)*count/100,notes:$('[data-guest-notes]',host).value}});
-        }else if(confirmButton){
-          var booking=data.bookings.find(function(b){return b.id===Number(confirmButton.dataset.guestConfirm);});
-          modal({title:'Verify guest group payment',confirmText:'Verify payment',body:'<p>'+money(booking.amount_due)+' for '+booking.players.length+' guests.</p>'+
-            '<div class="field"><label class="label" for="op-guest-verify-ref">Payment reference</label><input class="input" id="op-guest-verify-ref" maxlength="96"></div>'+
-            '<label class="label"><input type="checkbox" id="op-guest-verify-received"> The full amount has been received.</label>',
-            onConfirm:function(dialog){
-              if(!$('#op-guest-verify-received',dialog).checked)throw Error('Confirm receipt of the full payment.');
-              return api(endpoint+'/bookings/'+booking.id+'/confirm',{method:'POST',body:{verified:true,verified_amount:booking.amount_due,
-                payment_reference:$('#op-guest-verify-ref',dialog).value}}).then(function(){refresh();loadOpenPlay();});
-            }});return;
-        }else if(release){
-          var reason=prompt('Reason for releasing this unpaid guest hold');if(!reason)return;
-          await api(endpoint+'/bookings/'+release.dataset.guestRelease+'/release',{method:'POST',body:{reason:reason}});
-        }else if(check){
-          await api(endpoint+'/players/'+check.dataset.guestCheck+'/'+check.dataset.checkAction,{method:'POST',body:{}});
         }else return;
         await refresh();loadOpenPlay();
       }catch(error){toast(error.message,'error');}
@@ -4186,11 +4169,11 @@ body.admin-app.role-ready #view-app{visibility:visible}
       box.innerHTML = '<section class="section-shell"><div class="section-head"><h2 class="section-title">'+esc(event?event.title:'Open Play')+' · Attendees</h2>' +
         '<button class="btn btn-ghost btn-sm" id="op-regs-close">Close</button></div>' +
         '<div class="row mb-4">'+(staffCan('manage_live_queue')?'<button class="btn btn-outline btn-sm" data-op-panel-live>Courts &amp; Live Queue</button>':'')+
-        (isAdmin()?'<button class="btn btn-outline btn-sm" data-op-panel-guests>Direct Book Guests</button>':'')+'</div>'+
+        (isAdmin()&&event?.management_bucket!=='history'?'<button class="btn btn-outline btn-sm" data-op-panel-guests>Direct Book Guests</button>':'')+'</div>'+
         '<div class="table-wrap"><table class="data"><thead><tr><th>Client</th><th>Contact</th><th>Fee</th><th>Payment status</th><th>Registration status</th><th>Code</th><th>Review payment</th></tr></thead><tbody>' +
         (rows.map(function (r) {
           var pay = (r.payments || [])[(r.payments || []).length - 1];
-          return '<tr><td>' + esc(r.client_name) +(r.customer_type==='guest'?'<div class="tiny muted">Direct guest · Group #'+Number(r.guest_booking_id)+'</div>':'')+ '</td><td class="tiny">' + esc(r.client_email || '') +
+          return '<tr><td>' + esc(r.client_name) +(r.companions?.length?'<div class="tiny muted">Companions: '+r.companions.map(function(p){return esc(p.full_name);}).join(' · ')+'</div>':'') +(r.customer_type==='guest'?'<div class="tiny muted">Direct guest · Group #'+Number(r.guest_booking_id)+'</div>':'')+ '</td><td class="tiny">' + esc(r.client_email || '') +
             '<div class="muted">' + esc(r.client_mobile || '') + '</div></td>' +
             '<td class="num">' + esc(money(Number(r.gross_amount||0)||Number(r.amount_due||0)+Number(r.credit_used||0))) + (Number(r.credit_used||0)>0?'<div class="tiny muted">Credit '+esc(money(r.credit_used))+' · Cash '+esc(money(r.amount_due))+'</div>':'') + '</td>' +
             '<td>' + badge(PAY_LABEL[r.payment_status] || r.payment_status, PAY_BADGE[r.payment_status] || 'badge-pending') + '</td>' +
@@ -4406,7 +4389,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
   };
 
   /* ---------- In-Charge PWA push ---------- */
-  var ADMIN_SW_VERSION='118-openplay-mobile-cards-20261111';
+  var ADMIN_SW_VERSION='119-openplay-groups-history-20261112';
   var PUSH_PREP={reg:null,publicKey:null,serverStatus:null,ready:false,error:null,promise:null};
   function b64ToUint8(s){s=String(s||'').replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';var raw=atob(s),a=new Uint8Array(raw.length);for(var i=0;i<raw.length;i++)a[i]=raw.charCodeAt(i);return a;}
   function bytesEqual(a,b){if(!a||!b)return false;var x=new Uint8Array(a),y=new Uint8Array(b);if(x.length!==y.length)return false;for(var i=0;i<x.length;i++)if(x[i]!==y[i])return false;return true;}
@@ -5460,7 +5443,7 @@ body.admin-app.role-ready #view-app{visibility:visible}
     if(!staffCan('manage_live_queue'))return;
     var host=modal({title:'Open Play · Live Court Control',wide:true,body:'<div id="op3-admin-live" class="op3-shell op3-live-mount"><div class="op3-empty">Loading real court status...</div></div>'});
     var root=$('#op3-admin-live',host),base='/api/admin/open-play/'+id+'/smart',loading=false;
-    var live=null, prepared=null;
+    var live=null, prepared=null, rosterFilter='all';
     function renderPreview(){
       var box=$('#op-contest-preview',root);
       if(box&&prepared)box.innerHTML=PikolOpenPlay.preview(prepared,esc,money);
@@ -5485,17 +5468,37 @@ body.admin-app.role-ready #view-app{visibility:visible}
       (contest?'':'<p class="op3-small op3-auto-status">'+(Number(v.event.auto_dispatch)===1&&(v.rack||v.event.rotation_mode!=='winners_stay')?'⚡ Automatic next-court calling is enabled during this session.':'Host-controlled calling is enabled. Tap Call Next Group for each free court.')+'</p>')+
       '<div class="op3-inline-actions op3-admin-ops">'+(contest&&(contest.status!=='IN_PROGRESS'||!Number(v.event.warmup_games))?'':'<button class="op3-btn" data-op3-warmup="1">🔔 Warm-up Next Group</button>')+'<button class="op3-btn secondary" data-op3-qr="1">⌗ Venue QR Check-in</button><button class="op3-btn secondary" data-op3-refresh="1">↻ Refresh</button></div>'+
       '<h3 class="op3-section">Partner Approval Requests</h3>'+(v.pending_pairs||[]).map(function(p){return '<div class="op3-row"><span>'+esc(p.inviter_name)+' + '+esc(p.invitee_name)+' · Mixed Division</span><button class="op3-btn" data-op3-approve="'+Number(p.id)+'">Approve Pair</button></div>';}).join('')+
-      '<h3 class="op3-section">Live Playing Courts</h3><div class="op3-courts">'+courts.map(function(c){return op3Court(c,games.find(function(g){return Number(g.court_id)===Number(c.id);}),!contest||contest.status==='IN_PROGRESS');}).join('')+'</div>'+
+       '<h3 class="op3-section">Live Playing Courts</h3><div class="op3-courts">'+courts.map(function(c){var game=games.find(function(g){return Number(g.court_id)===Number(c.id);});return op3Court(c,game,v.event.ended?game?.state==='playing':!contest||contest.status==='IN_PROGRESS');}).join('')+'</div>'+
       (v.rack?PikolOpenPlay.paddleRack(v,esc,true):'<h3 class="op3-section">Waiting Players & Fixed Pairs</h3>'+(waiting.length?waiting.map(function(p){
         var progress=PikolOpenPlay.playerProgress(contest,p.user_id);
         var count=contest?(progress?' · Completed Games: '+progress.completed+' / '+progress.quota:''):' · '+Number(p.games_played)+' games';
         return '<div class="op3-row"><span><strong>'+esc(p.full_name)+'</strong><small> · '+esc(p.player_division)+count+'</small></span><b>'+esc(quotaMet(p)?'Quota complete':p.state)+'</b></div>';
       }).join(''):'<div class="op3-empty">No checked-in waiting players yet.</div>'));
+      root.insertAdjacentHTML('beforeend',PikolOpenPlayUpgrades.roster(v,{esc,admin:isAdmin(),payments:staffCan('verify_event_payments')}));
+      var rosterSelect=$('[data-participant-filter]',root);rosterSelect.value=rosterFilter;filterRoster();
       renderPreview();
       $$('[data-paddle-member]',root).forEach(x=>{x.checked=selectedPaddles.has(x.value);});
       $$('details > summary',root).forEach(x=>{if(open.includes(x.textContent))x.parentElement.open=true;});
       $('.modal-body',host).scrollTop=scroll;
     }).catch(function(e){if(host.isConnected)root.innerHTML='<div class="op3-alert">'+esc(e.message)+'</div><button class="op3-btn secondary" data-op3-refresh="1">Retry</button>';}).finally(function(){loading=false;});}
+    function filterRoster(){var select=$('[data-participant-filter]',root);if(!select)return;rosterFilter=select.value;$$('[data-roster-state]',root).forEach(function(row){var state=row.dataset.rosterState;row.hidden=rosterFilter!=='all'&&(rosterFilter==='absent'?!['absent','left'].includes(state):rosterFilter==='playing'?!['playing','called'].includes(state):state!==rosterFilter);});}
+    host.addEventListener('change',function(ev){if(ev.target.matches('[data-participant-filter]'))filterRoster();});
+    host.addEventListener('click',async function(ev){
+      var button=ev.target.closest('[data-participant-action],[data-participant-payment],[data-participant-registration],[data-participant-release],[data-direct-checkout]');if(!button||button.disabled)return;
+      try{
+        if(button.dataset.participantPayment)return openGuestTransactionModal(Number(button.dataset.participantPayment),refresh);
+        if(button.dataset.participantRegistration){
+          var rows=await api('/api/admin/open-play/'+id+'/registrations'),r=rows.find(function(r){return r.id===Number(button.dataset.participantRegistration);}),p=r?.payments?.at(-1);
+          if(p)return openPaymentModal(p.id,refresh);
+          return modal({title:'Open Play group booking',body:'<p>'+esc(r?.client_name||'')+'</p><p>Group size: '+Number(r?.group_size||1)+'</p><p>'+money(r?.gross_amount||0)+' · '+esc(r?.payment_status||'')+'</p>'});
+        }
+        busy(button,true);
+        if(button.dataset.participantRelease){var releaseReason=prompt('Reason for releasing this unpaid guest hold:');if(!releaseReason)return;await api('/api/admin/open-play/'+id+'/guests/bookings/'+button.dataset.participantRelease+'/release',{method:'POST',body:{reason:releaseReason}});}
+        else if(button.dataset.directCheckout)await api('/api/admin/open-play/'+id+'/guests/players/'+button.dataset.directCheckout+'/check-out',{method:'POST',body:{}});
+        else {var action=button.dataset.participantAction,body={};if(action!=='check-in'){body.reason=prompt(action==='absent'?'Reason for marking this participant absent (booking and payment remain):':'Reason for restoring this participant:');if(!body.reason)return;}await api(base+'/participants/'+button.dataset.participant+'/'+action,{method:'POST',body:body});}
+        toast('Participant record updated.','success');await refresh();loadOpenPlay();
+      }catch(error){toast(error.message,'error');}finally{busy(button,false);}
+    });
     host.addEventListener('click',function(ev){var b=ev.target.closest('[data-op3-dispatch],[data-op3-action],[data-op3-warmup],[data-op3-qr],[data-op3-refresh],[data-op3-approve]');if(!b||b.disabled)return;
       if(b.dataset.op3Refresh)return refresh();
       if(b.dataset.op3Approve){b.disabled=true;return api(base+'/pairs/'+Number(b.dataset.op3Approve)+'/approve',{method:'POST',body:{}}).then(function(){toast('Fixed pair approved. Invitee may accept now.','success');return refresh();}).catch(function(e){toast(e.message,'error');}).finally(function(){b.disabled=false;});}

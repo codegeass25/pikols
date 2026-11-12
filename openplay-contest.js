@@ -166,7 +166,7 @@
   function capacitySummary(event) {
     if(event.registered==null)return '';
     return (event.capacity?'Maximum '+Number(event.capacity)+' · ':'')+
-      Number(event.confirmed_online??event.confirmed??0)+' online confirmed · '+Number(event.confirmed_guests||0)+' guests confirmed · '+
+      Number(event.confirmed_online??event.confirmed??0)+' online confirmed · '+Number(event.confirmed_companions||0)+' companions confirmed · '+Number(event.confirmed_guests||0)+' direct guests confirmed · '+
       (Number(event.held||0)+Number(event.under_review||0))+' reserved/held'+(event.slots_left==null?'':' · '+Number(event.slots_left)+' available');
   }
 

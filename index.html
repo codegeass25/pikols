@@ -779,7 +779,9 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
 <div id="modal-root"></div>
 
 <script src="range-availability.js?v=56-android-native-scroll"></script>
-<script src="openplay-contest.js?v=116-admin-upgrades"></script>
+<script src="openplay-contest.js?v=119-openplay-groups-history-20261112"></script>
+<script src="openplay-upgrades.js?v=119-openplay-groups-history-20261112"></script>
+<link rel="stylesheet" href="openplay-upgrades.css?v=119-openplay-groups-history-20261112">
 <script src="password-recovery.js?v=110-paddle-recovery-20261105"></script>
 <script src="registration-guide.js?v=113-registration-guide"></script>
 <script>
@@ -2447,10 +2449,10 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
     };
   }
   function eventEnded(e, now) {
-    if (e && typeof e.ended === 'boolean' && e.ends_at) return e.ended;
+    if(e&&e.ends_at)return Date.parse(e.ends_at)<=(now||Date.now());
     var w = eventWindow(e.event_date, e.start_time, e.end_time);
     if (!w.end) return false;
-    return w.end.getTime() < (now || Date.now());
+    return w.end.getTime() <= (now || Date.now());
   }
 
   function paymentConfig() {
@@ -2789,17 +2791,18 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
           '<div class="op3-settings">'+(invite?'<div class="op3-alert">Partner invitation from '+esc(invite.inviter_name)+'. Select With Fixed Partner and complete your own registration. Then accept the invitation under Live Queue.</div>':'')+'<div class="op3-label">Playing mode: '+esc(e.playing_mode==='mix'?'Open Mix':'Division-Based')+'</div><div class="op3-label">Allowed divisions: '+esc((Array.isArray(e.allowed_divisions)?e.allowed_divisions:String(e.allowed_divisions||'').split('|')).join(', '))+'</div>'+
           '<label class="op3-label" for="op3-join-mode">Register as</label><select class="op3-select" id="op3-join-mode">'+(e.registration_mode!=='pair'?'<option value="individual">Individual (solo)</option>':'')+(e.registration_mode!=='individual'?'<option value="pair" '+(e.registration_mode==='pair'||invite||acceptedPair?'selected':'')+'>With Fixed Partner</option>':'')+'</select>'+
           '<div class="op3-partner-box" id="op3-partner-box" hidden><label class="op3-label">Find registered partner</label><input class="input" id="op3-partner-q" placeholder="Search player name" autocomplete="off"><div id="op3-partner-results" class="op3-partner-results"></div><p class="op3-small" id="op3-selected">Partner must accept and independently complete their registration/payment. Fixed pair activates only after both confirm.</p></div></div>'+
-          creditChoiceHtml(Number(q.amount||0),'op-use-credit') +
+          '<div data-op-group></div><div data-op-group-credit>'+creditChoiceHtml(Number(q.amount||0),'op-use-credit')+'</div>' +
           '<div class="field"><label class="label" for="op-notes">Notes (optional)</label><textarea class="textarea" id="op-notes" maxlength="300"></textarea></div>' +
           '</div>',
-        onConfirm: function (host) {
+        onConfirm: async function (host) {
+          var groupPayload=await groupForm.ready();
           var mode=$('#op3-join-mode',host).value,partnerId=Number(host.dataset.op3Partner||0);
-          if(mode==='pair'&&!partnerId&&!invite&&!acceptedPair)throw new Error('Select a registered partner before joining as a pair.');
-          return api('/api/open-play/' + e.id + '/register', { method: 'POST', body: { join_mode:mode, notes: $('#op-notes', host).value, expected_amount:q.amount, use_credit: !!($('#op-use-credit',host)&&$('#op-use-credit',host).checked) } })
+          if(mode==='pair'&&!groupForm.count()&&!partnerId&&!invite&&!acceptedPair)throw new Error('Select a registered partner before joining as a pair.');
+          return api('/api/open-play/' + e.id + '/register', { method: 'POST', body: Object.assign({},groupPayload,{join_mode:mode,notes:$('#op-notes',host).value,expected_amount:q.amount,use_credit:!!($('#op-use-credit',host)&&$('#op-use-credit',host).checked)}) })
             .then(async function (r) {
               try {
                 if(mode==='pair' && invite && invite.status==='pending') await api('/api/open-play/'+e.id+'/smart/pairs/'+invite.id+'/respond',{method:'POST',body:{accept:true}});
-                if(mode==='pair' && partnerId) await api('/api/open-play/'+e.id+'/smart/invite',{method:'POST',body:{partner_user_id:partnerId}});
+                if(mode==='pair' && partnerId&&!groupForm.count()) await api('/api/open-play/'+e.id+'/smart/invite',{method:'POST',body:{partner_user_id:partnerId}});
               } catch(err) { toast('Registration saved. Open Live Queue from My registrations to retry your partner invitation: '+err.message,'warning'); }
 
               toast(r.payment_retry
@@ -2818,8 +2821,10 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
         }
       });
       var opHost=opDlg.host,modeSelect=$('#op3-join-mode',opHost),partnerBox=$('#op3-partner-box',opHost),searchInput=$('#op3-partner-q',opHost),results=$('#op3-partner-results',opHost);
-      function updatePartnerMode(){partnerBox.hidden=modeSelect.value!=='pair'||!!invite||acceptedPair;}
+      var groupForm;
+      function updatePartnerMode(){partnerBox.hidden=modeSelect.value!=='pair'||!!invite||acceptedPair||!!groupForm?.count();}
       modeSelect.addEventListener('change',updatePartnerMode);updatePartnerMode();
+      groupForm=PikolOpenPlayUpgrades.mount(opHost,{event:e,quote:q,api,esc,money,creditHtml:creditChoiceHtml,onChange:updatePartnerMode});
       op3WirePartnerSearch(opHost);
       registrationGuideButton(opDlg,function(){
         if(current()&&opHost.isConnected)PikolRegistrationGuide.open(modal,'openplay',context,{fromForm:true});
@@ -2853,8 +2858,8 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
           'data-pay-name="' + esc(name) + '" data-pay-sub="' + esc(subtitle || '') + '">' + label + '</button>';
       }
     }
-    if (r.can_cancel || r.is_active) {
-      pay += (pay ? ' ' : '') + '<button class="btn btn-outline btn-sm" data-cancel-registration="' + eventType + ':' + r.id + '">Cancel</button>';
+    if(r.can_cancel===true&&(!r.ends_at||Date.parse(r.ends_at)>Date.now())){
+      pay += (pay ? ' ' : '') + '<button class="btn btn-outline btn-sm" data-cancel-registration="' + eventType + ':' + r.id + '" data-cancel-until="'+esc(r.ends_at||'')+'">Cancel</button>';
     }
     return pay;
   }
@@ -2893,6 +2898,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
         return '<div class="list-row has-cols">' +
           '<span class="list-lead">◍</span>' +
           '<span class="list-main"><span class="list-title">' + esc(r.title) + '</span>' +
+          (r.companions?.length?'<span class="list-sub">Group ('+Number(r.group_size)+'): '+r.companions.map(function(p){return esc(p.full_name);}).join(' · ')+'</span>':'') +
           '<span class="list-sub">' + esc(whenText(r.event_date, r.start_time, r.end_time)) + (r.location ? ' · ' + esc(r.location) : '') + '</span>' +
           (r.registration_code ? '<span class="list-sub">Code: ' + esc(r.registration_code) + '</span>' : '') +
           (pay && pay.status === 'rejected' && pay.rejection_reason ? '<span class="list-sub is-danger">Receipt issue: ' + esc(pay.rejection_reason) + '</span>' : '') +
@@ -2903,6 +2909,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
           '<span class="badge badge-' + (r.status === 'confirmed' ? 'confirmed' : r.status === 'rejected' ? 'rejected' : 'pending') + '">' +
           esc(r.hold_expired?'Payment hold expired':OPREG_LABEL_C[r.status] || r.status) + '</span>' +
           payActions('open_play', r, r.title, whenText(r.event_date, r.start_time, r.end_time)) +
+          (r.contest_state==='FINALIZED'?'<button class="btn btn-outline btn-sm" data-op-owned-results="'+Number(r.event_id)+'">Official results</button>':'') +
           (r.is_active?' <button class="btn btn-outline btn-sm" data-op-live="'+Number(r.event_id)+'">Live Queue &amp; Partner</button>':'') +
           '</span></div>';
       }).join('') : '<div class="empty"><strong>No Open Play registrations</strong>Join a session from the Open Play tab.</div>';
@@ -3401,8 +3408,8 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
       (c.cash_prizes?' · Cash prizes '+c.prizes.map((n,i)=>'Top '+(i+1)+' '+esc(money(n))).join(' / '):'')+'</p>'+
       (c.status==='FINALIZED'?'<button class="btn btn-outline" data-op-official="'+Number(e.id)+'">Official results</button>':'');
   }
-  function opPublicResults(id){
-    return api('/api/open-play/'+id+'/contest').then(function(data){
+  function opPublicResults(id,owned){
+    return api(owned?'/api/my/open-play/'+id+'/results':'/api/open-play/'+id+'/contest').then(function(data){
       if(!data.official)throw Error('Official results are pending finalization.');
       var c={...data,players:[],matches:[],standings:data.official.rankings};
       var dlg=modal({title:data.event.title+' · Official Results',wide:true,body:PikolOpenPlay.board(c,esc,money,false),cancelText:'Close'});
@@ -3417,6 +3424,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
     }catch(error){toast(error.message||'Unable to generate the results poster.','error');}
   }
   document.addEventListener('click',function(ev){
+    var owned=ev.target.closest('[data-op-owned-results]');if(owned)return opPublicResults(Number(owned.dataset.opOwnedResults),true);
     var b=ev.target.closest('[data-op-official]');
     if(b)opPublicResults(Number(b.dataset.opOfficial));
   });
@@ -3847,7 +3855,7 @@ html,body{width:100%;max-width:100%;overflow-x:hidden}
   window.addEventListener('appinstalled',function(){setMarked(true);deferredPrompt=null;sync();});
   window.addEventListener('pageshow',sync);document.addEventListener('visibilitychange',function(){if(!document.hidden)sync();});
   if(btn)btn.addEventListener('click',async function(){if(!deferredPrompt)return;btn.disabled=true;try{await deferredPrompt.prompt();var c=await deferredPrompt.userChoice;if(c&&c.outcome==='accepted')setMarked(true);}catch(_){}deferredPrompt=null;btn.disabled=false;sync();});
-  if('serviceWorker' in navigator)window.addEventListener('load',function(){navigator.serviceWorker.register('service-worker.js?v=118-openplay-mobile-cards-20261111',{scope:'./',updateViaCache:'none'}).then(function(reg){return reg.update();}).catch(function(){});});
+  if('serviceWorker' in navigator)window.addEventListener('load',function(){navigator.serviceWorker.register('service-worker.js?v=119-openplay-groups-history-20261112',{scope:'./',updateViaCache:'none'}).then(function(reg){return reg.update();}).catch(function(){});});
   sync();
 })();
 </script>
